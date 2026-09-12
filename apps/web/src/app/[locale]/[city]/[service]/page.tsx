@@ -156,12 +156,12 @@ export default async function LandingPage(
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="container" style={{ paddingBlock: 'var(--space-10)' }}>
-        <nav aria-label="Breadcrumb" style={{ fontSize: '0.8125rem', marginBottom: 'var(--space-5)' }}>
+        <nav aria-label="Breadcrumb" className="text-body-sm" style={{ marginBottom: 'var(--space-5)' }}>
           <ol className="row" style={{ gap: 'var(--space-2)', listStyle: 'none', padding: 0 }}>
-            <li><Link href={`/${seg}`} className="muted">{m.brand.name}</Link></li>
-            <li aria-hidden="true" className="muted">/</li>
-            <li className="muted">{r.city.province}</li>
-            <li aria-hidden="true" className="muted">/</li>
+            <li><Link href={`/${seg}`} className="muted">{m.brand.name.toLowerCase()}</Link></li>
+            <li aria-hidden="true" className="dim">/</li>
+            <li className="dim">{r.city.province}</li>
+            <li aria-hidden="true" className="dim">/</li>
             <li>{name}</li>
           </ol>
         </nav>
@@ -185,11 +185,11 @@ export default async function LandingPage(
         {/* Arz yetersizse bekleme listesi — sayfa noindex olur ama kullaniciya deger sunar */}
         {rule.showWaitlist && (
           <div
-            className="card"
-            style={{ padding: 'var(--space-5)', marginTop: 'var(--space-6)', background: 'var(--color-accent-subtle)' }}
+            className="card card-pad"
+            style={{ marginTop: 'var(--space-6)', background: 'var(--color-accent-subtle)', borderColor: 'transparent' }}
           >
             <h2 className="text-h4" style={{ marginBottom: 'var(--space-2)' }}>{m.seo[rule.reasonKey.split('.')[1] as keyof typeof m.seo]}</h2>
-            <p className="muted" style={{ marginBottom: 'var(--space-4)', fontSize: '0.875rem' }}>
+            <p className="muted text-body-sm" style={{ marginBottom: 'var(--space-4)' }}>
               {m.search.noResults}
             </p>
             <button className="btn btn-primary" type="button">{m.search.joinWaitlist}</button>
@@ -201,7 +201,7 @@ export default async function LandingPage(
             <h2 className="text-h3" style={{ marginBottom: 'var(--space-5)' }}>
               {interpolate(m.search.resultsCount, { count: numberFmt(data.sitterCount, r.locale) })}
             </h2>
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+            <div className="grid grid-cards">
               {data.sitters.map((s) => (
                 <SitterCard key={s.id} sitter={s} serviceType={r.service} locale={r.locale} />
               ))}
@@ -218,7 +218,7 @@ export default async function LandingPage(
             {faqs.map((f) => (
               <details key={f.q} className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
                 <summary style={{ fontWeight: 600, cursor: 'pointer', minHeight: '24px' }}>{f.q}</summary>
-                <p className="muted" style={{ marginTop: 'var(--space-3)', fontSize: '0.9375rem' }}>{f.a}</p>
+                <p className="muted" style={{ marginTop: 'var(--space-3)' }}>{f.a}</p>
               </details>
             ))}
           </div>
@@ -233,7 +233,7 @@ export default async function LandingPage(
               <Link
                 key={s}
                 href={`/${seg}/${citySlug(r.city, r.locale)}/${serviceSlug(s, r.locale)}`}
-                className="btn btn-secondary"
+                className="chip"
               >
                 {m.service[s]}
               </Link>
@@ -258,7 +258,7 @@ export default async function LandingPage(
           </div>
         </section>
 
-        <p className="muted" style={{ marginTop: 'var(--space-10)', fontSize: '0.75rem' }}>
+        <p className="dim text-body-sm" style={{ marginTop: 'var(--space-10)' }}>
           {r.locale === 'fr-CA' ? 'Données à jour au ' : 'Data as of '}
           <time dateTime={data.dataAsOf}>{dateFmt(data.dataAsOf, r.locale)}</time>
           {' · '}

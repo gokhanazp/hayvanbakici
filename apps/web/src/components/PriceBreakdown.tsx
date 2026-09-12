@@ -14,7 +14,7 @@ export function PriceBreakdown({ input, locale }: { input: QuoteInput; locale: L
   const ownerLines = q.lines.filter((l) => l.side === 'owner');
 
   return (
-    <div className="card" style={{ padding: 'var(--space-5)' }}>
+    <div className="card card-pad">
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
         <tbody>
           {ownerLines.map((line) => (
@@ -28,34 +28,24 @@ export function PriceBreakdown({ input, locale }: { input: QuoteInput; locale: L
             </tr>
           ))}
           <tr>
-            <td className="muted" style={{ padding: 'var(--space-2) 0' }}>{m.quote.tax}</td>
-            <td className="tabular muted" style={{ textAlign: 'right' }}>
-              {money(q.ownerTaxCents, locale)}
-            </td>
+            <td className="dim" style={{ padding: 'var(--space-2) 0' }}>{m.quote.tax}</td>
+            <td className="tabular dim" style={{ textAlign: 'right' }}>{money(q.ownerTaxCents, locale)}</td>
           </tr>
           <tr style={{ borderTop: '1px solid var(--color-border)' }}>
-            <th scope="row" style={{ padding: 'var(--space-3) 0', textAlign: 'left' }}>
-              {m.quote.total}
-            </th>
-            <td className="tabular" style={{ textAlign: 'right', fontWeight: 600, fontSize: '1.0625rem' }}>
-              {money(q.ownerTotalCents, locale)}
-            </td>
+            <th scope="row" style={{ padding: 'var(--space-3) 0', textAlign: 'left' }}>{m.quote.total}</th>
+            <td className="tabular text-h4" style={{ textAlign: 'right' }}>{money(q.ownerTotalCents, locale)}</td>
           </tr>
         </tbody>
       </table>
 
-      <p className="muted" style={{ fontSize: '0.75rem', marginTop: 'var(--space-3)' }}>
-        {m.quote.allFeesIncluded}
-      </p>
+      <p className="dim text-body-sm" style={{ marginTop: 'var(--space-3)' }}>{m.quote.allFeesIncluded}</p>
 
       {/* Bakiciya seffaflik: hangi komisyon, neden */}
       <p
+        className="text-body-sm"
         style={{
-          fontSize: '0.75rem',
-          marginTop: 'var(--space-3)',
-          padding: 'var(--space-3)',
-          background: 'var(--color-primary-subtle)',
-          borderRadius: 'var(--radius-md)',
+          marginTop: 'var(--space-3)', padding: 'var(--space-3)',
+          background: 'var(--color-primary-subtle)', borderRadius: 'var(--radius-md)',
         }}
       >
         {m.commission[q.commission.attribution]}

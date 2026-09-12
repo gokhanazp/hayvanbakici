@@ -19,12 +19,13 @@ export const space = {
   32: '8rem',       // 128
 } as const;
 
+/** Yumusatilmis geometri — "C acik" yonunun imzasi. Rozetler hap bicimli. */
 export const radius = {
-  sm: '6px',     // rozet, etiket
-  md: '10px',    // buton, input
-  lg: '16px',    // kart
-  xl: '24px',    // modal, bolum kapsayici
-  full: '999px', // avatar, pill
+  sm: '10px',    // kucuk kontrol
+  md: '14px',    // buton, input
+  lg: '20px',    // kart
+  xl: '28px',    // hero paneli, modal
+  full: '999px', // avatar, rozet, filtre cipi, birincil CTA
 } as const;
 
 /** Golgeler siyah degil, sicak tonlu */

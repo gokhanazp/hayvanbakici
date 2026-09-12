@@ -1,5 +1,5 @@
 import { getMessages, interpolate, type Locale } from '@havre/i18n';
-import { money, numberFmt } from '@/lib/format';
+import { numberFmt } from '@/lib/format';
 
 /**
  * Canli guven seridi — sayfanin benzersizligini saglayan veri (yol haritasi §7.7).
@@ -22,29 +22,18 @@ export function TrustStrip({
   const m = getMessages(locale);
   const items = [
     interpolate(m.home.trustStripSitters, { count: numberFmt(sitterCount, locale), city: cityName }),
-    interpolate(m.home.trustStripPrice, { price: (medianPriceCents / 100).toFixed(0) }),
+    interpolate(m.home.trustStripPrice, { price: Math.round(medianPriceCents / 100) }),
     interpolate(m.home.trustStripBookings, { count: numberFmt(bookingCount, locale) }),
   ];
 
   return (
-    <div
-      className="row"
-      style={{
-        gap: 'var(--space-4)',
-        padding: 'var(--space-4)',
-        background: 'var(--color-primary-subtle)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-lg)',
-        fontSize: '0.875rem',
-      }}
-    >
+    <div className="trust-strip">
       {items.map((text, i) => (
-        <span key={i} className="row" style={{ gap: 'var(--space-2)' }}>
-          {i > 0 && <span aria-hidden="true" className="muted">·</span>}
+        <span key={i} className="row" style={{ gap: 'var(--space-4)' }}>
+          {i > 0 && <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>}
           <span>{text}</span>
         </span>
       ))}
-      <span className="sr-only">{money(medianPriceCents, locale)}</span>
     </div>
   );
 }

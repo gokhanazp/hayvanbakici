@@ -36,6 +36,15 @@ export const palette = {
   danger500:  '#B23A2E',
   info500:    '#2C5F8A',
 
+  // Panel — koyu ladin. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
+  // (tasarim karari: koyu arayuz uzun bakici listelerinde yoruyor).
+  panel:          '#161810',
+  panelRaised:    '#1F2419',
+  panelInk:       '#F7F4EC',
+  panelInkMuted:  '#D2D0C5',
+  panelPrimary:   '#7FD1AA',
+  panelAccent:    '#E29354',
+
   // Guven rozetleri — bilincli olarak marka renginden ayri
   verifyId:      '#2C5F8A',
   verifyCheck:   '#2F6B52',
@@ -61,6 +70,12 @@ export const lightTheme = {
   'accent':          palette.accent500,
   'accent-hover':    palette.accent600,
   'accent-subtle':   palette.accent100,
+  'panel':           palette.panel,
+  'panel-raised':    palette.panelRaised,
+  'panel-ink':       palette.panelInk,
+  'panel-ink-muted': palette.panelInkMuted,
+  'panel-primary':   palette.panelPrimary,
+  'panel-accent':    palette.panelAccent,
   'success':         palette.success500,
   'warning':         palette.warning500,
   'danger':          palette.danger500,
@@ -89,6 +104,12 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'accent':          '#E29354',
   'accent-hover':    '#EDA467',
   'accent-subtle':   '#2E1F13',
+  'panel':           '#0E100A',
+  'panel-raised':    '#181C12',
+  'panel-ink':       '#F7F4EC',
+  'panel-ink-muted': '#B8B6AB',
+  'panel-primary':   '#7FD1AA',
+  'panel-accent':    '#E29354',
   'success':         '#4E9B6E',
   'warning':         '#D9A43A',
   'danger':          '#D0604F',

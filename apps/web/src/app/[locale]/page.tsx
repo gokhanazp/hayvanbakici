@@ -4,6 +4,7 @@ import { getMessages, localeFromSegment, segmentFor, serviceSlug } from '@havre/
 import { servicesForPhase, calculateCommission, compareToRover, dollars } from '@havre/core';
 import { SearchBar } from '@/components/SearchBar';
 import { TrustStrip } from '@/components/TrustStrip';
+import { ShieldIcon } from '@/components/VerificationBadge';
 import { CITIES, cityName, citySlug, getLandingData } from '@/lib/data';
 import { money } from '@/lib/format';
 
@@ -19,34 +20,50 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const toronto = CITIES[0]!;
   const data = await getLandingData(toronto, 'boarding', locale);
 
-  // Ucret seffafligi bolumu icin canli karsilastirma.
-  //
-  // ⚠️ COMPETITION ACT (yol haritasi §8.6): Reklam iddialari ISPATLANABILIR olmali;
-  // ceza sirketler icin 10M CAD'e veya dunya brut gelirinin %3'une kadar cikar ve
-  // 20 Haz 2025'ten beri ozel taraflar dogrudan Tribunal'a basvurabiliyor.
-  //
-  // Bu yuzden karsilastirmayi Rover'in KANADA GENELINDE gecerli STANDART orani
-  // (%20) uzerinden yapiyoruz. Tier 1 (%30) yalnizca 7 sehirde pilot ve
-  // Toronto/Montreal'de gecerli degil — onu iddiaya dayanak yapmak yaniltici olur.
+  /**
+   * Ucret seffafligi bolumu icin canli karsilastirma.
+   *
+   * COMPETITION ACT (yol haritasi §8.6): reklam iddialari ISPATLANABILIR olmali.
+   * Karsilastirma Rover'in KANADA GENELINDE gecerli STANDART orani (%20) uzerinden
+   * yapilir; Tier 1 (%30) yalnizca 7 sehirde pilot ve Toronto/Montreal'de gecerli degil.
+   */
   const sample = dollars(500);
   const ours = calculateCommission({ subtotalCents: sample, attribution: 'sitter_referral' });
   const vsRover = compareToRover(sample, ours, 'standard');
 
   return (
     <>
-      <section className="container" style={{ paddingBlock: 'var(--space-16)' }}>
-        <div style={{ maxWidth: '42rem' }}>
-          <h1 className="text-display" style={{ marginBottom: 'var(--space-4)' }}>
-            {m.home.heroTitle}
-          </h1>
-          <p className="text-body-lg muted" style={{ marginBottom: 'var(--space-8)' }}>
-            {m.home.heroSubtitle}
-          </p>
+      {/* ---- Hero: fotograf + scrim. Koyuluk TEK bloga hapsedilir. ---- */}
+      <section className="container" style={{ paddingBlock: 'var(--space-4) 0' }}>
+        <div className="hero">
+          {/*
+            Gercek fotograf geldiginde bu blok next/image ile degistirilir:
+            <Image className="hero-media" src={hero} alt="" priority placeholder="blur" fill />
+            Spec: 2.2:1, >=1760x800, konu SAG yarida (sol yari metne ayrildi).
+          */}
+          <div className="hero-media-placeholder" aria-hidden="true" />
+
+          <div className="hero-body">
+            <span className="eyebrow">
+              <span style={{ color: 'var(--color-panel-primary)', display: 'inline-flex' }}>
+                <ShieldIcon size={14} />
+              </span>
+              {locale === 'fr-CA' ? "Fait ici, au Canada · en-CA & fr-CA" : 'Built in Canada · en-CA & fr-CA'}
+            </span>
+
+            <h1 className="text-display" style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
+              {m.home.heroTitle}
+            </h1>
+            <p className="text-body-lg muted" style={{ marginBottom: 'var(--space-8)', maxWidth: '28rem' }}>
+              {m.home.heroSubtitle}
+            </p>
+          </div>
         </div>
+      </section>
 
+      <section className="container" style={{ paddingBlock: 'var(--space-6)' }}>
         <SearchBar locale={locale} />
-
-        <div style={{ marginTop: 'var(--space-6)' }}>
+        <div style={{ marginTop: 'var(--space-5)' }}>
           <TrustStrip
             locale={locale}
             cityName={cityName(toronto, locale)}
@@ -57,66 +74,70 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <section className="container" style={{ paddingBlock: 'var(--space-12)' }}>
+      {/* ---- Hizmetler ---- */}
+      <section className="container" style={{ paddingBlock: 'var(--space-10)' }}>
         <h2 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>
-          {locale === 'fr-CA' ? 'Nos services' : 'Our services'}
+          {locale === 'fr-CA' ? 'Ce que vous pouvez réserver' : 'What you can book'}
         </h2>
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+        <div className="grid grid-4">
           {services.map((s) => (
             <Link
               key={s}
               href={`/${segmentFor(locale)}/${citySlug(toronto, locale)}/${serviceSlug(s, locale)}`}
-              className="card"
-              style={{ padding: 'var(--space-5)', display: 'block' }}
+              className="card card-hover card-pad"
             >
-              <h3 className="text-h4" style={{ marginBottom: 'var(--space-2)' }}>{m.service[s]}</h3>
-              <p className="muted" style={{ fontSize: '0.875rem' }}>{m.serviceDescription[s]}</p>
+              <h3 className="text-h4" style={{ marginBottom: 'var(--space-1)' }}>{m.service[s]}</h3>
+              <p className="dim text-body-sm">{m.serviceDescription[s]}</p>
             </Link>
           ))}
         </div>
       </section>
 
-      {/*
-        UCRET SEFFAFLIGI — rakiplere karsi en guclu pazarlama hamlesi (yol haritasi §4.6).
-        Komisyon tablosunu acikca yayinliyoruz. Rover ve Pawshake bunu yapmiyor.
-      */}
-      <section className="container" style={{ paddingBlock: 'var(--space-12)' }}>
-        <div
-          className="card"
-          style={{ padding: 'var(--space-8)', background: 'var(--color-surface-sunken)' }}
-        >
-          <h2 className="text-h2" style={{ marginBottom: 'var(--space-3)' }}>
-            {locale === 'fr-CA' ? 'Nos frais, sans surprise' : 'Our fees, in plain sight'}
-          </h2>
-          <p className="muted" style={{ marginBottom: 'var(--space-6)', maxWidth: '38rem' }}>
-            {locale === 'fr-CA'
-              ? "Vous amenez votre propre client ? Nous prenons 0 %. C'est aussi simple que ça."
-              : 'Bring your own client? We take 0%. That simple.'}
-          </p>
+      {/* ---- Ucret seffafligi: rakiplere karsi en guclu hamle ---- */}
+      <section className="container" style={{ paddingBlock: 'var(--space-10)' }}>
+        <h2 className="text-h2" style={{ marginBottom: 'var(--space-2)' }}>
+          {locale === 'fr-CA'
+            ? 'Amenez votre propre client. Nous ne prenons rien.'
+            : 'Bring your own client. We take nothing.'}
+        </h2>
+        <p className="muted" style={{ marginBottom: 'var(--space-6)', maxWidth: '38rem' }}>
+          {locale === 'fr-CA'
+            ? 'Trois taux, publiés. C’est toute la page de tarification.'
+            : 'Three rates, published. That is the whole pricing page.'}
+        </p>
 
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-            {(['platform', 'sitter_referral', 'repeat'] as const).map((a) => {
-              const c = calculateCommission({ subtotalCents: sample, attribution: a });
-              return (
-                <div key={a} className="card" style={{ padding: 'var(--space-5)' }}>
-                  <div
-                    className="text-h1 tabular"
-                    style={{ color: 'var(--color-primary)', marginBottom: 'var(--space-2)' }}
-                  >
-                    {c.sitterPct}%
-                  </div>
-                  <p style={{ fontSize: '0.875rem' }}>{m.commission[a]}</p>
+        <div className="grid grid-3">
+          {(['platform', 'sitter_referral', 'repeat'] as const).map((a) => {
+            const c = calculateCommission({ subtotalCents: sample, attribution: a });
+            const highlighted = a === 'sitter_referral';
+            return (
+              <div
+                key={a}
+                className={highlighted ? 'panel card-pad' : 'card card-pad'}
+                style={highlighted ? { borderRadius: 'var(--radius-lg)' } : undefined}
+              >
+                <div
+                  className="text-h1 tabular"
+                  style={{
+                    color: highlighted ? 'var(--color-panel-accent)' : 'var(--color-primary)',
+                    marginBottom: 'var(--space-3)',
+                  }}
+                >
+                  {c.sitterPct}%
                 </div>
-              );
-            })}
-          </div>
-
-          <p className="muted tabular" style={{ marginTop: 'var(--space-6)', fontSize: '0.8125rem' }}>
-            {locale === 'fr-CA'
-              ? `Sur une réservation de ${money(sample, locale)}, un gardien garde jusqu'à ${money(vsRover.sitterSavesCents, locale)} de plus qu'ailleurs.`
-              : `On a ${money(sample, locale)} booking, a sitter keeps up to ${money(vsRover.sitterSavesCents, locale)} more than elsewhere.`}
-          </p>
+                <p className="text-body-sm" style={highlighted ? { fontWeight: 500 } : { color: 'var(--color-ink-secondary)' }}>
+                  {m.commission[a]}
+                </p>
+              </div>
+            );
+          })}
         </div>
+
+        <p className="dim text-body-sm tabular" style={{ marginTop: 'var(--space-5)' }}>
+          {locale === 'fr-CA'
+            ? `Sur une réservation de ${money(sample, locale)}, un gardien garde jusqu’à ${money(vsRover.sitterSavesCents, locale)} de plus qu’ailleurs.`
+            : `On a ${money(sample, locale)} booking, a sitter keeps up to ${money(vsRover.sitterSavesCents, locale)} more than elsewhere.`}
+        </p>
       </section>
     </>
   );

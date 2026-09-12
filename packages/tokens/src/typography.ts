@@ -1,12 +1,20 @@
 /**
- * Tipografi — Fraunces (baslik) + Inter (arayuz).
+ * Tipografi — Bricolage Grotesque (baslik) + Schibsted Grotesk (arayuz).
+ *
+ * Karar gerekcesi (tasarim kanvasi, "C acik" yonu):
+ * Fraunces ve Inter yaygin kullanildiklari icin premium konumlandirmayi zayiflatiyordu.
+ * Bricolage'in karakterli, siki harf araligi markaya kimlik veriyor; Schibsted Grotesk
+ * uzun listelerde ve Fransizca aksanlarda temiz kaliyor.
+ *
  * DIKKAT: Fransizca metin Ingilizce'ye gore ~%15-20 daha uzundur.
  * Sabit genislikli buton/etiket kullanmayin; iki satira tasmayi her bilesen kaldirmali.
  */
 
 export const fontFamily = {
-  display: "'Fraunces Variable', 'Fraunces', Georgia, 'Times New Roman', serif",
-  ui: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  /** Baslik ve buyuk sayilar. Agirlik 600-800, siki tracking ile kullanilir. */
+  display: "var(--font-display), 'Helvetica Neue', Arial, sans-serif",
+  /** Tum arayuz metni. */
+  ui: "var(--font-ui), 'Helvetica Neue', Arial, sans-serif",
   mono: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace",
 } as const;
 
@@ -14,20 +22,28 @@ export const fontWeight = {
   regular: 400,
   medium: 500,
   semibold: 600,
-  bold: 700,
+  bold: 800,
 } as const;
 
-/** [fontSize, lineHeight, letterSpacing, weight, family] */
+/** Display stilleri siki tracking ister; gövde metni notr kalir. */
 export const textStyles = {
-  display:  { size: '3rem',     line: '3.25rem', tracking: '-0.02em',  weight: 600, family: 'display' },
-  h1:       { size: '2.25rem',  line: '2.625rem', tracking: '-0.015em', weight: 600, family: 'display' },
-  h2:       { size: '1.75rem',  line: '2.125rem', tracking: '-0.01em',  weight: 600, family: 'display' },
-  h3:       { size: '1.375rem', line: '1.75rem',  tracking: '0',        weight: 600, family: 'ui' },
-  h4:       { size: '1.125rem', line: '1.625rem', tracking: '0',        weight: 600, family: 'ui' },
-  bodyLg:   { size: '1.0625rem',line: '1.6875rem',tracking: '0',        weight: 400, family: 'ui' },
-  body:     { size: '0.9375rem',line: '1.5rem',   tracking: '0',        weight: 400, family: 'ui' },
+  display:  { size: '3.125rem', line: '3.25rem',  tracking: '-0.038em', weight: 800, family: 'display' },
+  h1:       { size: '2.25rem',  line: '2.5rem',   tracking: '-0.035em', weight: 800, family: 'display' },
+  h2:       { size: '1.75rem',  line: '2.125rem', tracking: '-0.03em',  weight: 600, family: 'display' },
+  h3:       { size: '1.5rem',   line: '1.875rem', tracking: '-0.03em',  weight: 600, family: 'display' },
+  h4:       { size: '1.0625rem',line: '1.5rem',   tracking: '0',        weight: 600, family: 'ui' },
+  bodyLg:   { size: '1.0625rem',line: '1.7rem',   tracking: '0',        weight: 400, family: 'ui' },
+  body:     { size: '0.9375rem',line: '1.45rem',  tracking: '0',        weight: 400, family: 'ui' },
   bodySm:   { size: '0.8125rem',line: '1.25rem',  tracking: '0',        weight: 400, family: 'ui' },
   caption:  { size: '0.75rem',  line: '1rem',     tracking: '0.01em',   weight: 500, family: 'ui' },
+  /** Buyuk para/istatistik rakamlari — display ailesi, tabular */
+  numeral:  { size: '2.125rem', line: '2.125rem', tracking: '-0.03em',  weight: 600, family: 'display' },
 } as const;
 
 export type TextStyle = keyof typeof textStyles;
+
+/** next/font ile yuklenecek aileler — apps/web/src/app/[locale]/layout.tsx */
+export const FONT_SOURCES = {
+  display: { family: 'Bricolage Grotesque', weights: [400, 600, 800] },
+  ui: { family: 'Schibsted Grotesk', weights: [400, 500, 600] },
+} as const;

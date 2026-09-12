@@ -1,9 +1,37 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import localFont from 'next/font/local';
 import { getMessages, localeFromSegment, LOCALES, segmentFor } from '@havre/i18n';
 import { Header } from '@/components/Header';
 import { organizationJsonLd, SITE_URL } from '@/lib/seo';
+
+/**
+ * Fontlar npm'den (@fontsource-variable) gelir ve next/font/local ile self-host edilir.
+ *
+ * Neden next/font/google DEGIL: o, fontlari BUILD SIRASINDA Google'dan indirir.
+ * Dis aga cikisi kisitli bir CI'da build kirilir (bu projede bizzat yasandi).
+ * npm paketi olarak vendor'lamak build'i deterministik yapar, ayrica:
+ *  - LCP: harici baglanti yok, font preload edilir
+ *  - Law 25: Google'a sinir otesi istek gitmez, PIA gerekmez
+ *
+ * Degisken (variable) fontlar: tek dosya tum agirliklari tasir.
+ * Alt kume 'latin' — Fransizca aksanlar Latin-1 Supplement'te, yani kapsam icinde.
+ * Turkce icin (Faz 7) 'latin-ext' dosyasi ayrica eklenecek.
+ */
+const display = localFont({
+  src: '../../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2',
+  variable: '--font-display',
+  display: 'swap',
+  weight: '200 800',
+});
+
+const ui = localFont({
+  src: '../../../../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2',
+  variable: '--font-ui',
+  display: 'swap',
+  weight: '400 900',
+});
 
 export function generateStaticParams() {
   return LOCALES.map((l) => ({ locale: segmentFor(l) }));
@@ -39,7 +67,7 @@ export default async function LocaleLayout({
   const m = getMessages(locale);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${display.variable} ${ui.variable}`}>
       <body>
         {/* WCAG 2.4.1 — icerige atlama baglantisi */}
         <a href="#main" className="sr-only">Skip to content</a>
@@ -47,19 +75,18 @@ export default async function LocaleLayout({
         <main id="main">{children}</main>
         <footer className="site-footer">
           <div className="container stack">
-            <p>
-              © {new Date().getFullYear()} {m.brand.name}
-            </p>
+            <p className="wordmark" style={{ color: 'var(--color-ink)' }}>{m.brand.name.toLowerCase()}</p>
+            <p>© {new Date().getFullYear()} {m.brand.name}</p>
             {/*
               Law 25: Gizlilik sorumlusunun adi ve iletisimi sitede YAYIMLANMALI.
               Atanmazsa varsayilan olarak CEO sorumludur.
             */}
-            <p className="muted">
+            <p className="dim">
               {locale === 'fr-CA'
                 ? 'Responsable de la protection des renseignements personnels : [ATANACAK]'
                 : 'Privacy Officer: [TO BE APPOINTED]'}
             </p>
-            <p className="muted">{m.verification.disclaimer}</p>
+            <p className="dim">{m.verification.disclaimer}</p>
           </div>
         </footer>
         <script
