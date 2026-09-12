@@ -13,14 +13,21 @@ Tam analiz ve yol haritası: [`docs/00-PROJE-YOL-HARITASI.md`](docs/00-PROJE-YOL
 ## Hızlı başlangıç
 
 ```bash
-nvm use            # Node 22
+nvm use
 npm install
-npm run dev        # turbo önce tokens/core/i18n derler, sonra web'i açar
+npm run dev
 ```
 
-> `npm run dev -w @havre/web` **kullanmayın** — token'ları derlemeyi atlar ve
-> tasarım değişiklikleri sessizce görünmez. Kökten `npm run dev` çalıştırın.
-> Takılırsanız: `rm -rf apps/web/.next`.
+`npm run dev` turbo üzerinden çalışır: önce tokens/core/i18n derlenir, sonra
+web açılır (http://localhost:3000).
+
+**Uyarılar**
+
+- `npm run dev -w @havre/web` **kullanmayın** — token derlemesini atlar, tasarım
+  değişiklikleri sessizce görünmez. Kökten `npm run dev` çalıştırın.
+- Takılırsa: `rm -rf apps/web/.next`
+- `Cannot find module @rollup/rollup-*` hatası npm'in opsiyonel bağımlılık
+  hatasıdır (art arda kurulumlarda çıkar): `rm -rf node_modules && npm install`
 
 Sayfalar: `/en` · `/fr` · `/en/toronto/dog-boarding/` · `/fr/montreal/pension-pour-chien/`
 

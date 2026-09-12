@@ -2,9 +2,15 @@
   "name": "havre",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "npm@10.9.8",
   "description": "Kanada evcil hayvan bakimi pazaryeri — monorepo",
-  "workspaces": ["apps/*", "packages/*"],
-  "engines": { "node": ">=22" },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
