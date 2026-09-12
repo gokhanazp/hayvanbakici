@@ -86,21 +86,27 @@ export const lightTheme = {
   'verify-pro':      palette.verifyPro,
 } as const;
 
-/** Koyu tema — gun 1'den itibaren */
+/**
+ * Koyu tema — "C — Kuzey" paletinden turetildi (tasarim kanvasinda begenilen yon).
+ *
+ * DIKKAT: Koyu tema HENUZ TASARLANMADI ve onaylanmadi. Bu yuzden OTOMATIK
+ * DEVREYE GIRMIYOR: yalnizca [data-theme="dark"] ile acilir, isletim sisteminin
+ * koyu modu siteyi karartmaz. Gerekce build-css.ts icinde yazili.
+ */
 export const darkTheme: Record<keyof typeof lightTheme, string> = {
-  'canvas':          '#121110',
-  'surface':         '#1C1A18',
-  'surface-sunken':  '#242119',
-  'border':          '#322E29',
-  'border-strong':   '#443E37',
-  'ink':             '#F5F1EB',
-  'ink-secondary':   '#B8AFA4',
-  'ink-muted':       '#8A8078',
-  'primary':         '#4E9B79',
-  'primary-hover':   '#5FAE8A',
-  'primary-active':  '#6FBF9A',
+  'canvas':          '#12130F',
+  'surface':         '#1A1C15',
+  'surface-sunken':  '#20221A',
+  'border':          '#2A2C24',
+  'border-strong':   '#3A3D33',
+  'ink':             '#F2EFE7',
+  'ink-secondary':   '#C9C7BC',
+  'ink-muted':       '#8C8B81',
+  'primary':         '#6FBF9A',
+  'primary-hover':   '#8FD4B3',
+  'primary-active':  '#A7E0C5',
   'primary-subtle':  '#16281F',
-  'primary-on':      '#0E2419',
+  'primary-on':      '#0E140F',
   'accent':          '#E29354',
   'accent-hover':    '#EDA467',
   'accent-subtle':   '#2E1F13',
@@ -115,7 +121,7 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'danger':          '#D0604F',
   'info':            '#5A90BC',
   'verify-id':       '#5A90BC',
-  'verify-check':    '#4E9B79',
+  'verify-check':    '#6FBF9A',
   'verify-insured':  '#9B82C4',
   'verify-pro':      '#D4AC4E',
 };

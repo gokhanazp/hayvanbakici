@@ -2,10 +2,18 @@
  * tokens.css uretici.
  * Tek kaynak = TS token'lari. Ciktilar: dist/tokens.css
  *
- * Tema kurali (yol haritasi §4.2):
- *  - Acik palet bare :root'ta tanimlanir
- *  - Koyu palet hem prefers-color-scheme hem [data-theme="dark"] altinda
- *  - Hicbir renk SADECE media query icinde tanimlanmaz
+ * TEMA KURALI — bilincli bir karar:
+ *  - Acik palet bare :root'ta tanimlanir (onaylanan tasarim budur)
+ *  - Koyu palet YALNIZCA [data-theme="dark"] altinda — OTOMATIK DEGIL
+ *
+ * Neden prefers-color-scheme YOK: koyu tema henuz tasarlanmadi ve onaylanmadi.
+ * Otomatik acilirsa, isletim sistemi koyu modda olan herkes onaylanmamis bir
+ * arayuz gorur (bu bizzat yasandi: "tasarim hala koyu duruyor").
+ * Koyu tema tasarlanip onaylandiginda su blok geri eklenecek:
+ *
+ *   @media (prefers-color-scheme: dark) {
+ *     :root:not([data-theme="light"]) { ...darkTheme... }
+ *   }
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -38,7 +46,7 @@ const textStyleBlocks = Object.entries(textStyles)
 const css = `/* GENERATED — packages/tokens/src/build-css.ts. Elle duzenlemeyin. */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* --- Renk (acik tema) --- */
 ${vars(lightTheme, 'color')}
@@ -69,15 +77,12 @@ ${vars(breakpoint, 'bp')}
   --min-touch-target: ${minTouchTarget};
 }
 
-/* Koyu tema — sistem tercihi (acik tema acikca secilmediyse) */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-${vars(darkTheme, 'color')}
-  }
-}
-
-/* Koyu tema — acik secim */
+/*
+  Koyu tema — YALNIZCA acik secimle. Isletim sisteminin koyu modu bunu tetiklemez.
+  Tasarlanip onaylandiginda prefers-color-scheme blogu build-css.ts'te geri acilacak.
+*/
 :root[data-theme="dark"] {
+  color-scheme: dark;
 ${vars(darkTheme, 'color')}
 }
 
