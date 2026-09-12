@@ -9,9 +9,14 @@ import { organizationJsonLd, SITE_URL } from '@/lib/seo';
 /**
  * Fontlar npm'den (@fontsource-variable) gelir ve next/font/local ile self-host edilir.
  *
+ * Font dosyalari REPOYA GOMULU (apps/web/src/app/fonts/) — node_modules'tan
+ * okunmuyor. Gerekce: next/font/local, src'yi uygulama sinirinin disina cikararak
+ * cozmuyor (next build gecse bile next dev "Module not found" veriyor) ve goreli
+ * yol npm'in hoisting kararina bagli olurdu. Kaynak/surum/lisans: fonts/README.md
+ *
  * Neden next/font/google DEGIL: o, fontlari BUILD SIRASINDA Google'dan indirir.
  * Dis aga cikisi kisitli bir CI'da build kirilir (bu projede bizzat yasandi).
- * npm paketi olarak vendor'lamak build'i deterministik yapar, ayrica:
+ * Vendor'lamak build'i deterministik yapar, ayrica:
  *  - LCP: harici baglanti yok, font preload edilir
  *  - Law 25: Google'a sinir otesi istek gitmez, PIA gerekmez
  *
@@ -20,14 +25,14 @@ import { organizationJsonLd, SITE_URL } from '@/lib/seo';
  * Turkce icin (Faz 7) 'latin-ext' dosyasi ayrica eklenecek.
  */
 const display = localFont({
-  src: '../../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2',
+  src: '../fonts/bricolage-grotesque-latin-wght-normal.woff2',
   variable: '--font-display',
   display: 'swap',
   weight: '200 800',
 });
 
 const ui = localFont({
-  src: '../../../../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2',
+  src: '../fonts/schibsted-grotesk-latin-wght-normal.woff2',
   variable: '--font-ui',
   display: 'swap',
   weight: '400 900',

@@ -7,11 +7,10 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "next lint"
+    "lint": "next lint",
+    "fonts:sync": "cp ../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 src/app/fonts/"
   },
   "dependencies": {
-    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
-    "@fontsource-variable/schibsted-grotesk": "^5.3.0",
     "@havre/core": "0.1.0",
     "@havre/i18n": "0.1.0",
     "@havre/tokens": "0.1.0",
@@ -20,9 +19,11 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/schibsted-grotesk": "^5.3.0",
+    "@types/node": "^22.10.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
-    "@types/node": "^22.10.5"
+    "typescript": "^5.7.3"
   }
 }

@@ -59,7 +59,7 @@ docs/             Yol haritası ve araştırma ekleri
 | **Fiyat dökümünde gizli kalem yok** | `packages/core/src/pricing.ts` | Competition Act drip pricing yasağı. |
 | **Ödeme 48 saat tutulur, "escrow" denmez** | `packages/core/src/booking-state.ts` | Stripe CA azami 90 gün; "escrow" demek FINTRAC/MSB kapsamına sokabilir. |
 | **FR gün 1'de, EN ile 1:1** | `packages/i18n` + CI testi | Bill 96 hukuki zorunluluk. Eksik FR anahtarı testi kırar. |
-| **Fontlar npm'den vendor'lanır** | `apps/web/src/app/[locale]/layout.tsx` | `next/font/google` fontları build sırasında indirir; ağı kısıtlı CI'da build kırılır. `@fontsource-variable` + `next/font/local` build'i deterministik yapar, LCP'yi iyileştirir, Google'a sınır ötesi istek göndermez (Law 25). |
+| **Font dosyaları repoda** | `apps/web/src/app/fonts/` | `next/font/google` build sırasında Google'dan indirir (kısıtlı CI'da kırılır). `next/font/local` ise `node_modules`'a çözmüyor — `next build` geçse bile `next dev` kırılıyor. Dosyalar repoda: deterministik, hoisting'den bağımsız, dış ağa çıkmıyor. Kaynak/sürüm/lisans: `fonts/README.md`. Güncelleme: `npm run fonts:sync -w @havre/web`. |
 | **Hero scrim'i kontrastı fotoğraftan bağımsız garanti eder** | `globals.css` `.hero::before` | Metin alanında opaklık ≥0.86 — hangi fotoğraf gelirse gelsin başlık kontrastı WCAG AA'yı geçer, fotoğraf değişince test tekrarlanmaz. |
 | **Ham adli sicil raporu saklanmaz** | `packages/db/src/schema/services.ts` | PIPEDA/Law 25 hassas veri kuralı. |
 | **SIN toplama + çeyreklik rapor** | `packages/db/src/schema/compliance.ts` | CRA Part XX — hizmet sağlayıcılarda ciro eşiği YOK. |
