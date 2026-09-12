@@ -1,0 +1,25 @@
+node_modules/
+.next/
+dist/
+out/
+build/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+.env
+.env.local
+.env.*.local
+!.env.example
+
+.DS_Store
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+
+# Expo (Faz 4)
+.expo/
+
+.DS_Store
+_src*.tar.gz

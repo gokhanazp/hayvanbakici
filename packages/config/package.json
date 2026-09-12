@@ -1,0 +1,6 @@
+{
+  "name": "@havre/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": ["tsconfig.lib.json", "tsconfig.next.json"]
+}
