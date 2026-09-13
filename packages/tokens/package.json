@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && node --experimental-strip-types src/build-css.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev": "node watch.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
