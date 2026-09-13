@@ -26,6 +26,10 @@ postgres imajıyla migration çöker.
 
 Tek tek: `db:up` · `db:migrate` · `db:seed` · `db:smoke` (gerçek DB'ye karşı duman testi).
 
+**Veritabanıyla ilgili bir şey ters giderse:** `npm run db:doctor` — sunucuya bağlanır,
+kurulumun Homebrew mı Postgres.app mi Docker mı olduğunu tespit eder, PostGIS ve tablo
+durumunu kontrol eder ve çalıştırılacak tek komutu yazar.
+
 `npm run dev` turbo üzerinden çalışır: önce tokens/core/i18n derlenir, sonra
 web açılır (http://localhost:3000).
 
