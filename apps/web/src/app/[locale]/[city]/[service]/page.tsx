@@ -207,7 +207,7 @@ export default async function LandingPage(
             </h2>
             <div className="grid grid-cards">
               {data.sitters.map((s) => (
-                <SitterCard key={s.id} sitter={s} serviceType={r.service} locale={r.locale} />
+                <SitterCard key={s.id} sitter={s} serviceType={r.service} locale={r.locale} citySlug={citySlug(r.city, r.locale)} />
               ))}
             </div>
           </section>

@@ -1,4 +1,5 @@
-import { getMessages, type Locale } from '@havre/i18n';
+import Link from 'next/link';
+import { getMessages, segmentFor, type Locale } from '@havre/i18n';
 import { SERVICES, type ServiceType } from '@havre/core';
 import type { SitterSummary } from '@/lib/data';
 import { money, responseTime } from '@/lib/format';
@@ -8,16 +9,21 @@ export function SitterCard({
   sitter,
   serviceType,
   locale,
+  citySlug,
 }: {
   sitter: SitterSummary;
   serviceType: ServiceType;
   locale: Locale;
+  /** Profil adresi sehir altinda: /en/toronto/sitter/camille-b-7f3a */
+  citySlug: string;
 }) {
   const m = getMessages(locale);
   const unit = m.unit[SERVICES[serviceType].unit];
 
   return (
-    <article className="card card-hover sitter-card">
+    <Link
+      href={`/${segmentFor(locale)}/${citySlug}/sitter/${sitter.slug}/`}
+      className="card card-hover sitter-card">
       {/* Fotograf yerine gecen blok — gercek gorseller Faz 1'de */}
       <div className="sitter-photo" aria-hidden="true">{sitter.photoInitials}</div>
 
@@ -46,6 +52,6 @@ export function SitterCard({
             : `${sitter.repeatClients} repeat clients`}
         </p>
       </div>
-    </article>
+    </Link>
   );
 }

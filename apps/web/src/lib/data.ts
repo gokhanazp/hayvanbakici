@@ -8,14 +8,16 @@
 import { cache } from 'react';
 import {
   getDb, listCities, listTier1Cities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
+  getSitterProfile as dbGetSitterProfile, listSitterSlugsForBuild,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
+  type SitterProfile,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
 
-export type { CityRecord, LandingData, SitterSummary, SearchResult };
+export type { CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile };
 export { cityName, citySlug };
 
 const db = () => getDb();
@@ -60,4 +62,14 @@ export const getDefaultCity = cache(async (): Promise<CityRecord> => {
  */
 export const getLinkableCities = cache(
   async (): Promise<CityRecord[]> => listCitiesWithSupply(db(), 'boarding', 3),
+);
+
+export const getSitterProfile = cache(
+  async (slug: string, locale: Locale): Promise<SitterProfile | null> =>
+    dbGetSitterProfile(db(), slug, locale),
+);
+
+/** Build'de uretilecek profiller — Tier-1 sehirlerin en ust siradaki bakicilari */
+export const getSitterSlugsForBuild = cache(
+  async () => listSitterSlugsForBuild(db(), 40),
 );

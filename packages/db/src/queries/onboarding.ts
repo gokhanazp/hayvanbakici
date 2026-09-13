@@ -134,6 +134,23 @@ export async function getOnboardingState(
   });
 }
 
+/**
+ * Profil adresi: camille-b-7f3a
+ *
+ * Dort hane sart: ayni mahallede iki "Camille B." olabilir ve adres
+ * cakisirdi. Kimlikten turetildigi icin deterministik — ayni bakici her
+ * zaman ayni adresi aliyor.
+ */
+export function sitterSlug(userId: string, firstName: string, lastInitial: string): string {
+  const clean = (v: string) =>
+    v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const suffix = userId.replace(/-/g, '').slice(0, 4);
+  const name = clean(firstName) || 'sitter';
+  const initial = clean(lastInitial).slice(0, 1);
+  return [name, initial, suffix].filter(Boolean).join('-');
+}
+
 /** Bakici satirini olusturur (yoksa). Davet kodu burada, bir kez uretiliyor. */
 export async function ensureSitter(db: Database, userId: string): Promise<void> {
   await withDbErrors(() =>
@@ -168,7 +185,18 @@ export async function saveAbout(
       .where(eq(profiles.userId, userId));
 
     await db.update(users).set({ phone: input.phone, updatedAt: new Date() }).where(eq(users.id, userId));
-    await db.update(sitters).set({ dateOfBirth: input.dateOfBirth }).where(eq(sitters.userId, userId));
+
+    // Slug BIR KEZ yaziliyor. Bakici adini sonradan duzeltse bile adres
+    // sabit kaliyor; degistirmek eski baglantilari ve arama gecmisini kirar.
+    const [current] = await db
+      .select({ slug: sitters.slug }).from(sitters).where(eq(sitters.userId, userId)).limit(1);
+
+    await db.update(sitters).set({
+      dateOfBirth: input.dateOfBirth,
+      ...(current?.slug
+        ? {}
+        : { slug: sitterSlug(userId, input.firstName, input.lastNameInitial) }),
+    }).where(eq(sitters.userId, userId));
   });
 }
 

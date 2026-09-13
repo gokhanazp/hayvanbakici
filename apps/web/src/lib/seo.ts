@@ -152,3 +152,65 @@ export function landingJsonLd(input: LandingJsonLdInput) {
     ],
   };
 }
+
+/**
+ * BAKICI PROFILI — JSON-LD.
+ *
+ * Person DEGIL, ProvideService: sayfanin konusu kisinin kendisi degil,
+ * sundugu hizmet. Ayrica Person semasi arama sonuclarinda kisisel bilgi
+ * cekmeye davet ediyor; biz soyadi bile gostermiyoruz.
+ *
+ * aggregateRating YALNIZCA gercek yorum varsa eklenir. Sifir yorumla
+ * derecelendirme isaretlemek Google'in yapisal veri politikasina aykiri ve
+ * zengin sonuc cezasi sebebi.
+ */
+export function sitterJsonLd(input: {
+  name: string;
+  url: string;
+  cityName: string;
+  province: string;
+  description: string | null;
+  rating: number;
+  reviewCount: number;
+  services: Array<{ name: string; priceCents: number }>;
+}) {
+  const lowest = input.services.length
+    ? Math.min(...input.services.map((s) => s.priceCents))
+    : null;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: input.name,
+    url: input.url,
+    serviceType: input.services.map((s) => s.name),
+    ...(input.description ? { description: input.description } : {}),
+    areaServed: {
+      '@type': 'City',
+      name: input.cityName,
+      address: { '@type': 'PostalAddress', addressRegion: input.province, addressCountry: 'CA' },
+    },
+    provider: { '@type': 'Organization', name: 'Havre', url: SITE_URL },
+    ...(lowest !== null
+      ? {
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'CAD',
+            price: (lowest / 100).toFixed(2),
+            availability: 'https://schema.org/InStock',
+          },
+        }
+      : {}),
+    ...(input.reviewCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: input.rating.toFixed(1),
+            reviewCount: input.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+}

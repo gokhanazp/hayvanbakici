@@ -123,3 +123,28 @@ export const REVIEW_BODIES_FR = [
   'On nous a aussi raconté les détails ennuyeux — ce qu’il a mangé, s’il a dormi.',
   'La cour clôturée était parfaite. Notre chien est revenu fatigué et heureux.',
 ];
+
+
+/**
+ * TOHUM TANITIM METINLERI — SAHTE VERI.
+ *
+ * Profil sayfasinin bos durmamasi icin. Pazarlama malzemesinde, ekran
+ * goruntusunde ya da yatirimci sunumunda KULLANILMAZ: bunlar gercek
+ * bakicilarin yazdigi metinler degil.
+ */
+export const BIOS = {
+  en: [
+    'I grew up with two shepherds and have looked after friends\u2019 dogs for years. My place is quiet, ground floor, and five minutes from the park.',
+    'Retired teacher, home most of the day. I send a photo after every walk because I know that is the part you wait for.',
+    'I work from home and take two breaks a day for walks. Comfortable with senior dogs and with medication schedules.',
+    'Cats are my specialty \u2014 I foster for a local rescue. Slow introductions, no forced handling, and a quiet room if yours needs one.',
+    'Runner, so your dog gets a real walk, not a lap of the block. Happy to keep to a shorter route for older dogs.',
+  ],
+  fr: [
+    'J\u2019ai grandi avec deux bergers et je garde les chiens de mes amis depuis des ann\u00e9es. Mon logement est calme, au rez-de-chauss\u00e9e, \u00e0 cinq minutes du parc.',
+    'Enseignante \u00e0 la retraite, \u00e0 la maison la plupart du temps. J\u2019envoie une photo apr\u00e8s chaque promenade.',
+    'Je travaille de la maison et je prends deux pauses par jour pour les promenades. \u00c0 l\u2019aise avec les chiens \u00e2g\u00e9s et les horaires de m\u00e9dicaments.',
+    'Les chats sont ma sp\u00e9cialit\u00e9 \u2014 je suis famille d\u2019accueil pour un refuge. Pr\u00e9sentations en douceur et une pi\u00e8ce tranquille au besoin.',
+    'Je cours, donc votre chien a une vraie promenade. Je raccourcis volontiers le parcours pour les chiens plus \u00e2g\u00e9s.',
+  ],
+} as const;

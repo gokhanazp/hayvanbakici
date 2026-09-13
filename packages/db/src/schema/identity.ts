@@ -82,6 +82,18 @@ export const sitters = pgTable(
   'sitters',
   {
     userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+
+    /**
+     * PROFIL ADRESI: /en/toronto/sitter/camille-b-7f3a
+     *
+     * Ad + soyad bas harfi + kimlikten dort hane. Dort hane sart: ayni
+     * mahallede iki "Camille B." olabilir ve adres cakisirdi.
+     *
+     * DEGISMEZ. Bakici adini duzeltse bile slug sabit kalir — degistirmek
+     * eski baglantilari kirar ve arama motorundaki sayfa gecmisini sifirlar.
+     */
+    slug: text('slug'),
+
     status: sitterStatusEnum('status').notNull().default('draft'),
     /** 0=yok, 1=kimlik, 2=adli sicil, 3=lisansli/sigortali, 4=sertifikali pro */
     badgeLevel: integer('badge_level').notNull().default(0),
@@ -125,6 +137,7 @@ export const sitters = pgTable(
     deactivationReason: text('deactivation_reason'),
   },
   (t) => [
+    uniqueIndex('sitters_slug_uq').on(t.slug),
     index('sitters_status_idx').on(t.status),
     index('sitters_ranking_idx').on(t.rankingScore),
     uniqueIndex('sitters_referral_code_uq').on(t.referralCode),

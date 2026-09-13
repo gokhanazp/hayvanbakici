@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { evaluateIndexability, servicesForPhase } from '@havre/core';
 import { LOCALES, serviceSlug } from '@havre/i18n';
-import { getCities, getLandingData } from '@/lib/data';
+import { getCities, getLandingData, getSitterSlugsForBuild } from '@/lib/data';
 import { landingUrl, urlFor } from '@/lib/seo';
 
 /**
@@ -44,6 +44,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           },
         });
       }
+    }
+  }
+
+  /*
+    BAKICI PROFILLERI.
+    Yalnizca Tier-1 sehirlerin aktif bakicilari — listSitterSlugsForBuild
+    zaten status='active' ve slug IS NOT NULL suzuyor. Pasif ya da taslak bir
+    bakicinin adresi sitemap'e girerse Google onu tarar ve 404 bulur.
+  */
+  const sitters = await getSitterSlugsForBuild();
+  for (const s of sitters) {
+    for (const locale of LOCALES) {
+      const city = locale === 'fr-CA' ? s.citySlugFr : s.citySlugEn;
+      entries.push({
+        url: urlFor(locale, city, 'sitter', s.slug),
+        changeFrequency: 'weekly',
+        priority: 0.5,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map((l) => [
+              l,
+              urlFor(l, l === 'fr-CA' ? s.citySlugFr : s.citySlugEn, 'sitter', s.slug),
+            ]),
+          ),
+        },
+      });
     }
   }
 

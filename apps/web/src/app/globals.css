@@ -792,3 +792,60 @@ a { color: inherit; text-decoration: none; }
   font-size: 0.75rem; line-height: 1.1rem;
   color: var(--color-panel-ink-muted); opacity: .85;
 }
+
+/* ---------- Bakici profili ---------- */
+.sitter-page {
+  display: grid; gap: var(--space-10);
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: var(--space-6) var(--space-16);
+}
+@media (min-width: 1000px) {
+  .sitter-page { grid-template-columns: minmax(0, 1fr) 22rem; gap: var(--space-12); align-items: start; }
+}
+.sitter-main { display: grid; gap: var(--space-12); min-width: 0; }
+
+.sitter-head { display: flex; gap: var(--space-5); align-items: center; flex-wrap: wrap; }
+.sitter-avatar {
+  display: grid; place-items: center;
+  width: 92px; height: 92px; flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: linear-gradient(150deg, var(--color-primary-subtle), var(--color-accent-subtle));
+  color: var(--color-primary-active);
+  font-family: var(--font-display); font-weight: 600; font-size: 1.75rem;
+}
+
+.sitter-stats {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0; padding: var(--space-5);
+  list-style: none;
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-xl);
+}
+@media (min-width: 700px) { .sitter-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.sitter-stats li { display: grid; gap: var(--space-1); }
+.sitter-stats .text-numeral { font-size: 1.75rem; }
+
+.sitter-service {
+  display: flex; gap: var(--space-5); align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap;
+}
+.sitter-price { display: grid; justify-items: end; flex: 0 0 auto; }
+
+.sitter-facts { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.sitter-facts li {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  font-size: 0.9375rem; line-height: 1.4rem;
+}
+.sitter-facts li svg { color: var(--color-primary); flex: 0 0 auto; margin-top: 2px; }
+
+.sitter-review-reply {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.sitter-aside { min-width: 0; }
+@media (min-width: 1000px) { .sitter-aside { position: sticky; top: calc(72px + var(--space-6)); } }
+.sitter-book { display: grid; gap: var(--space-4); }

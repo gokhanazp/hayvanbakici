@@ -11,9 +11,10 @@ import postgres from 'postgres';
 import * as s from './schema/index.js';
 import {
   SEED_CITIES, FIRST_NAMES, HOME_TYPES, BASE_PRICE_CENTS,
-  REVIEW_BODIES_EN, REVIEW_BODIES_FR,
+  REVIEW_BODIES_EN, REVIEW_BODIES_FR, BIOS,
 } from './seed-data.js';
 import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
+import { sitterSlug } from './queries/onboarding.js';
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL tanimli degil');
@@ -93,7 +94,7 @@ for (const city of SEED_CITIES) {
     await db.insert(s.profiles).values({
       userId, firstName: first, lastNameInitial: initial,
       cityId, neighbourhoodId: hoodIds[hoodIdx]!, province: city.province,
-      bio: null,
+      bio: pick(r, BIOS[city.province === 'QC' ? 'fr' : 'en']),
       approxLocation: point(lon, lat) as unknown as string,
     });
 
@@ -102,7 +103,12 @@ for (const city of SEED_CITIES) {
     const badge = (1 + Math.floor(r() * 4)) as 1 | 2 | 3 | 4;
 
     await db.insert(s.sitters).values({
-      userId, status: 'active', badgeLevel: badge,
+      userId,
+      // Profil adresi onboarding'dekiyle AYNI fonksiyondan — iki ayri yerde
+      // iki ayri kural olsaydi tohum veriyle gercek kayitlar farkli adresler
+      // uretir ve test ettigimiz sey uretimdeki sey olmazdi.
+      slug: sitterSlug(userId, first, initial),
+      status: 'active', badgeLevel: badge,
       medianResponseMinutes: Math.floor(10 + r() * 180),
       acceptanceRate: Math.round((0.55 + r() * 0.45) * 100) / 100,
       cancellationRate: Math.round(r() * 0.06 * 100) / 100,
@@ -164,6 +170,27 @@ const allServices = await db.select({
 }).from(s.sitterServices)
   .innerJoin(s.profiles, sql`${s.profiles.userId} = ${s.sitterServices.sitterId}`);
 
+/*
+  TEK SAHIP YERINE OTUZ SAHIP.
+  Onceden tek bir sahip vardi ve profil satiri yoktu; yorumlar tek kisiye
+  aitti ve yazar adi hicbir yerde gorunmuyordu. Yorum listesinin gercekci
+  gorunmesi icin isimli, profilli sahipler gerekiyor.
+*/
+const ownerIds: string[] = [];
+for (let i = 0; i < 30; i++) {
+  const [u] = await db.insert(s.users).values({
+    email: `owner${i}@seed.havre.test`,
+    locale: i % 3 === 0 ? 'fr-CA' : 'en-CA',
+    role: 'owner',
+  }).returning({ id: s.users.id });
+  await db.insert(s.profiles).values({
+    userId: u!.id,
+    firstName: FIRST_NAMES[i % FIRST_NAMES.length]!,
+    lastNameInitial: String.fromCharCode(65 + (i * 7) % 26),
+  });
+  ownerIds.push(u!.id);
+}
+
 const [ownerUser] = await db.insert(s.users).values({
   email: 'owner@seed.havre.test', locale: 'en-CA', role: 'owner',
 }).returning({ id: s.users.id });
@@ -172,6 +199,13 @@ const ownerId = ownerUser!.id;
 const r2 = rng('bookings');
 for (const svcRow of allServices) {
   const n = Math.floor(r2() * 9); // 0-8 tamamlanmis rezervasyon
+  /*
+    Bu bakicinin DUZENLI musterisi. 'repeat' ve 'sitter_referral' atiflari
+    hep ayni kisiye baglaniyor — tekrar musteri tanimi bu. Yeni musteriler
+    ('platform') ise her seferinde baska biri; aksi halde tum yorumlar tek
+    ada dusuyor ve liste sahte duruyordu.
+  */
+  const regularOwner = Math.floor(r2() * 30);
   for (let b = 0; b < n; b++) {
     const units = 1 + Math.floor(r2() * 6);
     const subtotal = svcRow.priceCents * units;
@@ -182,9 +216,15 @@ for (const svcRow of allServices) {
     const attribution = b === 0 ? 'platform' : (r2() > 0.7 ? 'sitter_referral' : 'repeat');
     const pct = attribution === 'sitter_referral' ? 0 : attribution === 'repeat' ? 10 : 18;
     const commission = Math.round((subtotal * pct) / 100);
+    // Ayni bakicinin tekrar musterisi ayni sahip olsun: 'repeat' atifi
+    // yalnizca sahip GERCEKTEN ayniysa anlamli.
+    const bookingOwnerId = ownerIds[
+      (attribution === 'platform' ? Math.floor(r2() * ownerIds.length) : regularOwner)
+        % ownerIds.length
+    ] ?? ownerId;
 
     const [bk] = await db.insert(s.bookings).values({
-      ownerId, sitterId: svcRow.sitterId, serviceType: svcRow.serviceType,
+      ownerId: bookingOwnerId, sitterId: svcRow.sitterId, serviceType: svcRow.serviceType,
       status: 'payout_released',
       startAt: start, endAt: end, units, petIds: [],
       unitPriceCents: svcRow.priceCents, baseCents: subtotal, subtotalCents: subtotal,
@@ -201,7 +241,11 @@ for (const svcRow of allServices) {
     if (r2() > 0.38) {
       const fr = svcRow.province === 'QC';
       await db.insert(s.reviews).values({
-        bookingId: bk!.id, authorId: ownerId, subjectId: svcRow.sitterId,
+        bookingId: bk!.id,
+        // Yazar rezervasyonun sahibi olmali; rastgele bir sahip secmek
+        // yorumu baska birinin rezervasyonuna baglardi.
+        authorId: bookingOwnerId,
+        subjectId: svcRow.sitterId,
         direction: 'owner_to_sitter',
         rating: r2() > 0.12 ? 5 : 4,
         body: pick(r2, fr ? REVIEW_BODIES_FR : REVIEW_BODIES_EN),
@@ -213,5 +257,40 @@ for (const svcRow of allServices) {
   }
 }
 
-console.log(`tohum tamam: ${sitterTotal} bakici, ${bookingTotal} rezervasyon`);
+/*
+  OZET SUTUNLARI GERCEK YORUMLARDAN YENIDEN HESAPLA.
+
+  Bakici satirlari rezervasyonlardan ONCE yaziliyor, dolayisiyla o anda
+  average_rating ve review_count rastgele atanmisti. Sonuc: profil sayfasinda
+  baslikta "4,9 (189)" yaziyor ama yorum listesi bos cikiyordu — tarayicida
+  yakalandi. Tohum verinin kendi icinde tutarli olmasi sart: tutarsiz veriyle
+  yapilan her gorsel kontrol yaniltici.
+*/
+await db.execute(sql`
+  UPDATE sitters st SET
+    review_count = COALESCE(agg.n, 0),
+    average_rating = COALESCE(agg.avg, 0)
+  FROM (
+    SELECT subject_id,
+           count(*)::int AS n,
+           round(avg(rating)::numeric, 1)::float8 AS avg
+    FROM reviews
+    WHERE direction = 'owner_to_sitter' AND published_at IS NOT NULL
+    GROUP BY subject_id
+  ) agg
+  WHERE st.user_id = agg.subject_id
+`);
+await db.execute(sql`
+  UPDATE sitters SET review_count = 0, average_rating = 0
+  WHERE user_id NOT IN (
+    SELECT subject_id FROM reviews
+    WHERE direction = 'owner_to_sitter' AND published_at IS NOT NULL
+  )
+`);
+
+const [check] = (await db.execute(sql`
+  SELECT count(*)::int AS with_reviews FROM sitters WHERE review_count > 0
+`)) as unknown as Array<{ with_reviews: number }>;
+
+console.log(`tohum tamam: ${sitterTotal} bakici, ${bookingTotal} rezervasyon, ${check?.with_reviews ?? 0} bakicinin yorumu var`);
 await client.end();

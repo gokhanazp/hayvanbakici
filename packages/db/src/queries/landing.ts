@@ -125,6 +125,7 @@ export async function getLandingData(
       ${sql.raw(nameCol)} AS neighbourhood,
       ss.price_cents::int, st.average_rating::float8 AS rating, st.review_count::int,
       st.median_response_minutes::int AS response_minutes,
+      st.slug,
       st.badge_level::int, st.has_yard, st.yard_fenced, ss.accepts_cats,
       COALESCE(st.home_type::text, 'house') AS home_type,
       (SELECT count(*)::int FROM bookings b
@@ -136,6 +137,7 @@ export async function getLandingData(
     JOIN neighbourhoods n ON n.id = pr.neighbourhood_id
     WHERE ss.service_type = ${serviceType}::service_type
       AND ss.is_active AND st.status = 'active' AND pr.city_id = ${city.id}
+      AND st.slug IS NOT NULL
     ORDER BY
       (st.average_rating * 0.30
        + (1 - LEAST(st.median_response_minutes::numeric / 1440, 1)) * 0.20
@@ -153,7 +155,14 @@ export async function getLandingData(
       const hood = String(row.neighbourhood);
       return {
         id: String(row.id),
-        slug: `${first.toLowerCase()}-${initial.toLowerCase()}-${hood.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      /*
+        SLUG VERITABANINDAN GELIR, burada TURETILMEZ.
+        Onceden ad+bas harf+mahalleden uretiliyordu; bakici karti bu turetilmis
+        adrese baglaniyor, profil sayfasi ise sitters.slug ile cozuyordu — iki
+        farkli deger, dolayisiyla her kart baglantisi 404 veriyordu. Tarayicida
+        yakalandi. Tek kaynak: sitters.slug (packages/db/queries/onboarding.ts).
+      */
+        slug: String(row.slug ?? ''),
         firstName: first,
         lastNameInitial: initial,
         neighbourhood: hood,

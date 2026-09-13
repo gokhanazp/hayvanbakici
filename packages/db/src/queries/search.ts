@@ -41,6 +41,7 @@ export async function searchSitters(
 
   const rows = await withDbErrors(() => db.execute(sql`
     SELECT
+      st.slug,
       st.user_id::text AS id,
       pr.first_name, pr.last_name_initial,
       ${sql.raw(nameCol)} AS neighbourhood,
@@ -59,6 +60,7 @@ export async function searchSitters(
     WHERE ss.service_type = ${params.serviceType}::service_type
       AND ss.is_active
       AND st.status = 'active'
+      AND st.slug IS NOT NULL
       AND ST_DWithin(pr.approx_location, ${origin}, ${radius})
       ${params.petWeightKg !== undefined
         ? sql`AND ${params.petWeightKg} BETWEEN ss.accepted_size_min_kg AND ss.accepted_size_max_kg`
@@ -92,7 +94,14 @@ export async function searchSitters(
     const hood = String(row.neighbourhood);
     return {
       id: String(row.id),
-      slug: `${first.toLowerCase()}-${initial.toLowerCase()}-${hood.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    /*
+      SLUG VERITABANINDAN GELIR, burada TURETILMEZ.
+      Onceden ad+bas harf+mahalleden uretiliyordu; bakici karti bu turetilmis
+      adrese baglaniyor, profil sayfasi ise sitters.slug ile cozuyordu — iki
+      farkli deger, dolayisiyla her kart baglantisi 404 veriyordu. Tarayicida
+      yakalandi. Tek kaynak: sitters.slug (packages/db/queries/onboarding.ts).
+    */
+      slug: String(row.slug ?? ''),
       firstName: first,
       lastNameInitial: initial,
       neighbourhood: hood,
