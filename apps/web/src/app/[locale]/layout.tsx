@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import localFont from 'next/font/local';
 import { getMessages, localeFromSegment, LOCALES, segmentFor } from '@havre/i18n';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { citySlug, getDefaultCity, getLinkableCities } from '@/lib/data';
 import { organizationJsonLd, SITE_URL } from '@/lib/seo';
 
 /**
@@ -69,31 +71,16 @@ export default async function LocaleLayout({
   const locale = localeFromSegment(seg);
   if (!locale) notFound();
 
-  const m = getMessages(locale);
+  const [city, linkableCities] = await Promise.all([getDefaultCity(), getLinkableCities()]);
 
   return (
     <html lang={locale} className={`${display.variable} ${ui.variable}`}>
       <body>
         {/* WCAG 2.4.1 — icerige atlama baglantisi */}
         <a href="#main" className="sr-only">Skip to content</a>
-        <Header locale={locale} />
+        <Header locale={locale} citySlug={citySlug(city, locale)} />
         <main id="main">{children}</main>
-        <footer className="site-footer">
-          <div className="container stack">
-            <p className="wordmark" style={{ color: 'var(--color-ink)' }}>{m.brand.name.toLowerCase()}</p>
-            <p>© {new Date().getFullYear()} {m.brand.name}</p>
-            {/*
-              Law 25: Gizlilik sorumlusunun adi ve iletisimi sitede YAYIMLANMALI.
-              Atanmazsa varsayilan olarak CEO sorumludur.
-            */}
-            <p className="dim">
-              {locale === 'fr-CA'
-                ? 'Responsable de la protection des renseignements personnels : [ATANACAK]'
-                : 'Privacy Officer: [TO BE APPOINTED]'}
-            </p>
-            <p className="dim">{m.verification.disclaimer}</p>
-          </div>
-        </footer>
+        <Footer locale={locale} cities={linkableCities} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}

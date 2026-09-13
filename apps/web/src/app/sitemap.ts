@@ -18,13 +18,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const locale of LOCALES) {
     entries.push({ url: urlFor(locale), changeFrequency: 'daily', priority: 1 });
 
-    for (const service of services) {
-      entries.push({
-        url: urlFor(locale, serviceSlug(service, locale)),
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      });
-    }
+    /*
+      HIZMET HUB SAYFALARI (/en/dog-boarding) SITEMAP'TE DEGIL.
+      Daha once buraya ekleniyorlardi ama o rotalar HENUZ YOK ve 404
+      donuyorlardi — tarayicida dogrulandi. Sitemap'e 404 koymak, Google'a
+      "bu adresler var" demektir ve sitenin taranma guvenini zedeler.
+      Rotalar yazildiginda bu blok geri gelir.
+    */
 
     for (const city of cities) {
       for (const service of services) {

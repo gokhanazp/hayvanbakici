@@ -112,35 +112,46 @@ a { color: inherit; text-decoration: none; }
 .panel .muted { color: var(--color-panel-ink-muted); }
 
 /* ---------- Hero ---------- */
+/*
+  KREM KAHRAMAN.
+  Onceki surum koyu bir panel + karartma katmaniydi; karartma, fotografin ne
+  oldugundan bagimsiz kontrast garantisi veriyordu. Yeni yon sayfanin kendi
+  krem zeminini kahramanda da surduruyor: fotograf KESILMIS (arka plani
+  silinmis) olarak zemine oturuyor, dolayisiyla metnin arkasinda hic fotograf
+  olmuyor ve karartmaya gerek kalmiyor.
+*/
 .hero {
   position: relative;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  background: var(--color-panel);
+  padding-block: var(--space-12) var(--space-24);
   isolation: isolate;
 }
-.hero-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
-.hero-media-placeholder {
-  position: absolute; inset: 0; z-index: 0;
-  background:
-    radial-gradient(58% 70% at 74% 24%, #C9B48C 0%, rgba(201,180,140,0) 62%),
-    radial-gradient(46% 58% at 88% 72%, #8E7B58 0%, rgba(142,123,88,0) 64%),
-    radial-gradient(70% 90% at 18% 82%, #3A3A2C 0%, rgba(58,58,44,0) 70%),
-    linear-gradient(128deg, #4A4735 0%, #6B6248 38%, #A08E68 70%, #C6B48F 100%);
+.hero-grid {
+  position: relative; z-index: 2;
+  display: grid; gap: var(--space-8);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
 }
-/*
-  SCRIM — metin kontrastini FOTOGRAFTAN BAGIMSIZ garanti eder.
-  Metin alaninin ustunde opaklik >=0.86 oldugu icin hangi fotograf gelirse gelsin
-  baslik kontrasti WCAG AA'yi gecer; fotograf degisince testi tekrarlamak gerekmez.
-*/
-.hero::before {
-  content: ''; position: absolute; inset: 0; z-index: 1;
-  background:
-    linear-gradient(100deg, rgba(20,23,15,.94) 0%, rgba(20,23,15,.86) 38%, rgba(22,26,18,.52) 66%, rgba(26,30,20,.22) 100%),
-    linear-gradient(180deg, rgba(20,23,15,.34) 0%, rgba(20,23,15,0) 34%);
+@media (min-width: 900px) {
+  .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: var(--space-10); }
 }
-.hero-body { position: relative; z-index: 2; padding: var(--space-12) var(--space-8); max-width: 34rem; }
-@media (min-width: 768px) { .hero-body { padding: var(--space-16) var(--space-10); } }
+.hero-copy { max-width: 34rem; }
+
+/* El cizimi konturlar. Metin sutununa GIRMEZ — ilk denemede kalp konturu
+   basligin uzerine bindi ve okunurlugu bozdu. */
+.hero-doodles {
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none;
+}
+@media (max-width: 899px) { .hero-doodles { display: none; } }
+
+/* Kesilmis hayvan gorseli / gecici cizim */
+.hero-art { width: 100%; height: auto; display: block; }
+
+/* Kahramanin altina binen arama karti */
+.hero-search {
+  position: relative; z-index: 3;
+  margin-top: calc(var(--space-16) * -1);
+}
 
 /* ---------- Rozet / cip ---------- */
 .badge {
@@ -176,7 +187,12 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius-full);
   font-size: 0.875rem; color: var(--color-primary-active);
 }
-@media (max-width: 520px) { .trust-strip { border-radius: var(--radius-lg); } }
+.trust-strip-item { display: inline-flex; align-items: center; gap: var(--space-4); }
+.trust-strip-sep { opacity: .45; }
+@media (max-width: 720px) {
+  .trust-strip { border-radius: var(--radius-lg); flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+  .trust-strip-sep { display: none; }
+}
 
 /* ---------- Form ---------- */
 .field { display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 180px; min-width: 0; }
@@ -194,12 +210,12 @@ a { color: inherit; text-decoration: none; }
 }
 
 .searchbar {
-  display: flex; gap: var(--space-3); align-items: flex-end; flex-wrap: wrap;
+  display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-5) var(--space-6);
 }
 
 /* ---------- Site kabugu ---------- */
@@ -211,17 +227,153 @@ a { color: inherit; text-decoration: none; }
 }
 .site-header-inner {
   display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-4); min-height: 68px;
+  gap: var(--space-5); min-height: 72px;
 }
-.site-nav { display: none; gap: var(--space-5); font-size: 0.875rem; }
-@media (min-width: 900px) { .site-nav { display: flex; } }
 
-.site-footer {
-  margin-top: var(--space-24);
-  border-top: 1px solid var(--color-border);
-  padding-block: var(--space-12);
-  color: var(--color-ink-secondary);
+.wordmark-lockup { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+.site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* --- Ana gezinme --- */
+.site-nav { display: none; align-items: center; gap: var(--space-1); }
+@media (min-width: 1000px) { .site-nav { display: flex; } }
+
+.nav-link {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: 0.9375rem; color: var(--color-ink-secondary);
+  transition: background-color var(--duration-standard) var(--easing-standard),
+              color var(--duration-standard) var(--easing-standard);
+}
+.nav-link:hover { color: var(--color-ink); background: var(--color-surface-sunken); }
+.nav-link-strong { color: var(--color-ink); font-weight: 500; }
+
+/*
+  HIZMET MENUSU — <details>/<summary> uzerine kurulu, JavaScript YOK.
+  Baslik boylece sunucu bileseni kaliyor ve klavye/ekran okuyucu davranisi
+  tarayicidan geliyor.
+*/
+.nav-menu { position: relative; }
+.nav-menu > summary { list-style: none; cursor: pointer; }
+.nav-menu > summary::-webkit-details-marker { display: none; }
+.nav-menu[open] > summary { color: var(--color-ink); background: var(--color-surface-sunken); }
+.nav-menu[open] > summary svg { transform: rotate(180deg); }
+.nav-menu > summary svg { transition: transform var(--duration-standard) var(--easing-standard); }
+
+.nav-panel {
+  position: absolute; top: calc(100% + var(--space-3)); left: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+  width: 34rem; padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.nav-panel-item {
+  display: grid; gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+.nav-panel-item:hover { background: var(--color-primary-subtle); }
+.nav-panel-title { font-weight: 600; font-size: 0.9375rem; }
+.nav-panel-sub { font-size: 0.8125rem; line-height: 1.15rem; color: var(--color-ink-muted); }
+
+/* --- Dil secimi --- */
+.locale-switch {
+  display: inline-flex; align-items: center;
+  padding: 3px; gap: 2px;
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-full);
   font-size: 0.8125rem;
+}
+.locale-switch a {
+  display: inline-flex; align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  color: var(--color-ink-secondary);
+}
+.locale-switch-on {
+  background: var(--color-surface);
+  color: var(--color-ink) !important;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.locale-switch-footer { margin-top: var(--space-5); font-size: 0.875rem; }
+
+/* --- Mobil cekmece --- */
+.nav-drawer { position: relative; }
+@media (min-width: 1000px) { .nav-drawer { display: none; } }
+.nav-drawer > summary {
+  display: grid; place-items: center;
+  width: var(--min-touch-target); height: var(--min-touch-target);
+  border-radius: var(--radius-full);
+  list-style: none; cursor: pointer;
+  color: var(--color-ink);
+}
+.nav-drawer > summary::-webkit-details-marker { display: none; }
+.nav-drawer[open] > summary { background: var(--color-surface-sunken); }
+
+.nav-drawer-panel {
+  position: absolute; top: calc(100% + var(--space-3)); right: 0;
+  display: grid; gap: 2px;
+  width: min(20rem, calc(100vw - var(--space-8)));
+  max-height: calc(100vh - 120px); overflow-y: auto;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+.nav-drawer-heading {
+  margin-top: var(--space-3);
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--color-ink-muted);
+}
+.nav-drawer-heading:first-child { margin-top: 0; }
+.nav-drawer-item {
+  display: flex; align-items: center; min-height: var(--min-touch-target);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+}
+.nav-drawer-item:hover { background: var(--color-surface-sunken); }
+
+/* Dar ekranda CTA'yi gizle — cekmecede zaten var, baslik tasiyor */
+@media (max-width: 640px) { .header-cta { display: none; } }
+
+/* --- Alt bilgi --- */
+.site-footer {
+  margin-top: var(--space-20);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  padding-block: var(--space-16) var(--space-10);
+  color: var(--color-ink-secondary);
+  font-size: 0.875rem;
+}
+.footer-grid {
+  display: grid; gap: var(--space-10);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) { .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) {
+  .footer-grid { grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr)); gap: var(--space-8); }
+}
+.footer-col { display: grid; gap: var(--space-3); align-content: start; }
+.footer-heading {
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--color-ink-muted);
+  margin-bottom: var(--space-1);
+}
+.footer-col a { color: var(--color-ink-secondary); }
+.footer-col a:hover { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
+
+.footer-bottom {
+  display: grid; gap: var(--space-2);
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.8125rem; line-height: 1.2rem;
 }
 
 /* ---------- Bakici karti ---------- */
@@ -348,3 +500,34 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius-md);
   font-size: 0.875rem; line-height: 1.4rem;
 }
+
+
+/* ---------- Pastel ikon kutucugu ---------- */
+/*
+  Dort hizmet karti dort AYRI tonda. Tek marka rengiyle boyanmis dort kart,
+  "dort ayri hizmet" hissini vermiyor — goz onlari tek blok olarak okuyor.
+  Ton/metin ciftlerinin hepsi contrast.test.ts icinde olculuyor.
+*/
+.tile {
+  display: grid; place-items: center;
+  width: 52px; height: 52px;
+  border-radius: var(--radius-md);
+}
+.tile-rose    { background: var(--color-tile-rose);    color: var(--color-tile-rose-ink); }
+.tile-sage    { background: var(--color-tile-sage);    color: var(--color-tile-sage-ink); }
+.tile-apricot { background: var(--color-tile-apricot); color: var(--color-tile-apricot-ink); }
+.tile-peri    { background: var(--color-tile-peri);    color: var(--color-tile-peri-ink); }
+
+/* ---------- Banner ---------- */
+.banner {
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--color-accent-subtle);
+  padding: var(--space-10) var(--space-8);
+}
+@media (min-width: 768px) { .banner { padding: var(--space-12) var(--space-10); } }
+.banner-body { position: relative; z-index: 1; max-width: 34rem; }
+.banner-doodles { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+/* Dar ekranda banner metni tum genisligi kapliyor; konturlar basligin
+   uzerine biniyordu. */
+@media (max-width: 767px) { .banner-doodles { display: none; } }

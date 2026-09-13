@@ -1,34 +1,48 @@
 /**
- * Renk paleti — "Sakin luks" yonu.
- * Yol haritasi §4.2. Tum metin/zemin ciftleri WCAG 2.2 AA hedefler.
+ * Renk paleti — "Bogurtlen & Adacayi".
+ *
+ * NEDEN BU PALET: rakiplerden ayrismak bir zevk meselesi degil, stratejik
+ * varlik. Rover mavi-yesil, Hipaw turuncu-yesil kullaniyor; onceki
+ * paletimiz (ladin yesili + kehribar) ikisine de tehlikeli derecede
+ * yakindi. Bogurtlen + adacayi ikilisi kategoride kimsede yok.
+ *
+ * ROL DAGILIMI: bogurtlen EYLEM rengidir (ara, rezerve et, bakici ol),
+ * adacayi DESTEK (basari, onay, sakinlik). Guven rozetleri (kimlik,
+ * sicil, sigorta, pro) marka renginden AYRI kalmaya devam ediyor —
+ * bilincli: rozet marka degil, bagimsiz bir iddia.
+ *
+ * Tum metin/zemin ciftleri WCAG 2.2 AA hedefler ve
+ * packages/tokens/src/contrast.test.ts icinde OLCULUR.
  */
 
 export const palette = {
-  // Sicak notr omurga
-  canvas:        '#FBF8F4',
+  // Sicak notr omurga — hafif gul altili krem
+  canvas:        '#FDF6F3',
   surface:       '#FFFFFF',
-  surfaceSunken: '#F3EEE7',
-  border:        '#E7DFD4',
-  borderStrong:  '#D3C8B8',
+  surfaceSunken: '#F8EAE4',
+  border:        '#EFDDD8',
+  borderStrong:  '#E0C7BF',
 
-  // Murekkep (metin)
-  ink:          '#1A1714',
-  inkSecondary: '#5C544C',
-  inkMuted:     '#8A8078',
+  // Murekkep (metin) — patlican
+  ink:          '#2A1C26',
+  inkSecondary: '#6B5A64',
+  // 4.64:1 — krem zemin uzerinde kucuk metin icin AA'yi gecen en acik ton.
+  // Daha acik bir gri (#9C8D95) 2.95'te kaliyordu ve fiyat satirlari okunmuyordu.
+  inkMuted:     '#7C6B78',
 
-  // Birincil — "Pine"
-  primary50:  '#EEF5F1',
-  primary100: '#D3E5DA',
-  primary300: '#7FB39B',
-  primary500: '#2F6B52',
-  primary600: '#255743',
-  primary700: '#1B412F',
-  primary900: '#0E2419',
+  // Birincil — "Bogurtlen". EYLEM rengi.
+  primary50:  '#FADDE6',
+  primary100: '#F3C3D4',
+  primary300: '#D07C9F',
+  primary500: '#B33C6E',
+  primary600: '#96305B',
+  primary700: '#8E2C56',
+  primary900: '#4E152E',
 
-  // Aksan — "Ember"
-  accent100: '#FCEBD6',
-  accent500: '#D9803A',
-  accent600: '#BE6A2A',
+  // Aksan — "Adacayi". DESTEK rengi.
+  accent100: '#DEEBE0',
+  accent500: '#6F9E7F',
+  accent600: '#4B7A5C',
 
   // Durum
   success500: '#2E7D4F',
@@ -38,14 +52,26 @@ export const palette = {
   danger700:  '#8A2A20',
   info500:    '#2C5F8A',
 
-  // Panel — koyu ladin. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
+  // Panel — koyu patlican. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
   // (tasarim karari: koyu arayuz uzun bakici listelerinde yoruyor).
-  panel:          '#161810',
-  panelRaised:    '#1F2419',
-  panelInk:       '#F7F4EC',
-  panelInkMuted:  '#D2D0C5',
-  panelPrimary:   '#7FD1AA',
-  panelAccent:    '#E29354',
+  panel:          '#211621',
+  panelRaised:    '#2E1F2C',
+  panelInk:       '#F9F2F4',
+  panelInkMuted:  '#D8C9D0',
+  panelPrimary:   '#F0A0C0',
+  panelAccent:    '#9CC4A8',
+
+  // PASTEL KUTUCUKLAR — hizmet kartlarindaki ikon zeminleri.
+  // Dort ayri ton bilincli: tek marka rengiyle boyanmis dort kart,
+  // "dort ayri hizmet" hissini vermiyor.
+  tileRose:   '#FADDE6',
+  tileSage:   '#DEEBE0',
+  tileApricot:'#FBE6D2',
+  tilePeri:   '#E2E2F4',
+  tileRoseInk:    '#8E2C56',
+  tileSageInk:    '#3F6B4E',
+  tileApricotInk: '#92541C',
+  tilePeriInk:    '#4A4590',
 
   // Guven rozetleri — bilincli olarak marka renginden ayri
   verifyId:      '#2C5F8A',
@@ -90,6 +116,14 @@ export const lightTheme = {
   'verify-check':    palette.verifyCheck,
   'verify-insured':  palette.verifyInsured,
   'verify-pro':      palette.verifyPro,
+  'tile-rose':       palette.tileRose,
+  'tile-rose-ink':   palette.tileRoseInk,
+  'tile-sage':       palette.tileSage,
+  'tile-sage-ink':   palette.tileSageInk,
+  'tile-apricot':    palette.tileApricot,
+  'tile-apricot-ink':palette.tileApricotInk,
+  'tile-peri':       palette.tilePeri,
+  'tile-peri-ink':   palette.tilePeriInk,
 } as const;
 
 /**
@@ -100,38 +134,46 @@ export const lightTheme = {
  * koyu modu siteyi karartmaz. Gerekce build-css.ts icinde yazili.
  */
 export const darkTheme: Record<keyof typeof lightTheme, string> = {
-  'canvas':          '#12130F',
-  'surface':         '#1A1C15',
-  'surface-sunken':  '#20221A',
-  'border':          '#2A2C24',
-  'border-strong':   '#3A3D33',
-  'ink':             '#F2EFE7',
-  'ink-secondary':   '#C9C7BC',
-  'ink-muted':       '#8C8B81',
-  'primary':         '#6FBF9A',
-  'primary-hover':   '#8FD4B3',
-  'primary-active':  '#A7E0C5',
-  'primary-subtle':  '#16281F',
-  'primary-on':      '#0E140F',
-  'accent':          '#E29354',
-  'accent-hover':    '#EDA467',
-  'accent-subtle':   '#2E1F13',
-  'panel':           '#0E100A',
-  'panel-raised':    '#181C12',
-  'panel-ink':       '#F7F4EC',
-  'panel-ink-muted': '#B8B6AB',
-  'panel-primary':   '#7FD1AA',
-  'panel-accent':    '#E29354',
-  'success':         '#4E9B6E',
+  'canvas':          '#161015',
+  'surface':         '#1E161D',
+  'surface-sunken':  '#261C24',
+  'border':          '#332633',
+  'border-strong':   '#453444',
+  'ink':             '#F6EFF2',
+  'ink-secondary':   '#CFC0C8',
+  'ink-muted':       '#9B8B95',
+  'primary':         '#E88AB2',
+  'primary-hover':   '#F0A0C0',
+  'primary-active':  '#F6B8D0',
+  'primary-subtle':  '#33182A',
+  'primary-on':      '#1A0C14',
+  'accent':          '#8CBE9C',
+  'accent-hover':    '#A3CDB0',
+  'accent-subtle':   '#17261B',
+  'panel':           '#120C12',
+  'panel-raised':    '#1D141C',
+  'panel-ink':       '#F9F2F4',
+  'panel-ink-muted': '#C3B3BB',
+  'panel-primary':   '#F0A0C0',
+  'panel-accent':    '#9CC4A8',
+  'success':         '#6BAE83',
   'warning':         '#D9A43A',
-  'danger':          '#D0604F',
-  'danger-subtle':   '#2C1714',
-  'danger-strong':   '#F0A99D',
-  'info':            '#5A90BC',
-  'verify-id':       '#5A90BC',
-  'verify-check':    '#6FBF9A',
-  'verify-insured':  '#9B82C4',
+  'danger':          '#E0776A',
+  'danger-subtle':   '#2E1613',
+  'danger-strong':   '#F3B4AA',
+  'info':            '#7FA8CC',
+  'verify-id':       '#7FA8CC',
+  'verify-check':    '#8CBE9C',
+  'verify-insured':  '#B29BD8',
   'verify-pro':      '#D4AC4E',
+  'tile-rose':       '#33182A',
+  'tile-rose-ink':   '#F0A0C0',
+  'tile-sage':       '#17261B',
+  'tile-sage-ink':   '#8CBE9C',
+  'tile-apricot':    '#2E2014',
+  'tile-apricot-ink':'#DFA96A',
+  'tile-peri':       '#1E1D33',
+  'tile-peri-ink':   '#A7A3E0',
 };
 
 export type ThemeToken = keyof typeof lightTheme;

@@ -26,11 +26,16 @@ export function TrustStrip({
     interpolate(m.home.trustStripBookings, { count: numberFmt(bookingCount, locale) }),
   ];
 
+  /*
+    Ayiraci noktalar YALNIZCA genis ekranda. Dar ekranda seritteki uc madde
+    alt alta diziliyor ve nokta her satirin BASINDA kaliyordu — madde
+    isareti gibi gorunuyor ve yanlis okunuyordu.
+  */
   return (
     <div className="trust-strip">
       {items.map((text, i) => (
-        <span key={i} className="row" style={{ gap: 'var(--space-4)' }}>
-          {i > 0 && <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>}
+        <span key={i} className="trust-strip-item">
+          {i > 0 && <span aria-hidden="true" className="trust-strip-sep">·</span>}
           <span>{text}</span>
         </span>
       ))}

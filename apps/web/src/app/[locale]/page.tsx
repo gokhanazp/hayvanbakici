@@ -1,9 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getMessages, localeFromSegment, segmentFor, serviceSlug } from '@havre/i18n';
+import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { servicesForPhase, calculateCommission, compareToRover, dollars } from '@havre/core';
 import { SearchBar } from '@/components/SearchBar';
 import { TrustStrip } from '@/components/TrustStrip';
+import { ServiceTiles } from '@/components/ServiceTiles';
+import { HeroArt } from '@/components/HeroArt';
+import { BannerDoodles, HeroDoodles } from '@/components/Doodles';
 import { ShieldIcon } from '@/components/VerificationBadge';
 import { cityName, citySlug, getDefaultCity, getLandingData } from '@/lib/data';
 import { money } from '@/lib/format';
@@ -30,40 +33,43 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const sample = dollars(500);
   const ours = calculateCommission({ subtotalCents: sample, attribution: 'sitter_referral' });
   const vsRover = compareToRover(sample, ours, 'standard');
+  const zero = calculateCommission({ subtotalCents: sample, attribution: 'sitter_referral' }).sitterPct;
 
   return (
     <>
-      {/* ---- Hero: fotograf + scrim. Koyuluk TEK bloga hapsedilir. ---- */}
-      <section className="container" style={{ paddingBlock: 'var(--space-4) 0' }}>
-        <div className="hero">
-          {/*
-            Gercek fotograf geldiginde bu blok next/image ile degistirilir:
-            <Image className="hero-media" src={hero} alt="" priority placeholder="blur" fill />
-            Spec: 2.2:1, >=1760x800, konu SAG yarida (sol yari metne ayrildi).
-          */}
-          <div className="hero-media-placeholder" aria-hidden="true" />
+      {/* ---- Kahraman: krem zemin, kesilmis gorsel, el cizimi konturlar ---- */}
+      <section className="container hero">
+        <HeroDoodles />
 
-          <div className="hero-body">
-            <span className="eyebrow">
-              <span style={{ color: 'var(--color-panel-primary)', display: 'inline-flex' }}>
-                <ShieldIcon size={14} />
-              </span>
-              {locale === 'fr-CA' ? "Fait ici, au Canada · en-CA & fr-CA" : 'Built in Canada · en-CA & fr-CA'}
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <span className="badge" style={{
+              background: 'var(--color-accent-subtle)',
+              color: 'var(--color-accent-hover)',
+              gap: 'var(--space-2)',
+            }}>
+              <ShieldIcon size={13} />
+              {locale === 'fr-CA'
+                ? 'Antécédents vérifiés pour chaque gardien'
+                : 'Every sitter background-checked'}
             </span>
 
             <h1 className="text-display" style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
               {m.home.heroTitle}
             </h1>
-            <p className="text-body-lg muted" style={{ marginBottom: 'var(--space-8)', maxWidth: '28rem' }}>
+            <p className="text-body-lg muted" style={{ textWrap: 'pretty' }}>
               {m.home.heroSubtitle}
             </p>
           </div>
+
+          <HeroArt />
         </div>
       </section>
 
-      <section className="container" style={{ paddingBlock: 'var(--space-6)' }}>
+      {/* ---- Kahramanin altina binen arama karti ---- */}
+      <section className="container hero-search">
         <SearchBar locale={locale} />
-        <div style={{ marginTop: 'var(--space-5)' }}>
+        <div className="row" style={{ justifyContent: 'center', marginTop: 'var(--space-5)' }}>
           <TrustStrip
             locale={locale}
             cityName={cityName(city, locale)}
@@ -75,35 +81,67 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ---- Hizmetler ---- */}
-      <section className="container" style={{ paddingBlock: 'var(--space-10)' }}>
+      <section className="container" style={{ paddingBlock: 'var(--space-16) var(--space-10)' }}>
         <h2 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>
-          {locale === 'fr-CA' ? 'Ce que vous pouvez réserver' : 'What you can book'}
+          {locale === 'fr-CA' ? 'De quoi avez-vous besoin?' : 'What do you need?'}
         </h2>
-        <div className="grid grid-4">
-          {services.map((s) => (
-            <Link
-              key={s}
-              href={`/${segmentFor(locale)}/${citySlug(city, locale)}/${serviceSlug(s, locale)}`}
-              className="card card-hover card-pad"
-            >
-              <h3 className="text-h4" style={{ marginBottom: 'var(--space-1)' }}>{m.service[s]}</h3>
-              <p className="dim text-body-sm">{m.serviceDescription[s]}</p>
-            </Link>
-          ))}
+        <ServiceTiles locale={locale} services={services} citySlug={citySlug(city, locale)} />
+      </section>
+
+      {/* ---- Bakici banneri: urunun en guclu hamlesi, tek blokta ---- */}
+      <section className="container" style={{ paddingBlock: 'var(--space-6) var(--space-16)' }}>
+        <div className="banner">
+          <BannerDoodles />
+          <div className="banner-body">
+            <span className="badge" style={{ background: 'var(--color-surface)', color: 'var(--color-accent-hover)' }}>
+              {locale === 'fr-CA' ? 'Pour les gardiens' : 'For sitters'}
+            </span>
+
+            <h2 className="text-h1" style={{ margin: 'var(--space-4) 0 0' }}>
+              {locale === 'fr-CA' ? 'Amenez vos propres clients.' : 'Bring your own clients.'}
+              <br />
+              {locale === 'fr-CA' ? 'Gardez ' : 'Keep '}
+              <span style={{ color: 'var(--color-primary)' }}>{100 - zero}%</span>
+              {locale === 'fr-CA' ? ' de ce qu’ils paient.' : ' of what they pay.'}
+            </h2>
+
+            <p className="text-body-lg muted" style={{ marginTop: 'var(--space-4)', maxWidth: '32rem' }}>
+              {locale === 'fr-CA'
+                ? 'Invitez un client avec votre propre code et nous ne prenons rien sur ses réservations — de façon permanente, pas pour un mois d’essai.'
+                : 'Invite a client with your own code and we take nothing on their bookings — permanently, not for a trial month.'}
+            </p>
+
+            <div className="row" style={{ marginTop: 'var(--space-6)' }}>
+              <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary">
+                {m.nav.becomeSitter}
+              </Link>
+              <Link href={`/${seg}/pricing/`} className="btn btn-secondary">
+                {locale === 'fr-CA' ? 'Voir nos frais' : 'See how our fees work'}
+              </Link>
+            </div>
+
+            {/*
+              Rakamla desteklenen iddia. Competition Act: dayanak
+              packages/core/commission.ts icindeki compareToRover().
+            */}
+            <p className="text-body-sm dim" style={{ marginTop: 'var(--space-5)' }}>
+              {locale === 'fr-CA'
+                ? `Sur une réservation de ${money(sample, locale)}, un gardien garde jusqu’à ${money(vsRover.sitterSavesCents, locale)} de plus qu’ailleurs.`
+                : `On a ${money(sample, locale)} booking, a sitter keeps up to ${money(vsRover.sitterSavesCents, locale)} more than elsewhere.`}
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ---- Ucret seffafligi: rakiplere karsi en guclu hamle ---- */}
-      <section className="container" style={{ paddingBlock: 'var(--space-10)' }}>
+      {/* ---- Ucret defteri: uc oran, tek tabloda ---- */}
+      <section className="container" style={{ paddingBlock: '0 var(--space-16)' }}>
         <h2 className="text-h2" style={{ marginBottom: 'var(--space-2)' }}>
-          {locale === 'fr-CA'
-            ? 'Amenez votre propre client. Nous ne prenons rien.'
-            : 'Bring your own client. We take nothing.'}
+          {locale === 'fr-CA' ? 'Trois taux, publiés.' : 'Three rates, published.'}
         </h2>
         <p className="muted" style={{ marginBottom: 'var(--space-6)', maxWidth: '38rem' }}>
           {locale === 'fr-CA'
-            ? 'Trois taux, publiés. C’est toute la page de tarification.'
-            : 'Three rates, published. That is the whole pricing page.'}
+            ? 'C’est toute la page de tarification. Aucun frais caché, ni pour vous ni pour le gardien.'
+            : 'That is the whole pricing page. No hidden fees, for you or your sitter.'}
         </p>
 
         <div className="grid grid-3">
@@ -119,7 +157,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <div
                   className="text-h1 tabular"
                   style={{
-                    color: highlighted ? 'var(--color-panel-accent)' : 'var(--color-primary)',
+                    color: highlighted ? 'var(--color-panel-primary)' : 'var(--color-primary)',
                     marginBottom: 'var(--space-3)',
                   }}
                 >
@@ -132,12 +170,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             );
           })}
         </div>
-
-        <p className="dim text-body-sm tabular" style={{ marginTop: 'var(--space-5)' }}>
-          {locale === 'fr-CA'
-            ? `Sur une réservation de ${money(sample, locale)}, un gardien garde jusqu’à ${money(vsRover.sitterSavesCents, locale)} de plus qu’ailleurs.`
-            : `On a ${money(sample, locale)} booking, a sitter keeps up to ${money(vsRover.sitterSavesCents, locale)} more than elsewhere.`}
-        </p>
       </section>
     </>
   );

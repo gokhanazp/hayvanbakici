@@ -7,7 +7,7 @@
  */
 import { cache } from 'react';
 import {
-  getDb, listCities, listTier1Cities, findCityBySlug as dbFindCityBySlug,
+  getDb, listCities, listTier1Cities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
@@ -50,3 +50,14 @@ export const getDefaultCity = cache(async (): Promise<CityRecord> => {
   if (!first) throw new Error('Veritabaninda sehir yok — once `npm run seed -w @havre/db` calistirin');
   return first;
 });
+
+/**
+ * Alt bilgide ve gezinmede listelenecek sehirler.
+ *
+ * Arz esigini gecmeyen sehir LISTELENMEZ: London'da iki bakici var, sayfa
+ * noindex; Victoria'da hic yok, sayfa 404. Ikisine de baglanti vermek
+ * Google'a yanlis sinyal gonderir.
+ */
+export const getLinkableCities = cache(
+  async (): Promise<CityRecord[]> => listCitiesWithSupply(db(), 'boarding', 3),
+);

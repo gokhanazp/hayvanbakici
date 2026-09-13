@@ -19,12 +19,16 @@ export const space = {
   32: '8rem',       // 128
 } as const;
 
-/** Yumusatilmis geometri — "C acik" yonunun imzasi. Rozetler hap bicimli. */
+/**
+ * Yumusatilmis geometri — "Bogurtlen & Adacayi" yonunun imzasi.
+ * Onceki degerlerden bir kademe daha yuvarlak: hayvan bakimi kategorisinde
+ * keskin kose soguk duruyor. Rozet, cip ve birincil CTA hap bicimli.
+ */
 export const radius = {
-  sm: '10px',    // kucuk kontrol
-  md: '14px',    // buton, input
-  lg: '20px',    // kart
-  xl: '28px',    // hero paneli, modal
+  sm: '12px',    // kucuk kontrol
+  md: '16px',    // buton, input
+  lg: '24px',    // kart
+  xl: '32px',    // hero, banner, modal
   full: '999px', // avatar, rozet, filtre cipi, birincil CTA
 } as const;
 
