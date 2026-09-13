@@ -18,7 +18,8 @@
     "migrate": "tsx --env-file-if-exists=../../.env src/migrate.ts",
     "studio": "drizzle-kit studio",
     "seed": "tsx --env-file-if-exists=../../.env src/seed.ts",
-    "smoke": "tsx --env-file-if-exists=../../.env src/smoke.ts"
+    "smoke": "tsx --env-file-if-exists=../../.env src/smoke.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@havre/core": "0.1.0",
@@ -29,6 +30,7 @@
     "@types/node": "^22.10.5",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.23.13",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   }
 }

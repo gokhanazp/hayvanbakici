@@ -55,7 +55,13 @@ export function SignUpForm({
       name: name.trim(),
       email: email.trim(),
       password,
-      callbackURL,
+      /*
+        Dogrulama baglantisi ONAY SAYFASINA donuyor, hedefe degil.
+        Sebep: kullanici baglantiya bazen saatler sonra, bazen baska bir
+        cihazda tikliyor. Dogrudan ana sayfaya dusurmek "oldu mu olmadi mi"
+        sorusunu cevapsiz birakiyordu.
+      */
+      callbackURL: `/${seg}/account/verify-email/`,
     });
     setBusy(false);
 

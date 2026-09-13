@@ -1,0 +1,155 @@
+/**
+ * BAKICI ONBOARDING — adimlar ve dogrulama.
+ *
+ * Bu dosya hem tarayicida (aninda geri bildirim) hem sunucuda (asil kontrol)
+ * calisiyor. Guvenlik ve veri butunlugu siniri SUNUCUDUR; buradaki kontroller
+ * kullanici kolayligi icin.
+ *
+ * Hata KODU donduruluyor, metin degil — ceviriyi arayuz yapiyor, boylece
+ * Fransizca karsiligi unutulursa katalog testi yakaliyor (Bill 96).
+ */
+
+export const ONBOARDING_STEPS = [
+  'about', 'location', 'services', 'home', 'screening', 'review',
+] as const;
+
+export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+
+export function isOnboardingStep(v: string): v is OnboardingStep {
+  return (ONBOARDING_STEPS as readonly string[]).includes(v);
+}
+
+export function stepIndex(step: OnboardingStep): number {
+  return ONBOARDING_STEPS.indexOf(step);
+}
+
+export function nextStep(step: OnboardingStep): OnboardingStep | null {
+  return ONBOARDING_STEPS[stepIndex(step) + 1] ?? null;
+}
+
+export function previousStep(step: OnboardingStep): OnboardingStep | null {
+  const i = stepIndex(step);
+  return i > 0 ? (ONBOARDING_STEPS[i - 1] ?? null) : null;
+}
+
+/** alan adi -> hata kodu */
+export type FieldErrors = Record<string, string>;
+
+/**
+ * Kanada posta kodu. Harf kumesi kasitli olarak dar: D, F, I, O, Q, U hic
+ * kullanilmiyor; W ve Z ilk harf olamaz. Genis bir regex, yazim hatasini
+ * gecirip aramayi bozar.
+ */
+const POSTAL = /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ][ ]?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i;
+
+export function isValidPostalCode(v: string): boolean {
+  return POSTAL.test(v.trim());
+}
+
+/** Kuzey Amerika numarasi: 10 hane, ulke kodu opsiyonel */
+export function isValidPhone(v: string): boolean {
+  const digits = v.replace(/\D/g, '');
+  return digits.length === 10 || (digits.length === 11 && digits.startsWith('1'));
+}
+
+export function ageOn(dateOfBirth: string, on: Date = new Date()): number | null {
+  const d = new Date(`${dateOfBirth}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  let age = on.getUTCFullYear() - d.getUTCFullYear();
+  const beforeBirthday =
+    on.getUTCMonth() < d.getUTCMonth() ||
+    (on.getUTCMonth() === d.getUTCMonth() && on.getUTCDate() < d.getUTCDate());
+  if (beforeBirthday) age -= 1;
+  return age;
+}
+
+export const MIN_PRICE_CENTS = 500;
+export const MAX_PRICE_CENTS = 50_000;
+/** Bio bu uzunlugun altindaysa profil ise yaramiyor — olculmus bir esik degil,
+ *  ama "Hayvanlari severim" tek satirini elemek icin yeterli. */
+export const MIN_BIO_LENGTH = 40;
+
+export function validateAbout(input: {
+  firstName: string; lastNameInitial: string; bio: string; phone: string; dateOfBirth: string;
+}): FieldErrors {
+  const e: FieldErrors = {};
+  if (!input.firstName.trim()) e.firstName = 'error.required';
+  if (!input.lastNameInitial.trim()) e.lastNameInitial = 'error.required';
+  if (input.bio.trim().length < MIN_BIO_LENGTH) e.bio = 'error.required';
+  if (!isValidPhone(input.phone)) e.phone = 'error.required';
+
+  const age = ageOn(input.dateOfBirth);
+  if (age === null) e.dateOfBirth = 'error.required';
+  else if (age < 18) e.dateOfBirth = 'error.tooYoung';
+
+  return e;
+}
+
+export function validateLocation(input: {
+  cityId: string; neighbourhoodId: string; postalCode: string; exactAddress: string;
+}): FieldErrors {
+  const e: FieldErrors = {};
+  if (!input.cityId) e.cityId = 'error.required';
+  if (!input.neighbourhoodId) e.neighbourhoodId = 'error.required';
+  if (!isValidPostalCode(input.postalCode)) e.postalCode = 'error.invalidPostalCode';
+  if (input.exactAddress.trim().length < 5) e.exactAddress = 'error.required';
+  return e;
+}
+
+export function validateServices(
+  input: Array<{ serviceType: string; priceCents: number; acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean }>,
+): FieldErrors {
+  const e: FieldErrors = {};
+  if (input.length === 0) {
+    e.services = 'services.none';
+    return e;
+  }
+  for (const s of input) {
+    if (!Number.isFinite(s.priceCents) || s.priceCents < MIN_PRICE_CENTS || s.priceCents > MAX_PRICE_CENTS) {
+      e[`price.${s.serviceType}`] = 'error.priceRange';
+    }
+    if (!s.acceptsDogs && !s.acceptsCats && !s.acceptsOther) {
+      e[`accepts.${s.serviceType}`] = 'error.required';
+    }
+  }
+  return e;
+}
+
+export interface CompletenessInput {
+  hasAbout: boolean;
+  hasLocation: boolean;
+  serviceCount: number;
+  hasHome: boolean;
+  screeningStarted: boolean;
+}
+
+/**
+ * Profil doluluk orani.
+ *
+ * Siralama skorunun girdilerinden biri (yol haritasi §6.4) ve bakiciya
+ * "neyi eksik biraktin" demenin yolu. Agirliklar esit degil: hizmet ve konum
+ * olmadan bakici aramada HIC cikmaz, o yuzden daha agirlar.
+ */
+export function profileCompleteness(input: CompletenessInput): number {
+  const parts: Array<[boolean, number]> = [
+    [input.hasAbout, 0.2],
+    [input.hasLocation, 0.25],
+    [input.serviceCount > 0, 0.25],
+    [input.hasHome, 0.1],
+    [input.screeningStarted, 0.2],
+  ];
+  const score = parts.reduce((sum, [done, weight]) => sum + (done ? weight : 0), 0);
+  return Number(score.toFixed(2));
+}
+
+/** Hangi adimlar tamamlandi — ilerleme cubugu ve "eksikler" listesi icin */
+export function completedSteps(input: CompletenessInput): Record<OnboardingStep, boolean> {
+  return {
+    about: input.hasAbout,
+    location: input.hasLocation,
+    services: input.serviceCount > 0,
+    home: input.hasHome,
+    screening: input.screeningStarted,
+    review: false,
+  };
+}

@@ -1,0 +1,557 @@
+'use client';
+
+import { useActionState, useState } from 'react';
+import Link from 'next/link';
+import {
+  MAX_PRICE_CENTS, MIN_PRICE_CENTS, SERVICES, servicesForPhase,
+  previousStep, type OnboardingStep, type ServiceType,
+} from '@havre/core';
+import { getMessages, segmentFor, type Locale, type Messages } from '@havre/i18n';
+import type { StepState } from '@/app/[locale]/become-a-sitter/[step]/actions';
+
+type Action = (prev: StepState, form: FormData) => Promise<StepState>;
+
+const EMPTY: StepState = { errors: {} };
+
+/**
+ * ALANLAR NEDEN KONTROLLU (defaultValue degil, value + onChange)?
+ *
+ * React 19, bir form action'i tamamlandiktan sonra KONTROLSUZ alanlari
+ * SIFIRLIYOR. Dogrulama hatasi donduren bir adimda bu, kullanicinin yazdigi
+ * her seyin silinmesi demekti — adres alaninda bizzat yasandi. Kontrollu
+ * alanlar degeri React state'inde tuttugu icin hata sonrasi form oldugu gibi
+ * kaliyor.
+ */
+function useFields<T extends Record<string, string | boolean | number>>(initial: T) {
+  const [values, setValues] = useState<T>(initial);
+  const set = <K extends keyof T>(key: K, value: T[K]) =>
+    setValues((v) => ({ ...v, [key]: value }));
+  return [values, set] as const;
+}
+
+/** Hata kodunu metne cevirir; kod bulunamazsa genel mesaj. */
+function err(m: Messages, code: string | undefined): string | undefined {
+  if (!code) return undefined;
+  const fromOnboarding = m.onboarding[code as keyof Messages['onboarding']] as string | undefined;
+  return fromOnboarding ?? (m.auth['error.generic'] as string);
+}
+
+function Field({
+  id, label, hint, error, children,
+}: {
+  id: string; label: string; hint?: string | undefined; error?: string | undefined;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="field-block">
+      <label htmlFor={id}>{label}</label>
+      {children}
+      {hint && <span className="field-hint">{hint}</span>}
+      {error && <span className="field-error" role="alert">{error}</span>}
+    </div>
+  );
+}
+
+function Actions({
+  locale, step, busy, label,
+}: {
+  locale: Locale; step: OnboardingStep; busy: boolean; label: string;
+}) {
+  const m = getMessages(locale);
+  const prev = previousStep(step);
+  return (
+    <div className="wizard-actions">
+      <button type="submit" className="btn btn-primary" disabled={busy}>
+        {busy ? m.auth.submitting : label}
+      </button>
+      {prev && (
+        <Link href={`/${segmentFor(locale)}/become-a-sitter/${prev}/`} className="btn btn-ghost">
+          {m.onboarding.back}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- hakkinda */
+
+export function AboutForm({
+  locale, action, initial,
+}: {
+  locale: Locale;
+  action: Action;
+  initial: { firstName: string; lastNameInitial: string; bio: string; phone: string; dateOfBirth: string };
+}) {
+  const m = getMessages(locale);
+  const [state, formAction, busy] = useActionState(action, EMPTY);
+  const [v, set] = useFields(initial);
+
+  return (
+    <form action={formAction} className="auth-form">
+      <input type="hidden" name="locale" value={segmentFor(locale)} />
+
+      <Field id="firstName" label={m.auth.name} error={err(m, state.errors.firstName)}>
+        <input id="firstName" name="firstName" value={v.firstName} autoComplete="given-name" required
+          onChange={(e) => set('firstName', e.target.value)} />
+      </Field>
+
+      <Field
+        id="lastNameInitial"
+        label={m.onboarding['about.lastNameInitial']}
+        hint={m.auth.namePrivacy}
+        error={err(m, state.errors.lastNameInitial)}
+      >
+        <input id="lastNameInitial" name="lastNameInitial" value={v.lastNameInitial}
+          maxLength={1} style={{ maxWidth: '5rem' }} required
+          onChange={(e) => set('lastNameInitial', e.target.value)} />
+      </Field>
+
+      <Field
+        id="bio"
+        label={m.onboarding['about.bio']}
+        hint={m.onboarding['about.bioHint']}
+        error={err(m, state.errors.bio)}
+      >
+        <textarea id="bio" name="bio" value={v.bio} rows={5} required
+          onChange={(e) => set('bio', e.target.value)}
+          style={{
+            padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface)',
+            border: '1px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)',
+            width: '100%', resize: 'vertical',
+          }} />
+      </Field>
+
+      <Field
+        id="phone"
+        label={m.onboarding['about.phone']}
+        hint={m.onboarding['about.phoneHint']}
+        error={err(m, state.errors.phone)}
+      >
+        <input id="phone" name="phone" type="tel" value={v.phone} autoComplete="tel" required
+          onChange={(e) => set('phone', e.target.value)} />
+      </Field>
+
+      <Field
+        id="dateOfBirth"
+        label={m.onboarding['about.dateOfBirth']}
+        hint={m.onboarding['about.dateOfBirthHint']}
+        error={err(m, state.errors.dateOfBirth)}
+      >
+        <input id="dateOfBirth" name="dateOfBirth" type="date" value={v.dateOfBirth} required
+          onChange={(e) => set('dateOfBirth', e.target.value)} />
+      </Field>
+
+      <Actions locale={locale} step="about" busy={busy} label={m.onboarding.saveAndContinue} />
+    </form>
+  );
+}
+
+/* ------------------------------------------------------------------ konum */
+
+export interface CityOption { id: string; name: string }
+export interface HoodOption { id: string; cityId: string; name: string }
+
+export function LocationForm({
+  locale, action, cities, neighbourhoods, initial,
+}: {
+  locale: Locale;
+  action: Action;
+  cities: CityOption[];
+  neighbourhoods: HoodOption[];
+  initial: { cityId: string; neighbourhoodId: string; postalCode: string };
+}) {
+  const m = getMessages(locale);
+  const [state, formAction, busy] = useActionState(action, EMPTY);
+  const [v, set] = useFields({ ...initial, exactAddress: '' });
+
+  const hoods = neighbourhoods.filter((h) => h.cityId === v.cityId);
+
+  const selectStyle = {
+    minHeight: 'var(--min-touch-target)', padding: 'var(--space-3) var(--space-4)',
+    background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)',
+    borderRadius: 'var(--radius-md)', width: '100%',
+  } as const;
+
+  return (
+    <form action={formAction} className="auth-form">
+      <input type="hidden" name="locale" value={segmentFor(locale)} />
+
+      <Field id="cityId" label={m.onboarding['location.city']} error={err(m, state.errors.cityId)}>
+        <select id="cityId" name="cityId" value={v.cityId} required style={selectStyle}
+          onChange={(e) => {
+            set('cityId', e.target.value);
+            // Sehir degisince mahalle secimi gecersiz kalir; temizlenmezse
+            // baska sehrin mahallesi gonderilir ve sunucu reddeder.
+            set('neighbourhoodId', '');
+          }}>
+          <option value="">—</option>
+          {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </Field>
+
+      <Field id="neighbourhoodId" label={m.onboarding['location.neighbourhood']}
+        error={err(m, state.errors.neighbourhoodId)}>
+        <select id="neighbourhoodId" name="neighbourhoodId" value={v.neighbourhoodId} required
+          disabled={hoods.length === 0} style={selectStyle}
+          onChange={(e) => set('neighbourhoodId', e.target.value)}>
+          <option value="">—</option>
+          {hoods.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}
+        </select>
+      </Field>
+
+      <Field id="postalCode" label={m.onboarding['location.postalCode']}
+        error={err(m, state.errors.postalCode)}>
+        <input id="postalCode" name="postalCode" value={v.postalCode}
+          autoComplete="postal-code" style={{ maxWidth: '10rem' }} required
+          onChange={(e) => set('postalCode', e.target.value)} />
+      </Field>
+
+      <Field
+        id="exactAddress"
+        label={m.onboarding['location.address']}
+        hint={m.onboarding['location.addressHint']}
+        error={err(m, state.errors.exactAddress)}
+      >
+        {/* Kayitli adres SIFRELI duruyor ve geri doldurulmuyor — bilincli.
+            Cozup tarayiciya gondermek, gereksiz bir sizma yuzeyi acardi. */}
+        <input id="exactAddress" name="exactAddress" value={v.exactAddress}
+          autoComplete="street-address" required
+          onChange={(e) => set('exactAddress', e.target.value)} />
+      </Field>
+
+      <p className="notice">{m.onboarding['location.mapNote']}</p>
+
+      <Actions locale={locale} step="location" busy={busy} label={m.onboarding.saveAndContinue} />
+    </form>
+  );
+}
+
+/* --------------------------------------------------------------- hizmetler */
+
+interface ServiceDraft {
+  on: boolean;
+  price: string;
+  cancellation: string;
+  dogs: boolean;
+  cats: boolean;
+  other: boolean;
+}
+
+export function ServicesForm({
+  locale, action, initial,
+}: {
+  locale: Locale;
+  action: Action;
+  initial: Array<{ serviceType: string; priceCents: number; cancellationPolicy: string; acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean }>;
+}) {
+  const m = getMessages(locale);
+  const [state, formAction, busy] = useActionState(action, EMPTY);
+
+  // Yalnizca v1 hizmetleri. day_care/training/grooming sonraki fazlarda acilacak
+  // (packages/core/services.ts icindeki faz tablosu).
+  const available = servicesForPhase('v1');
+
+  const [drafts, setDrafts] = useState<Record<string, ServiceDraft>>(() => {
+    const saved = new Map(initial.map((s) => [s.serviceType, s]));
+    const out: Record<string, ServiceDraft> = {};
+    for (const type of available) {
+      const row = saved.get(type);
+      out[type] = {
+        on: Boolean(row),
+        price: row ? String(row.priceCents / 100) : '',
+        cancellation: row?.cancellationPolicy ?? 'moderate',
+        dogs: row?.acceptsDogs ?? true,
+        cats: row?.acceptsCats ?? false,
+        other: row?.acceptsOther ?? false,
+      };
+    }
+    return out;
+  });
+
+  function patch(type: string, change: Partial<ServiceDraft>) {
+    setDrafts((prev) => ({ ...prev, [type]: { ...(prev[type] as ServiceDraft), ...change } }));
+  }
+
+  const selectStyle = {
+    minHeight: 'var(--min-touch-target)', padding: 'var(--space-2) var(--space-4)',
+    background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)',
+    borderRadius: 'var(--radius-md)', width: '100%',
+  } as const;
+
+  return (
+    <form action={formAction} className="auth-form">
+      <input type="hidden" name="locale" value={segmentFor(locale)} />
+
+      <p className="notice">{m.onboarding['services.priceNote']}</p>
+      {state.errors.services && (
+        <p className="alert alert-error" role="alert">{err(m, state.errors.services)}</p>
+      )}
+
+      <div className="grid" style={{ gap: 'var(--space-3)' }}>
+        {available.map((type) => {
+          const d = drafts[type] as ServiceDraft;
+          const label = m.service[type as ServiceType];
+
+          return (
+            <div key={type} className={`service-card${d.on ? ' service-card-on' : ''}`}>
+              <div className="checkbox-row">
+                <input
+                  id={`svc-${type}`}
+                  type="checkbox"
+                  name="service"
+                  value={type}
+                  checked={d.on}
+                  onChange={(e) => patch(type, { on: e.target.checked })}
+                />
+                <label htmlFor={`svc-${type}`} className="text-h4">{label}</label>
+              </div>
+
+              {d.on && (
+                <div className="service-detail">
+                  <div className="field-block">
+                    <label htmlFor={`price-${type}`}>{m.onboarding['services.price']}</label>
+                    <span className="price-input">
+                      <span aria-hidden="true">$</span>
+                      <input
+                        id={`price-${type}`}
+                        name={`price.${type}`}
+                        type="number"
+                        min={MIN_PRICE_CENTS / 100}
+                        max={MAX_PRICE_CENTS / 100}
+                        step="1"
+                        inputMode="decimal"
+                        value={d.price}
+                        onChange={(e) => patch(type, { price: e.target.value })}
+                        required
+                      />
+                      <span className="dim text-body-sm">/ {SERVICES[type as ServiceType].unit}</span>
+                    </span>
+                    {state.errors[`price.${type}`] && (
+                      <span className="field-error" role="alert">{err(m, state.errors[`price.${type}`])}</span>
+                    )}
+                  </div>
+
+                  <div className="field-block">
+                    <label htmlFor={`cxl-${type}`}>{m.onboarding['services.cancellation']}</label>
+                    <select id={`cxl-${type}`} name={`cancellation.${type}`} value={d.cancellation}
+                      style={selectStyle}
+                      onChange={(e) => patch(type, { cancellation: e.target.value })}>
+                      <option value="flexible">{m.onboarding['cancellation.flexible']}</option>
+                      <option value="moderate">{m.onboarding['cancellation.moderate']}</option>
+                      <option value="strict">{m.onboarding['cancellation.strict']}</option>
+                    </select>
+                  </div>
+
+                  <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                    <legend className="field-hint" style={{ marginBottom: 'var(--space-2)' }}>
+                      {m.onboarding['services.accepts']}
+                    </legend>
+                    <div className="row">
+                      <label className="chip">
+                        <input type="checkbox" name={`dogs.${type}`} checked={d.dogs}
+                          onChange={(e) => patch(type, { dogs: e.target.checked })} />
+                        {m.onboarding['services.dogs']}
+                      </label>
+                      <label className="chip">
+                        <input type="checkbox" name={`cats.${type}`} checked={d.cats}
+                          onChange={(e) => patch(type, { cats: e.target.checked })} />
+                        {m.onboarding['services.cats']}
+                      </label>
+                      <label className="chip">
+                        <input type="checkbox" name={`other.${type}`} checked={d.other}
+                          onChange={(e) => patch(type, { other: e.target.checked })} />
+                        {m.onboarding['services.other']}
+                      </label>
+                    </div>
+                    {state.errors[`accepts.${type}`] && (
+                      <span className="field-error" role="alert">{err(m, state.errors[`accepts.${type}`])}</span>
+                    )}
+                  </fieldset>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <Actions locale={locale} step="services" busy={busy} label={m.onboarding.saveAndContinue} />
+    </form>
+  );
+}
+
+/* -------------------------------------------------------------------- ev */
+
+export function HomeForm({
+  locale, action, initial,
+}: {
+  locale: Locale;
+  action: Action;
+  initial: { homeType: string; hasYard: boolean; yardFenced: boolean; hasOwnPets: boolean; smokeFree: boolean; maxConcurrentPets: number };
+}) {
+  const m = getMessages(locale);
+  const [state, formAction, busy] = useActionState(action, EMPTY);
+  const [v, set] = useFields({ ...initial, maxConcurrentPets: String(initial.maxConcurrentPets) });
+
+  const types = ['house', 'townhouse', 'apartment', 'condo', 'farm'] as const;
+
+  return (
+    <form action={formAction} className="auth-form">
+      <input type="hidden" name="locale" value={segmentFor(locale)} />
+
+      <Field id="homeType" label={m.onboarding['home.type']} error={err(m, state.errors.homeType)}>
+        <select id="homeType" name="homeType" value={v.homeType} required
+          onChange={(e) => set('homeType', e.target.value)}
+          style={{
+            minHeight: 'var(--min-touch-target)', padding: 'var(--space-3) var(--space-4)',
+            background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)',
+            borderRadius: 'var(--radius-md)', width: '100%',
+          }}>
+          <option value="">—</option>
+          {types.map((t) => (
+            <option key={t} value={t}>{m.onboarding[`home.${t}` as keyof Messages['onboarding']] as string}</option>
+          ))}
+        </select>
+      </Field>
+
+      <div className="checkbox-row">
+        <input id="hasYard" type="checkbox" name="hasYard" checked={v.hasYard}
+          onChange={(e) => set('hasYard', e.target.checked)} />
+        <label htmlFor="hasYard">{m.onboarding['home.hasYard']}</label>
+      </div>
+
+      {/* Bahce yoksa "cevrili bahce" secenegi de olmamali — yanlis iddiaya
+          zemin hazirlar, ki bu Competition Act acisindan risklidir. */}
+      {v.hasYard && (
+        <div className="checkbox-row">
+          <input id="yardFenced" type="checkbox" name="yardFenced" checked={v.yardFenced}
+            onChange={(e) => set('yardFenced', e.target.checked)} />
+          <label htmlFor="yardFenced">{m.onboarding['home.yardFenced']}</label>
+        </div>
+      )}
+
+      <div className="checkbox-row">
+        <input id="hasOwnPets" type="checkbox" name="hasOwnPets" checked={v.hasOwnPets}
+          onChange={(e) => set('hasOwnPets', e.target.checked)} />
+        <label htmlFor="hasOwnPets">{m.onboarding['home.hasOwnPets']}</label>
+      </div>
+
+      <div className="checkbox-row">
+        <input id="smokeFree" type="checkbox" name="smokeFree" checked={v.smokeFree}
+          onChange={(e) => set('smokeFree', e.target.checked)} />
+        <label htmlFor="smokeFree">{m.onboarding['home.smokeFree']}</label>
+      </div>
+
+      <Field id="maxConcurrentPets" label={m.onboarding['home.maxPets']}>
+        <input id="maxConcurrentPets" name="maxConcurrentPets" type="number" min={1} max={10}
+          value={v.maxConcurrentPets} style={{ maxWidth: '7rem' }}
+          onChange={(e) => set('maxConcurrentPets', e.target.value)} />
+      </Field>
+
+      <Actions locale={locale} step="home" busy={busy} label={m.onboarding.saveAndContinue} />
+    </form>
+  );
+}
+
+/* --------------------------------------------------------------- kontrol */
+
+export function ScreeningForm({
+  locale, action, status,
+}: {
+  locale: Locale;
+  action: Action;
+  status: string | null;
+}) {
+  const m = getMessages(locale);
+  const [state, formAction, busy] = useActionState(action, EMPTY);
+  const seg = segmentFor(locale);
+
+  if (status) {
+    const key = status === 'passed' ? 'screening.passed'
+      : status === 'pending' ? 'screening.pending'
+      : status === 'manual_review' ? 'screening.underReview'
+      : 'screening.error';
+
+    return (
+      <div className="auth-form">
+        <p className={`alert ${status === 'passed' ? 'alert-ok' : 'alert-error'}`} role="status">
+          {m.onboarding[key as keyof Messages['onboarding']] as string}
+        </p>
+        {/* Law 25 s.12.1: otomatik karar verildiyse insana gorus sunma kanali
+            gorunur olmali. Buradaki metin o kanalin varligini soyluyor. */}
+        <p className="field-hint">{m.onboarding['screening.humanReview']}</p>
+        <Link href={`/${seg}/become-a-sitter/review/`} className="btn btn-primary">
+          {m.onboarding.saveAndContinue}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} className="auth-form">
+      <input type="hidden" name="locale" value={seg} />
+
+      <p>{m.onboarding['screening.body']}</p>
+      <p className="notice">{m.onboarding['screening.whatWeKeep']}</p>
+      <p className="field-hint">{m.onboarding['screening.humanReview']}</p>
+      {/* Yasal: "vulnerable sector check" IDDIASI KULLANILAMAZ — o kontrolu
+          yalnizca polis, kisinin kendi basvurusuyla yapar. */}
+      <p className="field-hint">{m.onboarding['screening.noClaim']}</p>
+
+      <div className="checkbox-row">
+        <input id="consent" type="checkbox" name="consent" />
+        <label htmlFor="consent">{m.onboarding['screening.consentLabel']}</label>
+      </div>
+      {state.errors.consent && (
+        <p className="alert alert-error" role="alert">{err(m, state.errors.consent)}</p>
+      )}
+
+      <Actions locale={locale} step="screening" busy={busy} label={m.onboarding['screening.start']} />
+    </form>
+  );
+}
+
+/* ----------------------------------------------------------------- ozet */
+
+export function ReviewForm({
+  locale, action, missing, submitted,
+}: {
+  locale: Locale;
+  action: Action;
+  missing: OnboardingStep[];
+  submitted: boolean;
+}) {
+  const m = getMessages(locale);
+  const seg = segmentFor(locale);
+  const [state, formAction, busy] = useActionState(action, EMPTY);
+
+  if (submitted) {
+    return <p className="alert alert-ok" role="status">{m.onboarding['review.submitted']}</p>;
+  }
+
+  return (
+    <form action={formAction} className="auth-form">
+      <input type="hidden" name="locale" value={seg} />
+
+      {missing.length > 0 && (
+        <div className="alert alert-error" role="alert">
+          <p style={{ marginBottom: 'var(--space-2)' }}>{m.onboarding['review.missing']}</p>
+          <ul style={{ margin: 0, paddingInlineStart: '1.2rem' }}>
+            {missing.map((step) => (
+              <li key={step}>
+                <Link href={`/${seg}/become-a-sitter/${step}/`} style={{ textDecoration: 'underline' }}>
+                  {m.onboarding[`step.${step}` as keyof Messages['onboarding']] as string}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {state.errors.submit && (
+        <p className="alert alert-error" role="alert">{err(m, state.errors.submit)}</p>
+      )}
+
+      <Actions locale={locale} step="review" busy={busy} label={m.onboarding['review.submit']} />
+    </form>
+  );
+}

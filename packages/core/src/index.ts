@@ -7,3 +7,4 @@ export * from './cancellation.js';
 export * from './booking-state.js';
 export * from './seo.js';
 export * from './ranking.js';
+export * from './onboarding.js';

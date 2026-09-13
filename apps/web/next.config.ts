@@ -29,7 +29,7 @@ const config: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
-  transpilePackages: ['@havre/core', '@havre/i18n', '@havre/tokens', '@havre/auth'],
+  transpilePackages: ['@havre/core', '@havre/i18n', '@havre/tokens', '@havre/auth', '@havre/screening'],
   async headers() {
     return [
       {

@@ -21,7 +21,10 @@
         "GOOGLE_CLIENT_SECRET",
         "APPLE_CLIENT_ID",
         "APPLE_CLIENT_SECRET",
-        "APPLE_APP_BUNDLE_ID"
+        "APPLE_APP_BUNDLE_ID",
+        "FIELD_ENCRYPTION_KEY",
+        "CERTN_API_KEY",
+        "CERTN_WEBHOOK_SECRET"
       ]
     },
     "dev": {
@@ -41,7 +44,10 @@
         "GOOGLE_CLIENT_SECRET",
         "APPLE_CLIENT_ID",
         "APPLE_CLIENT_SECRET",
-        "APPLE_APP_BUNDLE_ID"
+        "APPLE_APP_BUNDLE_ID",
+        "FIELD_ENCRYPTION_KEY",
+        "CERTN_API_KEY",
+        "CERTN_WEBHOOK_SECRET"
       ]
     },
     "typecheck": {
@@ -59,7 +65,10 @@
         "GOOGLE_CLIENT_SECRET",
         "APPLE_CLIENT_ID",
         "APPLE_CLIENT_SECRET",
-        "APPLE_APP_BUNDLE_ID"
+        "APPLE_APP_BUNDLE_ID",
+        "FIELD_ENCRYPTION_KEY",
+        "CERTN_API_KEY",
+        "CERTN_WEBHOOK_SECRET"
       ]
     },
     "test": {
@@ -68,7 +77,8 @@
       ],
       "env": [
         "DATABASE_URL",
-        "BETTER_AUTH_SECRET"
+        "BETTER_AUTH_SECRET",
+        "FIELD_ENCRYPTION_KEY"
       ]
     },
     "lint": {}
