@@ -7,7 +7,7 @@
  * ST_DWithin geography uzerinde METRE calisir ve GIST indeksini kullanir.
  */
 import { sql } from 'drizzle-orm';
-import type { Database } from '../client.js';
+import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
 import type { SitterSummary } from './landing.js';
 import type { ServiceType } from '@havre/core';
@@ -39,7 +39,7 @@ export async function searchSitters(
   const limit = params.limit ?? 30;
   const origin = sql`ST_SetSRID(ST_MakePoint(${params.lon}, ${params.lat}), 4326)::geography`;
 
-  const rows = await db.execute(sql`
+  const rows = await withDbErrors(() => db.execute(sql`
     SELECT
       st.user_id::text AS id,
       pr.first_name, pr.last_name_initial,
@@ -84,7 +84,7 @@ export async function searchSitters(
       + (1 - LEAST(ST_Distance(pr.approx_location, ${origin})::numeric / ${radius}, 1)) * 0.35
       DESC
     LIMIT ${limit}
-  `);
+  `));
 
   return (rows as unknown as Array<Record<string, unknown>>).map((row) => {
     const first = String(row.first_name);

@@ -7,7 +7,7 @@
  * Thin content / doorway cezasina karsi savunmamiz bu veridir.
  */
 import { sql } from 'drizzle-orm';
-import type { Database } from '../client.js';
+import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
 import type { CityRecord } from './cities.js';
 import type { ServiceType } from '@havre/core';
@@ -65,7 +65,7 @@ export async function getLandingData(
   const nameCol = locale === 'fr-CA' ? 'n.name_fr' : 'n.name_en';
 
   // Tek turda toplu istatistik — percentile_cont ile gercek medyan/ceyreklikler
-  const statsRes = await db.execute(sql`
+  const statsRes = await withDbErrors(() => db.execute(sql`
     SELECT
       count(*)::int                                                        AS sitter_count,
       percentile_cont(0.5) WITHIN GROUP (ORDER BY ss.price_cents)::int     AS median_price,
@@ -81,14 +81,14 @@ export async function getLandingData(
       AND ss.is_active
       AND st.status = 'active'
       AND p.city_id = ${city.id}
-  `);
+  `));
   const stats = (statsRes as unknown as StatsRow[])[0] ?? {
     sitter_count: 0, median_price: null, p25_price: null, p75_price: null,
     avg_rating: null, review_count: 0, median_response: null,
   };
 
   // Tamamlanmis rezervasyon sayisi ve tekrar musteri ortalamasi
-  const bookingRes = await db.execute(sql`
+  const bookingRes = await withDbErrors(() => db.execute(sql`
     SELECT
       count(*)::int AS booking_count,
       COALESCE(
@@ -100,11 +100,11 @@ export async function getLandingData(
     WHERE b.service_type = ${serviceType}::service_type
       AND b.status IN ('completed','payout_released')
       AND p.city_id = ${city.id}
-  `);
+  `));
   const bk = (bookingRes as unknown as Array<{ booking_count: number; repeat_avg: string }>)[0];
 
   // En yogun mahalleler — sayfaya yerel baglam katan alan
-  const hoodRes = await db.execute(sql`
+  const hoodRes = await withDbErrors(() => db.execute(sql`
     SELECT ${sql.raw(nameCol)} AS name, count(*)::int AS c
     FROM profiles p
     JOIN neighbourhoods n ON n.id = p.neighbourhood_id
@@ -114,11 +114,11 @@ export async function getLandingData(
       AND ss.service_type = ${serviceType}::service_type
       AND ss.is_active AND st.status = 'active'
     GROUP BY 1 ORDER BY c DESC LIMIT 3
-  `);
+  `));
   const hoods = (hoodRes as unknown as Array<{ name: string }>).map((h) => h.name);
 
   // Listelenecek bakicilar — seffaf siralama skoruna gore
-  const sitterRes = await db.execute(sql`
+  const sitterRes = await withDbErrors(() => db.execute(sql`
     SELECT
       st.user_id::text AS id,
       pr.first_name, pr.last_name_initial,
@@ -144,7 +144,7 @@ export async function getLandingData(
        + st.profile_completeness * 0.10
        + (st.badge_level::numeric / 4) * 0.05) DESC
     LIMIT 9
-  `);
+  `));
 
   const sitters: SitterSummary[] = (sitterRes as unknown as Array<Record<string, never>>).map(
     (row: Record<string, unknown>) => {
