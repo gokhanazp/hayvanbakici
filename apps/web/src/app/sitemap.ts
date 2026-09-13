@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { evaluateIndexability, servicesForPhase } from '@havre/core';
 import { LOCALES, serviceSlug } from '@havre/i18n';
-import { CITIES, citySlug, getLandingData } from '@/lib/data';
+import { getCities, getLandingData } from '@/lib/data';
 import { landingUrl, urlFor } from '@/lib/seo';
 
 /**
@@ -13,6 +13,7 @@ import { landingUrl, urlFor } from '@/lib/seo';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
   const services = servicesForPhase('v1');
+  const cities = await getCities();
 
   for (const locale of LOCALES) {
     entries.push({ url: urlFor(locale), changeFrequency: 'daily', priority: 1 });
@@ -25,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
 
-    for (const city of CITIES) {
+    for (const city of cities) {
       for (const service of services) {
         const data = await getLandingData(city, service, locale);
         const rule = evaluateIndexability({ sitterCount: data.sitterCount });
@@ -43,7 +44,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           },
         });
       }
-      void citySlug;
     }
   }
 

@@ -1,4 +1,14 @@
+import path from 'node:path';
+import { loadEnvConfig } from '@next/env';
 import type { NextConfig } from 'next';
+
+/**
+ * Monorepo kokundeki .env'i yukle.
+ * Next varsayilan olarak YALNIZCA uygulama dizinindeki .env'i okur; monorepo'da
+ * DATABASE_URL kokte durdugu icin build ve dev onu goremiyordu (turbo ayrica
+ * bildirilmemis ortam degiskenlerini goreve gecirmez — bkz. turbo.json env).
+ */
+loadEnvConfig(path.resolve(process.cwd(), '../..'));
 
 const config: NextConfig = {
   reactStrictMode: true,

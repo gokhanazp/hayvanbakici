@@ -10,7 +10,7 @@ import {
 } from '@havre/i18n';
 import { SitterCard } from '@/components/SitterCard';
 import { TrustStrip } from '@/components/TrustStrip';
-import { CITIES, cityName, citySlug, findCityBySlug, getLandingData, type CityRecord, type LandingData } from '@/lib/data';
+import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
 import { money, numberFmt, dateFmt, responseTime } from '@/lib/format';
 
@@ -23,11 +23,12 @@ export const dynamicParams = true;
  * SADECE Tier-1 build'de uretilir.
  * 10.000 sayfayi build'de uretmek deploy suresini dakikalardan saatlere cikarir.
  */
-export function generateStaticParams() {
+export async function generateStaticParams() {
   const services = servicesForPhase('v1');
+  const tier1 = await getTier1Cities();
   const params: Array<{ locale: string; city: string; service: string }> = [];
   for (const locale of ['en-CA', 'fr-CA'] as const) {
-    for (const city of CITIES.filter((c) => c.tier === 1)) {
+    for (const city of tier1) {
       for (const service of services) {
         params.push({
           locale: segmentFor(locale),
@@ -44,7 +45,7 @@ async function resolve(params: Promise<{ locale: string; city: string; service: 
   const { locale: seg, city: citySlugParam, service: serviceSlugParam } = await params;
   const locale = localeFromSegment(seg);
   if (!locale) return null;
-  const city = findCityBySlug(citySlugParam, locale);
+  const city = await findCityBySlug(citySlugParam, locale);
   if (!city) return null;
   const service = serviceFromSlug(serviceSlugParam, locale);
   if (!service) return null;
@@ -139,7 +140,10 @@ export default async function LandingPage(
   const faqs = buildFaqs(data, r.locale, name, svc);
   const seg = segmentFor(r.locale);
 
-  const nearby: CityRecord[] = CITIES.filter((c) => c.id !== r.city.id)
+  const allCities = await getCities();
+  const nearby: CityRecord[] = allCities
+    .filter((c) => c.id !== r.city.id && c.province === r.city.province)
+    .concat(allCities.filter((c) => c.id !== r.city.id && c.province !== r.city.province))
     .slice(0, rule.expandNearbyModule ? 5 : 3);
   const otherServices = servicesForPhase('v1').filter((s) => s !== r.service);
 

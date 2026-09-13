@@ -9,6 +9,11 @@
         "dist/**",
         ".next/**",
         "!.next/cache/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_DEFAULT_LOCALE"
       ]
     },
     "dev": {
@@ -16,18 +21,37 @@
       "persistent": true,
       "dependsOn": [
         "^build"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_DEFAULT_LOCALE"
       ]
     },
     "typecheck": {
       "dependsOn": [
         "^build"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_DEFAULT_LOCALE"
       ]
     },
     "test": {
       "dependsOn": [
         "^build"
+      ],
+      "env": [
+        "DATABASE_URL"
       ]
     },
     "lint": {}
-  }
+  },
+  "globalEnv": [
+    "NODE_ENV"
+  ],
+  "globalDependencies": [
+    ".env"
+  ]
 }

@@ -1,0 +1,28 @@
+# Yerel gelistirme veritabani.
+#
+# PostGIS ZORUNLU: sema geography sutunlari ve GIST indeksleri kullaniyor,
+# duz postgres imajiyla migration cokerr.
+#
+#   docker compose up -d
+#   npm run db:migrate
+#   npm run db:seed
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: havre-db
+    environment:
+      POSTGRES_USER: havre
+      POSTGRES_PASSWORD: havre
+      POSTGRES_DB: havre
+    ports:
+      - '5432:5432'
+    volumes:
+      - havre-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U havre -d havre']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  havre-pgdata:

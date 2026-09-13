@@ -15,16 +15,20 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "generate": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate",
-    "studio": "drizzle-kit studio"
+    "migrate": "tsx --env-file-if-exists=../../.env src/migrate.ts",
+    "studio": "drizzle-kit studio",
+    "seed": "tsx --env-file-if-exists=../../.env src/seed.ts",
+    "smoke": "tsx --env-file-if-exists=../../.env src/smoke.ts"
   },
   "dependencies": {
+    "@havre/core": "0.1.0",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
     "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.13",
     "typescript": "^5.7.3"
   }
 }

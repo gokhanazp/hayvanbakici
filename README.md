@@ -15,8 +15,13 @@ Tam analiz ve yol haritası: [`docs/00-PROJE-YOL-HARITASI.md`](docs/00-PROJE-YOL
 ```bash
 nvm use
 npm install
+cp .env.example .env
+npm run setup      # Postgres+PostGIS ayağa kaldırır, migration ve tohum veriyi çalıştırır
 npm run dev
 ```
+
+`npm run setup` Docker ister. Tek tek çalıştırmak isterseniz:
+`db:up` · `db:migrate` · `db:seed` · `db:smoke` (veritabanına karşı duman testi).
 
 `npm run dev` turbo üzerinden çalışır: önce tokens/core/i18n derlenir, sonra
 web açılır (http://localhost:3000).
@@ -33,8 +38,8 @@ Sayfalar: `/en` · `/fr` · `/en/toronto/dog-boarding/` · `/fr/montreal/pension
 
 Testler:
 ```bash
-npm test -w @havre/core     # 49 test — komisyon, fiyat, iptal, SEO, sıralama
-npm test -w @havre/i18n     # 8 test — Bill 96 katalog bütünlüğü dahil
+npm test           # core: 49 test · i18n: 8 test (Bill 96 katalog bütünlüğü dahil)
+npm run db:smoke   # gerçek DB'ye karşı: şehirler, landing istatistikleri, PostGIS arama
 ```
 
 ---
@@ -47,7 +52,7 @@ apps/
   mobile/         (Faz 4) Expo / React Native
 packages/
   core/           İş mantığı: komisyon motoru, fiyatlama, vergi, iptal, sıralama, arz eşiği
-  db/             Drizzle şeması (PostgreSQL + PostGIS)
+  db/             Drizzle şeması + migration'lar + sorgu katmanı (PostgreSQL + PostGIS)
   i18n/           en-CA / fr-CA katalogları, çevrilmiş slug'lar
   tokens/         Design token'ları → CSS değişkenleri (web) + TS (mobil)
   config/         Ortak tsconfig ön ayarları
@@ -72,6 +77,10 @@ docs/             Yol haritası ve araştırma ekleri
 | **Koyu tema otomatik açılmaz** | `packages/tokens/src/build-css.ts` | Koyu tema henüz tasarlanmadı. `prefers-color-scheme` ile otomatik açılırsa işletim sistemi koyu modda olan herkes onaylanmamış bir arayüz görür. Yalnızca `[data-theme="dark"]` ile açılır; tasarlanıp onaylanınca blok geri eklenecek. |
 | **Font dosyaları repoda** | `apps/web/src/app/fonts/` | `next/font/google` build sırasında Google'dan indirir (kısıtlı CI'da kırılır). `next/font/local` ise `node_modules`'a çözmüyor — `next build` geçse bile `next dev` kırılıyor. Dosyalar repoda: deterministik, hoisting'den bağımsız, dış ağa çıkmıyor. Kaynak/sürüm/lisans: `fonts/README.md`. Güncelleme: `npm run fonts:sync -w @havre/web`. |
 | **Hero scrim'i kontrastı fotoğraftan bağımsız garanti eder** | `globals.css` `.hero::before` | Metin alanında opaklık ≥0.86 — hangi fotoğraf gelirse gelsin başlık kontrastı WCAG AA'yı geçer, fotoğraf değişince test tekrarlanmaz. |
+| **PostGIS, harici arama servisi yok** | `packages/db/src/queries/search.ts` | Faz 1'de Algolia/Typesense gereksiz maliyet ve veri yerleşimi sorunu. `ST_DWithin` geography üzerinde metre çalışır ve GIST indeksini kullanır. Hacim gerektirdiğinde (Faz 2) yeniden değerlendirilir. |
+| **Landing istatistikleri gerçek SQL'den** | `packages/db/src/queries/landing.ts` | Medyan/p25/p75 `percentile_cont` ile hesaplanır. Sayfanın benzersizliğini taşıyan veri bu; uydurulmuş sayı yok. |
+| **Next, kök `.env`'i sarmalayıcıyla okur** | `apps/web/scripts/next.mjs` | Next yalnızca uygulama dizinindeki `.env`'i okur; `next.config.ts`'ten yüklemek yetmiyor çünkü sayfa verisi ayrı worker süreçlerinde toplanıyor ve Next'in kendi env yüklemesi eziyor. Env, Next başlamadan `--env-file-if-exists` ile yükleniyor. |
+| **Turbo görevlerinde `env` bildirimi** | `turbo.json` | Turbo hermetiktir: bildirilmeyen ortam değişkeni göreve geçmez. `DATABASE_URL` bildirildiği için hem geçer hem cache anahtarına girer. |
 | **Ham adli sicil raporu saklanmaz** | `packages/db/src/schema/services.ts` | PIPEDA/Law 25 hassas veri kuralı. |
 | **SIN toplama + çeyreklik rapor** | `packages/db/src/schema/compliance.ts` | CRA Part XX — hizmet sağlayıcılarda ciro eşiği YOK. |
 | **Otomatik karar envanteri** | `automatedDecisions` tablosu | Québec Law 25 s.12.1 — insan incelemesi kanalı zorunlu. |
@@ -81,7 +90,7 @@ docs/             Yol haritası ve araştırma ekleri
 ## Sırada ne var
 
 1. **Marka adı kararı** → tek arama-değiştirme
-2. PostgreSQL + PostGIS ayağa kaldır, `npm run generate -w @havre/db`, `lib/data.ts` gövdelerini gerçek sorgularla değiştir (imzalar aynı kalır)
+2. ~~PostgreSQL + PostGIS, gerçek sorgular~~ ✅ tamam
 3. Auth + bakıcı onboarding + Certn entegrasyonu
 4. Stripe Connect Express + `separate charges and transfers`
 5. Arama (PostGIS), rezervasyon akışı, mesajlaşma
@@ -91,8 +100,9 @@ docs/             Yol haritası ve araştırma ekleri
 
 ## Uyarılar
 
-- **`lib/data.ts` tohum veriyle çalışır.** Gerçek veritabanı bağlanana kadar sayfalardaki
-  rakamlar üretilmiş örneklerdir; hiçbir pazarlama malzemesinde kullanılmamalıdır.
+- **Tohum verisi gerçek değildir.** `packages/db/src/seed.ts` üretilmiş bakıcı, fiyat ve
+  yorum yaratır. Sayfalardaki rakamlar gerçek SQL'den gelir ama veri uydurmadır —
+  hiçbir pazarlama malzemesinde kullanılmamalıdır.
 - **Fransızca metinler taslaktır.** Lansmandan önce Québec yerlisi profesyonel bir
   editör tarafından revize edilmelidir (Bill 96 riski, ceza 3.000–30.000 CAD).
 - **Koruma programı sigorta değildir.** `claims` tablosundaki nottaki uyarı geçerli:

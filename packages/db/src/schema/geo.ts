@@ -4,8 +4,9 @@ import {
 import { provinceEnum, serviceTypeEnum, localeEnum } from './enums.js';
 import { geography } from './identity.js';
 
+/** Mahalle siniri — bkz. identity.ts'teki geography notu (typmod kullanilamiyor) */
 const geographyPolygon = customType<{ data: string; driverData: string }>({
-  dataType: () => 'geography(MultiPolygon, 4326)',
+  dataType: () => 'geography',
 });
 
 export const cities = pgTable(

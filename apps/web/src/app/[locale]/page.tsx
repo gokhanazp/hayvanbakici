@@ -5,7 +5,7 @@ import { servicesForPhase, calculateCommission, compareToRover, dollars } from '
 import { SearchBar } from '@/components/SearchBar';
 import { TrustStrip } from '@/components/TrustStrip';
 import { ShieldIcon } from '@/components/VerificationBadge';
-import { CITIES, cityName, citySlug, getLandingData } from '@/lib/data';
+import { cityName, citySlug, getDefaultCity, getLandingData } from '@/lib/data';
 import { money } from '@/lib/format';
 
 export const revalidate = 3600;
@@ -17,8 +17,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   const m = getMessages(locale);
   const services = servicesForPhase('v1');
-  const toronto = CITIES[0]!;
-  const data = await getLandingData(toronto, 'boarding', locale);
+  const city = await getDefaultCity();
+  const data = await getLandingData(city, 'boarding', locale);
 
   /**
    * Ucret seffafligi bolumu icin canli karsilastirma.
@@ -66,7 +66,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div style={{ marginTop: 'var(--space-5)' }}>
           <TrustStrip
             locale={locale}
-            cityName={cityName(toronto, locale)}
+            cityName={cityName(city, locale)}
             sitterCount={data.sitterCount}
             medianPriceCents={data.medianPriceCents}
             bookingCount={data.bookingCount}
@@ -83,7 +83,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {services.map((s) => (
             <Link
               key={s}
-              href={`/${segmentFor(locale)}/${citySlug(toronto, locale)}/${serviceSlug(s, locale)}`}
+              href={`/${segmentFor(locale)}/${citySlug(city, locale)}/${serviceSlug(s, locale)}`}
               className="card card-hover card-pad"
             >
               <h3 className="text-h4" style={{ marginBottom: 'var(--space-1)' }}>{m.service[s]}</h3>

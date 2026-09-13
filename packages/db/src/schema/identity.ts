@@ -4,9 +4,17 @@ import {
 } from 'drizzle-orm/pg-core';
 import { localeEnum, userRoleEnum, provinceEnum, sitterStatusEnum, homeTypeEnum } from './enums.js';
 
-/** PostGIS geography(Point,4326) — cografi arama icin zorunlu */
+/**
+ * PostGIS geography — cografi arama icin zorunlu.
+ *
+ * NEDEN TYPMOD YOK: drizzle-kit customType adini TIRNAKLAR. "geography" gecerli
+ * bir tip adi ama "geography(Point,4326)" gecersiz bir tanimlayici olur ve
+ * migration cokerdi. Tipmodsuz geography = geography(Geometry, 4326):
+ * SRID 4326 varsayilan, ST_DWithin/ST_Distance METRE dondurur, GIST indeksi calisir.
+ * Nokta kisiti uygulama katmaninda; gerekirse CHECK constraint ile eklenebilir.
+ */
 export const geography = customType<{ data: string; driverData: string }>({
-  dataType: () => 'geography(Point, 4326)',
+  dataType: () => 'geography',
 });
 
 export const users = pgTable(

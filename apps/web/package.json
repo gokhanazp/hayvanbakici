@@ -3,17 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node --env-file-if-exists=../../.env scripts/next.mjs dev",
+    "build": "node --env-file-if-exists=../../.env scripts/next.mjs build",
+    "start": "node --env-file-if-exists=../../.env scripts/next.mjs start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "next lint",
     "fonts:sync": "cp ../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 src/app/fonts/"
   },
   "dependencies": {
     "@havre/core": "0.1.0",
+    "@havre/db": "0.1.0",
     "@havre/i18n": "0.1.0",
     "@havre/tokens": "0.1.0",
+    "@next/env": "^15.1.4",
     "next": "^15.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
