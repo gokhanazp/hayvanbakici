@@ -5,6 +5,8 @@ import { servicesForPhase, calculateCommission, compareToRover, dollars } from '
 import { SearchBar } from '@/components/SearchBar';
 import { TrustStrip } from '@/components/TrustStrip';
 import { ServiceTiles } from '@/components/ServiceTiles';
+import { GalleryStrip } from '@/components/GalleryStrip';
+import { FeatureCards } from '@/components/FeatureCards';
 import { HeroArt } from '@/components/HeroArt';
 import { BannerDoodles, HeroDoodles } from '@/components/Doodles';
 import { ShieldIcon } from '@/components/VerificationBadge';
@@ -87,6 +89,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </h2>
         <ServiceTiles locale={locale} services={services} citySlug={citySlug(city, locale)} />
       </section>
+
+      {/* ---- Ne yapiyoruz ---- */}
+      <FeatureCards locale={locale} />
+
+      {/*
+        ---- Havre Anlari ----
+        photos bos: gercek rezervasyon fotografi yok. Stokla doldurmak yerine
+        kendi cizimlerimiz duruyor ve bunun gecici oldugu sayfada yaziyor.
+      */}
+      <GalleryStrip locale={locale} />
 
       {/* ---- Bakici banneri: urunun en guclu hamlesi, tek blokta ---- */}
       <section className="container" style={{ paddingBlock: 'var(--space-6) var(--space-16)' }}>

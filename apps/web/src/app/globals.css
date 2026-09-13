@@ -695,3 +695,100 @@ a { color: inherit; text-decoration: none; }
 /* Dogum tarihi: gun / ay / yil */
 .dob-field { display: grid; grid-template-columns: 5.5rem 1fr 6.5rem; gap: var(--space-2); }
 @media (max-width: 420px) { .dob-field { grid-template-columns: 1fr; } }
+
+/* ---------- Galeri (Havre Anlari) ---------- */
+/*
+  CSS sutunlariyla masonry: karolar farkli yuksekliklerde, bosluk kalmiyor.
+  Grid ile ayni etkiyi almak icin her karonun yuksekligini onceden bilmek
+  gerekiyor — kullanici fotograflarinda bu mumkun degil.
+*/
+.gallery-masonry { column-count: 2; column-gap: var(--space-4); }
+@media (min-width: 700px) { .gallery-masonry { column-count: 3; } }
+@media (min-width: 1000px) { .gallery-masonry { column-count: 4; } }
+
+.gallery-item {
+  break-inside: avoid;
+  margin: 0 0 var(--space-4);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+}
+.gallery-tile { display: grid; place-items: center; width: 100%; }
+.gallery-photo { width: 100%; height: auto; display: block; }
+
+.gallery-caption {
+  position: absolute; inset-inline: 0; bottom: 0;
+  display: grid; gap: 2px;
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  color: #FFFFFF;
+  /* Alt karartma: hangi fotograf gelirse gelsin metin okunur kalir */
+  background: linear-gradient(180deg, rgba(20,14,18,0) 0%, rgba(20,14,18,.82) 72%);
+}
+.gallery-caption-name { font-weight: 600; }
+.gallery-caption-text { font-size: 0.8125rem; line-height: 1.15rem; opacity: .9; }
+
+/* ---------- Ozellik kartlari ---------- */
+.feature-grid {
+  display: grid; gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 700px) { .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) {
+  /*
+    Iki sutun: solda ana guven vaadi, sagda uc kart ust uste.
+    Uc sutun denendi ve sag altta BOS bir hucre kaliyordu; buyuk kart da
+    icerigine gore fazla uzun duruyordu. Iki sutunda iki taraf da dolu.
+  */
+  .feature-grid { grid-template-columns: 1.05fr 1fr; }
+  .feature-card-lead { grid-row: span 3; }
+}
+
+.feature-card {
+  display: grid; gap: var(--space-3); align-content: start;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+}
+.feature-card h3 { margin: 0; }
+.feature-card p { margin: 0; line-height: 1.55rem; }
+
+.feature-card-lead {
+  background: var(--color-panel);
+  color: var(--color-panel-ink);
+  padding: var(--space-8);
+}
+.feature-card-lead p { color: var(--color-panel-ink-muted); }
+.feature-card-quiet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+.feature-card-quiet p { color: var(--color-ink-secondary); }
+.feature-card-accent {
+  background: var(--color-accent-subtle);
+}
+.feature-card-accent p { color: var(--color-ink-secondary); }
+
+.feature-icon {
+  display: grid; place-items: center;
+  width: 46px; height: 46px;
+  border-radius: var(--radius-md);
+}
+.feature-levels {
+  display: grid; gap: var(--space-2);
+  margin: var(--space-3) 0 0; padding: 0;
+  list-style: none;
+}
+.feature-levels li {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,.07);
+  color: var(--color-panel-ink);
+  font-size: 0.875rem; font-weight: 500;
+}
+.feature-levels li svg { color: var(--color-panel-primary); flex: 0 0 auto; }
+
+.feature-fine {
+  margin-top: var(--space-2);
+  font-size: 0.75rem; line-height: 1.1rem;
+  color: var(--color-panel-ink-muted); opacity: .85;
+}
