@@ -7,6 +7,8 @@ import {
   previousStep, type OnboardingStep, type ServiceType,
 } from '@havre/core';
 import { getMessages, segmentFor, type Locale, type Messages } from '@havre/i18n';
+import { Select } from '@/components/ui/Select';
+import { DateOfBirthField } from '@/components/ui/DateOfBirthField';
 import type { StepState } from '@/app/[locale]/become-a-sitter/[step]/actions';
 
 type Action = (prev: StepState, form: FormData) => Promise<StepState>;
@@ -137,8 +139,13 @@ export function AboutForm({
         hint={m.onboarding['about.dateOfBirthHint']}
         error={err(m, state.errors.dateOfBirth)}
       >
-        <input id="dateOfBirth" name="dateOfBirth" type="date" value={v.dateOfBirth} required
-          onChange={(e) => set('dateOfBirth', e.target.value)} />
+        <DateOfBirthField
+          locale={locale}
+          id="dateOfBirth"
+          name="dateOfBirth"
+          value={v.dateOfBirth}
+          onChange={(next) => set('dateOfBirth', next)}
+        />
       </Field>
 
       <Actions locale={locale} step="about" busy={busy} label={m.onboarding.saveAndContinue} />
@@ -166,37 +173,39 @@ export function LocationForm({
 
   const hoods = neighbourhoods.filter((h) => h.cityId === v.cityId);
 
-  const selectStyle = {
-    minHeight: 'var(--min-touch-target)', padding: 'var(--space-3) var(--space-4)',
-    background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)',
-    borderRadius: 'var(--radius-md)', width: '100%',
-  } as const;
-
   return (
     <form action={formAction} className="auth-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
       <Field id="cityId" label={m.onboarding['location.city']} error={err(m, state.errors.cityId)}>
-        <select id="cityId" name="cityId" value={v.cityId} required style={selectStyle}
-          onChange={(e) => {
-            set('cityId', e.target.value);
+        <Select
+          id="cityId"
+          name="cityId"
+          value={v.cityId}
+          required
+          placeholder="—"
+          options={cities.map((c) => ({ value: c.id, label: c.name }))}
+          onChange={(next) => {
+            set('cityId', next);
             // Sehir degisince mahalle secimi gecersiz kalir; temizlenmezse
             // baska sehrin mahallesi gonderilir ve sunucu reddeder.
             set('neighbourhoodId', '');
-          }}>
-          <option value="">—</option>
-          {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+          }}
+        />
       </Field>
 
       <Field id="neighbourhoodId" label={m.onboarding['location.neighbourhood']}
         error={err(m, state.errors.neighbourhoodId)}>
-        <select id="neighbourhoodId" name="neighbourhoodId" value={v.neighbourhoodId} required
-          disabled={hoods.length === 0} style={selectStyle}
-          onChange={(e) => set('neighbourhoodId', e.target.value)}>
-          <option value="">—</option>
-          {hoods.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}
-        </select>
+        <Select
+          id="neighbourhoodId"
+          name="neighbourhoodId"
+          value={v.neighbourhoodId}
+          required
+          placeholder="—"
+          disabled={hoods.length === 0}
+          options={hoods.map((h) => ({ value: h.id, label: h.name }))}
+          onChange={(next) => set('neighbourhoodId', next)}
+        />
       </Field>
 
       <Field id="postalCode" label={m.onboarding['location.postalCode']}
@@ -272,12 +281,6 @@ export function ServicesForm({
     setDrafts((prev) => ({ ...prev, [type]: { ...(prev[type] as ServiceDraft), ...change } }));
   }
 
-  const selectStyle = {
-    minHeight: 'var(--min-touch-target)', padding: 'var(--space-2) var(--space-4)',
-    background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)',
-    borderRadius: 'var(--radius-md)', width: '100%',
-  } as const;
-
   return (
     <form action={formAction} className="auth-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
@@ -333,13 +336,17 @@ export function ServicesForm({
 
                   <div className="field-block">
                     <label htmlFor={`cxl-${type}`}>{m.onboarding['services.cancellation']}</label>
-                    <select id={`cxl-${type}`} name={`cancellation.${type}`} value={d.cancellation}
-                      style={selectStyle}
-                      onChange={(e) => patch(type, { cancellation: e.target.value })}>
-                      <option value="flexible">{m.onboarding['cancellation.flexible']}</option>
-                      <option value="moderate">{m.onboarding['cancellation.moderate']}</option>
-                      <option value="strict">{m.onboarding['cancellation.strict']}</option>
-                    </select>
+                    <Select
+                      id={`cxl-${type}`}
+                      name={`cancellation.${type}`}
+                      value={d.cancellation}
+                      onChange={(next) => patch(type, { cancellation: next })}
+                      options={[
+                        { value: 'flexible', label: m.onboarding['cancellation.flexible'] },
+                        { value: 'moderate', label: m.onboarding['cancellation.moderate'] },
+                        { value: 'strict', label: m.onboarding['cancellation.strict'] },
+                      ]}
+                    />
                   </div>
 
                   <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
@@ -399,18 +406,18 @@ export function HomeForm({
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
       <Field id="homeType" label={m.onboarding['home.type']} error={err(m, state.errors.homeType)}>
-        <select id="homeType" name="homeType" value={v.homeType} required
-          onChange={(e) => set('homeType', e.target.value)}
-          style={{
-            minHeight: 'var(--min-touch-target)', padding: 'var(--space-3) var(--space-4)',
-            background: 'var(--color-surface)', border: '1px solid var(--color-border-strong)',
-            borderRadius: 'var(--radius-md)', width: '100%',
-          }}>
-          <option value="">—</option>
-          {types.map((t) => (
-            <option key={t} value={t}>{m.onboarding[`home.${t}` as keyof Messages['onboarding']] as string}</option>
-          ))}
-        </select>
+        <Select
+          id="homeType"
+          name="homeType"
+          value={v.homeType}
+          required
+          placeholder="—"
+          onChange={(next) => set('homeType', next)}
+          options={types.map((t) => ({
+            value: t,
+            label: m.onboarding[`home.${t}` as keyof Messages['onboarding']] as string,
+          }))}
+        />
       </Field>
 
       <div className="checkbox-row">

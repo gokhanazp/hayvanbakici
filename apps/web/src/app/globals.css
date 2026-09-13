@@ -196,7 +196,8 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- Form ---------- */
 .field { display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 180px; min-width: 0; }
-.field > label {
+.field > label,
+.field > .field-label-static {
   font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--color-ink-muted);
 }
@@ -531,3 +532,166 @@ a { color: inherit; text-decoration: none; }
 /* Dar ekranda banner metni tum genisligi kapliyor; konturlar basligin
    uzerine biniyordu. */
 @media (max-width: 767px) { .banner-doodles { display: none; } }
+
+/* ---------- Ozel secim kutusu ---------- */
+/*
+  Tarayicinin <select> acilir listesi isletim sisteminin cizdigi bir menudur
+  ve CSS ile bicimlendirilemez — macOS'ta koyu gri zemin, mavi secim rengi.
+  Bu yuzden liste kendi bilesenimiz. Native <select> DOM'da KALIYOR (form
+  gonderimi ve JS'siz calisma icin), yalnizca gorsel olarak gizleniyor.
+*/
+.select-root { position: relative; display: block; }
+
+.select-native,
+.select-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  width: 100%; min-height: var(--min-touch-target);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font: inherit; color: var(--color-ink);
+  text-align: start; cursor: pointer;
+  transition: border-color var(--duration-standard) var(--easing-standard);
+}
+.select-trigger:hover { border-color: var(--color-primary); }
+.select-trigger[aria-expanded='true'] { border-color: var(--color-primary); }
+.select-trigger[aria-expanded='true'] .select-caret { transform: rotate(180deg); }
+.select-trigger:disabled { opacity: .55; cursor: not-allowed; }
+.select-caret { flex: 0 0 auto; color: var(--color-ink-muted); transition: transform var(--duration-standard) var(--easing-standard); }
+.select-placeholder { color: var(--color-ink-muted); }
+.field-icon { flex: 0 0 auto; color: var(--color-ink-muted); }
+
+/* JS baglandiktan sonra native select gizlenir ama DOM'da kalir */
+.select-native-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.select-list {
+  position: absolute; z-index: 60; top: calc(100% + var(--space-2)); left: 0;
+  /* Aciklamali secenekler tetikleyicinin genisligine sigmiyordu ve her satir
+     uc satira bolunuyordu. Liste icerige gore genisleyebilir. */
+  min-width: 100%; width: max-content; max-width: min(26rem, calc(100vw - var(--space-8)));
+  margin: 0; padding: var(--space-2);
+  list-style: none;
+  max-height: 19rem; overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+.select-option {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  min-height: var(--min-touch-target);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+/* Fare ve klavye AYNI gostergeyi kullanir — iki ayri "secili" hissi kafa karistirir */
+.select-option[data-active='true'] { background: var(--color-primary-subtle); }
+.select-option[aria-selected='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.select-check {
+  flex: 0 0 auto; display: grid; place-items: center;
+  width: 22px; height: 22px; margin-top: 1px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  color: var(--color-primary-on);
+}
+.select-check-on { background: var(--color-primary); border-color: var(--color-primary); }
+
+.select-option-body { display: grid; gap: 2px; min-width: 0; }
+.select-option-label { font-weight: 500; }
+.select-option-sub { font-size: 0.8125rem; line-height: 1.15rem; color: var(--color-ink-muted); }
+
+/* ---------- Takvim ve tarih araligi ---------- */
+.daterange-root { position: relative; display: block; }
+.daterange-fallback { display: flex; gap: var(--space-2); }
+.daterange-fallback input {
+  min-height: var(--min-touch-target);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.daterange-panel {
+  position: absolute; z-index: 60; top: calc(100% + var(--space-2)); left: 0;
+  width: min(22rem, calc(100vw - var(--space-8)));
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+@media (max-width: 520px) { .daterange-panel { left: auto; right: 0; } }
+
+.daterange-fields {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.daterange-field {
+  flex: 1 1 0; display: grid; gap: 2px;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.daterange-field-label {
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--color-ink-muted);
+}
+.daterange-field-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.daterange-actions { display: flex; justify-content: flex-end; margin-top: var(--space-2); }
+
+.calendar-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-2); margin-bottom: var(--space-3);
+}
+.calendar-month { font-weight: 600; text-transform: capitalize; }
+.calendar-nav {
+  display: grid; place-items: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-full);
+  background: var(--color-surface); color: var(--color-ink); cursor: pointer;
+}
+.calendar-nav:hover { background: var(--color-surface-sunken); }
+
+.calendar-weekdays,
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.calendar-weekdays {
+  margin-bottom: var(--space-1);
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--color-ink-muted); text-align: center;
+}
+
+.calendar-day {
+  display: grid; place-items: center;
+  aspect-ratio: 1; min-height: 38px;
+  border: 0; background: transparent; cursor: pointer;
+  border-radius: var(--radius-full);
+  font: inherit; font-variant-numeric: tabular-nums; color: var(--color-ink);
+}
+.calendar-day:hover:not(:disabled) { background: var(--color-surface-sunken); }
+.calendar-day[data-outside='true'] { color: var(--color-ink-muted); }
+.calendar-day:disabled { color: var(--color-ink-muted); opacity: .45; cursor: not-allowed; }
+/* Aralik ici gunler kare, uclar yuvarlak — aralik tek parca okunuyor */
+.calendar-day[data-inrange='true'] { background: var(--color-primary-subtle); border-radius: 0; }
+.calendar-day[data-edge='true'] {
+  background: var(--color-primary); color: var(--color-primary-on); font-weight: 600;
+}
+/* Bugun: secili degilken de ayirt edilebilmeli */
+.calendar-day[data-today='true']:not([data-edge='true']) {
+  box-shadow: inset 0 0 0 1.5px var(--color-border-strong);
+  font-weight: 600;
+}
+
+/* Dogum tarihi: gun / ay / yil */
+.dob-field { display: grid; grid-template-columns: 5.5rem 1fr 6.5rem; gap: var(--space-2); }
+@media (max-width: 420px) { .dob-field { grid-template-columns: 1fr; } }
