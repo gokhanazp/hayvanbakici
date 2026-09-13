@@ -26,9 +26,15 @@ postgres imajıyla migration çöker.
 
 Tek tek: `db:up` · `db:migrate` · `db:seed` · `db:smoke` (gerçek DB'ye karşı duman testi).
 
-> **macOS + Docker tuzağı:** `.env` içinde `localhost` değil **`127.0.0.1`** yazın.
-> macOS `localhost`'u önce IPv6 (`::1`) olarak çözer, Docker ise IPv4'te dinler —
-> sonuç `ECONNREFUSED`. `db:doctor` bu durumu tespit edip söyler.
+> **Apple Silicon:** Resmî `postgis/postgis` imajı yalnızca amd64 için yayınlanıyor.
+> `docker-compose.yml` içindeki `platform: linux/amd64` satırı bu yüzden var —
+> silmeyin, yoksa konteyner açılır açılmaz `Exited (1)` ile ölür. Emülasyon
+> istemiyorsanız dosyadaki arm64-native alternatif not düşülü.
+>
+> **macOS + Docker:** `.env` içinde `localhost` değil **`127.0.0.1`** yazın.
+> macOS `localhost`'u önce IPv6 (`::1`) çözer, Docker IPv4'te dinler → `ECONNREFUSED`.
+>
+> Takılırsanız `npm run db:reset` konteyneri ve veriyi sıfırdan kurar.
 
 **Veritabanıyla ilgili bir şey ters giderse:** `npm run db:doctor` — sunucuya bağlanır,
 kurulumun Homebrew mı Postgres.app mi Docker mı olduğunu tespit eder, PostGIS ve tablo

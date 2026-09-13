@@ -19,16 +19,17 @@
     "lint": "turbo run lint",
     "tokens": "npm run build -w @havre/tokens",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next packages/*/dist",
-    "db:up": "docker compose up -d",
+    "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "db:generate": "npm run generate -w @havre/db",
     "db:migrate": "npm run migrate -w @havre/db",
     "db:seed": "npm run seed -w @havre/db",
     "db:smoke": "npm run smoke -w @havre/db",
     "db:studio": "npm run studio -w @havre/db",
-    "setup": "npm run db:preflight && npm run db:up && sleep 5 && npm run db:migrate && npm run db:seed",
+    "setup": "npm run db:preflight && npm run db:up && npm run db:migrate && npm run db:seed",
     "db:preflight": "node --env-file-if-exists=.env scripts/preflight-db.mjs",
-    "db:doctor": "node --env-file-if-exists=.env scripts/db-doctor.mjs"
+    "db:doctor": "node --env-file-if-exists=.env scripts/db-doctor.mjs",
+    "db:reset": "docker compose down -v && npm run db:up && npm run db:migrate && npm run db:seed"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

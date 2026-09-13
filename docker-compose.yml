@@ -1,28 +1,42 @@
 # Yerel gelistirme veritabani.
 #
 # PostGIS ZORUNLU: sema geography sutunlari ve GIST indeksleri kullaniyor,
-# duz postgres imajiyla migration cokerr.
+# duz postgres imajiyla migration coker.
 #
-#   docker compose up -d
+#   npm run db:up
 #   npm run db:migrate
 #   npm run db:seed
 services:
   db:
     image: postgis/postgis:16-3.4
+    # APPLE SILICON NOTU — bu satiri silmeyin.
+    # Resmi postgis/postgis imaji YALNIZCA amd64 icin yayinlaniyor
+    # (hub.docker.com/r/postgis/postgis — "Supported architecture: amd64").
+    # Bu satir olmadan M serisi Mac'lerde konteyner acilir acilmaz "Exited (1)"
+    # ile oluyor ve hata "Postgres calismiyor" gibi gorunuyor.
+    # Intel Mac ve Linux'ta bu satir etkisizdir, zaten amd64'turler.
+    #
+    # Emulasyon istemiyorsaniz arm64-native alternatif:
+    #   image: imresamu/postgis:16-3.4
+    # (postgis/docker-postgis katkicisi Imre Samu tarafindan yayinlaniyor,
+    #  arm64 destegi "deneysel" olarak isaretli — resmi imaj degil.)
+    platform: linux/amd64
     container_name: havre-db
     environment:
       POSTGRES_USER: havre
       POSTGRES_PASSWORD: havre
       POSTGRES_DB: havre
     ports:
-      - '5432:5432'
+      # 127.0.0.1'e baglaniyoruz: macOS 'localhost'u once IPv6 (::1) cozer,
+      # Docker ise IPv4'te dinler — bu belirsizligi kaynagindan kaldirir.
+      - '127.0.0.1:5432:5432'
     volumes:
       - havre-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U havre -d havre']
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
 
 volumes:
   havre-pgdata:
