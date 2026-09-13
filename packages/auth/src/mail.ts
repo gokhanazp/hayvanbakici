@@ -11,6 +11,8 @@
  * dogrulama e-postasi almiyor" hatasini uretmesin diye.
  */
 
+import { recordDevEmail } from './dev-inbox.js';
+
 export interface OutgoingEmail {
   to: string;
   subject: string;
@@ -30,6 +32,9 @@ export class ConsoleMailer implements Mailer {
   readonly name = 'console';
 
   async send(email: OutgoingEmail): Promise<void> {
+    // Terminale basmanin yani sira /account/dev-inbox sayfasi icin de kaydet.
+    recordDevEmail(email);
+
     const line = '─'.repeat(72);
     const links = [...email.text.matchAll(/https?:\/\/\S+/g)].map((m) => m[0]);
     console.log(

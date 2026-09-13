@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { authClient } from '@havre/auth/client';
 import { checkPassword, PASSWORD_RULES } from '@havre/auth/password';
 import { getMessages, interpolate, segmentFor, type Locale, type Messages } from '@havre/i18n';
-import { Alert, Divider, EmailField, PasswordField, SocialButtons, messageForError } from './shared';
+import { Alert, DevInboxLink, Divider, EmailField, PasswordField, SocialButtons, messageForError } from './shared';
 
 function passwordMessages(m: Messages, problems: string[]): string[] {
   return problems.map((p) => {
@@ -80,7 +80,12 @@ export function SignUpForm({
   }
 
   if (done) {
-    return <Alert kind="ok">{interpolate(m.auth.verifySent, { email: email.trim() })}</Alert>;
+    return (
+      <div className="auth-form">
+        <Alert kind="ok">{interpolate(m.auth.verifySent, { email: email.trim() })}</Alert>
+        <DevInboxLink locale={locale} />
+      </div>
+    );
   }
 
   return (

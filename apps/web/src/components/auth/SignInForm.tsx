@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { authClient } from '@havre/auth/client';
 import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
-import { Alert, Divider, EmailField, PasswordField, SocialButtons, messageForError } from './shared';
+import { Alert, DevInboxLink, Divider, EmailField, PasswordField, SocialButtons, messageForError } from './shared';
 
 type Mode = 'magic' | 'password';
 
@@ -58,7 +58,12 @@ export function SignInForm({
   }
 
   if (sent) {
-    return <Alert kind="ok">{interpolate(m.auth.magicLinkSent, { email: email.trim() })}</Alert>;
+    return (
+      <div className="auth-form">
+        <Alert kind="ok">{interpolate(m.auth.magicLinkSent, { email: email.trim() })}</Alert>
+        <DevInboxLink locale={locale} />
+      </div>
+    );
   }
 
   return (

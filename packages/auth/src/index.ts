@@ -5,3 +5,5 @@ export type { Mailer, OutgoingEmail } from './mail.js';
 export { verifyEmail, magicLinkEmail, resetPasswordEmail } from './emails.js';
 export { PASSWORD_RULES, checkPassword } from './password.js';
 export type { PasswordProblem } from './password.js';
+export { readDevInbox, clearDevInbox } from './dev-inbox.js';
+export type { DevEmail } from './dev-inbox.js';

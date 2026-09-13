@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { authClient } from '@havre/auth/client';
 import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
-import { Alert, EmailField } from './shared';
+import { Alert, DevInboxLink, EmailField } from './shared';
 
 export function ForgotPasswordForm({ locale }: { locale: Locale }) {
   const m = getMessages(locale);
@@ -30,7 +30,12 @@ export function ForgotPasswordForm({ locale }: { locale: Locale }) {
   }
 
   if (sent) {
-    return <Alert kind="ok">{interpolate(m.auth.forgotSent, { email: email.trim() })}</Alert>;
+    return (
+      <div className="auth-form">
+        <Alert kind="ok">{interpolate(m.auth.forgotSent, { email: email.trim() })}</Alert>
+        <DevInboxLink locale={locale} />
+      </div>
+    );
   }
 
   return (

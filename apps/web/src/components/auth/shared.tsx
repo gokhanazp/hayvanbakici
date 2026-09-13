@@ -139,6 +139,24 @@ export function SocialButtons({
   );
 }
 
+/**
+ * Gelistirmede "posta kutusuna git" baglantisi.
+ *
+ * process.env.NODE_ENV istemci paketinde derleme aninda sabite cevriliyor,
+ * yani uretim paketinde bu blok HIC YER ALMIYOR — calisma zamani kontrolu degil.
+ */
+export function DevInboxLink({ locale }: { locale: string }) {
+  if (process.env.NODE_ENV === 'production') return null;
+  return (
+    <a
+      href={`/${locale.startsWith('fr') ? 'fr' : 'en'}/account/dev-inbox/`}
+      className="btn btn-secondary btn-block"
+    >
+      Geliştirme posta kutusunu aç
+    </a>
+  );
+}
+
 /** Kutuphane hata kodunu kullanicinin dilindeki cumleye cevirir. */
 export function messageForError(m: Messages, code: string | undefined, status?: number): string {
   const c = (code ?? '').toUpperCase();
