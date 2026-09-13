@@ -13,7 +13,13 @@ if (!url) {
   process.exit(1);
 }
 
-const sqlc = postgres(url, { max: 1, onnotice: () => {} });
+const sqlc = postgres(url, { max: 1, onnotice: () => {}, connect_timeout: 5 });
+
+const shown = url.replace(/:[^:@/]*@/, ':***@');
+const target = (() => {
+  try { const u = new URL(url.replace(/^postgres(ql)?:/, 'http:')); return `${u.hostname}:${u.port || 5432}`; }
+  catch { return '?'; }
+})();
 const ok = (s) => console.log(`  ✓ ${s}`);
 const no = (s) => console.log(`  ✗ ${s}`);
 
@@ -25,8 +31,31 @@ try {
   ok(`Baglanti kuruldu`);
   console.log(`     ${server.split(',')[0]}`);
 } catch (e) {
-  no(`Baglanilamadi: ${e.message}`);
-  console.log('\n  → Postgres calismiyor. npm run db:up  (ya da Postgres.app / brew services start)\n');
+  // postgres-js baglanti hatalarinin message'i BOS olabilir; kod ve adres her zaman yazdirilir
+  const code = e?.code ?? e?.errno ?? '?';
+  no(`Baglanilamadi (${code})`);
+  console.log(`     hedef : ${target}`);
+  console.log(`     url   : ${shown}`);
+  if (e?.message) console.log(`     mesaj : ${e.message}`);
+
+  console.log(`
+  Calisan bir Postgres yok. Uc secenekten biri:
+
+    1) Docker Desktop  — kurup acin, sonra:
+         npm run db:up && npm run db:migrate && npm run db:seed
+
+    2) Postgres.app    — https://postgresapp.com  (PostGIS DAHIL gelir, en az ugras)
+         Indirin, acin, Initialize deyin. Sonra:
+         createuser -s havre && createdb -O havre havre
+         npm run db:migrate && npm run db:seed
+
+    3) Homebrew        — brew install postgresql@16 postgis
+         brew services start postgresql@16
+         createuser -s havre && createdb -O havre havre
+         npm run db:migrate && npm run db:seed
+
+  PostGIS ZORUNLU: sema geography sutunlari kullaniyor.
+`);
   process.exit(1);
 }
 
