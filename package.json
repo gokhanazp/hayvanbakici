@@ -26,7 +26,8 @@
     "db:seed": "npm run seed -w @havre/db",
     "db:smoke": "npm run smoke -w @havre/db",
     "db:studio": "npm run studio -w @havre/db",
-    "setup": "npm run db:up && sleep 4 && npm run db:migrate && npm run db:seed"
+    "setup": "npm run db:preflight && npm run db:up && sleep 5 && npm run db:migrate && npm run db:seed",
+    "db:preflight": "node --env-file-if-exists=.env scripts/preflight-db.mjs"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

@@ -20,8 +20,11 @@ npm run setup      # Postgres+PostGIS ayağa kaldırır, migration ve tohum veri
 npm run dev
 ```
 
-`npm run setup` Docker ister. Tek tek çalıştırmak isterseniz:
-`db:up` · `db:migrate` · `db:seed` · `db:smoke` (veritabanına karşı duman testi).
+`npm run setup` önce `db:preflight` çalıştırır: veritabanı ayakta mı bakar, değilse
+Docker / Postgres.app / Homebrew seçeneklerini yazar. **PostGIS zorunlu** — düz
+postgres imajıyla migration çöker.
+
+Tek tek: `db:up` · `db:migrate` · `db:seed` · `db:smoke` (gerçek DB'ye karşı duman testi).
 
 `npm run dev` turbo üzerinden çalışır: önce tokens/core/i18n derlenir, sonra
 web açılır (http://localhost:3000).
