@@ -25,6 +25,14 @@ const no = (s) => console.log(`  ✗ ${s}`);
 
 console.log('\nVERITABANI TESHISI\n');
 
+/** Ayni URL'yi farkli bir host ile dener — localhost/IPv6 tuzagini yakalamak icin */
+async function tryHost(host) {
+  const u = url.replace(/@[^/]+\//, `@${host}/`);
+  const c = postgres(u, { max: 1, onnotice: () => {}, connect_timeout: 4 });
+  try { await c`SELECT 1`; await c.end({ timeout: 1 }); return true; }
+  catch { await c.end({ timeout: 1 }).catch(() => {}); return false; }
+}
+
 let server;
 try {
   [{ version: server }] = await sqlc`SELECT version()`;
@@ -37,6 +45,34 @@ try {
   console.log(`     hedef : ${target}`);
   console.log(`     url   : ${shown}`);
   if (e?.message) console.log(`     mesaj : ${e.message}`);
+
+  // localhost -> IPv6 (::1) tuzagi: Docker IPv4'te dinler, macOS once ::1 dener
+  const hostInUrl = target.split(':')[0];
+  if (hostInUrl === 'localhost') {
+    const v4 = await tryHost('127.0.0.1:' + (target.split(':')[1] || 5432));
+    if (v4) {
+      console.log(`
+  ✓ BULUNDU: 127.0.0.1 ile baglanti CALISIYOR, 'localhost' ile calismiyor.
+
+  Sebep: macOS 'localhost' adresini once IPv6 (::1) olarak cozuyor; Docker ise
+  IPv4'te dinliyor. Duzeltme — .env icinde localhost yerine 127.0.0.1 yazin:
+
+    DATABASE_URL=postgresql://havre:havre@127.0.0.1:5432/havre
+
+  Sonra: npm run db:migrate && npm run db:seed
+`);
+      process.exit(1);
+    }
+  }
+
+  // Docker konteyneri var mi?
+  try {
+    const { execSync } = await import('node:child_process');
+    const ps = execSync('docker ps -a --filter name=havre-db --format "{{.Names}} {{.Status}}"',
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (ps) console.log(`\n  Docker konteyneri: ${ps}`);
+    else console.log('\n  Docker konteyneri havre-db bulunamadi → npm run db:up');
+  } catch { /* docker yok */ }
 
   console.log(`
   Calisan bir Postgres yok. Uc secenekten biri:
