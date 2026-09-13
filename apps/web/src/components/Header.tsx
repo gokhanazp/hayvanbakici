@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getMessages, LOCALES, segmentFor, type Locale } from '@havre/i18n';
+import { HeaderAccount } from '@/components/auth/HeaderAccount';
 
 export function Header({ locale }: { locale: Locale }) {
   const m = getMessages(locale);
@@ -38,6 +39,13 @@ export function Header({ locale }: { locale: Locale }) {
               </span>
             ))}
           </div>
+          {/*
+            OTURUM DURUMU ISTEMCIDE OKUNUYOR — bilerek.
+            Sunucuda okunsaydi cerez erisimi TUM sayfalari dinamik yapar ve
+            programatik SEO sayfalarinin statik uretimi (ISR) biterdi. Basliktaki
+            kisisellestirme SEO icin degersiz; sayfa hizi ise her sey.
+          */}
+          <HeaderAccount locale={locale} />
           <Link href={`/${seg}/become-a-sitter`} className="btn btn-ink">
             {m.nav.becomeSitter}
           </Link>

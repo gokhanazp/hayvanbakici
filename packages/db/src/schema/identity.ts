@@ -22,6 +22,21 @@ export const users = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     email: text('email').notNull(),
+
+    /**
+     * BETTER AUTH ZORUNLU ALANLARI.
+     * Kutuphane bu uc alanin varligini ve adini bekler; yeniden adlandirmak
+     * adapter yapilandirmasinda esleme gerektirir, bu yuzden oldugu gibi tutuldu.
+     *
+     * emailVerified (boolean) kutuphanenin okudugu alan; emailVerifiedAt ise
+     * BIZIM denetim kaydimiz — Law 25 icin "ne zaman" sorusunun cevabi lazim,
+     * boolean bunu tasiyamaz. Ikisi birlikte tutuluyor, tek kaynak degil ama
+     * ikisi de auth.ts icindeki databaseHooks tarafindan ayni anda yaziliyor.
+     */
+    name: text('name'),
+    image: text('image'),
+    emailVerified: boolean('email_verified').notNull().default(false),
+
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     phone: text('phone'),
     phoneVerifiedAt: timestamp('phone_verified_at', { withTimezone: true }),

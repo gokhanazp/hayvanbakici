@@ -16,11 +16,20 @@ const config: NextConfig = {
   // canonical URL'lerimiz sonu slash'li: sunucu da ayni davranmali,
   // aksi halde canonical bir 308'e isaret eder (SEO hatasi)
   trailingSlash: true,
+  /*
+    Otomatik slash yonlendirmesini KAPATIYORUZ ve isi middleware'e aliyoruz.
+    Sebep olculdu: trailingSlash:true, /api/auth/sign-in/email istegini de
+    308 ile /api/auth/sign-in/email/ adresine yonlendiriyordu. Her kimlik
+    cagrisi iki tura cikiyor ve bazi istemciler yonlendirmede govdeyi ya da
+    basliklari dusuruyor. Middleware yalnizca SAYFA yollarini yonlendiriyor,
+    /api dokunulmadan geciyor.
+  */
+  skipTrailingSlashRedirect: true,
   // Core Web Vitals hedefleri (yol haritasi §7): LCP <2,0s · INP <150ms · CLS <0,05
   images: {
     formats: ['image/avif', 'image/webp'],
   },
-  transpilePackages: ['@havre/core', '@havre/i18n', '@havre/tokens'],
+  transpilePackages: ['@havre/core', '@havre/i18n', '@havre/tokens', '@havre/auth'],
   async headers() {
     return [
       {

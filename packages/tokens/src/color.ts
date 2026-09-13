@@ -33,7 +33,9 @@ export const palette = {
   // Durum
   success500: '#2E7D4F',
   warning500: '#C8860D',
+  danger100:  '#FBEAE6',
   danger500:  '#B23A2E',
+  danger700:  '#8A2A20',
   info500:    '#2C5F8A',
 
   // Panel — koyu ladin. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
@@ -79,6 +81,10 @@ export const lightTheme = {
   'success':         palette.success500,
   'warning':         palette.warning500,
   'danger':          palette.danger500,
+  /* Hata kutusu zemini ve metni: AA kontrast icin ayri tonlar gerekiyor —
+     danger500 zemin olarak kullanilirsa uzerindeki metin okunmuyor. */
+  'danger-subtle':   palette.danger100,
+  'danger-strong':   palette.danger700,
   'info':            palette.info500,
   'verify-id':       palette.verifyId,
   'verify-check':    palette.verifyCheck,
@@ -119,6 +125,8 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'success':         '#4E9B6E',
   'warning':         '#D9A43A',
   'danger':          '#D0604F',
+  'danger-subtle':   '#2C1714',
+  'danger-strong':   '#F0A99D',
   'info':            '#5A90BC',
   'verify-id':       '#5A90BC',
   'verify-check':    '#6FBF9A',
