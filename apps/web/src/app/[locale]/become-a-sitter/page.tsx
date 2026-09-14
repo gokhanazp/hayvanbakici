@@ -6,6 +6,7 @@ import {
   DEFAULT_COMMISSION, ONBOARDING_STEPS, calculateCommission, compareToRover, dollars,
 } from '@havre/core';
 import { Photo } from '@/components/Photo';
+import { SitterStartCta } from '@/components/auth/SitterStartCta';
 import { Faq } from '@/components/Faq';
 import { ShieldIcon } from '@/components/VerificationBadge';
 import { money } from '@/lib/format';
@@ -84,13 +85,9 @@ export default async function BecomeSitterPage({
                 {s.heroBody}
               </p>
 
-              <div className="row" style={{ marginTop: 'var(--space-7)' }}>
-                <Link href={`/${seg}/become-a-sitter/about/`} className="btn btn-primary">
-                  {m.onboarding.startCta}
-                </Link>
-                <Link href={`/${seg}/account/sign-in/?next=/${seg}/become-a-sitter/about/`} className="btn btn-secondary">
-                  {m.onboarding.continueCta}
-                </Link>
+              {/* Dugmeler oturuma gore konusuyor; sayfa statik kaliyor */}
+              <div style={{ marginTop: 'var(--space-7)' }}>
+                <SitterStartCta locale={locale} showSignIn />
               </div>
             </div>
 
@@ -200,9 +197,7 @@ export default async function BecomeSitterPage({
         }}>
           <h2 className="text-h3">{s.ctaHeading}</h2>
           <div className="row" style={{ marginTop: 'var(--space-5)' }}>
-            <Link href={`/${seg}/become-a-sitter/about/`} className="btn btn-primary">
-              {m.onboarding.startCta}
-            </Link>
+            <SitterStartCta locale={locale} />
             <Link href={`/${seg}/pricing/`} className="btn btn-secondary">
               {fr ? 'Voir nos frais' : 'See how our fees work'}
             </Link>

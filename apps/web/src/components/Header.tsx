@@ -3,6 +3,7 @@ import { servicesForPhase, type ServiceType } from '@havre/core';
 import { getMessages, LOCALES, segmentFor, serviceSlug, type Locale } from '@havre/i18n';
 import { Wordmark } from '@/components/Wordmark';
 import { HeaderAccount } from '@/components/auth/HeaderAccount';
+import { SitterCta } from '@/components/auth/SitterCta';
 import { NavDismiss } from '@/components/NavDismiss';
 
 /**
@@ -68,9 +69,8 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
         <div className="site-header-actions">
           <LocaleSwitch locale={locale} />
           <HeaderAccount locale={locale} />
-          <Link href={`/${seg}/become-a-sitter/`} className="btn btn-ink header-cta">
-            {m.nav.becomeSitter}
-          </Link>
+          {/* Dugme oturuma gore konusuyor — bakiciya "Bakici ol" demiyor */}
+          <SitterCta locale={locale} className="btn btn-ink header-cta" />
 
           {/* Mobil cekmece */}
           <details className="nav-drawer">
@@ -92,7 +92,7 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
               <Link href={`/${seg}/pricing/`} className="nav-drawer-item">{m.nav.pricing}</Link>
 
               <p className="nav-drawer-heading">{m.menu.forSitters}</p>
-              <Link href={`/${seg}/become-a-sitter/`} className="nav-drawer-item">{m.nav.becomeSitter}</Link>
+              <SitterCta locale={locale} className="nav-drawer-item" />
               {/* Giris/cikis burada DEGIL: baslikta her genislikte HeaderAccount
                   duruyor ve oturum durumunu dogru gosteriyor. Cekmecede sabit
                   bir "Sign in" olsaydi, giris yapmis kullaniciya da gorunurdu. */}

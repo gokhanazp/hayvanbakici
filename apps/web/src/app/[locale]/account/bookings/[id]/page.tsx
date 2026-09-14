@@ -7,7 +7,7 @@ import { AccountShell } from '@/components/AccountShell';
 import { StatusBadge } from '@/components/BookingCard';
 import { RespondButtons, CancelButton, MessageCounterpartButton } from '@/components/BookingActions';
 import { Avatar } from '@/components/Avatar';
-import { getBooking, isSitter, isAdmin, unreadCount } from '@/lib/data';
+import { getBooking, getSitterStatus, isAdmin, unreadCount } from '@/lib/data';
 import { money, dateFmt } from '@/lib/format';
 import { respondAction, cancelAction, openBookingConversationAction } from './actions';
 
@@ -31,8 +31,8 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const m = getMessages(locale);
-  const [sitterPanel, adminPanel, unread] = await Promise.all([
-    isSitter(session.user.id), isAdmin(session.user.id), unreadCount(session.user.id),
+  const [sitterStatus, adminPanel, unread] = await Promise.all([
+    getSitterStatus(session.user.id), isAdmin(session.user.id), unreadCount(session.user.id),
   ]);
   const unit = SERVICES[booking.serviceType].unit;
   const name = `${booking.counterpartFirstName} ${booking.counterpartInitial}.`;
@@ -45,7 +45,8 @@ export default async function BookingDetailPage({
       locale={locale}
       title={interpolate(isOwner ? m.booking.withSitter : m.booking.forOwner, { name })}
       active={isOwner ? 'bookings' : 'sitter'}
-      isSitter={sitterPanel}
+      isSitter={sitterStatus !== null}
+      sitterStatus={sitterStatus}
       isAdmin={adminPanel}
       unread={unread}
       actions={

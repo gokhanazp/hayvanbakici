@@ -4,7 +4,7 @@ import { getMessages, interpolate, localeFromSegment, segmentFor } from '@havre/
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { Avatar } from '@/components/Avatar';
-import { listConversations, isSitter, isAdmin, unreadCount } from '@/lib/data';
+import { listConversations, getSitterStatus, isAdmin, unreadCount } from '@/lib/data';
 import { dateFmt } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ export default async function MessagesPage({
   const m = getMessages(locale);
   const [rows, sitter, admin, unread] = await Promise.all([
     listConversations(session.user.id),
-    isSitter(session.user.id),
+    getSitterStatus(session.user.id),
     isAdmin(session.user.id),
     unreadCount(session.user.id),
   ]);
@@ -34,7 +34,8 @@ export default async function MessagesPage({
       locale={locale}
       title={m.messages.title}
       active="messages"
-      isSitter={sitter}
+      isSitter={sitter !== null}
+      sitterStatus={sitter}
       isAdmin={admin}
       unread={unread}
     >

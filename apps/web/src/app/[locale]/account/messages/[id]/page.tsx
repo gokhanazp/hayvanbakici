@@ -6,7 +6,7 @@ import { AccountShell } from '@/components/AccountShell';
 import { Avatar } from '@/components/Avatar';
 import { MessageComposer } from '@/components/MessageComposer';
 import { ReportMessageButton } from '@/components/ReportMessageButton';
-import { getThread, markRead, isSitter, isAdmin, unreadCount } from '@/lib/data';
+import { getThread, markRead, getSitterStatus, isAdmin, unreadCount } from '@/lib/data';
 import { sendMessageAction, reportMessageAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
@@ -48,7 +48,7 @@ export default async function ThreadPage({
 
   const m = getMessages(locale);
   const [sitter, admin, unread] = await Promise.all([
-    isSitter(session.user.id),
+    getSitterStatus(session.user.id),
     isAdmin(session.user.id),
     unreadCount(session.user.id),
   ]);
@@ -63,7 +63,8 @@ export default async function ThreadPage({
       locale={locale}
       title={name}
       active="messages"
-      isSitter={sitter}
+      isSitter={sitter !== null}
+      sitterStatus={sitter}
       isAdmin={admin}
       unread={unread}
       actions={

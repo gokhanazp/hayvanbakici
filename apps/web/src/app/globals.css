@@ -1290,6 +1290,19 @@ a { color: inherit; text-decoration: none; }
 .filter-check input { width: 18px; height: 18px; accent-color: var(--color-primary); }
 
 /* ---------- Hesap ekranlari ---------- */
+/*
+  Hesap ozetindeki "bekleyen isler" listesi. Sayi ONCE geliyor: kullanici
+  once kac tane oldugunu, sonra neyin oldugunu okuyor.
+*/
+.glance-list { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; }
+.glance-list li + li { border-top: 1px solid var(--color-border); }
+.glance-row {
+  display: grid; grid-template-columns: 2.5rem 1fr auto; align-items: center;
+  gap: var(--space-3); padding: var(--space-3) 0;
+  color: inherit; text-decoration: none;
+}
+.glance-row:hover { color: var(--color-primary-active); }
+
 .account-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
 .account-tab {
   display: inline-flex; align-items: center; min-height: 38px;

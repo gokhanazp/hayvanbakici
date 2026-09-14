@@ -28,7 +28,8 @@ import {
   openConversation as dbOpenConversation, sendMessage as dbSendMessage,
   listConversations as dbListConversations, getThread as dbGetThread,
   markRead as dbMarkRead, unreadCount as dbUnreadCount, getRawMessage as dbGetRawMessage,
-  reportableMessage as dbReportableMessage,
+  reportableMessage as dbReportableMessage, getAccountSummary as dbGetAccountSummary,
+  getSitterStatus as dbGetSitterStatus,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
@@ -204,5 +205,9 @@ export const markRead = (conversationId: string, viewerId: string) =>
   dbMarkRead(db(), conversationId, viewerId);
 export const unreadCount = (viewerId: string) => dbUnreadCount(db(), viewerId);
 export const getRawMessage = (messageId: string) => dbGetRawMessage(db(), messageId);
+
+/* ------------------------------------------------------------ hesap */
+export const getAccountSummary = (userId: string) => dbGetAccountSummary(db(), userId);
+export const getSitterStatus = (userId: string) => dbGetSitterStatus(db(), userId);
 export const reportableMessage = (messageId: string, viewerId: string) =>
   dbReportableMessage(db(), messageId, viewerId);

@@ -12,3 +12,4 @@ export * from './admin-bookings.js';
 export * from './admin-moderation.js';
 export * from './admin-metrics.js';
 export * from './messaging.js';
+export * from './account.js';

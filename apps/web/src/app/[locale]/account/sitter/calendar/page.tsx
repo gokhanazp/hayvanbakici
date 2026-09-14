@@ -4,7 +4,7 @@ import { getMessages, localeFromSegment } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { CalendarEditor } from '@/components/CalendarEditor';
-import { getCalendar, isSitter, isAdmin } from '@/lib/data';
+import { getCalendar, getSitterStatus, isAdmin } from '@/lib/data';
 import { saveCalendarAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,8 @@ export default async function CalendarPage({
 
   const session = await getSession();
   if (!session) redirect(`/${seg}/account/sign-in/?next=/${seg}/account/sitter/calendar/`);
-  if (!(await isSitter(session.user.id))) redirect(`/${seg}/become-a-sitter/`);
+  const sitterStatus = await getSitterStatus(session.user.id);
+  if (!sitterStatus) redirect(`/${seg}/become-a-sitter/`);
 
   const m = getMessages(locale);
 
@@ -54,6 +55,7 @@ export default async function CalendarPage({
       lead={m.calendar.lead}
       active="calendar"
       isSitter
+      sitterStatus={sitterStatus}
       isAdmin={await isAdmin(session.user.id)}
       actions={
         <div className="row" style={{ gap: 'var(--space-2)' }}>
