@@ -22,9 +22,13 @@ import {
   listUsers as dbListUsers, getUser as dbGetUser, setSuspension as dbSetSuspension,
   setRole as dbSetRole, listNotes as dbListNotes, addNote as dbAddNote,
   listReviews as dbListReviews, setReviewHidden as dbSetReviewHidden,
-  listReports as dbListReports, createReport as dbCreateReport, resolveReport as dbResolveReport,
+  listReports as dbListReports, getReport as dbGetReport, createReport as dbCreateReport, resolveReport as dbResolveReport,
   getBookingAdmin as dbGetBookingAdmin, adminSetBookingStatus as dbAdminSetBookingStatus,
   getMetrics as dbGetMetrics,
+  openConversation as dbOpenConversation, sendMessage as dbSendMessage,
+  listConversations as dbListConversations, getThread as dbGetThread,
+  markRead as dbMarkRead, unreadCount as dbUnreadCount, getRawMessage as dbGetRawMessage,
+  reportableMessage as dbReportableMessage,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
@@ -35,6 +39,7 @@ import {
   type AdminUserRow, type AdminUserDetail, type UserPage, type UserFilter, type AdminNote,
   type ModerationReview, type ReviewFilter, type ReportRow,
   type AdminBookingDetail, type AdminTransition, type AdminMetrics,
+  type ConversationSummary, type Thread, type ThreadMessage, type RawMessage,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
@@ -45,6 +50,7 @@ export type {
   AdminOverview, ApplicationRow, ApplicationDetail, AuditRow, AdminBookingRow, AdminCounts,
   AdminUserRow, AdminUserDetail, UserPage, UserFilter, AdminNote,
   ModerationReview, ReviewFilter, ReportRow, AdminBookingDetail, AdminTransition, AdminMetrics,
+  ConversationSummary, Thread, ThreadMessage, RawMessage,
 };
 export { cityName, citySlug };
 
@@ -174,6 +180,7 @@ export const listReviews = (filter?: ReviewFilter, limit?: number) =>
 export const setReviewHidden = (input: Parameters<typeof dbSetReviewHidden>[1]) =>
   dbSetReviewHidden(db(), input);
 export const listReports = (status?: 'open' | 'all') => dbListReports(db(), status);
+export const getReport = (reportId: string) => dbGetReport(db(), reportId);
 export const createReport = (input: Parameters<typeof dbCreateReport>[1]) =>
   dbCreateReport(db(), input);
 export const resolveReport = (input: Parameters<typeof dbResolveReport>[1]) =>
@@ -184,3 +191,18 @@ export const adminSetBookingStatus = (input: Parameters<typeof dbAdminSetBooking
   dbAdminSetBookingStatus(db(), input);
 
 export const getMetrics = (days?: number) => dbGetMetrics(db(), days);
+
+/* ---------------------------------------------------------- mesajlasma */
+export const openConversation = (input: Parameters<typeof dbOpenConversation>[1]) =>
+  dbOpenConversation(db(), input);
+export const sendMessage = (input: Parameters<typeof dbSendMessage>[1]) =>
+  dbSendMessage(db(), input);
+export const listConversations = (viewerId: string) => dbListConversations(db(), viewerId);
+export const getThread = (conversationId: string, viewerId: string) =>
+  dbGetThread(db(), conversationId, viewerId);
+export const markRead = (conversationId: string, viewerId: string) =>
+  dbMarkRead(db(), conversationId, viewerId);
+export const unreadCount = (viewerId: string) => dbUnreadCount(db(), viewerId);
+export const getRawMessage = (messageId: string) => dbGetRawMessage(db(), messageId);
+export const reportableMessage = (messageId: string, viewerId: string) =>
+  dbReportableMessage(db(), messageId, viewerId);

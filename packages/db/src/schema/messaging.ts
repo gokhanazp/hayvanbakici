@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, jsonb, index, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, jsonb, index, uniqueIndex, integer } from 'drizzle-orm/pg-core';
 import { users, sitters } from './identity.js';
 import { bookings } from './bookings.js';
 import { localeEnum } from './enums.js';
@@ -13,7 +13,20 @@ export const conversations = pgTable(
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('conversations_participants_idx').on(t.ownerId, t.sitterId)],
+  (t) => [
+    /*
+      BIR CIFT ICIN TEK KONUSMA.
+      Tekil indeks sart: "varsa bul, yoksa ac" iki es zamanli istekte iki
+      ayri konusma yaratabilirdi ve iki taraf birbirinin mesajini gormeyen
+      iki ayri kutuya yazardi. Indeks bunu veritabani seviyesinde
+      imkansiz kiliyor; sorgu ON CONFLICT ile calisiyor.
+
+      booking_id BU CIFTIN KONUSMASINI degil, konusmanin hangi
+      rezervasyondan dogdugunu isaretliyor (rezervasyon oncesi soruda bos).
+    */
+    uniqueIndex('conversations_pair_uq').on(t.ownerId, t.sitterId),
+    index('conversations_recent_idx').on(t.lastMessageAt),
+  ],
 );
 
 /**

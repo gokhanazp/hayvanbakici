@@ -306,7 +306,18 @@ export default async function SitterPage({
             >
               {m.sitter.bookCta}
             </Link>
-            {/* Mesajlasma henuz yok; olmayan bir seye dugme koymuyoruz. */}
+            {/*
+              SORU SOR. Mesajlasma gelene kadar bu dugme kaldirilmisti;
+              geri geldi. Rezervasyondan ONCE soru sorabilmek, donusumu
+              artiran ana akis: bakiciyi tanimadan uc gecelik bir
+              konaklama ayirtmak cogu insan icin buyuk bir adim.
+            */}
+            <Link
+              href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/sitter/${sitter.slug}/ask/`}
+              className="btn btn-secondary btn-block"
+            >
+              {m.sitter.messageCta}
+            </Link>
 
             <ul className="sitter-facts" style={{ marginTop: 'var(--space-2)' }}>
               <Fact>{interpolate(m.sitter.openDays, { count: sitter.openDays })}</Fact>

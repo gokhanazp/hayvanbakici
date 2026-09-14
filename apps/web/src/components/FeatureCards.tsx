@@ -97,9 +97,10 @@ export function FeatureCards({ locale }: { locale: Locale }) {
       </div>
 
       {/*
-        DURUSTLUK NOTU: bu ucu henuz canli degil. Ana sayfada var olmayan bir
-        ozelligi varmis gibi gostermek Competition Act acisindan dayanaksiz
-        iddiadir; ne zaman gelecegi acikca yaziliyor.
+        DURUSTLUK NOTU: mesajlasma ARTIK CALISIYOR, fotograf ve asi kaydi
+        henuz degil. Not bu yuzden "hepsi yolda" demiyor, hangisinin bugun
+        oldugunu ayirarak soyluyor. Ana sayfada var olmayan bir ozelligi
+        varmis gibi gostermek Competition Act acisindan dayanaksiz iddiadir.
       */}
       <p className="field-hint" style={{ marginTop: 'var(--space-5)' }}>
         {m.features.plannedNote}

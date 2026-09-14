@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { getMessages, segmentFor, type Locale, type Messages } from '@havre/i18n';
 import type { ActionState } from '@/app/[locale]/account/bookings/[id]/actions';
 
@@ -74,6 +74,51 @@ export function CancelButton({
         {m.booking.cancel}
       </button>
       <p className="field-hint">{m.booking.cancelConfirm}</p>
+    </form>
+  );
+}
+
+/**
+ * "Mesaj gonder" — rezervasyon sayfasindan konusmaya gecis.
+ *
+ * Neden DUGME, neden duz bir bag degil: konusma henuz yoksa bu tiklama
+ * bir kayit OLUSTURUYOR. Yan etkisi olan bir isi GET bagiyla yapmak,
+ * tarayici on yuklemesiyle kendiliginden tetiklenebiliyor.
+ *
+ * Yonlendirme eylemden donen adresle istemcide yapiliyor; sebebi
+ * AskSitterForm'un basindaki notla ayni.
+ */
+export function MessageCounterpartButton({
+  locale, bookingId, label, action,
+}: {
+  locale: Locale;
+  bookingId: string;
+  label: string;
+  action: (prev: ActionState, form: FormData) => Promise<ActionState & { redirectTo?: string }>;
+}) {
+  const m = getMessages(locale);
+  const [state, formAction, busy] = useActionState<
+    ActionState & { redirectTo?: string }, FormData
+  >(action, {});
+
+  useEffect(() => {
+    if (state.redirectTo) window.location.assign(state.redirectTo);
+  }, [state.redirectTo]);
+
+  return (
+    <form action={formAction} className="stack">
+      <input type="hidden" name="id" value={bookingId} />
+      <input type="hidden" name="locale" value={segmentFor(locale)} />
+      {state.error && (
+        <p className="alert alert-error" role="alert">
+          {(m.messages[`error.${state.error}` as keyof Messages['messages']] as string)
+            ?? message(m, state.error)}
+        </p>
+      )}
+      <button type="submit" className="btn btn-secondary"
+              disabled={busy || Boolean(state.redirectTo)}>
+        {busy || state.redirectTo ? m.messages.sending : label}
+      </button>
     </form>
   );
 }

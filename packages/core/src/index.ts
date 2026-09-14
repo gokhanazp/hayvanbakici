@@ -9,3 +9,4 @@ export * from './seo.js';
 export * from './ranking.js';
 export * from './onboarding.js';
 export * from './postal.js';
+export * from './redact.js';

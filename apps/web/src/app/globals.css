@@ -1384,3 +1384,77 @@ a { color: inherit; text-decoration: none; }
 }
 .data-table tbody tr:last-child td { border-bottom: 0; }
 .data-table tbody tr:hover { background: var(--color-surface-sunken); }
+
+/* ---------- Mesajlasma ---------- */
+
+/*
+  Okunmamis konusma kartinin SOL kenarinda ince bir cizgi. Kalin bir
+  zemin rengi denendi ve liste "hepsi uyari" gibi gorundu; ince kenar
+  hem tarama sirasinda yakalaniyor hem listeyi bozmuyor.
+*/
+.booking-card.is-unread { border-left: 3px solid var(--color-primary); }
+
+.line-clamp-1 {
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thread { display: grid; gap: var(--space-6); }
+.thread-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+
+.bubble-row { display: flex; gap: var(--space-3); align-items: flex-end; }
+.bubble-row.is-mine { flex-direction: row-reverse; }
+
+.bubble {
+  max-width: min(42rem, 78%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+}
+/*
+  Kendi mesajin pastel bogurtlen zeminde. Dolu birincil renk denendi ve
+  uzerindeki beyaz metin uzun mesajlarda yorucuydu; pastel zemin + koyu
+  metin hem AA'yi geciyor hem sayfanin geri kalaniyla ayni dilde.
+*/
+.bubble-row.is-mine .bubble {
+  background: var(--color-primary-subtle);
+  border-color: transparent;
+}
+.bubble-meta {
+  margin-top: var(--space-1);
+  font-size: 0.75rem; color: var(--color-ink-muted);
+}
+
+/*
+  "Bildir" — balonun icinde, sessiz. Ayri bir dugme gorunumu verilmedi:
+  yazismanin yaninda duran gorunur bir dugme, konusmayi supheli bir yere
+  cevirir. Yine de KLAVYEYLE ulasilabilir ve gercek bir <button>.
+*/
+.bubble-report {
+  background: none; border: 0; padding: 0; margin-top: var(--space-1);
+  font: inherit; font-size: 0.75rem; cursor: pointer;
+  color: var(--color-ink-muted); text-decoration: underline;
+}
+.bubble-report:hover { color: var(--color-ink); }
+.report-box {
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+  gap: var(--space-2);
+}
+.report-box .textarea { width: 100%; }
+/*
+  Form ACILINCA balon genisliyor. Balonun %78 siniri okuma icin iyi ama
+  icine bir form girdiginde dar kaliyordu: 390px'de "Havre." tek basina
+  alt satira dusuyordu.
+*/
+.bubble:has(.report-box) { max-width: 100%; width: 100%; }
+
+.thread-composer {
+  position: sticky; bottom: 0;
+  background: var(--color-canvas);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.composer { display: block; }

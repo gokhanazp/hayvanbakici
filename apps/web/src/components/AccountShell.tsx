@@ -9,16 +9,18 @@ import { getMessages, segmentFor, type Locale } from '@havre/i18n';
  * herkese "Bakici paneli" gostermek, tiklayinca bos sayfa demek olurdu.
  */
 export function AccountShell({
-  locale, title, lead, active, isSitter, isAdmin, children, actions,
+  locale, title, lead, active, isSitter, isAdmin, unread = 0, children, actions,
 }: {
   locale: Locale;
   title: string;
   lead?: string | undefined;
-  active: 'bookings' | 'sitter' | 'calendar';
+  active: 'bookings' | 'messages' | 'sitter' | 'calendar';
   isSitter: boolean;
   /** Yonetici sekmesi: panelin adresi hicbir yerde duyurulmuyor,
       yoneticinin kendi hesabindan girebilmesi icin tek kapi bu. */
   isAdmin?: boolean | undefined;
+  /** Okunmamis mesaji olan konusma sayisi — sekmede rozet olarak gorunur */
+  unread?: number | undefined;
   children: ReactNode;
   actions?: ReactNode | undefined;
 }) {
@@ -27,6 +29,16 @@ export function AccountShell({
 
   const tabs = [
     { key: 'bookings' as const, href: `/${seg}/account/bookings/`, label: m.account.myBookings },
+    {
+      key: 'messages' as const,
+      href: `/${seg}/account/messages/`,
+      /*
+        Rozet sekmenin ETIKETINDE. Ayri bir nokta/badge elemani denenebilirdi
+        ama sekme zaten dar; sayiyi metne katmak hem ekran okuyucuda hem
+        gozle tek seferde okunuyor.
+      */
+      label: unread > 0 ? `${m.messages.tab} (${unread})` : m.messages.tab,
+    },
     ...(isSitter
       ? [
           { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.requests },

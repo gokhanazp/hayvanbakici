@@ -6,6 +6,7 @@ import { clientIp } from '@/lib/admin';
 import {
   isAdmin, decideApplication, setSuspension, setRole, addNote,
   setReviewHidden, resolveReport, createReport, adminSetBookingStatus,
+  getRawMessage, getReport, recordAudit,
 } from '@/lib/data';
 import type { ActionState } from '@/components/admin/ReasonAction';
 
@@ -196,4 +197,67 @@ export async function bookingAction(_prev: ActionState, form: FormData): Promise
   revalidatePath(`/admin/bookings/${bookingId}`);
   revalidatePath('/admin/bookings');
   return { done: decision };
+}
+
+/* -------------------------------------------------------------- mesaj */
+
+export type RevealState = {
+  error?: string | undefined;
+  message?: {
+    body: string;
+    redacted: string;
+    senderName: string | null;
+    createdAt: string;
+  } | undefined;
+};
+
+/**
+ * HAM MESAJI ACMA — sikayet dosyasi uzerinden, tek mesaj.
+ *
+ * Panelde mesaj listesi yok; buraya gelmenin tek yolu birinin o mesaji
+ * sikayet etmis olmasi. Bu yuzden eylem `reportId` ISTIYOR ve sikayetin
+ * gercekten O MESAJ hakkinda oldugunu dogruluyor: elde bir sikayet id'si
+ * olmadan hicbir mesaj acilamaz.
+ *
+ * Kayit yazilmadan icerik DONMUYOR — `recordAudit` await ediliyor ve
+ * hata verirse mesaj gosterilmiyor. Erisimi kaydetmeden goruntulemek,
+ * kaydi hic tutmamakla ayni sey.
+ */
+export async function revealMessageAction(
+  _prev: RevealState, form: FormData,
+): Promise<RevealState> {
+  const admin = await guard();
+  if (!admin) return { error: 'not_allowed' };
+
+  const reportId = field(form, 'reportId');
+  const messageId = field(form, 'messageId');
+  if (!reportId || !messageId) return { error: 'invalid' };
+
+  const report = await getReport(reportId);
+  if (!report || report.subjectType !== 'message' || report.subjectId !== messageId) {
+    return { error: 'not_allowed' };
+  }
+
+  const raw = await getRawMessage(messageId);
+  if (!raw) return { error: 'not_found' };
+
+  const ip = await clientIp();
+  await recordAudit({
+    actorId: admin.id,
+    action: 'admin.reveal',
+    entity: 'message',
+    entityId: messageId,
+    // Gerekce denetim listesinde `after.reason` olarak okunuyor
+    after: { reason: `report ${reportId}: ${report.reason}`, conversationId: raw.conversationId },
+    ...(ip ? { ip } : {}),
+  });
+
+  return {
+    message: {
+      body: raw.body,
+      redacted: raw.redacted,
+      senderName: raw.senderName,
+      createdAt: raw.createdAt,
+    },
+  };
 }

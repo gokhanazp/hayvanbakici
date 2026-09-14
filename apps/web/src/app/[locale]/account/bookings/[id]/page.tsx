@@ -5,11 +5,11 @@ import { SERVICES } from '@havre/core';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { StatusBadge } from '@/components/BookingCard';
-import { RespondButtons, CancelButton } from '@/components/BookingActions';
+import { RespondButtons, CancelButton, MessageCounterpartButton } from '@/components/BookingActions';
 import { Avatar } from '@/components/Avatar';
-import { getBooking, isSitter, isAdmin } from '@/lib/data';
+import { getBooking, isSitter, isAdmin, unreadCount } from '@/lib/data';
 import { money, dateFmt } from '@/lib/format';
-import { respondAction, cancelAction } from './actions';
+import { respondAction, cancelAction, openBookingConversationAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,8 +31,8 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const m = getMessages(locale);
-  const [sitterPanel, adminPanel] = await Promise.all([
-    isSitter(session.user.id), isAdmin(session.user.id),
+  const [sitterPanel, adminPanel, unread] = await Promise.all([
+    isSitter(session.user.id), isAdmin(session.user.id), unreadCount(session.user.id),
   ]);
   const unit = SERVICES[booking.serviceType].unit;
   const name = `${booking.counterpartFirstName} ${booking.counterpartInitial}.`;
@@ -47,6 +47,7 @@ export default async function BookingDetailPage({
       active={isOwner ? 'bookings' : 'sitter'}
       isSitter={sitterPanel}
       isAdmin={adminPanel}
+      unread={unread}
       actions={
         <Link href={`/${seg}/account/${isOwner ? 'bookings' : 'sitter'}/`} className="text-body-sm muted">
           ← {m.booking.backToList}
@@ -188,6 +189,18 @@ export default async function BookingDetailPage({
               <RespondButtons locale={locale} bookingId={booking.id} action={respondAction} />
             </div>
           )}
+
+          {/*
+            KONUSMA: rezervasyon ile mesajlasma ayri yerlerde durmasin.
+            Iptal edilmis rezervasyonda da duruyor — insanlar iptalden
+            SONRA konusmak zorunda kaliyor ("anahtari nerede birakayim").
+          */}
+          <MessageCounterpartButton
+            locale={locale}
+            bookingId={booking.id}
+            label={interpolate(m.messages.messageName, { name: booking.counterpartFirstName })}
+            action={openBookingConversationAction}
+          />
 
           {canCancel && <CancelButton locale={locale} bookingId={booking.id} action={cancelAction} />}
         </aside>

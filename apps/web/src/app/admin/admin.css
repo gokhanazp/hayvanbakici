@@ -412,6 +412,18 @@
   font-size: 0.8125rem;
 }
 
+/*
+  Acilan ham mesaj. Kartin geri kalanindan AYRI gorunmesi gerekiyor:
+  bu metin bizim yazdigimiz bir ozet degil, iki kisinin ozel yazismasi.
+*/
+.a-reveal {
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-surface-sunken);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: var(--space-4);
+}
+
 /* --------------------------------------------------------- grafikler */
 
 .a-chart { width: 100%; height: auto; display: block; overflow: visible; }

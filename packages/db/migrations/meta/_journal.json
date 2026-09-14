@@ -50,6 +50,13 @@
       "when": 1789389594849,
       "tag": "0006_burly_morg",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789412260143,
+      "tag": "0007_useful_vertigo",
+      "breakpoints": true
     }
   ]
 }

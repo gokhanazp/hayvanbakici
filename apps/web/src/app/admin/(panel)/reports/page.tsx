@@ -3,7 +3,8 @@ import { requireAdmin, auditView, one, stamp, ago } from '@/lib/admin';
 import { listReports } from '@/lib/data';
 import { Page, Card, Badge, Empty, ShortId } from '@/components/admin/ui';
 import { ReasonAction } from '@/components/admin/ReasonAction';
-import { reportAction, newReportAction } from '@/app/admin/actions';
+import { MessageReveal } from '@/components/admin/MessageReveal';
+import { reportAction, newReportAction, revealMessageAction } from '@/app/admin/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,6 +65,16 @@ export default async function ReportsPage({
                   Filed by {r.reporterName ?? 'unknown'} · {stamp(r.createdAt)}
                   {r.subjectUserName && <> · about {r.subjectUserName}</>}
                 </p>
+
+                {/*
+                  Sikayet bir MESAJ hakkindaysa, mesaji buradan acabiliyoruz.
+                  Kapatilmis sikayette de duruyor: karari sonradan sorgulayan
+                  kisinin ayni metne bakabilmesi gerekiyor.
+                */}
+                {r.subjectType === 'message' && (
+                  <MessageReveal reportId={r.id} messageId={r.subjectId}
+                                 action={revealMessageAction} />
+                )}
 
                 {closed ? (
                   <p className="a-note" style={{ marginTop: 10 }}>

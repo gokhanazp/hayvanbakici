@@ -205,6 +205,51 @@ export async function listReports(
   });
 }
 
+/**
+ * TEK sikayet.
+ *
+ * Ham mesaji acma eyleminin dogrulamasi icin var: "bu sikayet gercekten
+ * bu mesaj hakkinda mi". Listeden secmek YETMEZ — sunucu eylemi listeden
+ * bagimsiz cagrilabiliyor, yani id'ler uydurulabiliyor.
+ */
+export async function getReport(db: Database, reportId: string): Promise<ReportRow | null> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT r.id::text, r.subject_type::text, r.subject_id::text, r.subject_user_id::text,
+             r.reason, r.details, r.status::text, r.resolution, r.handled_at, r.created_at,
+             COALESCE(rp.first_name, ru.email) AS reporter_name,
+             COALESCE(sp.first_name, su.email) AS subject_user_name,
+             COALESCE(hp.first_name, hu.email) AS handled_by_name
+      FROM reports r
+      LEFT JOIN users ru ON ru.id = r.reporter_id
+      LEFT JOIN profiles rp ON rp.user_id = r.reporter_id
+      LEFT JOIN users su ON su.id = r.subject_user_id
+      LEFT JOIN profiles sp ON sp.user_id = r.subject_user_id
+      LEFT JOIN users hu ON hu.id = r.handled_by
+      LEFT JOIN profiles hp ON hp.user_id = r.handled_by
+      WHERE r.id = ${reportId}
+      LIMIT 1
+    `);
+    const r = (rows as unknown as Array<Record<string, unknown>>)[0];
+    if (!r) return null;
+    return {
+      id: String(r.id),
+      subjectType: String(r.subject_type),
+      subjectId: String(r.subject_id),
+      subjectUserId: (r.subject_user_id as string | null) ?? null,
+      subjectUserName: (r.subject_user_name as string | null) ?? null,
+      reporterName: (r.reporter_name as string | null) ?? null,
+      reason: String(r.reason),
+      details: (r.details as string | null) ?? null,
+      status: String(r.status),
+      resolution: (r.resolution as string | null) ?? null,
+      handledByName: (r.handled_by_name as string | null) ?? null,
+      handledAt: r.handled_at ? new Date(r.handled_at as Date).toISOString() : null,
+      createdAt: new Date(r.created_at as Date).toISOString(),
+    };
+  });
+}
+
 export const REPORT_SUBJECTS = ['user', 'review', 'message', 'booking'] as const;
 
 /**
