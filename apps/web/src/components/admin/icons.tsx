@@ -26,7 +26,7 @@ const base = {
 
 export type IconName =
   | 'dashboard' | 'applications' | 'users' | 'bookings'
-  | 'reviews' | 'reports' | 'audit' | 'collapse' | 'expand' | 'back';
+  | 'reviews' | 'reports' | 'audit' | 'collapse' | 'expand' | 'back' | 'signout';
 
 export function Icon({ name }: { name: IconName }) {
   switch (name) {
@@ -100,6 +100,14 @@ export function Icon({ name }: { name: IconName }) {
         <svg {...base}>
           <path d="M20 12H4" />
           <path d="m9.5 6.5-5.5 5.5 5.5 5.5" />
+        </svg>
+      );
+    case 'signout':
+      return (
+        <svg {...base}>
+          <path d="M14 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H14" />
+          <path d="M16 8.5 19.5 12 16 15.5" />
+          <path d="M19.5 12h-9" />
         </svg>
       );
   }

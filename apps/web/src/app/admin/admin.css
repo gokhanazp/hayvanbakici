@@ -141,6 +141,12 @@
 .a-nav.is-active .a-nav-icon { color: var(--color-primary); }
 .a-nav-label { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
 .a-nav-quiet { color: var(--color-ink-muted); font-size: 0.8125rem; }
+/* Cikis bir <button>: menudeki baglantilarla ayni gorunmeli */
+.a-nav-btn {
+  width: 100%; font: inherit; font-size: 0.8125rem;
+  background: none; border: 0; cursor: pointer; text-align: left;
+}
+.a-nav-btn:disabled { opacity: .5; cursor: wait; }
 
 /* Bekleyen is sayisi menude: gunun basinda ilk bakilan yer burasi */
 .a-nav b {

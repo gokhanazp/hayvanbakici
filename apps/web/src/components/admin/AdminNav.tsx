@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { authClient } from '@havre/auth/client';
 import { Icon, type IconName } from './icons';
 
 /**
@@ -68,6 +69,7 @@ export function AdminNav({ counts, email }: { counts: AdminCounts; email: string
     uygulaniyor.
   */
   const [collapsed, setCollapsed] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   useEffect(() => {
     try {
       setCollapsed(window.localStorage.getItem(STORE_KEY) === 'collapsed');
@@ -135,6 +137,26 @@ export function AdminNav({ counts, email }: { counts: AdminCounts; email: string
           <span className="a-nav-icon"><Icon name="back" /></span>
           <span className="a-nav-label">Back to the site</span>
         </Link>
+        {/*
+          CIKIS. Panelde cikis dugmesi YOKTU: kisi siteye donup oradan
+          cikmak zorunda kaliyordu, ortak bir bilgisayarda ise acik
+          kalmis bir panel demekti. Cikinca panelin giris ekranina
+          donuyoruz, sitenin ana sayfasina degil.
+        */}
+        <button
+          type="button"
+          className="a-nav a-nav-quiet a-nav-btn"
+          disabled={leaving}
+          title={collapsed ? 'Sign out' : undefined}
+          onClick={async () => {
+            setLeaving(true);
+            await authClient.signOut();
+            window.location.assign('/admin/sign-in/');
+          }}
+        >
+          <span className="a-nav-icon"><Icon name="signout" /></span>
+          <span className="a-nav-label">{leaving ? 'Signing out…' : 'Sign out'}</span>
+        </button>
       </div>
     </nav>
   );
