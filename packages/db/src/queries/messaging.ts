@@ -436,3 +436,45 @@ export async function reportableMessage(
     };
   });
 }
+
+/**
+ * YENI MESAJ VAR MI — yoklama icin en ucuz cevap.
+ *
+ * Acik duran yazisma birkac saniyede bir soruyor. Bu yuzden sorgu
+ * MESAJLARI DONDURMUYOR, yalnizca son mesajin zamanini ve okunmamis
+ * sayisini donduruyor: arayuz degisiklik gorurse sayfayi tazeliyor,
+ * gormezse hicbir sey olmuyor. Her yoklamada tum yazismayi indirmek,
+ * uc kisiden sonra sunucuyu mesgul ederdi.
+ *
+ * Kimlik yine WHERE icinde: baskasinin konusmasi icin `lastAt` null
+ * doner, yani "yok" gorunur.
+ */
+export async function conversationPing(
+  db: Database, viewerId: string, conversationId?: string | undefined,
+): Promise<{ lastAt: string | null; unread: number }> {
+  return withDbErrors(async () => {
+    const unreadRows = await db.execute(sql`
+      SELECT count(*)::int AS n
+      FROM messages m
+      JOIN conversations c ON c.id = m.conversation_id
+      WHERE m.read_at IS NULL AND m.sender_id <> ${viewerId}
+        AND (c.owner_id = ${viewerId} OR c.sitter_id = ${viewerId})
+    `);
+    const unread = Number((unreadRows as unknown as Array<{ n: number }>)[0]?.n ?? 0);
+
+    if (!conversationId) return { lastAt: null, unread };
+
+    const rows = await db.execute(sql`
+      SELECT max(m.created_at) AS last_at
+      FROM messages m
+      JOIN conversations c ON c.id = m.conversation_id
+      WHERE c.id = ${conversationId}
+        AND (c.owner_id = ${viewerId} OR c.sitter_id = ${viewerId})
+    `);
+    const r = (rows as unknown as Array<{ last_at: Date | null }>)[0];
+    return {
+      lastAt: r?.last_at ? new Date(r.last_at).toISOString() : null,
+      unread,
+    };
+  });
+}

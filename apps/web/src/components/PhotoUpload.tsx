@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { getMessages, type Locale, type Messages } from '@havre/i18n';
 import type { UploadState } from '@/app/[locale]/account/profile/actions';
 
@@ -17,6 +17,12 @@ type Action = (prev: UploadState, form: FormData) => Promise<UploadState>;
  * geri bildirim icin; ASIL kontrol sunucuda, dosyanin ICERIGINE bakarak
  * yapiliyor (lib/images.ts). Istemciye guvenmek, `.jpg` adli her seyi
  * kabul etmek olurdu.
+ *
+ * BASARI GORUNUR OLMALI. Ilk surumde yukleme sessizce basariliydi:
+ * fotograf kaydediliyor ama ekranda hicbir sey degismedigi icin
+ * kullanici yuklenmedigini saniyordu (bizzat bildirildi). Artik
+ * "kaydedildi" yaziyor, secili dosya temizleniyor ve onizleme
+ * kalkiyor — kalan onizleme "hala bekliyor" gibi okunuyordu.
  */
 const ACCEPT = 'image/jpeg,image/png,image/webp';
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -36,6 +42,16 @@ export function PhotoUpload({
   const [preview, setPreview] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  /* Basarili yuklemeden sonra formu bosalt: sunucudaki liste zaten
+     yeni fotografi gosteriyor, kutuda duran eski secim yaniltici. */
+  useEffect(() => {
+    if (!state.done) return;
+    setPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
+    setLocalError(null);
+    formRef.current?.reset();
+  }, [state.done]);
 
   const text = (k: string) =>
     (m.profile[k as keyof Messages['profile']] as string | undefined) ?? k;
@@ -43,8 +59,11 @@ export function PhotoUpload({
   const error = localError ?? (state.error ? text(`error.${state.error}`) : null);
 
   return (
-    <form action={formAction} className="stack">
+    <form action={formAction} className="stack" ref={formRef}>
       {error && <p className="alert alert-error" role="alert">{error}</p>}
+      {state.done && !error && (
+        <p className="alert alert-ok" role="status">{m.profile.uploaded}</p>
+      )}
 
       <div className="upload-row">
         {preview && (

@@ -50,3 +50,22 @@ export function stampFmt(iso: string, locale: Locale): string {
   }).format(d);
   return `${day} ${time} UTC`;
 }
+
+/**
+ * SOHBET LISTESINDEKI ZAMAN.
+ *
+ * "Eylul 2026" bugun gelen bir mesaj icin yanlis bir cevap: listeye
+ * bakan kisi "ne zaman yazdi" diye soruyor, "hangi ay" diye degil.
+ * Bugunse saat, bu haftaysa gun adi, daha eskiyse kisa tarih.
+ */
+export function chatStamp(iso: string, locale: Locale): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if (sameDay) {
+    return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(d);
+  }
+  const days = (now.getTime() - d.getTime()) / 86_400_000;
+  if (days < 7) return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d);
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(d);
+}

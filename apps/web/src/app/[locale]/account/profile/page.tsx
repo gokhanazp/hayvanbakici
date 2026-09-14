@@ -69,6 +69,9 @@ export default async function ProfilePage({
                 action={uploadAvatarAction}
                 label={m.profile.avatarLabel}
               />
+              <p className="field-hint" style={{ marginTop: 'var(--space-2)' }}>
+                {m.profile.avatarNote}
+              </p>
               {me.avatarUrl && (
                 <div style={{ marginTop: 'var(--space-3)' }}>
                   <PhotoDelete
@@ -131,7 +134,7 @@ export default async function ProfilePage({
                 <PhotoUpload
                   locale={locale}
                   action={uploadHomePhotoAction}
-                  label={m.profile.homeHeading}
+                  label={m.profile.addHomePhoto}
                   withAlt
                 />
               </div>

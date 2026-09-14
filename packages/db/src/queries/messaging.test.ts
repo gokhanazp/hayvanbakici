@@ -3,7 +3,8 @@ import { sql } from 'drizzle-orm';
 import { getDb } from '../client.js';
 import {
   openConversation, sendMessage, listConversations, getThread, markRead,
-  unreadCount, getRawMessage, reportableMessage, MAX_MESSAGE, NEW_THREAD_LIMIT,
+  unreadCount, getRawMessage, reportableMessage, conversationPing,
+  MAX_MESSAGE, NEW_THREAD_LIMIT,
 } from './messaging.js';
 
 /**
@@ -214,5 +215,36 @@ describe('mesaj bildirme', () => {
     const id = (sent as { ok: true; value: { id: string } }).value.id;
 
     expect(await reportableMessage(db, id, outsiderId)).toEqual({ ok: false, error: 'not_found' });
+  });
+});
+
+/**
+ * YOKLAMA.
+ *
+ * Acik yazisma birkac saniyede bir soruyor; bu sorgu yanlissa ya
+ * mesajlar gec gorunur ya da sunucu bosuna calisir.
+ */
+describe('yoklama (ping)', () => {
+  it('son mesajin zamanini ve okunmamis sayisini veriyor', async () => {
+    await sendMessage(db, { conversationId, senderId: sitterId, body: 'Yoklama testi' });
+
+    const owner = await conversationPing(db, ownerId, conversationId);
+    expect(owner.lastAt).not.toBeNull();
+    expect(owner.unread).toBeGreaterThan(0);
+
+    // Gonderen kendi mesajini okunmamis saymiyor
+    const sitter = await conversationPing(db, sitterId, conversationId);
+    expect(sitter.lastAt).toBe(owner.lastAt);
+  });
+
+  it('BASKASININ konusmasi icin zaman DONMUYOR', async () => {
+    const res = await conversationPing(db, outsiderId, conversationId);
+    expect(res.lastAt).toBeNull();
+  });
+
+  it('konusma verilmezse yalnizca okunmamis sayisi doner', async () => {
+    const res = await conversationPing(db, ownerId);
+    expect(res.lastAt).toBeNull();
+    expect(typeof res.unread).toBe('number');
   });
 });

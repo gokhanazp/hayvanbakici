@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
-import { AccountShell } from '@/components/AccountShell';
 import { Avatar } from '@/components/Avatar';
 import { MessageComposer } from '@/components/MessageComposer';
 import { ReportMessageButton } from '@/components/ReportMessageButton';
-import { getThread, markRead, getSitterStatus, isAdmin, unreadCount } from '@/lib/data';
+import { MessagePoller } from '@/components/MessagePoller';
+import { getThread, markRead } from '@/lib/data';
 import { sendMessageAction, reportMessageAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +21,13 @@ function stampFor(iso: string, locale: 'en-CA' | 'fr-CA'): string {
   ).format(d);
 }
 
+/**
+ * SAG PANEL: acik yazisma.
+ *
+ * Konusma listesi ve hesap cercevesi DUZENDE; burada yalnizca yazismanin
+ * kendisi var. Dar ekranda bu panel tam ekran kaplar ve ustunde listeye
+ * donen bir bag bulunur.
+ */
 export default async function ThreadPage({
   params,
 }: {
@@ -41,50 +48,55 @@ export default async function ThreadPage({
   /*
     ACINCA OKUNDU. Ayri bir "okundu isaretle" dugmesi yok: kullanicidan
     okudugunu beyan etmesini istemek, okunmamis sayisini anlamsiz yapar.
-    Yazma islemi sayfa cizimi sirasinda yapiliyor ve bilerek AWAIT
-    ediliyor — aksi halde ayni istekte okunan sayaci eski degeri gosterirdi.
+    Yazma islemi sayfa cizimi sirasinda ve bilerek AWAIT ediliyor.
   */
   await markRead(id, session.user.id);
 
   const m = getMessages(locale);
-  const [sitter, admin, unread] = await Promise.all([
-    getSitterStatus(session.user.id),
-    isAdmin(session.user.id),
-    unreadCount(session.user.id),
-  ]);
-
   const name = `${thread.counterpartFirstName} ${thread.counterpartInitial}.`;
   const profileHref = thread.viewerRole === 'owner' && thread.sitterSlug && thread.citySlugEn
     ? `/${segmentFor(locale)}/${thread.citySlugEn}/sitter/${thread.sitterSlug}/`
     : null;
 
+  const last = thread.messages[thread.messages.length - 1];
+
   return (
-    <AccountShell
-      locale={locale}
-      title={name}
-      active="messages"
-      isSitter={sitter !== null}
-      sitterStatus={sitter}
-      isAdmin={admin}
-      unread={unread}
-      actions={
-        <>
-          <Link href={`/${segmentFor(locale)}/account/messages/`} className="btn btn-ghost">
-            ← {m.messages.title}
-          </Link>
+    <section className="inbox-thread">
+      {/* Yazismanin kendi basligi: kiminle konustugunuz her zaman ekranda */}
+      <header className="thread-head">
+        <Link href={`/${segmentFor(locale)}/account/messages/`} className="thread-back"
+              aria-label={m.messages.title}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </Link>
+        <Avatar
+          src={thread.counterpartAvatarUrl} size={36}
+          initials={`${thread.counterpartFirstName.slice(0, 1)}${thread.counterpartInitial}`}
+        />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <p style={{ fontWeight: 600 }}>{name}</p>
+          {thread.counterpartSuspended && (
+            <p className="text-body-sm dim">{m.messages.counterpartSuspended}</p>
+          )}
+        </div>
+        <div className="row" style={{ gap: 'var(--space-1)' }}>
           {profileHref && (
-            <Link href={profileHref} className="btn btn-ghost">{m.messages.viewProfile}</Link>
+            <Link href={profileHref} className="btn btn-ghost text-body-sm">
+              {m.messages.viewProfile}
+            </Link>
           )}
           {thread.bookingId && (
             <Link href={`/${segmentFor(locale)}/account/bookings/${thread.bookingId}/`}
-                  className="btn btn-ghost">
+                  className="btn btn-ghost text-body-sm">
               {m.messages.openBooking}
             </Link>
           )}
-        </>
-      }
-    >
-      <div className="thread">
+        </div>
+      </header>
+
+      <div className="thread-scroll">
         {thread.messages.some((msg) => msg.redacted) && (
           <div className="notice notice-warning">
             <p>{m.messages.redactedNotice}</p>
@@ -109,19 +121,8 @@ export default async function ThreadPage({
                     <time dateTime={msg.createdAt} className="tabular">
                       {stampFor(msg.createdAt, locale)}
                     </time>
-                    {/* Maskeleme SESSIZ olmamali: iki taraf da bir seyin
-                        gizlendigini gormeli, yoksa karsi taraf cevapsiz
-                        kaldigini saniyor. Balonda KISA isaret var; uzun
-                        aciklama yazisma basinda BIR KEZ veriliyor —
-                        her mesajin altinda tekrarlanan paragraf, uyari
-                        olmaktan cikip gurultu oluyordu. */}
                     {msg.redacted && <span className="dim"> · {m.messages.redactedShort}</span>}
                   </p>
-                  {/*
-                    Bildirme YALNIZCA karsi tarafin mesajinda. Kendi
-                    mesajini bildirmek anlamsiz; sunucu da reddediyor.
-                    Panelde ham metni acmanin tek anahtari bu dugme.
-                  */}
                   {!msg.mine && (
                     <ReportMessageButton
                       locale={locale} messageId={msg.id} action={reportMessageAction}
@@ -132,14 +133,17 @@ export default async function ThreadPage({
             ))}
           </ol>
         )}
-
-        <div className="thread-composer">
-          {thread.counterpartSuspended && (
-            <p className="alert alert-error" role="status">{m.messages.counterpartSuspended}</p>
-          )}
-          <MessageComposer locale={locale} conversationId={thread.id} action={sendMessageAction} />
-        </div>
       </div>
-    </AccountShell>
+
+      <div className="thread-composer">
+        {thread.counterpartSuspended && (
+          <p className="alert alert-error" role="status">{m.messages.counterpartSuspended}</p>
+        )}
+        <MessageComposer locale={locale} conversationId={thread.id} action={sendMessageAction} />
+      </div>
+
+      {/* Karsi taraf yazinca sayfayi kendiliginden tazeler */}
+      <MessagePoller conversationId={thread.id} lastAt={last?.createdAt ?? null} />
+    </section>
   );
 }

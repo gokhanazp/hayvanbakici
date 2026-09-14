@@ -38,6 +38,9 @@ export function PhotoStep({
           <Avatar src={avatarUrl} initials={(firstName.slice(0, 1) || '?').toUpperCase()} size={88} />
           <div style={{ flex: 1, minWidth: '14rem' }}>
             <PhotoUpload locale={locale} action={uploadAvatarAction} label={m.profile.avatarLabel} />
+            <p className="field-hint" style={{ marginTop: 'var(--space-2)' }}>
+              {m.profile.avatarNote}
+            </p>
             {avatarUrl && (
               <div style={{ marginTop: 'var(--space-3)' }}>
                 <PhotoDelete locale={locale} action={removeAvatarAction} label={m.profile.remove} />
@@ -74,7 +77,7 @@ export function PhotoStep({
           <div style={{ marginTop: 'var(--space-5)' }}>
             <PhotoUpload
               locale={locale} action={uploadHomePhotoAction}
-              label={m.profile.homeHeading} withAlt
+              label={m.profile.addHomePhoto} withAlt
             />
           </div>
         )}

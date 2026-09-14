@@ -28,7 +28,8 @@ import {
   openConversation as dbOpenConversation, sendMessage as dbSendMessage,
   listConversations as dbListConversations, getThread as dbGetThread,
   markRead as dbMarkRead, unreadCount as dbUnreadCount, getRawMessage as dbGetRawMessage,
-  reportableMessage as dbReportableMessage, getAccountSummary as dbGetAccountSummary,
+  reportableMessage as dbReportableMessage, conversationPing as dbConversationPing,
+  getAccountSummary as dbGetAccountSummary,
   getSitterStatus as dbGetSitterStatus, setAvatar as dbSetAvatar,
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
@@ -219,5 +220,7 @@ export const deleteSitterPhoto = (photoId: string, sitterId: string) =>
   dbDeleteSitterPhoto(db(), photoId, sitterId);
 export const updateProfile = (input: Parameters<typeof dbUpdateProfile>[1]) =>
   dbUpdateProfile(db(), input);
+export const conversationPing = (viewerId: string, conversationId?: string) =>
+  dbConversationPing(db(), viewerId, conversationId);
 export const reportableMessage = (messageId: string, viewerId: string) =>
   dbReportableMessage(db(), messageId, viewerId);
