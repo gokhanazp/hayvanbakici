@@ -6,6 +6,7 @@ import {
   DEFAULT_COMMISSION, ONBOARDING_STEPS, calculateCommission, compareToRover, dollars,
 } from '@havre/core';
 import { Photo } from '@/components/Photo';
+import { Faq } from '@/components/Faq';
 import { ShieldIcon } from '@/components/VerificationBadge';
 import { money } from '@/lib/format';
 
@@ -190,13 +191,8 @@ export default async function BecomeSitterPage({
       {/* ---- SSS ---- */}
       <section className="container section">
         <h2 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>{s.faqHeading}</h2>
-        <div className="stack" style={{ maxWidth: '48rem' }}>
-          {faqs.map((f) => (
-            <details key={f.q} className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
-              <summary style={{ fontWeight: 600, cursor: 'pointer', minHeight: '24px' }}>{f.q}</summary>
-              <p className="muted" style={{ marginTop: 'var(--space-3)' }}>{f.a}</p>
-            </details>
-          ))}
+        <div style={{ maxWidth: '48rem' }}>
+          <Faq items={faqs} locale={locale} />
         </div>
 
         <div className="card card-pad" style={{

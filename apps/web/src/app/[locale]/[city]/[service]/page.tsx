@@ -11,6 +11,8 @@ import {
 import { SitterCard } from '@/components/SitterCard';
 import { TrustStrip } from '@/components/TrustStrip';
 import { Photo } from '@/components/Photo';
+import { Faq } from '@/components/Faq';
+import { ServiceTiles } from '@/components/ServiceTiles';
 import { PHOTOS, type PhotoId } from '@/lib/photos';
 import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
@@ -245,64 +247,107 @@ export default async function LandingPage(
           </section>
         )}
 
-        {/* SSS — hem kullanici hem FAQPage semasi hem AI alinti kaynagi */}
-        <section style={{ marginTop: 'calc(var(--section-y) * 1.1)', maxWidth: '48rem' }}>
-          <h2 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>
-            {r.locale === 'fr-CA' ? 'Questions fréquentes' : 'Frequently asked questions'}
-          </h2>
-          <div className="stack">
-            {faqs.map((f) => (
-              <details key={f.q} className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
-                <summary style={{ fontWeight: 600, cursor: 'pointer', minHeight: '24px' }}>{f.q}</summary>
-                <p className="muted" style={{ marginTop: 'var(--space-3)' }}>{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+      </div>
 
-        <section style={{ marginTop: 'calc(var(--section-y) * 1.1)' }}>
-          <h2 className="text-h3" style={{ marginBottom: 'var(--space-4)' }}>
-            {r.locale === 'fr-CA' ? 'Autres services à ' + name : 'Other services in ' + name}
-          </h2>
-          <div className="row">
-            {otherServices.map((s) => (
-              <Link
-                key={s}
-                href={`/${seg}/${citySlug(r.city, r.locale)}/${serviceSlug(s, r.locale)}`}
-                className="chip"
-              >
-                {m.service[s]}
-              </Link>
-            ))}
-          </div>
-        </section>
+      {/*
+        ---- SSS ----
+        Kendi bandinda. Onceden sayfanin sonunda, krem zeminde havada duran
+        hap seklinde kutulardi; bolum bittigi belli olmuyordu. Iki sutun:
+        solda baslik ve "hala sorunuz mu var", sagda liste.
+      */}
+      <section className="band band-surface band-round-t band-round-b">
+        <div className="container section">
+          <div className="content-grid faq-grid">
+            <div className="faq-aside">
+              <h2 className="text-h1">
+                {r.locale === 'fr-CA' ? 'Questions fréquentes' : 'Frequently asked questions'}
+              </h2>
+              <p className="muted" style={{ marginTop: 'var(--space-4)' }}>
+                {r.locale === 'fr-CA'
+                  ? `Les réponses viennent des données de ${name} : prix réels, délais de réponse réels.`
+                  : `The answers come from live ${name} data — real prices, real response times.`}
+              </p>
+              <div className="card card-pad" style={{ marginTop: 'var(--space-6)' }}>
+                <h3 className="text-h4">
+                  {r.locale === 'fr-CA' ? 'Autre chose?' : 'Something else?'}
+                </h3>
+                <p className="text-body-sm muted" style={{ marginTop: 'var(--space-2)' }}>
+                  {r.locale === 'fr-CA'
+                    ? 'Écrivez à un gardien avant de réserver — c’est gratuit et sans engagement.'
+                    : 'Message a sitter before booking — it is free and commits you to nothing.'}
+                </p>
+                <Link href={`/${seg}/help/`} className="btn btn-secondary btn-block"
+                      style={{ marginTop: 'var(--space-4)' }}>
+                  {m.footer.help}
+                </Link>
+              </div>
+            </div>
 
-        <section style={{ marginTop: 'var(--space-12)' }}>
-          <h2 className="text-h3" style={{ marginBottom: 'var(--space-4)' }}>
+            <Faq items={faqs} locale={r.locale} />
+          </div>
+        </div>
+      </section>
+
+      {/* ---- Kesfet: diger hizmetler ve yakin sehirler ---- */}
+      <div className="container section">
+        <div className="section-head">
+          <h2 className="text-h2">
+            {r.locale === 'fr-CA' ? `Autres services à ${name}` : `Other services in ${name}`}
+          </h2>
+        </div>
+        {/* Cip yerine kart: ayni bilesen ana sayfada da kullaniliyor */}
+        <ServiceTiles
+          locale={r.locale}
+          services={otherServices}
+          citySlug={citySlug(r.city, r.locale)}
+        />
+
+        <div className="section-head" style={{ marginTop: 'calc(var(--section-y) * 0.8)' }}>
+          <h2 className="text-h2">
             {r.locale === 'fr-CA' ? 'Villes à proximité' : 'Nearby cities'}
           </h2>
-          <div className="row">
-            {nearby.map((c) => (
-              <Link
-                key={c.id}
-                href={`/${seg}/${citySlug(c, r.locale)}/${serviceSlug(r.service, r.locale)}`}
-                className="btn btn-ghost"
-              >
-                {svc} — {cityName(c, r.locale)}
-              </Link>
-            ))}
-          </div>
-        </section>
+        </div>
+        <div className="grid grid-3">
+          {nearby.map((c) => (
+            <Link
+              key={c.id}
+              href={`/${seg}/${citySlug(c, r.locale)}/${serviceSlug(r.service, r.locale)}/`}
+              className="card card-hover city-card"
+            >
+              <span>
+                <span style={{ display: 'block', fontWeight: 600 }}>{cityName(c, r.locale)}</span>
+                <span className="text-body-sm dim">{svc}</span>
+              </span>
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6 3.5 10.5 8 6 12.5" />
+              </svg>
+            </Link>
+          ))}
+        </div>
 
-        <p className="dim text-body-sm" style={{ marginTop: 'var(--space-10)' }}>
-          {r.locale === 'fr-CA' ? 'Données à jour au ' : 'Data as of '}
-          <time dateTime={data.dataAsOf}>{dateFmt(data.dataAsOf, r.locale)}</time>
-          {' · '}
-          <a href={landingUrl(r.city, r.service, r.locale === 'en-CA' ? 'fr-CA' : 'en-CA')}
-             hrefLang={r.locale === 'en-CA' ? 'fr-CA' : 'en-CA'}>
+        {/* Veri tarihi ve dil — cizgiyle ayrilmis dipnot */}
+        <div className="page-footnote">
+          {/*
+            `tabular` YALNIZCA tarihin uzerinde: paragrafin tamamina
+            verildiginde degisken font noktalama isaretlerini de sabit
+            genislikte cizyor ve cumle sonundaki nokta bosluklu gorunuyor
+            ("bookings ."). Tabular rakamlar icindir, cumle icin degil.
+          */}
+          <p className="dim text-body-sm">
+            {r.locale === 'fr-CA' ? 'Données à jour au ' : 'Data as of '}
+            <time className="tabular" dateTime={data.dataAsOf}>{dateFmt(data.dataAsOf, r.locale)}</time>
+            {r.locale === 'fr-CA'
+              ? ' — calculées à partir des réservations terminées.'
+              : ' — calculated from completed bookings.'}
+          </p>
+          <a className="text-body-sm"
+             href={landingUrl(r.city, r.service, r.locale === 'en-CA' ? 'fr-CA' : 'en-CA')}
+             hrefLang={r.locale === 'en-CA' ? 'fr-CA' : 'en-CA'}
+             style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}>
             {r.locale === 'en-CA' ? 'Voir en français' : 'View in English'}
           </a>
-        </p>
+        </div>
       </div>
     </>
   );

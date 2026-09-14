@@ -1,33 +1,38 @@
 {
   "hero-primary": {
-    "photoId": "HsHxT-L3Py8",
-    "author": "Dmitry Ganin",
-    "authorUrl": "https://unsplash.com/@ganinph",
-    "page": "https://unsplash.com/photos/a-person-holding-a-cat-HsHxT-L3Py8"
+    "photoId": "RPPgHwrqGDE",
+    "author": "Helena Lopes",
+    "authorUrl": "https://unsplash.com/@helenalopesph",
+    "page": "https://unsplash.com/photos/a-smiling-woman-holds-a-fluffy-dog-indoors-RPPgHwrqGDE",
+    "query": "woman hugging golden retriever at home"
   },
   "hero-side-a": {
-    "photoId": "1g3RpTllVjY",
-    "author": "Alla Bila",
-    "authorUrl": "https://unsplash.com/@alluntsyatko",
-    "page": "https://unsplash.com/photos/1g3RpTllVjY"
+    "photoId": "eAzLO5tr2_c",
+    "author": "Inside Weather",
+    "authorUrl": "https://unsplash.com/@insideweather",
+    "page": "https://unsplash.com/photos/woman-sitting-on-sofa-eAzLO5tr2_c",
+    "query": "woman cuddling cat on sofa at home"
   },
   "sitter-banner": {
-    "photoId": "XETwF4_kGlQ",
-    "author": "atelierbyvineeth ...",
-    "authorUrl": "https://unsplash.com/@atelierbyvineeth",
-    "page": "https://unsplash.com/photos/two-people-with-a-fluffy-dog-on-a-leash-XETwF4_kGlQ"
+    "photoId": "t4k7Yx_j0cE",
+    "author": "Jim Luo",
+    "authorUrl": "https://unsplash.com/@jimluo",
+    "page": "https://unsplash.com/photos/couple-walking-a-dog-near-a-yellow-fire-hydrant-t4k7Yx_j0cE",
+    "query": "smiling person walking dog city sidewalk autumn"
   },
   "auth-panel": {
-    "photoId": "bdFdbOae2b0",
-    "author": "Shin Li",
-    "authorUrl": "https://unsplash.com/@shinbug",
-    "page": "https://unsplash.com/photos/cozy-living-room-with-sofa-coffee-table-and-patterned-rugs-bdFdbOae2b0"
+    "photoId": "zd3x_7ftTZA",
+    "author": "Vitaly Gariev",
+    "authorUrl": "https://unsplash.com/@silverkblack",
+    "page": "https://unsplash.com/photos/a-woman-sitting-on-a-couch-holding-a-dog-zd3x_7ftTZA",
+    "query": "person reading on couch with dog resting beside them"
   },
   "city-toronto": {
-    "photoId": "bEOOsJFkW3U",
-    "author": "Ken  Whytock",
-    "authorUrl": "https://unsplash.com/@kenwhytock",
-    "page": "https://unsplash.com/photos/man-in-black-jacket-and-brown-pants-holding-black-dog-leash-bEOOsJFkW3U"
+    "photoId": "mBxMcy-Xq9s",
+    "author": "Ramneek Singh",
+    "authorUrl": "https://unsplash.com/@singhramneek54",
+    "page": "https://unsplash.com/photos/a-group-of-people-standing-on-the-side-of-a-road-mBxMcy-Xq9s",
+    "query": "dog walker toronto street with dog"
   },
   "city-montreal": {
     "photoId": "PT3QQdjhMzw",
@@ -36,46 +41,53 @@
     "page": "https://unsplash.com/photos/vehicles-park-on-front-of-building-PT3QQdjhMzw"
   },
   "home-a": {
-    "photoId": "NwBx723XaHw",
-    "author": "Prudence Earl",
-    "authorUrl": "https://unsplash.com/@prudenceearl",
-    "page": "https://unsplash.com/photos/green-leafed-plant-NwBx723XaHw"
+    "photoId": "sus9E0bGhwU",
+    "author": "Laura Roberts",
+    "authorUrl": "https://unsplash.com/@lroberts067",
+    "page": "https://unsplash.com/photos/a-dog-sitting-on-a-chair-sus9E0bGhwU",
+    "query": "dog lying on rug in bright living room"
   },
   "home-b": {
-    "photoId": "xink7jYt7hQ",
-    "author": "Giorgio Trovato",
-    "authorUrl": "https://unsplash.com/@giorgiotrovato",
-    "page": "https://unsplash.com/photos/a-grassy-yard-with-a-fence-and-a-house-in-the-background-xink7jYt7hQ"
+    "photoId": "9XPbRF5UV_M",
+    "author": "QY Liu",
+    "authorUrl": "https://unsplash.com/@qy_liu",
+    "page": "https://unsplash.com/photos/a-backyard-with-a-wooden-fence-and-trees-9XPbRF5UV_M",
+    "query": "dog playing in fenced backyard garden"
   },
   "home-c": {
-    "photoId": "5zoIpDzLbE4",
-    "author": "Sarah Brown",
-    "authorUrl": "https://unsplash.com/@sweetpagesco",
-    "page": "https://unsplash.com/photos/orange-throw-pillow-5zoIpDzLbE4"
+    "photoId": "F7m-YKqqBFQ",
+    "author": "Conner Baker",
+    "authorUrl": "https://unsplash.com/@connerbaker",
+    "page": "https://unsplash.com/photos/short-coated-brown-dog-F7m-YKqqBFQ",
+    "query": "dog sleeping in its bed at home"
   },
   "care-a": {
-    "photoId": "1WSVTcHPXLA",
+    "photoId": "5tJ_hBqgGiU",
     "author": "Real Natures Food",
     "authorUrl": "https://unsplash.com/@realnaturesfood",
-    "page": "https://unsplash.com/photos/a-woman-standing-in-a-kitchen-preparing-food-1WSVTcHPXLA"
+    "page": "https://unsplash.com/photos/a-woman-and-two-dogs-5tJ_hBqgGiU",
+    "query": "woman feeding dog in kitchen smiling"
   },
   "care-b": {
     "photoId": "ybZ5hRxaWS4",
     "author": "Karlo Tottoc",
     "authorUrl": "https://unsplash.com/@josekarlo01",
-    "page": "https://unsplash.com/photos/a-man-wearing-a-face-mask-sitting-next-to-a-dog-ybZ5hRxaWS4"
+    "page": "https://unsplash.com/photos/a-man-wearing-a-face-mask-sitting-next-to-a-dog-ybZ5hRxaWS4",
+    "query": "veterinarian with dog in clinic caring"
   },
   "person-01": {
-    "photoId": "FlS-aGc-jQA",
-    "author": "Vladislav Anchuk",
-    "authorUrl": "https://unsplash.com/@benjirokaneki",
-    "page": "https://unsplash.com/photos/a-woman-with-blond-hair-and-blue-eyes-looks-into-the-distance-FlS-aGc-jQA"
+    "photoId": "UbsrzT3hFAo",
+    "author": "Lei Hwang",
+    "authorUrl": "https://unsplash.com/@blackbird_ii",
+    "page": "https://unsplash.com/photos/smiling-woman-holding-a-small-lamb-by-a-beautiful-lake-UbsrzT3hFAo",
+    "query": "woman hugging her dog outdoors"
   },
   "person-02": {
-    "photoId": "gcQw2EGu5sQ",
-    "author": "Hamed Hoseini Pur",
-    "authorUrl": "https://unsplash.com/@hamed17985",
-    "page": "https://unsplash.com/photos/black-and-white-portrait-of-a-young-man-looking-away-gcQw2EGu5sQ"
+    "photoId": "GLa8Cwud7bg",
+    "author": "Eduard Delputte",
+    "authorUrl": "https://unsplash.com/@edelputte",
+    "page": "https://unsplash.com/photos/man-in-white-t-shirt-hugging-brown-cat-GLa8Cwud7bg",
+    "query": "man holding cat in his arms"
   },
   "person-04": {
     "photoId": "fU2A_dReiyU",
@@ -84,51 +96,66 @@
     "page": "https://unsplash.com/photos/a-man-with-a-beard-and-glasses-making-a-hand-gesture-fU2A_dReiyU"
   },
   "person-05": {
-    "photoId": "bI2OqUuBVrc",
-    "author": "Daniil Lobachev",
-    "authorUrl": "https://unsplash.com/@danilal",
-    "page": "https://unsplash.com/photos/woman-in-black-crew-neck-shirt-wearing-eyeglasses-bI2OqUuBVrc"
+    "photoId": "B82YEivSHjY",
+    "author": "Ryland Dean",
+    "authorUrl": "https://unsplash.com/@ryland_dean",
+    "page": "https://unsplash.com/photos/a-kitten-sits-comfortably-in-someones-lap-B82YEivSHjY",
+    "query": "woman with glasses holding a kitten"
   },
   "person-06": {
-    "photoId": "ARBQCe2GrjQ",
-    "author": "Nicolas Horn",
-    "authorUrl": "https://unsplash.com/@sysengineer",
-    "page": "https://unsplash.com/photos/man-in-red-crew-neck-shirt-ARBQCe2GrjQ"
+    "photoId": "i3RdeX2wie8",
+    "author": "Foto Bakirkoy",
+    "authorUrl": "https://unsplash.com/@fotobakirkoy",
+    "page": "https://unsplash.com/photos/a-man-holding-a-cat-in-his-hands-i3RdeX2wie8",
+    "query": "man laughing with dog licking his face"
   },
   "person-07": {
-    "photoId": "FrZ8q9D2ObM",
-    "author": "Alexander Krivitskiy",
-    "authorUrl": "https://unsplash.com/@krivitskiy",
-    "page": "https://unsplash.com/photos/woman-with-brown-hair-smiling-FrZ8q9D2ObM"
+    "photoId": "x5k0_FOuOo4",
+    "author": "Niels Kehl",
+    "authorUrl": "https://unsplash.com/@photographybyniels",
+    "page": "https://unsplash.com/photos/a-woman-with-curly-hair-and-glasses-standing-in-front-of-a-brick-building-x5k0_FOuOo4",
+    "query": "woman with curly hair holding small dog"
   },
   "person-08": {
-    "photoId": "NlHGKAZ3jCI",
-    "author": "Glen Hodson",
-    "authorUrl": "https://unsplash.com/@glenhodson",
-    "page": "https://unsplash.com/photos/grayscale-picture-of-persons-portrait-NlHGKAZ3jCI"
+    "photoId": "IiUlwPSmYiA",
+    "author": "Quan Jing",
+    "authorUrl": "https://unsplash.com/@greedwolf97",
+    "page": "https://unsplash.com/photos/a-woman-points-at-a-cat-resting-on-a-shelf-IiUlwPSmYiA",
+    "query": "older woman cuddling a cat at home"
   },
   "person-09": {
-    "photoId": "9kDXgXFRmO8",
-    "author": "Jonathan Cosens Photography",
-    "authorUrl": "https://unsplash.com/@jcosens",
-    "page": "https://unsplash.com/photos/man-in-blue-sweater-with-white-hair-9kDXgXFRmO8"
+    "photoId": "D2GSkqNF_-k",
+    "author": "Samuel Sylf",
+    "authorUrl": "https://unsplash.com/@6sylf",
+    "page": "https://unsplash.com/photos/shiba-inu-dog-walking-in-park-D2GSkqNF_-k",
+    "query": "older man walking his dog in the park"
   },
   "person-10": {
-    "photoId": "1nizzZ-SFw4",
-    "author": "🇸🇮 Janko Ferlič",
-    "authorUrl": "https://unsplash.com/@itfeelslikefilm",
-    "page": "https://unsplash.com/photos/woman-in-front-of-camera-1nizzZ-SFw4"
+    "photoId": "3bHVIAXqP0c",
+    "author": "Martin Vysoudil",
+    "authorUrl": "https://unsplash.com/@vysix",
+    "page": "https://unsplash.com/photos/a-woman-holding-a-small-dog-in-her-arms-3bHVIAXqP0c",
+    "query": "woman with short hair hugging a big dog"
   },
   "person-11": {
-    "photoId": "84E44EdD18o",
-    "author": "Christian Buehner",
-    "authorUrl": "https://unsplash.com/@christianbuehner",
-    "page": "https://unsplash.com/photos/man-in-gray-denim-jacket-wearing-black-framed-eyeglasses-84E44EdD18o"
+    "photoId": "vmBik4xv27s",
+    "author": "Seth Doyle",
+    "authorUrl": "https://unsplash.com/@sxth",
+    "page": "https://unsplash.com/photos/man-standing-against-car-vmBik4xv27s",
+    "query": "man with glasses holding a rabbit"
   },
   "person-12": {
-    "photoId": "zia58H5m-uw",
-    "author": "Sehajpal Singh",
-    "authorUrl": "https://unsplash.com/@fujix_pal",
-    "page": "https://unsplash.com/photos/a-woman-standing-in-a-field-of-flowers-zia58H5m-uw"
+    "photoId": "L3pGd0h0-cM",
+    "author": "Declan Sun",
+    "authorUrl": "https://unsplash.com/@declansun",
+    "page": "https://unsplash.com/photos/a-man-kneeling-down-in-a-garden-area-L3pGd0h0-cM",
+    "query": "woman kneeling beside dog in a garden"
+  },
+  "hero-side-b": {
+    "photoId": "rVpkHQfOCEo",
+    "author": "Viktor Nikolaienko",
+    "authorUrl": "https://unsplash.com/@greenxiii",
+    "page": "https://unsplash.com/photos/black-and-white-short-coat-small-dog-rVpkHQfOCEo",
+    "query": "man playing with small dog on floor at home"
   }
 }

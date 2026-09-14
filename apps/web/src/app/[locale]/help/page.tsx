@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { DEFAULT_COMMISSION } from '@havre/core';
 import { ContentPage } from '@/components/ContentPage';
+import { Faq } from '@/components/Faq';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ locale: string }> },
@@ -69,17 +70,6 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
        'Uniquement avec un motif écrit et un préavis de deux semaines, sauf lorsque la sécurité d’une personne exige d’agir immédiatement.')],
   ];
 
-  const Faq = ({ items }: { items: string[][] }) => (
-    <div className="stack">
-      {items.map(([q, a]) => (
-        <details key={q} className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
-          <summary style={{ fontWeight: 600, cursor: 'pointer', minHeight: '24px' }}>{q}</summary>
-          <p className="muted" style={{ marginTop: 'var(--space-3)' }}>{a}</p>
-        </details>
-      ))}
-    </div>
-  );
-
   return (
     <ContentPage
       locale={locale}
@@ -99,10 +89,10 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
       }
     >
       <h2>{t('For pet owners', 'Pour les propriétaires')}</h2>
-      <Faq items={owners} />
+      <Faq locale={locale} group="owners" items={owners.map(([q, a]) => ({ q: q!, a: a! }))} />
 
       <h2>{t('For sitters', 'Pour les gardiens')}</h2>
-      <Faq items={sitters} />
+      <Faq locale={locale} group="sitters" items={sitters.map(([q, a]) => ({ q: q!, a: a! }))} />
 
       <h2>{t('Privacy and your data', 'Vie privée et vos données')}</h2>
       <p>

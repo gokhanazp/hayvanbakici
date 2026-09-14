@@ -3,6 +3,7 @@ import { servicesForPhase, type ServiceType } from '@havre/core';
 import { getMessages, LOCALES, segmentFor, serviceSlug, type Locale } from '@havre/i18n';
 import { Wordmark } from '@/components/Wordmark';
 import { HeaderAccount } from '@/components/auth/HeaderAccount';
+import { NavDismiss } from '@/components/NavDismiss';
 
 /**
  * SITE BASLIGI.
@@ -12,6 +13,10 @@ import { HeaderAccount } from '@/components/auth/HeaderAccount';
  * tek satir JS gitmiyor, klavye ve ekran okuyucu davranisi tarayicidan
  * geliyor, ve JS yuklenmeden once de calisiyor. Tek istemci parcasi
  * HeaderAccount (oturum durumu), o da bilincli olarak ayri.
+ *
+ * TEK ISTISNA — NavDismiss: <details> disariya tiklandiginda kapanmaz ve
+ * menu acik kalirdi. O bilesen yalnizca kapatmayi ekliyor; acma/kapama
+ * hala tarayicinin isi ve JS yuklenmeden once de calisiyor.
  *
  * DIL SECIMI: IP tabanli otomatik yonlendirme YOK (yol haritasi §7.2).
  * Googlebot cogunlukla ABD IP'sinden gelir; otomatik yonlendirme fr-CA
@@ -29,6 +34,7 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
 
   return (
     <header className="site-header">
+      <NavDismiss />
       <div className="container site-header-inner">
         <Link href={`/${seg}`} aria-label={m.brand.name}>
           <Wordmark />
