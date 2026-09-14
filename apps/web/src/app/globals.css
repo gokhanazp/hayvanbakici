@@ -494,31 +494,94 @@ a { color: inherit; text-decoration: none; }
 .checkbox-row { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; }
 .checkbox-row input { width: 20px; height: 20px; margin-top: 2px; }
 
-/* ---------- Onboarding sihirbazi ---------- */
-.wizard-shell { max-width: 40rem; margin-inline: auto; padding-block: var(--space-10) var(--space-16); }
+/* ---------- Onboarding sihirbazi ----------
+   Once tek sutunda, zeminin uzerinde duran ciplak bir formdu: nerede
+   oldugunu, ne kadar kaldigini ve neden soruldugunu soyleyen hicbir sey
+   yoktu. Simdi renkli baslik bandi + form karti + "neden soruyoruz"
+   sutunu. */
+.wizard-head { padding-block: var(--space-8) var(--space-10); }
+.wizard-head h1 { margin: var(--space-3) 0 0; }
 
-.wizard-steps {
-  display: flex; flex-wrap: wrap; gap: var(--space-2);
-  list-style: none; margin: 0; padding: 0;
-  font-size: 0.8125rem;
+.wizard-body {
+  display: grid; gap: var(--space-8);
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: calc(var(--section-y) * 0.7) var(--section-y);
+  align-items: start;
 }
-.wizard-step {
-  display: inline-flex; align-items: center;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
+@media (min-width: 960px) {
+  .wizard-body { grid-template-columns: minmax(0, 1fr) 19rem; gap: var(--space-10); }
+  .wizard-aside { position: sticky; top: calc(72px + var(--space-6)); }
+}
+.wizard-card {
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
+@media (min-width: 600px) { .wizard-card { padding: var(--space-8); } }
+.wizard-aside { display: grid; gap: var(--space-4); }
+
+/* --- Ilerleme cizgisi --- */
+.wizard-progress { display: grid; gap: var(--space-3); margin-top: var(--space-6); }
+.wizard-track {
+  display: flex; align-items: flex-start;
+  list-style: none; margin: 0; padding: 0;
+}
+.wizard-node { position: relative; flex: 1 1 0; min-width: 0; text-align: center; }
+/* Duraklari birlestiren cizgi — noktanin arkasindan gecer */
+.wizard-node::before {
+  content: ''; position: absolute; top: 15px; right: 50%; width: 100%; height: 2px;
+  background: var(--color-border-strong);
+}
+.wizard-node:first-child::before { display: none; }
+.wizard-node.is-done::before,
+.wizard-node.is-current::before { background: var(--color-primary); }
+.wizard-node > a,
+.wizard-node > span {
+  position: relative; z-index: 1;
+  display: grid; justify-items: center; gap: var(--space-2);
+  padding-inline: var(--space-1);
+}
+.wizard-dot {
+  display: grid; place-items: center;
+  width: 32px; height: 32px; border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
   color: var(--color-ink-muted);
+  font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums;
 }
-.wizard-step-current {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  color: var(--color-primary-active);
-  font-weight: 600;
+.wizard-node.is-done .wizard-dot {
+  background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-on);
 }
+.wizard-node.is-current .wizard-dot {
+  border-color: var(--color-primary); color: var(--color-primary-active);
+  box-shadow: 0 0 0 4px var(--color-primary-subtle);
+}
+.wizard-name { font-size: 0.75rem; line-height: 1rem; color: var(--color-ink-secondary); }
+.wizard-node.is-current .wizard-name { color: var(--color-ink); font-weight: 600; }
+.wizard-node > a:hover .wizard-name { color: var(--color-ink); }
+/* Telefonda alti ad sigmaz; numaralar ve "Adim 2 / 6" satiri yeterli */
+@media (max-width: 639px) { .wizard-name { display: none; } }
 
 .wizard-actions {
   display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;
-  margin-top: var(--space-6);
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Yan yana duran kisa alanlar (ad + bas harf gibi) */
+.field-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.field-row > * { flex: 1 1 12rem; }
+.field-row > .field-narrow { flex: 0 1 7rem; }
+
+/* Cok satirli metin alani — daha once satir ici stil olarak yaziliydi */
+.textarea {
+  width: 100%; resize: vertical;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
 }
 
 /* Hizmet secim karti — kutu isaretlenince icerigi acilir */
@@ -734,7 +797,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Dogum tarihi: gun / ay / yil */
-.dob-field { display: grid; grid-template-columns: 5.5rem 1fr 6.5rem; gap: var(--space-2); }
+/* Ay sutunu `1fr` idi ve form kartinin tum genisligine yayiliyordu:
+   uc kutunun genislikleri icerikleriyle orantili olmali. */
+.dob-field { display: grid; grid-template-columns: 5.5rem 10rem 6.5rem; gap: var(--space-2); justify-content: start; }
 @media (max-width: 420px) { .dob-field { grid-template-columns: 1fr; } }
 
 /* ---------- Galeri (Havre Anlari) ---------- */
@@ -1142,8 +1207,11 @@ a { color: inherit; text-decoration: none; }
 .prose th, .prose td { text-align: start; padding: var(--space-3) var(--space-2); border-bottom: 1px solid var(--color-border); }
 .prose th { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-ink-muted); font-weight: 600; }
 
-.notice { padding: var(--space-4) var(--space-5); border-radius: var(--radius-lg); border: 1px solid var(--color-border); }
-.notice-warning { background: var(--color-tile-apricot); border-color: transparent; }
+/* .notice temel tanimi yukarida (bir kez). Burada yalnizca varyant. */
+.notice-warning {
+  border-left-color: var(--color-warning);
+  background: var(--color-tile-apricot);
+}
 .notice-warning p { color: var(--color-tile-apricot-ink); font-size: 0.875rem; line-height: 1.35rem; }
 
 /* ---------- SSS listesi ----------

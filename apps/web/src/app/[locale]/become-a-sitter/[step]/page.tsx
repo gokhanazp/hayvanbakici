@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
   completedSteps, isOnboardingStep, ONBOARDING_STEPS, type OnboardingStep,
@@ -47,13 +48,31 @@ export default async function OnboardingStepPage({
     screeningStarted: Boolean(state.screening),
   });
 
-  const heading = m.onboarding[`step.${step}` as keyof Messages['onboarding']] as string;
+  const key = (k: string) => m.onboarding[k as keyof Messages['onboarding']] as string;
+  const heading = key(`step.${step}`);
 
   return (
-    <div className="container wizard-shell">
-      <Progress locale={locale} current={step as OnboardingStep} completed={done} />
+    <>
+      {/*
+        Baslik bandi: hangi adimdayiz, ne kadar kaldi, bu adim ne icin.
+        Sihirbaz once bunlarin hicbirini soylemiyordu — kullanici formu
+        doldururken kac adim kaldigini bilmiyordu.
+      */}
+      <section className="band band-blush band-round-b">
+        <div className="container wizard-head">
+          <Link href={`/${seg}/become-a-sitter/`} className="text-body-sm muted">
+            ← {m.onboarding.backToStart}
+          </Link>
+          <h1 className="text-h1">{heading}</h1>
+          <p className="text-body-lg muted" style={{ marginTop: 'var(--space-3)', maxWidth: '38rem' }}>
+            {key(`intro.${step}`)}
+          </p>
+          <Progress locale={locale} current={step as OnboardingStep} completed={done} />
+        </div>
+      </section>
 
-      <h1 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>{heading}</h1>
+      <div className="container wizard-body">
+        <div className="wizard-card">
 
       {step === 'about' && (
         <AboutForm
@@ -107,10 +126,25 @@ export default async function OnboardingStepPage({
         />
       )}
 
-      <p className="field-hint" style={{ marginTop: 'var(--space-8)' }}>
-        {m.onboarding.savedNote}
-      </p>
-    </div>
+        </div>
+
+        {/*
+          "Neden soruyoruz" sutunu. Sihirbazdaki en sik terk sebebi
+          dogum tarihi ve adres gibi alanlar; gerekce YANINDA yazili
+          olmazsa kullanici formu birakip cikiyor.
+        */}
+        <aside className="wizard-aside">
+          <div className="card card-pad">
+            <h2 className="text-h4">{m.onboarding['aside.heading']}</h2>
+            <p className="text-body-sm muted" style={{ marginTop: 'var(--space-2)' }}>
+              {key(`aside.${step}`)}
+            </p>
+          </div>
+          <p className="field-hint">{m.onboarding.timeNote}</p>
+          <p className="field-hint">{m.onboarding.savedNote}</p>
+        </aside>
+      </div>
+    </>
   );
 
   async function renderLocation() {

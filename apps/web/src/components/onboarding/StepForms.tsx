@@ -55,15 +55,17 @@ function Field({
 }
 
 function Actions({
-  locale, step, busy, label,
+  locale, step, busy, label, disabled = false,
 }: {
   locale: Locale; step: OnboardingStep; busy: boolean; label: string;
+  /** Ozet adiminda: eksik adim varken gonder dugmesi kapali */
+  disabled?: boolean | undefined;
 }) {
   const m = getMessages(locale);
   const prev = previousStep(step);
   return (
     <div className="wizard-actions">
-      <button type="submit" className="btn btn-primary" disabled={busy}>
+      <button type="submit" className="btn btn-primary" disabled={busy || disabled}>
         {busy ? m.auth.submitting : label}
       </button>
       {prev && (
@@ -92,21 +94,29 @@ export function AboutForm({
     <form action={formAction} className="auth-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
-      <Field id="firstName" label={m.auth.name} error={err(m, state.errors.firstName)}>
-        <input id="firstName" name="firstName" value={v.firstName} autoComplete="given-name" required
-          onChange={(e) => set('firstName', e.target.value)} />
-      </Field>
+      {/* Ad ve bas harf ayni satirda: ikisi tek bir bilgi (isim) ve alt
+          alta konunca form gereksiz uzuyordu. */}
+      <div className="field-row">
+        <Field id="firstName" label={m.auth.name} error={err(m, state.errors.firstName)}>
+          <input id="firstName" name="firstName" value={v.firstName} autoComplete="given-name" required
+            onChange={(e) => set('firstName', e.target.value)} />
+        </Field>
 
-      <Field
-        id="lastNameInitial"
-        label={m.onboarding['about.lastNameInitial']}
-        hint={m.auth.namePrivacy}
-        error={err(m, state.errors.lastNameInitial)}
-      >
-        <input id="lastNameInitial" name="lastNameInitial" value={v.lastNameInitial}
-          maxLength={1} style={{ maxWidth: '5rem' }} required
-          onChange={(e) => set('lastNameInitial', e.target.value)} />
-      </Field>
+        <div className="field-narrow">
+          <Field
+            id="lastNameInitial"
+            label={m.onboarding['about.lastNameInitial']}
+            error={err(m, state.errors.lastNameInitial)}
+          >
+            <input id="lastNameInitial" name="lastNameInitial" value={v.lastNameInitial}
+              maxLength={1} required
+              onChange={(e) => set('lastNameInitial', e.target.value)} />
+          </Field>
+        </div>
+      </div>
+      <p className="field-hint" style={{ marginTop: 'calc(var(--space-3) * -1)' }}>
+        {m.auth.namePrivacy}
+      </p>
 
       <Field
         id="bio"
@@ -114,13 +124,8 @@ export function AboutForm({
         hint={m.onboarding['about.bioHint']}
         error={err(m, state.errors.bio)}
       >
-        <textarea id="bio" name="bio" value={v.bio} rows={5} required
-          onChange={(e) => set('bio', e.target.value)}
-          style={{
-            padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface)',
-            border: '1px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)',
-            width: '100%', resize: 'vertical',
-          }} />
+        <textarea id="bio" name="bio" value={v.bio} rows={5} required className="textarea"
+          onChange={(e) => set('bio', e.target.value)} />
       </Field>
 
       <Field
@@ -130,6 +135,7 @@ export function AboutForm({
         error={err(m, state.errors.phone)}
       >
         <input id="phone" name="phone" type="tel" value={v.phone} autoComplete="tel" required
+          style={{ maxWidth: '16rem' }}
           onChange={(e) => set('phone', e.target.value)} />
       </Field>
 
@@ -558,7 +564,16 @@ export function ReviewForm({
         <p className="alert alert-error" role="alert">{err(m, state.errors.submit)}</p>
       )}
 
-      <Actions locale={locale} step="review" busy={busy} label={m.onboarding['review.submit']} />
+      {/*
+        Eksik adim varken gonder dugmesi KAPALI. Sunucu zaten reddediyor
+        ama acik bir dugme "gonderebilirim" diyor ve kullanici tikladiktan
+        sonra hatayla karsilasiyordu; eksik listesi zaten hemen ustunde.
+      */}
+      <Actions
+        locale={locale} step="review" busy={busy}
+        label={m.onboarding['review.submit']}
+        disabled={missing.length > 0}
+      />
     </form>
   );
 }
