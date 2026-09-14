@@ -142,7 +142,22 @@ a { color: inherit; text-decoration: none; }
   position: absolute; inset: 0; z-index: 1;
   pointer-events: none;
 }
-@media (max-width: 899px) { .hero-doodles { display: none; } }
+/*
+  Esik 900 -> 1000. 900px'te metin sutunu uzuyor ve alttaki kontur
+  basliga giriyordu (tarayicida olculdu). Orta bosluktaki uc kontur ise
+  1100px altinda fotograf kolajinin ARKASINA dusuyor — gorunmediklerine
+  gore cizilmesinler.
+*/
+@media (max-width: 999px) { .hero-doodles { display: none; } }
+/*
+  Orta ve alt gruplar 1200px'in altinda gizleniyor. Sinir Ingilizceye gore
+  degil FRANSIZCAYA gore secildi: ayni baslik Fransizcada uc satir oluyor,
+  metin sutunu hem uzuyor hem genisliyor; 1100-1150px'te konturlar
+  maddelerin ve paragrafin uzerine biniyordu (tarayicida iki dilde
+  olculdu). Iki dilden DAR olani sinirlari belirler.
+  Ustteki grup her genislikte duruyor: orasi iki dilde de bos.
+*/
+@media (max-width: 1199px) { .doodle-gap, .doodle-lower { display: none; } }
 
 /* Kesilmis hayvan gorseli / gecici cizim */
 .hero-art { width: 100%; height: auto; display: block; }
