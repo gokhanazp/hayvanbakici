@@ -22,7 +22,22 @@ import { isAdmin, recordAudit } from '@/lib/data';
 export async function requireAdmin() {
   const session = await getSession();
   if (!session) redirect('/en/account/sign-in/?next=/admin/');
-  if (!(await isAdmin(session.user.id))) notFound();
+
+  if (!(await isAdmin(session.user.id))) {
+    /*
+      Ekranda hicbir sey yazmiyoruz (yukaridaki gerekce), ama GELISTIRME
+      sirasinda sunucu gunlugune yaziyoruz: "404" goren gelistirici,
+      hesabinin yonetici olmadigini baska turlu anlayamiyor ve panelin
+      bozuk oldugunu saniyor (bizzat yasandi). Uretimde bu satir yok.
+    */
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        `[admin] ${session.user.email} yonetici degil — 404 donduruldu.\n` +
+        `        Yetki vermek icin: npm run admin:grant -- ${session.user.email}`,
+      );
+    }
+    notFound();
+  }
   return session;
 }
 

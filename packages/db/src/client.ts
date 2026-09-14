@@ -79,6 +79,15 @@ function explain(err: unknown): Error {
         return 'Kullanici adi/parola reddedildi. .env icindeki DATABASE_URL yanlis.';
       case '42P01':
         return 'Tablolar yok — migration calistirilmamis (ya da PostGIS eksik oldugu icin yarida kalmis). → npm run db:migrate';
+      /*
+        SUTUN YOK: sema kodun gerisinde kalmis. Bu, "tablo yok"tan farkli
+        ve daha sinsi bir durum — uygulama acilir, sayfalarin cogu calisir,
+        yalnizca yeni alana dokunan sorgu patlar. Ham hata "column
+        r.hidden_at does not exist" diyordu ve bunun cevabinin bir
+        migration oldugu hicbir yerde yazmiyordu (bizzat yasandi).
+      */
+      case '42703':
+        return 'Veritabani semasi kodun gerisinde: bekleyen migration var. → npm run db:migrate';
       case '42704':
         return 'Tip veya uzanti bulunamadi. Buyuk ihtimalle PostGIS kurulu degil. → docker compose kullanin veya: brew install postgis';
       case '3F000':

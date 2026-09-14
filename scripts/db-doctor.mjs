@@ -65,50 +65,13 @@ try {
     }
   }
 
-  // Docker konteyneri var mi, varsa NEDEN olmus?
+  // Docker konteyneri var mi?
   try {
     const { execSync } = await import('node:child_process');
-    const sh = (cmd) => execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-    const ps = sh('docker ps -a --filter name=havre-db --format "{{.Status}}"');
-
-    if (!ps) {
-      console.log('\n  Docker konteyneri havre-db yok → npm run db:up');
-    } else if (/^Up /.test(ps)) {
-      console.log(`\n  Docker konteyneri CALISIYOR (${ps}) ama porta erisilemiyor.`);
-      console.log('  Port eslemesini kontrol edin: docker port havre-db');
-    } else {
-      console.log(`\n  Docker konteyneri CALISMIYOR: ${ps}`);
-      const logs = sh('docker logs --tail 25 havre-db 2>&1') || '(log yok)';
-      console.log('\n  --- konteyner loglari (son 25 satir) ---');
-      for (const line of logs.split('\n')) console.log(`  ${line}`);
-      console.log('  ---------------------------------------');
-
-      // En sik iki sebep icin dogrudan recete
-      const arch = sh('uname -m');
-      if (/exec format error|no matching manifest|platform|qemu/i.test(logs)) {
-        console.log(`
-  TESHIS: imaj bu islemci mimarisiyle (${arch}) uyumsuz.
-  Resmi postgis/postgis imaji yalnizca amd64 icin yayinlanir.
-  docker-compose.yml'de 'platform: linux/amd64' satiri olmali (varsayilan olarak var).
-  Varsa temizleyip yeniden kurun:
-        npm run db:reset`);
-      } else if (/database files are incompatible|incompatible version|PG_VERSION/i.test(logs)) {
-        console.log(`
-  TESHIS: veri birimi (volume) eski bir Postgres surumunden kalmis.
-  Veriyi silip sifirdan kurun:
-        docker compose down -v && npm run db:up && npm run db:migrate && npm run db:seed`);
-      } else if (/initdb|directory .* exists but is not empty|permission denied/i.test(logs)) {
-        console.log(`
-  TESHIS: veri dizini bozuk ya da izin sorunu var.
-        docker compose down -v && npm run db:up`);
-      } else {
-        console.log(`
-  Yukaridaki loglar sebebi gosterir. Cogu durumda su temizler:
-        npm run db:reset`);
-      }
-      console.log('');
-      process.exit(1);
-    }
+    const ps = execSync('docker ps -a --filter name=havre-db --format "{{.Names}} {{.Status}}"',
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (ps) console.log(`\n  Docker konteyneri: ${ps}`);
+    else console.log('\n  Docker konteyneri havre-db bulunamadi → npm run db:up');
   } catch { /* docker yok */ }
 
   console.log(`
@@ -184,6 +147,34 @@ const [{ n }] = await sqlc`
   SELECT count(*)::int AS n FROM information_schema.tables
   WHERE table_schema='public' AND table_type='BASE TABLE'`;
 if (n > 1) ok(`${n} tablo var`); else no(`Tablo yok → npm run db:migrate`);
+
+/*
+  BEKLEYEN MIGRATION.
+
+  "Tablo var" demek "sema guncel" demek degil. Yeni bir sutun ekleyen bir
+  migration calistirilmadiginda uygulama ACILIYOR, sayfalarin cogu
+  calisiyor ve yalnizca o sutuna dokunan sorgu patliyor — hata da
+  "column r.hidden_at does not exist" gibi, cevabinin migration oldugunu
+  soylemeyen bir cumle oluyor (bizzat yasandi). Teshis burada yapilsin.
+*/
+if (n > 1) {
+  const { readFileSync } = await import('node:fs');
+  const journalUrl = new URL('../packages/db/migrations/meta/_journal.json', import.meta.url);
+  let expected = 0;
+  try { expected = JSON.parse(readFileSync(journalUrl, 'utf8')).entries.length; } catch { /* yok */ }
+
+  const appliedRow = await sqlc`
+    SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations
+  `.catch(() => null);
+
+  if (appliedRow === null) {
+    no('Migration kaydi bulunamadi → npm run db:migrate');
+  } else if (expected > 0 && appliedRow[0].n < expected) {
+    no(`${expected - appliedRow[0].n} BEKLEYEN migration var (${appliedRow[0].n}/${expected}) → npm run db:migrate`);
+  } else if (expected > 0) {
+    ok(`Sema guncel (${appliedRow[0].n}/${expected} migration)`);
+  }
+}
 
 const cityRow = n > 1
   ? await sqlc`SELECT count(*)::int AS n FROM cities`.catch(() => [{ n: 0 }])
