@@ -29,7 +29,9 @@ import {
   listConversations as dbListConversations, getThread as dbGetThread,
   markRead as dbMarkRead, unreadCount as dbUnreadCount, getRawMessage as dbGetRawMessage,
   reportableMessage as dbReportableMessage, getAccountSummary as dbGetAccountSummary,
-  getSitterStatus as dbGetSitterStatus,
+  getSitterStatus as dbGetSitterStatus, setAvatar as dbSetAvatar,
+  listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
+  deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
@@ -209,5 +211,13 @@ export const getRawMessage = (messageId: string) => dbGetRawMessage(db(), messag
 /* ------------------------------------------------------------ hesap */
 export const getAccountSummary = (userId: string) => dbGetAccountSummary(db(), userId);
 export const getSitterStatus = (userId: string) => dbGetSitterStatus(db(), userId);
+export const setAvatar = (userId: string, url: string | null) => dbSetAvatar(db(), userId, url);
+export const listSitterPhotos = (sitterId: string) => dbListSitterPhotos(db(), sitterId);
+export const addSitterPhoto = (input: Parameters<typeof dbAddSitterPhoto>[1]) =>
+  dbAddSitterPhoto(db(), input);
+export const deleteSitterPhoto = (photoId: string, sitterId: string) =>
+  dbDeleteSitterPhoto(db(), photoId, sitterId);
+export const updateProfile = (input: Parameters<typeof dbUpdateProfile>[1]) =>
+  dbUpdateProfile(db(), input);
 export const reportableMessage = (messageId: string, viewerId: string) =>
   dbReportableMessage(db(), messageId, viewerId);

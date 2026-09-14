@@ -28,6 +28,7 @@ export interface OnboardingState {
   bio: string | null;
   phone: string | null;
   dateOfBirth: string | null;
+  avatarUrl: string | null;
   cityId: string | null;
   neighbourhoodId: string | null;
   province: string | null;
@@ -64,6 +65,7 @@ export async function getOnboardingState(
         firstName: profiles.firstName,
         lastNameInitial: profiles.lastNameInitial,
         bio: profiles.bio,
+        avatarUrl: profiles.avatarUrl,
         phone: users.phone,
         cityId: profiles.cityId,
         neighbourhoodId: profiles.neighbourhoodId,
@@ -115,6 +117,7 @@ export async function getOnboardingState(
       bio: row.bio,
       phone: row.phone,
       dateOfBirth: row.dateOfBirth,
+      avatarUrl: row.avatarUrl ?? null,
       cityId: row.cityId,
       neighbourhoodId: row.neighbourhoodId,
       province: row.province,

@@ -26,7 +26,4 @@ _src*.tar.gz
 
 # Claude'un sohbetten indirdigi dosyalar
 Claude outputs/
-
-# Silme izni olmayan ortamlarda git kendi kilit dosyalarini temizleyemiyor;
-# buraya tasiniyorlar. Icerigi guvenle silinebilir.
-_to_delete/
+.uploads/

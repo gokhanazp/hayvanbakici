@@ -7,6 +7,7 @@ import { AccountShell } from '@/components/AccountShell';
 import { StatusBadge } from '@/components/BookingCard';
 import { RespondButtons, CancelButton, MessageCounterpartButton } from '@/components/BookingActions';
 import { Avatar } from '@/components/Avatar';
+import { petLabel } from '@/components/PetLine';
 import { getBooking, getSitterStatus, isAdmin, unreadCount } from '@/lib/data';
 import { money, dateFmt } from '@/lib/format';
 import { respondAction, cancelAction, openBookingConversationAction } from './actions';
@@ -95,7 +96,7 @@ export default async function BookingDetailPage({
             {booking.pets.length > 0 && (
               <p className="text-body-sm muted" style={{ marginTop: 'var(--space-5)' }}>
                 {m.booking.pets}{' '}
-                {booking.pets.map((p) => `${p.name}${p.weightKg ? ` (${p.weightKg} kg)` : ''}`).join(', ')}
+                {booking.pets.map((p) => petLabel(p, locale)).join(', ')}
               </p>
             )}
           </section>

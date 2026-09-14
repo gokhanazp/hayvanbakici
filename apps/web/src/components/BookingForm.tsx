@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { getMessages, segmentFor, type Locale, type Messages } from '@havre/i18n';
 import { SERVICES, calculateQuote, type ServiceType } from '@havre/core';
+import { petLabel } from './PetLine';
 import { Select } from '@/components/ui/Select';
 import { DateRangeField } from '@/components/ui/DateRangeField';
 import { money } from '@/lib/format';
@@ -122,7 +123,7 @@ export function BookingForm({
                 onChange={(e) => setPetIds((cur) =>
                   e.target.checked ? [...cur, p.id] : cur.filter((x) => x !== p.id))}
               />
-              <span>{p.name}{p.weightKg ? ` · ${p.weightKg} kg` : ''}</span>
+              <span>{petLabel(p, locale)}</span>
             </label>
           ))}
 

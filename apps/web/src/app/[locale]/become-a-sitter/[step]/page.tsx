@@ -2,15 +2,20 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
-  completedSteps, isOnboardingStep, ONBOARDING_STEPS, type OnboardingStep,
+  completedSteps, isOnboardingStep, missingRequiredSteps, ONBOARDING_STEPS,
+  type OnboardingStep,
 } from '@havre/core';
 import { getMessages, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
-import { getDb, getOnboardingState, listCities, listNeighbourhoods } from '@havre/db';
+import {
+  getDb, getOnboardingState, listCities, listNeighbourhoods, listSitterPhotos,
+  MAX_SITTER_PHOTOS,
+} from '@havre/db';
 import { getSession } from '@/lib/auth';
 import { Progress } from '@/components/onboarding/Progress';
 import {
   AboutForm, HomeForm, LocationForm, ReviewForm, ScreeningForm, ServicesForm,
 } from '@/components/onboarding/StepForms';
+import { PhotoStep } from '@/components/onboarding/PhotoStep';
 import {
   saveAboutAction, saveHomeAction, saveLocationAction, saveServicesAction,
   startScreeningAction, submitApplicationAction,
@@ -40,12 +45,14 @@ export default async function OnboardingStepPage({
 
   const m = getMessages(locale);
 
+  const photos = await listSitterPhotos(db, session.user.id);
   const done = completedSteps({
     hasAbout: Boolean(state.bio && state.dateOfBirth && state.phone),
     hasLocation: Boolean(state.cityId && state.hasExactAddress),
     serviceCount: state.services.length,
     hasHome: Boolean(state.homeType),
     screeningStarted: Boolean(state.screening),
+    photoCount: photos.length,
   });
 
   const key = (k: string) => m.onboarding[k as keyof Messages['onboarding']] as string;
@@ -109,6 +116,21 @@ export default async function OnboardingStepPage({
         />
       )}
 
+      {/*
+        FOTOGRAF ADIMI. Formlar hesap ekranindakilerin AYNISI — ayni
+        sunucu eylemleri, ayni dogrulama. Iki ayri yukleme yolu yazmak,
+        birinde guvenlik kontrolunu unutmanin kestirme yoluydu.
+      */}
+      {step === 'photos' && (
+        <PhotoStep
+          locale={locale}
+          photos={photos}
+          max={MAX_SITTER_PHOTOS}
+          avatarUrl={state.avatarUrl ?? null}
+          firstName={state.firstName ?? ''}
+        />
+      )}
+
       {step === 'screening' && (
         <ScreeningForm
           locale={locale}
@@ -122,7 +144,7 @@ export default async function OnboardingStepPage({
           locale={locale}
           action={submitApplicationAction}
           submitted={state.status === 'pending'}
-          missing={ONBOARDING_STEPS.filter((s) => s !== 'review' && !done[s])}
+          missing={missingRequiredSteps(done)}
         />
       )}
 

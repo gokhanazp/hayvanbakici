@@ -5,10 +5,11 @@ import { redirect } from 'next/navigation';
 import {
   getDb, getOnboardingState, saveAbout, saveHome, saveLocation, saveServices,
   recordScreeningConsent, upsertVerification, recordAutomatedDecision,
-  setBadgeLevel, submitForReview,
+  setBadgeLevel, submitForReview, listSitterPhotos,
 } from '@havre/db';
 import {
-  nextStep, profileCompleteness, validateAbout, validateLocation, validateServices,
+  nextStep, profileCompleteness, completedSteps, missingRequiredSteps,
+  validateAbout, validateLocation, validateServices,
   type FieldErrors, type ServiceType, SERVICES,
 } from '@havre/core';
 import { createScreeningProvider, decide, badgeLevelFor, type Province } from '@havre/screening';
@@ -237,16 +238,25 @@ export async function submitApplicationAction(
   const state = await getOnboardingState(db, userId);
   if (!state) return { errors: { submit: 'error.generic' } };
 
-  const completeness = profileCompleteness({
+  const photos = await listSitterPhotos(db, userId);
+  const input = {
     hasAbout: Boolean(state.bio && state.dateOfBirth && state.phone),
     hasLocation: Boolean(state.cityId && state.hasExactAddress),
     serviceCount: state.services.length,
     hasHome: Boolean(state.homeType),
     screeningStarted: Boolean(state.screening),
-  });
+    photoCount: photos.length,
+  };
+  const completeness = profileCompleteness(input);
 
-  // Eksik adim varsa gonderme — kullanici zaten listeyi goruyor.
-  if (completeness < 1) return { errors: { submit: 'review.missing' } };
+  /*
+    KAPIYI ZORUNLU ADIMLAR TUTUYOR, doluluk orani DEGIL. Eskiden kosul
+    "doluluk = 1" idi; fotograf adimi eklenince bu, fotografsiz hicbir
+    basvurunun gonderilememesi anlamina gelirdi. Fotograf profili
+    guclendiriyor ama basvuruyu engellememeli.
+  */
+  const missing = missingRequiredSteps(completedSteps(input));
+  if (missing.length > 0) return { errors: { submit: 'review.missing' } };
 
   await submitForReview(db, userId, completeness);
   redirect(`/${locale}/become-a-sitter/review/`);

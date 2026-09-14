@@ -143,6 +143,58 @@ export const enCA = {
     'error.rate_limited': 'You have started a lot of new conversations in the last hour. Try again later.',
     'error.self': 'You cannot message yourself.',
   },
+  /*
+    HAYVAN TURU. Tur zaten kaydediliyordu ama HICBIR ekranda
+    gosterilmiyordu: "Max · 12 kg" satirindan Max'in kopek mi kedi mi
+    oldugu anlasilmiyordu. Bakici icin bu, kabul edip etmeyecegini
+    belirleyen ilk bilgi.
+  */
+  /*
+    PROFIL VE FOTOGRAF. Fotograf bu urunde sus degil: sahibin hayvanini
+    birakacagi evi gormesi, bakiciyi secerken bakilan ilk seylerden biri.
+  */
+  profile: {
+    title: 'Your profile',
+    lead: 'What sitters and owners see when they meet you on Havre.',
+    tab: 'Profile',
+    name: 'First name',
+    nameHint: 'Shown in full. Your surname never appears — only its first letter.',
+    initial: 'Surname initial',
+    language: 'Language',
+    save: 'Save',
+    saving: 'Saving…',
+    saved: 'Saved.',
+    photoHeading: 'Your photo',
+    photoLead: 'A face makes a booking easier to say yes to. Square photos work best.',
+    avatarLabel: 'Choose a photo',
+    remove: 'Remove',
+    upload: 'Upload',
+    uploading: 'Uploading…',
+    uploadHint: 'JPEG, PNG or WebP, up to 8 MB. We resize it and strip the location data your camera saved.',
+    homeHeading: 'Photos of your home',
+    homeLead: 'Owners want to see where their pet will sleep — the room, the yard, the walk you take. Up to {max}.',
+    altLabel: 'Describe this photo',
+    altPlaceholder: 'The fenced back yard',
+    altHint: 'For people using a screen reader. Say what is in the photo.',
+    noPhotos: 'No photos yet.',
+    sitterOnly: 'Home photos appear once you are a sitter.',
+    'error.no_file': 'Choose a photo first.',
+    'error.too_large': 'That file is larger than 8 MB.',
+    'error.not_an_image': 'That file is not an image we can read.',
+    'error.unsupported_format': 'Use a JPEG, PNG or WebP image.',
+    'error.too_many_pixels': 'That image is too large to process.',
+    'error.too_many': 'You have reached the photo limit. Remove one first.',
+    'error.not_allowed': 'You cannot do that.',
+    'error.not_found': 'That photo is already gone.',
+    'error.name_required': 'Write your first name.',
+    'error.initial_required': 'One letter, please.',
+    'error.invalid': 'Something in the form was not valid.',
+  },
+  species: {
+    dog: 'Dog',
+    cat: 'Cat',
+    other: 'Other pet',
+  },
   booking: {
     requestTitle: 'Request a booking with {name}',
     dates: 'Dates',
@@ -355,12 +407,14 @@ export const enCA = {
     'intro.location': 'We need your address for the background check and for bookings. The map only ever shows an approximate point in your neighbourhood.',
     'intro.services': 'Pick what you offer and set your own prices. You can change them whenever you like.',
     'intro.home': 'This is the part owners ask about first: where their animal will actually sleep.',
+    'intro.photos': 'Owners decide with their eyes first. Show the room, the yard, the walk — and yourself.',
     'intro.screening': 'An accredited provider runs the check. A person reads every result.',
     'intro.review': 'One last look before it goes to us.',
     'aside.about': 'Your full surname is stored encrypted and never appears on your profile. Your phone number is used for booking alerts, and shared with an owner only during a confirmed booking.',
     'aside.location': 'Your street address is encrypted. Search results show a point offset from your home by a few hundred metres, and the real address is released only after you accept a booking.',
     'aside.services': 'We take 0% on clients you bring yourself, 10% on repeat bookings and 18% on a client we introduce. No listing fee, no subscription.',
     'aside.home': 'Be honest about stairs, other pets and space. A booking that goes wrong because the home was described loosely costs you more than the booking was worth.',
+    'aside.photos': 'Photos are optional — you can send your application without them. But a profile with no photo of the home is the one owners skip, so this is the cheapest thing you can do for your bookings. We remove the location data your camera stores.',
     'aside.screening': 'Nothing is refused automatically. If something is flagged, a person reads it, you are told the reason, and you can ask for it to be reviewed again.',
     'aside.review': 'We aim to answer within a few business days. You can keep editing until we do.',
     'aside.heading': 'Why we ask',
@@ -370,6 +424,8 @@ export const enCA = {
     'step.location': 'Where you are',
     'step.services': 'What you offer',
     'step.home': 'Your home',
+    'step.photos': 'Photos',
+    'photos.optional': 'You can send your application without photos and add them later.',
     'step.screening': 'Background check',
     'step.review': 'Review and submit',
     'about.heading': 'Tell owners who you are',

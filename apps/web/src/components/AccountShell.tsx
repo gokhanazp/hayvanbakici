@@ -14,7 +14,7 @@ export function AccountShell({
   locale: Locale;
   title: string;
   lead?: string | undefined;
-  active: 'overview' | 'bookings' | 'messages' | 'sitter' | 'calendar';
+  active: 'overview' | 'profile' | 'bookings' | 'messages' | 'sitter' | 'calendar';
   isSitter: boolean;
   /**
    * Bakici kaydinin durumu — ROZET icin. `isSitter` yalnizca "kayit var mi"
@@ -35,6 +35,7 @@ export function AccountShell({
 
   const tabs = [
     { key: 'overview' as const, href: `/${seg}/account/`, label: m.account.overview },
+    { key: 'profile' as const, href: `/${seg}/account/profile/`, label: m.profile.tab },
     { key: 'bookings' as const, href: `/${seg}/account/bookings/`, label: m.account.myBookings },
     {
       key: 'messages' as const,
@@ -99,6 +100,20 @@ export function AccountShell({
   );
 }
 
+/** Bakici durumu -> rozet rengi (rezervasyon rozetiyle ayni token ciftleri). */
+const ROLE_TONE: Record<string, { bg: string; fg: string; dot?: string }> = {
+  active: {
+    bg: 'var(--color-accent-subtle)', fg: 'var(--color-accent-hover)',
+    dot: 'var(--color-success)',
+  },
+  pending: {
+    bg: 'var(--color-tile-apricot)', fg: 'var(--color-tile-apricot-ink)',
+    dot: 'var(--color-warning)',
+  },
+  draft: { bg: 'var(--color-surface-sunken)', fg: 'var(--color-ink-secondary)' },
+  deactivated: { bg: 'var(--color-surface-sunken)', fg: 'var(--color-ink-secondary)' },
+};
+
 /**
  * ROL ROZETI.
  *
@@ -120,16 +135,28 @@ function RoleBadge({
   if (!isSitter) return <span className="badge">{m.account.roleOwner}</span>;
 
   /*
+    RENK TEK TASIYICI DEGIL (WCAG 1.4.1): durum ayrica YAZIYOR. Renk ve
+    nokta yalnizca tek bakista anlasilsin diye. Renk ciftleri rezervasyon
+    rozetiyle AYNI — ikisi de olculmus token ciftleri, yenisini uydurmak
+    kontrast testini atlatmak olurdu.
+  */
+
+  /*
     TASLAK BASVURU BAKICI YAPMAZ. "Sahip + Bakici · gonderilmedi" demek
     kendi icinde celisik; taslakta kisi hala yalnizca sahip, yaninda
     basvurusunun durumu yaziyor.
   */
   const label = status ? (m.account[`sitter.${status}` as keyof typeof m.account] as string) : null;
   const role = status === 'draft' ? m.account.roleOwner : m.account.roleBoth;
+  const tone = status ? ROLE_TONE[status] : undefined;
+
   return (
-    <span className="badge">
+    <span className="badge" style={tone ? { background: tone.bg, color: tone.fg } : undefined}>
+      {tone?.dot && (
+        <span aria-hidden="true" className="badge-dot" style={{ background: tone.dot }} />
+      )}
       {role}
-      {label && <span className="dim"> · {label}</span>}
+      {label && <span style={{ opacity: 0.75 }}> · {label}</span>}
     </span>
   );
 }

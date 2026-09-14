@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   ageOn, isValidPhone, isValidPostalCode, nextStep, previousStep,
-  profileCompleteness, validateAbout, validateLocation, validateServices,
+  profileCompleteness, completedSteps, missingRequiredSteps,
+  validateAbout, validateLocation, validateServices,
 } from './onboarding.js';
 
 describe('posta kodu', () => {
@@ -96,7 +97,37 @@ describe('adim sirasi ve doluluk', () => {
   });
   it('bos profil 0, tam profil 1', () => {
     expect(profileCompleteness({ hasAbout: false, hasLocation: false, serviceCount: 0, hasHome: false, screeningStarted: false })).toBe(0);
-    expect(profileCompleteness({ hasAbout: true, hasLocation: true, serviceCount: 2, hasHome: true, screeningStarted: true })).toBe(1);
+    expect(profileCompleteness({
+      hasAbout: true, hasLocation: true, serviceCount: 2, hasHome: true,
+      screeningStarted: true, photoCount: 3,
+    })).toBe(1);
+  });
+
+  /*
+    FOTOGRAF ZORUNLU DEGIL AMA BEDAVA DA DEGIL. Basvuru fotografsiz
+    gonderilebiliyor (REQUIRED_STEPS'te yok) ama profil tam dolu
+    sayilmiyor — siralamada fotografli bakicinin gerisinde kaliyor.
+  */
+  it('fotograf basvuruyu engellemez, doluluga katilir', () => {
+    const withoutPhotos = profileCompleteness({
+      hasAbout: true, hasLocation: true, serviceCount: 2, hasHome: true, screeningStarted: true,
+    });
+    expect(withoutPhotos).toBeLessThan(1);
+    expect(withoutPhotos).toBeGreaterThan(0.8);
+
+    const done = completedSteps({
+      hasAbout: true, hasLocation: true, serviceCount: 2, hasHome: true, screeningStarted: true,
+    });
+    expect(done.photos).toBe(false);
+    expect(missingRequiredSteps(done)).toEqual([]);
+  });
+
+  it('zorunlu adim eksikse basvuru gonderilemez', () => {
+    const done = completedSteps({
+      hasAbout: true, hasLocation: false, serviceCount: 0, hasHome: true,
+      screeningStarted: true, photoCount: 2,
+    });
+    expect(missingRequiredSteps(done)).toEqual(['location', 'services']);
   });
   it('konum ve hizmet en agir iki parca', () => {
     const onlyLocation = profileCompleteness({ hasAbout: false, hasLocation: true, serviceCount: 0, hasHome: false, screeningStarted: false });

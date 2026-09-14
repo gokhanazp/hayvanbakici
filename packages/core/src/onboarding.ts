@@ -10,8 +10,27 @@
  */
 
 export const ONBOARDING_STEPS = [
-  'about', 'location', 'services', 'home', 'screening', 'review',
+  'about', 'location', 'services', 'home', 'photos', 'screening', 'review',
 ] as const;
+
+/**
+ * BASVURUNUN GONDERILEBILMESI icin zorunlu adimlar.
+ *
+ * FOTOGRAF LISTEDE YOK ve bu bilincli: fotograf profili belirgin sekilde
+ * guclendiriyor (doluluk oranina giriyor, siralamayi etkiliyor) ama
+ * elinde iyi bir kare olmayan birini adli sicil adimina bile
+ * gecirmemek, arzi kaybetmenin en sessiz yolu. Ekran fotografi
+ * ISTIYOR, kapiyi KAPATMIYOR.
+ */
+export const REQUIRED_STEPS = [
+  'about', 'location', 'services', 'home', 'screening',
+] as const satisfies readonly OnboardingStep[];
+
+export function missingRequiredSteps(
+  done: Record<OnboardingStep, boolean>,
+): OnboardingStep[] {
+  return REQUIRED_STEPS.filter((s) => !done[s]);
+}
 
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 
@@ -121,6 +140,8 @@ export interface CompletenessInput {
   serviceCount: number;
   hasHome: boolean;
   screeningStarted: boolean;
+  /** Ev fotografi sayisi. Istege bagli — bkz. REQUIRED_STEPS. */
+  photoCount?: number | undefined;
 }
 
 /**
@@ -134,9 +155,13 @@ export function profileCompleteness(input: CompletenessInput): number {
   const parts: Array<[boolean, number]> = [
     [input.hasAbout, 0.2],
     [input.hasLocation, 0.25],
-    [input.serviceCount > 0, 0.25],
+    [input.serviceCount > 0, 0.2],
     [input.hasHome, 0.1],
-    [input.screeningStarted, 0.2],
+    [input.screeningStarted, 0.15],
+    /* Fotograf zorunlu degil ama BEDAVA da degil: fotografsiz profil
+       tam dolu sayilmiyor ve siralamada fotografli olanin gerisinde
+       kaliyor. Sahibin karar verirken baktigi ilk sey bu. */
+    [(input.photoCount ?? 0) > 0, 0.1],
   ];
   const score = parts.reduce((sum, [done, weight]) => sum + (done ? weight : 0), 0);
   return Number(score.toFixed(2));
@@ -149,6 +174,7 @@ export function completedSteps(input: CompletenessInput): Record<OnboardingStep,
     location: input.hasLocation,
     services: input.serviceCount > 0,
     home: input.hasHome,
+    photos: (input.photoCount ?? 0) > 0,
     screening: input.screeningStarted,
     review: false,
   };

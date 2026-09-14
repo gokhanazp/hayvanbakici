@@ -22,6 +22,7 @@ export interface AccountSummary {
   email: string;
   firstName: string | null;
   lastNameInitial: string | null;
+  avatarUrl: string | null;
   /** Askidaki kullanici bunu EKRANDA gormeli; sessizce kisitlanmak kotu */
   suspended: boolean;
   sitter: {
@@ -57,7 +58,7 @@ export async function getAccountSummary(
       SELECT
         u.email,
         (u.suspended_at IS NOT NULL)            AS suspended,
-        p.first_name, p.last_name_initial,
+        p.first_name, p.last_name_initial, p.avatar_url,
         s.status::text                          AS sitter_status,
         s.slug                                  AS sitter_slug,
         s.badge_level,
@@ -99,6 +100,7 @@ export async function getAccountSummary(
       email: String(r.email),
       firstName: (r.first_name as string | null) ?? null,
       lastNameInitial: (r.last_name_initial as string | null) ?? null,
+      avatarUrl: (r.avatar_url as string | null) ?? null,
       suspended: Boolean(r.suspended),
       sitter: status
         ? {
@@ -143,5 +145,124 @@ export async function getSitterStatus(
     `);
     const r = (rows as unknown as Array<{ status: string }>)[0];
     return r ? (String(r.status) as 'draft' | 'pending' | 'active' | 'deactivated') : null;
+  });
+}
+
+/* ------------------------------------------------------------ fotograf */
+
+/**
+ * PROFIL FOTOGRAFI.
+ *
+ * Eski adres GERI DONUYOR: cagiran taraf dosyayi depodan silebilsin diye.
+ * Silmeyi buraya koymadik — veritabani katmani diski tanimiyor ve
+ * tanimamali.
+ */
+export async function setAvatar(
+  db: Database, userId: string, url: string | null,
+): Promise<string | null> {
+  return withDbErrors(async () => {
+    /*
+      Once OKU, sonra YAZ. `RETURNING` icinde alt sorguyla eski degeri
+      almak calisiyor gibi gorunuyor ama ayni ifadenin goruntusune bagli
+      ve okundugunda yaniltici; iki adim burada hem dogru hem acik.
+    */
+    const before = await db.execute(sql`
+      SELECT avatar_url FROM profiles WHERE user_id = ${userId} LIMIT 1
+    `);
+    const previous = (before as unknown as Array<{ avatar_url: string | null }>)[0]?.avatar_url
+      ?? null;
+
+    await db.execute(sql`
+      UPDATE profiles SET avatar_url = ${url}, updated_at = now() WHERE user_id = ${userId}
+    `);
+    return previous;
+  });
+}
+
+export interface SitterPhoto {
+  id: string;
+  url: string;
+  alt: string | null;
+  sortOrder: number;
+}
+
+export async function listSitterPhotos(db: Database, sitterId: string): Promise<SitterPhoto[]> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT id::text, url, alt, sort_order FROM sitter_photos
+      WHERE sitter_id = ${sitterId}
+      ORDER BY sort_order ASC, created_at ASC
+    `);
+    return (rows as unknown as Array<Record<string, unknown>>).map((r) => ({
+      id: String(r.id),
+      url: String(r.url),
+      alt: (r.alt as string | null) ?? null,
+      sortOrder: Number(r.sort_order ?? 0),
+    }));
+  });
+}
+
+/** Bir bakicinin tutabilecegi ev fotografi sayisi. */
+export const MAX_SITTER_PHOTOS = 8;
+
+export async function addSitterPhoto(
+  db: Database, input: { sitterId: string; url: string; alt?: string | undefined },
+): Promise<{ ok: true; id: string } | { ok: false; error: 'too_many' }> {
+  return withDbErrors(async () => {
+    const countRows = await db.execute(sql`
+      SELECT count(*)::int AS n FROM sitter_photos WHERE sitter_id = ${input.sitterId}
+    `);
+    const n = Number((countRows as unknown as Array<{ n: number }>)[0]?.n ?? 0);
+    if (n >= MAX_SITTER_PHOTOS) return { ok: false as const, error: 'too_many' as const };
+
+    const rows = await db.execute(sql`
+      INSERT INTO sitter_photos (sitter_id, url, alt, sort_order)
+      VALUES (${input.sitterId}, ${input.url}, ${input.alt ?? null}, ${n})
+      RETURNING id::text
+    `);
+    const id = String((rows as unknown as Array<{ id: string }>)[0]!.id);
+    return { ok: true as const, id };
+  });
+}
+
+/**
+ * Fotograf silme. Kimlik kontrolu WHERE icinde: baskasinin fotografini
+ * silmeye calisan sorgu hicbir satir bulamiyor. Silinen adres geri
+ * donuyor ki cagiran taraf dosyayi depodan da kaldirabilsin.
+ */
+export async function deleteSitterPhoto(
+  db: Database, photoId: string, sitterId: string,
+): Promise<string | null> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      DELETE FROM sitter_photos
+      WHERE id = ${photoId} AND sitter_id = ${sitterId}
+      RETURNING url
+    `);
+    const r = (rows as unknown as Array<{ url: string }>)[0];
+    return r ? String(r.url) : null;
+  });
+}
+
+/**
+ * Ad ve dil tercihi. Soyadinin yalnizca BAS HARFI saklaniyor — profil
+ * sayfasinda tam soyad hicbir zaman gorunmuyor, bu yuzden veritabaninda
+ * da tutmuyoruz.
+ */
+export async function updateProfile(
+  db: Database,
+  input: { userId: string; firstName: string; lastNameInitial: string; locale: string },
+): Promise<void> {
+  await withDbErrors(async () => {
+    await db.execute(sql`
+      UPDATE profiles
+      SET first_name = ${input.firstName},
+          last_name_initial = ${input.lastNameInitial},
+          updated_at = now()
+      WHERE user_id = ${input.userId}
+    `);
+    await db.execute(sql`
+      UPDATE users SET locale = ${input.locale}::locale WHERE id = ${input.userId}
+    `);
   });
 }

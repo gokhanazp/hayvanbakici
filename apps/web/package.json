@@ -10,7 +10,8 @@
     "lint": "next lint",
     "fonts:sync": "cp ../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2 src/app/fonts/",
     "photos:placeholders": "tsx scripts/make-photo-placeholders.mts",
-    "photos:fetch": "tsx --env-file-if-exists=../../.env scripts/fetch-photos.mts"
+    "photos:fetch": "tsx --env-file-if-exists=../../.env scripts/fetch-photos.mts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@havre/auth": "0.1.0",
@@ -31,6 +32,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "sharp": "^0.35.4",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   }
 }
