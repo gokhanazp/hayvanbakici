@@ -12,12 +12,15 @@ export function SitterCard({
   serviceType,
   locale,
   citySlug,
+  distanceLabel,
 }: {
   sitter: SitterSummary;
   serviceType: ServiceType;
   locale: Locale;
   /** Profil adresi sehir altinda: /en/toronto/sitter/camille-b-7f3a */
   citySlug: string;
+  /** Yalnizca aramada: "1,2 km uzakta". Landing sayfasinda mesafe anlamsiz. */
+  distanceLabel?: string | undefined;
 }) {
   const m = getMessages(locale);
   const unit = m.unit[SERVICES[serviceType].unit];
@@ -61,6 +64,7 @@ export function SitterCard({
           {locale === 'fr-CA'
             ? `${sitter.repeatClients} clients réguliers`
             : `${sitter.repeatClients} repeat clients`}
+          {distanceLabel && <> · <span className="tabular">{distanceLabel}</span></>}
         </p>
       </div>
     </Link>

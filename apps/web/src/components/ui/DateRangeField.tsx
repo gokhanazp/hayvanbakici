@@ -17,17 +17,25 @@ export function DateRangeField({
   startName,
   endName,
   label,
+  defaultStart,
+  defaultEnd,
 }: {
   locale: Locale;
   startName: string;
   endName: string;
   label: string;
+  /** Sonuc sayfasinda aramanin tarihleri geri gosterilir (ISO: 2026-09-20) */
+  defaultStart?: string | undefined;
+  defaultEnd?: string | undefined;
 }) {
   const m = getMessages(locale);
   const baseId = useId();
   const [enhanced, setEnhanced] = useState(false);
   const [open, setOpen] = useState(false);
-  const [range, setRange] = useState<DayRange>({ start: null, end: null });
+  const [range, setRange] = useState<DayRange>({
+    start: defaultStart || null,
+    end: defaultEnd || null,
+  });
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -64,8 +72,8 @@ export function DateRangeField({
       {!enhanced && (
         // JS yokken: iki duz tarih alani. Native takvim acilir ama form calisir.
         <span className="daterange-fallback">
-          <input type="date" name={startName} aria-label={`${label} — 1`} />
-          <input type="date" name={endName} aria-label={`${label} — 2`} />
+          <input type="date" name={startName} defaultValue={defaultStart ?? ''} aria-label={`${label} — 1`} />
+          <input type="date" name={endName} defaultValue={defaultEnd ?? ''} aria-label={`${label} — 2`} />
         </span>
       )}
 

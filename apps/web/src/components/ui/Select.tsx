@@ -44,8 +44,15 @@ export function Select({
   ariaLabel,
 }: {
   name: string;
+  /** Kontrollu kullanimda deger, kontrolsuz kullanimda BASLANGIC degeri */
   value: string;
-  onChange: (value: string) => void;
+  /**
+   * Verilmezse bilesen KONTROLSUZ calisir ve secimi kendi tutar.
+   * Neden gerekli: filtre formlari sunucu bileseni ve durum tutmuyor —
+   * secilen deger native <select> uzerinden GET ile gidiyor. Bir sunucu
+   * bileseninden onChange gecirilemez (fonksiyon serilestirilemez).
+   */
+  onChange?: ((value: string) => void) | undefined;
   options: SelectOption[];
   id?: string | undefined;
   required?: boolean | undefined;
@@ -55,6 +62,10 @@ export function Select({
 }) {
   const fallbackId = useId();
   const selectId = id ?? fallbackId;
+  // Kontrolsuz mod: secim burada tutulur
+  const [uncontrolled, setUncontrolled] = useState(value);
+  const current = onChange ? value : uncontrolled;
+  const emit = (v: string) => { if (onChange) onChange(v); else setUncontrolled(v); };
   const listId = `${selectId}-list`;
 
   /**
@@ -72,7 +83,7 @@ export function Select({
   const listRef = useRef<HTMLUListElement>(null);
   const typeahead = useRef({ text: '', at: 0 });
 
-  const selectedIndex = Math.max(0, options.findIndex((o) => o.value === value));
+  const selectedIndex = Math.max(0, options.findIndex((o) => o.value === current));
   const selected = options[selectedIndex];
 
   useEffect(() => {
@@ -97,7 +108,7 @@ export function Select({
   function choose(index: number) {
     const option = options[index];
     if (!option) return;
-    onChange(option.value);
+    emit(option.value);
     setOpen(false);
     buttonRef.current?.focus();
   }
@@ -166,10 +177,10 @@ export function Select({
       <select
         id={selectId}
         name={name}
-        value={value}
+        value={current}
         required={required}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => emit(e.target.value)}
         className={enhanced ? 'select-native-hidden' : 'select-native'}
         aria-hidden={enhanced ? 'true' : undefined}
         tabIndex={enhanced ? -1 : undefined}

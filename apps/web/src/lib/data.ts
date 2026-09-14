@@ -9,15 +9,16 @@ import { cache } from 'react';
 import {
   getDb, listCities, listTier1Cities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
   getSitterProfile as dbGetSitterProfile, listSitterSlugsForBuild, listFeaturedReviews,
+  resolvePlace as dbResolvePlace,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
-  type SitterProfile, type FeaturedReview,
+  type SitterProfile, type FeaturedReview, type PlaceMatch,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
 
-export type { CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview };
+export type { CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview, PlaceMatch };
 export { cityName, citySlug };
 
 const db = () => getDb();
@@ -80,4 +81,10 @@ export const getSitterSlugsForBuild = cache(
  */
 export const getFeaturedReviews = cache(
   async (limit = 3): Promise<FeaturedReview[]> => listFeaturedReviews(db(), limit),
+);
+
+/** Arama kutusundaki metni haritada bir noktaya cevirir (bkz. queries/place.ts) */
+export const resolvePlace = cache(
+  async (query: string, locale: Locale): Promise<PlaceMatch | null> =>
+    dbResolvePlace(db(), query, locale),
 );

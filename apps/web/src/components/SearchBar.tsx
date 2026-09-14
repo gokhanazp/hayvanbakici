@@ -9,12 +9,29 @@ import { DateRangeField } from '@/components/ui/DateRangeField';
 /** V1 hizmetleri. day_care V1.5'te acilacak (yol haritasi §5.1). */
 const LIVE_SERVICES = servicesForPhase('v1');
 
-export function SearchBar({ locale }: { locale: Locale }) {
+/**
+ * Arama cubugu ana sayfada BOS, sonuc sayfasinda DOLU ciziliyor.
+ * Sonuc sayfasinda kullanicinin yazdigi degerleri geri gostermek sart:
+ * bos bir kutu, "aramam kayboldu" demektir.
+ */
+export function SearchBar({
+  locale, defaults,
+}: {
+  locale: Locale;
+  defaults?: {
+    service?: string | undefined;
+    location?: string | undefined;
+    start?: string | undefined;
+    end?: string | undefined;
+  } | undefined;
+}) {
   const m = getMessages(locale);
-  const [service, setService] = useState(serviceSlug('boarding', locale));
+  const [service, setService] = useState(defaults?.service ?? serviceSlug('boarding', locale));
 
+  // GET: arama sonucu bir ADRES olmali — paylasilabilir, geri tusuyla
+  // calisir, yenilenince ayni sonucu verir.
   return (
-    <form className="searchbar" action={`/${segmentFor(locale)}/search`}>
+    <form className="searchbar" method="get" action={`/${segmentFor(locale)}/search/`}>
       <div className="field">
         <label htmlFor="service">{m.search.service}</label>
         <Select
@@ -32,12 +49,27 @@ export function SearchBar({ locale }: { locale: Locale }) {
 
       <div className="field" style={{ flex: '2 1 240px' }}>
         <label htmlFor="location">{m.search.location}</label>
-        <input id="location" name="location" type="text" autoComplete="postal-code" placeholder="M4M 1A1" />
+        {/*
+          defaultValue (value degil): alan KONTROLSUZ kalmali, aksi halde
+          kullanici yazdikca React'e bagli olur ve JS yuklenmeden once
+          yazilan sey kaybolur.
+          Placeholder artik mahalle de oneriyor — posta kodu yalnizca sehir
+          kesinligi veriyor ve kullanicinin bunu bilmesi gerekiyor.
+        */}
+        <input
+          id="location" name="location" type="text"
+          autoComplete="postal-code"
+          defaultValue={defaults?.location ?? ''}
+          placeholder={locale === 'fr-CA' ? 'Quartier, ville ou code postal' : 'Neighbourhood, city or postal code'}
+        />
       </div>
 
       <div className="field" style={{ flex: '1.4 1 220px' }}>
         <span className="field-label-static">{m.search.dates}</span>
-        <DateRangeField locale={locale} startName="start" endName="end" label={m.search.dates} />
+        <DateRangeField
+          locale={locale} startName="start" endName="end" label={m.search.dates}
+          defaultStart={defaults?.start} defaultEnd={defaults?.end}
+        />
       </div>
 
       <div className="field" style={{ flex: '0 0 auto' }}>
