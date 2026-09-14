@@ -18,7 +18,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lightTheme, darkTheme } from './color.ts';
+import { lightTheme, darkTheme, adminTheme } from './color.ts';
 import { fontFamily, fontWeight, textStyles } from './typography.ts';
 import { space, radius, shadow, motion, breakpoint, minTouchTarget } from './layout.ts';
 
@@ -84,6 +84,15 @@ ${vars(breakpoint, 'bp')}
 :root[data-theme="dark"] {
   color-scheme: dark;
 ${vars(darkTheme, 'color')}
+}
+
+/*
+  Yonetici paneli. Musteri koyu temasindan AYRI bir palet: panelin gorunumu
+  henuz onaylanmamis bir tasarim kararina bagli olmamali (bkz. color.ts).
+*/
+:root[data-theme="admin"] {
+  color-scheme: dark;
+${vars(adminTheme, 'color')}
 }
 
 /* --- Tipografi yardimci siniflari --- */

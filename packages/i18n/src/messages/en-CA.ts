@@ -120,6 +120,7 @@ export const enCA = {
     'error.pets_missing': 'Tell us which pet this is for.',
     'error.service_unavailable': 'This sitter does not offer that service.',
     'error.sitter_inactive': 'This sitter is not taking bookings right now.',
+    'error.account_suspended': 'Your account is on hold. Contact support and we will explain why in writing.',
     'error.own_booking': 'You cannot book yourself.',
     'error.not_allowed': 'You cannot do that.',
     'error.invalid': 'That is no longer possible — the booking has moved on.',

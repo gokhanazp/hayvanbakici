@@ -47,6 +47,21 @@ export const users = pgTable(
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
     /** Law 25 veri silme hakki — soft delete + anonimlestirme takvimi */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+
+    /**
+     * ASKIYA ALMA — silme DEGIL.
+     *
+     * Askidaki kullanici giris yapar ama rezervasyon olusturamaz ve
+     * profili listelerde gorunmez. Silmiyoruz cunku (a) acik rezervasyonlarin
+     * karsi tarafinin gecmise erisimi kalmali, (b) askiya alma kararinin
+     * kendisi geri alinabilir olmali.
+     *
+     * GEREKCE ZORUNLU: sitede "cikarma yazili gerekceyle olur" yaziyor;
+     * sebebi kaydedilmeyen bir askiya alma o sozu bozar.
+     */
+    suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+    suspensionReason: text('suspension_reason'),
+    suspendedBy: uuid('suspended_by'),
   },
   (t) => [uniqueIndex('users_email_uq').on(t.email)],
 );
@@ -135,6 +150,16 @@ export const sitters = pgTable(
     /** DPWRA standardi gonullu uygulama: cikarma yazili gerekce + 2 hafta bildirim */
     deactivatedAt: timestamp('deactivated_at', { withTimezone: true }),
     deactivationReason: text('deactivation_reason'),
+
+    /**
+     * Askiya alinmadan onceki durum.
+     *
+     * Kullanici askiya alindiginda bakici kaydi 'deactivated' yapiliyor —
+     * boylece "status = 'active'" diyen ONBES ayri genel sorgunun hicbirine
+     * dokunmaya gerek kalmiyor ve hicbiri unutulmuyor. Askı kalkinca eski
+     * durumun geri gelmesi icin ne oldugu burada saklaniyor.
+     */
+    preSuspensionStatus: sitterStatusEnum('pre_suspension_status'),
   },
   (t) => [
     uniqueIndex('sitters_slug_uq').on(t.slug),

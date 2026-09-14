@@ -1,0 +1,1 @@
+ALTER TABLE "sitters" ADD COLUMN "pre_suspension_status" "sitter_status";

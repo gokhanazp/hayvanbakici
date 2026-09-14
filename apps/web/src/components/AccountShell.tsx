@@ -34,7 +34,7 @@ export function AccountShell({
         ]
       : []),
     ...(isAdmin
-      ? [{ key: 'admin' as const, href: `/${seg}/admin/`, label: locale === 'fr-CA' ? 'Interne' : 'Internal' }]
+      ? [{ key: 'admin' as const, href: '/admin/', label: locale === 'fr-CA' ? 'Interne' : 'Internal' }]
       : []),
   ];
 

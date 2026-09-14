@@ -400,6 +400,33 @@ export async function listAllBookings(
   });
 }
 
+/**
+ * Menudeki bekleyen is sayilari. Tek sorgu: bu sayilar HER yonetici
+ * sayfasinda ciziliyor, uc ayri gidis gereksiz.
+ */
+export interface AdminCounts {
+  applications: number;
+  reports: number;
+  requestedBookings: number;
+}
+
+export async function getCounts(db: Database): Promise<AdminCounts> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT
+        (SELECT count(*)::int FROM sitters WHERE status = 'pending') AS applications,
+        (SELECT count(*)::int FROM reports WHERE status IN ('open','reviewing')) AS reports,
+        (SELECT count(*)::int FROM bookings WHERE status = 'requested') AS requested_bookings
+    `);
+    const r = (rows as unknown as Array<Record<string, unknown>>)[0] ?? {};
+    return {
+      applications: Number(r.applications ?? 0),
+      reports: Number(r.reports ?? 0),
+      requestedBookings: Number(r.requested_bookings ?? 0),
+    };
+  });
+}
+
 /** Yonetici mi — sayfa korumasi bunu kullanir. */
 export async function isAdmin(db: Database, userId: string): Promise<boolean> {
   return withDbErrors(async () => {

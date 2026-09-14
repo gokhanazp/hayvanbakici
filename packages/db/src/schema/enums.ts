@@ -69,3 +69,16 @@ export const bookingEventTypeEnum = pgEnum('booking_event_type', [
   */
   'status_change',
 ]);
+
+/** Sikayet kuyrugu (yonetici paneli) */
+export const reportSubjectEnum = pgEnum('report_subject', [
+  'user', 'review', 'message', 'booking',
+]);
+
+/**
+ * Sikayet durumu. 'dismissed' de bir SONUCTUR: gerekcesi yazilir ve
+ * kayitta kalir — sessizce kapatilan sikayet, kapatilmamis sayilir.
+ */
+export const reportStatusEnum = pgEnum('report_status', [
+  'open', 'reviewing', 'actioned', 'dismissed',
+]);

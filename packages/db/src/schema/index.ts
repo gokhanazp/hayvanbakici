@@ -7,4 +7,5 @@ export * from './messaging.js';
 export * from './payments.js';
 export * from './geo.js';
 export * from './compliance.js';
+export * from './moderation.js';
 export * from './auth.js';

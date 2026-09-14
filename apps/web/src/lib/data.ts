@@ -18,13 +18,23 @@ import {
   isAdmin as dbIsAdmin, getOverview as dbGetOverview, listApplications as dbListApplications,
   getApplication as dbGetApplication, decideApplication as dbDecideApplication,
   listAudit as dbListAudit, listAllBookings as dbListAllBookings, recordAudit as dbRecordAudit,
+  getCounts as dbGetCounts,
+  listUsers as dbListUsers, getUser as dbGetUser, setSuspension as dbSetSuspension,
+  setRole as dbSetRole, listNotes as dbListNotes, addNote as dbAddNote,
+  listReviews as dbListReviews, setReviewHidden as dbSetReviewHidden,
+  listReports as dbListReports, createReport as dbCreateReport, resolveReport as dbResolveReport,
+  getBookingAdmin as dbGetBookingAdmin, adminSetBookingStatus as dbAdminSetBookingStatus,
+  getMetrics as dbGetMetrics,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
   type SitterProfile, type FeaturedReview, type PlaceMatch,
   type BookingSummary, type BookingDetail, type BookingDraft, type CalendarDay,
   type AdminOverview, type ApplicationRow, type ApplicationDetail, type AuditRow,
-  type AdminBookingRow, type AuditEntry,
+  type AdminBookingRow, type AuditEntry, type AdminCounts,
+  type AdminUserRow, type AdminUserDetail, type UserPage, type UserFilter, type AdminNote,
+  type ModerationReview, type ReviewFilter, type ReportRow,
+  type AdminBookingDetail, type AdminTransition, type AdminMetrics,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
@@ -32,7 +42,9 @@ import type { Locale } from '@havre/i18n';
 export type {
   CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview,
   PlaceMatch, BookingSummary, BookingDetail, CalendarDay,
-  AdminOverview, ApplicationRow, ApplicationDetail, AuditRow, AdminBookingRow,
+  AdminOverview, ApplicationRow, ApplicationDetail, AuditRow, AdminBookingRow, AdminCounts,
+  AdminUserRow, AdminUserDetail, UserPage, UserFilter, AdminNote,
+  ModerationReview, ReviewFilter, ReportRow, AdminBookingDetail, AdminTransition, AdminMetrics,
 };
 export { cityName, citySlug };
 
@@ -146,3 +158,29 @@ export const listAudit = (limit?: number, kind?: 'all' | 'decisions') =>
   dbListAudit(db(), limit, kind);
 export const listAllBookings = (status?: string) => dbListAllBookings(db(), status);
 export const recordAudit = (entry: AuditEntry) => dbRecordAudit(db(), entry);
+export const getAdminCounts = () => dbGetCounts(db());
+
+export const listUsers = (opts?: Parameters<typeof dbListUsers>[1]) => dbListUsers(db(), opts);
+export const getAdminUser = (userId: string) => dbGetUser(db(), userId);
+export const setSuspension = (input: Parameters<typeof dbSetSuspension>[1]) =>
+  dbSetSuspension(db(), input);
+export const setRole = (input: Parameters<typeof dbSetRole>[1]) => dbSetRole(db(), input);
+export const listNotes = (entityType: string, entityId: string) =>
+  dbListNotes(db(), entityType, entityId);
+export const addNote = (input: Parameters<typeof dbAddNote>[1]) => dbAddNote(db(), input);
+
+export const listReviews = (filter?: ReviewFilter, limit?: number) =>
+  dbListReviews(db(), filter, limit);
+export const setReviewHidden = (input: Parameters<typeof dbSetReviewHidden>[1]) =>
+  dbSetReviewHidden(db(), input);
+export const listReports = (status?: 'open' | 'all') => dbListReports(db(), status);
+export const createReport = (input: Parameters<typeof dbCreateReport>[1]) =>
+  dbCreateReport(db(), input);
+export const resolveReport = (input: Parameters<typeof dbResolveReport>[1]) =>
+  dbResolveReport(db(), input);
+
+export const getBookingAdmin = (bookingId: string) => dbGetBookingAdmin(db(), bookingId);
+export const adminSetBookingStatus = (input: Parameters<typeof dbAdminSetBookingStatus>[1]) =>
+  dbAdminSetBookingStatus(db(), input);
+
+export const getMetrics = (days?: number) => dbGetMetrics(db(), days);

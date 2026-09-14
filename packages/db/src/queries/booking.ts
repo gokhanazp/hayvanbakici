@@ -100,7 +100,9 @@ export type BookingError =
   | 'dates_unavailable'
   | 'pets_missing'
   | 'sitter_inactive'
-  | 'own_booking';
+  | 'own_booking'
+  /** Sahip hesabi askida — askidaki kullanici yeni talep gonderemez */
+  | 'account_suspended';
 
 export interface BookingCreated {
   ok: true;
@@ -143,6 +145,20 @@ export async function createBookingRequest(
         AND ss.is_active
       LIMIT 1
     `);
+    /*
+      ASKIDAKI SAHIP TALEP GONDEREMEZ.
+      Bakici tarafi ayrica kontrol edilmiyor: askiya alma bakici kaydini
+      'deactivated' yapiyor, o da asagidaki sitter_inactive kontrolune
+      dusuyor. Sahip tarafinin boyle bir dolayli korumasi yok, bu yuzden
+      acikca soruluyor.
+    */
+    const ownerRows = await db.execute(sql`
+      SELECT (suspended_at IS NOT NULL) AS suspended FROM users WHERE id = ${draft.ownerId} LIMIT 1
+    `);
+    if (Boolean((ownerRows as unknown as Array<Record<string, unknown>>)[0]?.suspended)) {
+      return { ok: false, error: 'account_suspended' as const };
+    }
+
     const svc = (svcRows as unknown as Array<Record<string, unknown>>)[0];
     if (!svc) return { ok: false, error: 'service_unavailable' as const };
     if (String(svc.sitter_status) !== 'active') return { ok: false, error: 'sitter_inactive' as const };

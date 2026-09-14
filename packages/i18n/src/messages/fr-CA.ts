@@ -125,6 +125,7 @@ export const frCA = {
     'error.pets_missing': 'Dites-nous pour quel animal.',
     'error.service_unavailable': 'Ce gardien n’offre pas ce service.',
     'error.sitter_inactive': 'Ce gardien n’accepte pas de réservations en ce moment.',
+    'error.account_suspended': 'Votre compte est suspendu. Contactez le soutien; nous vous expliquerons le motif par écrit.',
     'error.own_booking': 'Vous ne pouvez pas vous réserver vous-même.',
     'error.not_allowed': 'Action impossible.',
     'error.invalid': 'Ce n’est plus possible — la réservation a changé d’état.',

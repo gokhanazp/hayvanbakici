@@ -143,6 +143,8 @@ export async function getSitterProfile(
           -- Yayimlanmamis yorum gosterilmez; yorum penceresi kapanmadan
           -- tek tarafli yayin, karsilikli korleme kuralini bozar.
           AND r.published_at IS NOT NULL
+        -- Moderasyonda gizlenen yorum HICBIR genel listede gorunmez
+        AND r.hidden_at IS NULL
         ORDER BY r.published_at DESC
         LIMIT 12
       `),
@@ -322,6 +324,8 @@ export async function listFeaturedReviews(
       LEFT JOIN profiles a ON a.user_id = r.author_id
       WHERE r.direction = 'owner_to_sitter'
         AND r.published_at IS NOT NULL
+        -- Moderasyonda gizlenen yorum HICBIR genel listede gorunmez
+        AND r.hidden_at IS NULL
         AND r.rating = 5
         AND st.slug IS NOT NULL
         -- Alt sinir 90 idi ve tohum yorumlarinin tamami 63-91 karakterdi:

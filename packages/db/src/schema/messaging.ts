@@ -62,6 +62,21 @@ export const reviews = pgTable(
     responseBody: text('response_body'),
     responseAt: timestamp('response_at', { withTimezone: true }),
     publishedAt: timestamp('published_at', { withTimezone: true }),
+
+    /**
+     * MODERASYON — yalnizca GIZLEME, asla DUZENLEME.
+     *
+     * Competition Act: yorumlar duzenlenmez, kirpilmaz. Bu yuzden burada
+     * "duzeltilmis metin" diye bir alan YOK; yonetici bir yorumu yalnizca
+     * gerekce yazarak gizleyebilir, metne dokunamaz.
+     *
+     * publishedAt'i null'lamak yerine ayri alan tutuyoruz: yorumun bir
+     * zamanlar yayinda oldugunu ve neden indirildigini kaybetmemek icin.
+     */
+    hiddenAt: timestamp('hidden_at', { withTimezone: true }),
+    hiddenReason: text('hidden_reason'),
+    hiddenBy: uuid('hidden_by'),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

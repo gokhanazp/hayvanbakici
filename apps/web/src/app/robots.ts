@@ -20,6 +20,8 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/api/',
+          // Yonetici paneli: duzen ayrica noindex gonderiyor, bu ikinci kilit
+          '/admin/',
           '/search/',
           '/checkout/',
           '/messages/',
