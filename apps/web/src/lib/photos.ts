@@ -39,71 +39,94 @@ const scene = (
   query: string, en: string, fr: string,
 ): PhotoSpec => ({ file, width, height, query, kind: 'scene', tint, alt: { 'en-CA': en, 'fr-CA': fr } });
 
+/*
+  KISI FOTOGRAFLARI HAYVANLI.
+
+  ALTERNATIF METINDE "gardien/sitter" DEMIYORUZ: bunlar stok fotograflar,
+  fotograftaki kisi bizim bakicimiz degil. Ekran okuyucuya "bir bakici"
+  demek, gorsel bir sus olan kareyi gercek bir kisi iddiasina cevirirdi.
+  Metin ne goruldugunu anlatiyor, kimin oldugunu degil.
+
+  Ilk surumde sorgular duz portreydi ("portrait smiling woman"). Bu bir
+  bakici pazaryerinde yanlis: sahibin gormesi gereken sey yuz degil, o
+  kisinin bir hayvanla nasil durdugu. Sorgular insan + hayvan, tercihen
+  temas eden kareler.
+
+  Kare ve 900px: ayni dosya hem 30px'lik avatarda hem ana sayfadaki 520px
+  genisligindeki karoda kullaniliyor. Kucuk avatarda yuzun ortada kalmasi
+  icin indirici `crop=faces` istiyor; boylece hayvanli genis kare de,
+  yuze kirpilmis kucuk avatar da ayni dosyadan cikiyor.
+*/
 const portrait = (file: string, tint: 0 | 1 | 2 | 3, query: string): PhotoSpec => ({
-  file, width: 512, height: 512, query, kind: 'portrait', tint,
-  alt: { 'en-CA': 'Sitter profile photo', 'fr-CA': 'Photo de profil du gardien' },
+  file, width: 900, height: 900, query, kind: 'portrait', tint,
+  alt: {
+    'en-CA': 'A person with a pet',
+    'fr-CA': 'Une personne avec un animal',
+  },
 });
 
 export const PHOTOS = {
   'hero-primary': scene('scene/hero-primary', 1040, 1240, 0,
     'woman hugging golden retriever at home',
-    'A sitter sitting on the floor of her home with a dog leaning against her',
-    'Une gardienne assise au sol chez elle, un chien appuyé contre elle'),
+    'Someone sitting on the floor at home with a dog leaning against her',
+    'Une personne assise au sol chez elle, un chien appuyé contre elle'),
 
   'hero-side-a': scene('scene/hero-side-a', 640, 640, 1,
-    'cat sleeping on sofa sunlight',
-    'A cat asleep on a sunlit sofa',
-    'Un chat endormi sur un canapé ensoleillé'),
+    'woman cuddling cat on sofa at home',
+    'Someone holding a cat on a sofa',
+    'Une personne tenant un chat sur un canapé'),
 
   'hero-side-b': scene('scene/hero-side-b', 640, 820, 2,
-    'small dog looking at camera apartment',
-    'A small dog looking straight at the camera',
-    'Un petit chien regardant droit vers l’objectif'),
+    'man playing with small dog on floor at home',
+    'Someone playing with a small dog on the floor',
+    'Une personne jouant avec un petit chien au sol'),
 
   'sitter-banner': scene('scene/sitter-banner', 1600, 900, 1,
-    'man walking dog city sidewalk autumn',
-    'A sitter walking a dog along a city street',
-    'Un gardien promenant un chien dans une rue de la ville'),
+    'smiling person walking dog city sidewalk autumn',
+    'Someone walking a dog along a city street',
+    'Une personne promenant un chien dans une rue de la ville'),
 
   'auth-panel': scene('scene/auth-panel', 900, 1200, 3,
-    'cozy living room with dog on couch',
-    'A living room with a dog resting on the couch',
-    'Un salon avec un chien qui se repose sur le canapé'),
+    'person reading on couch with dog resting beside them',
+    'Someone on a couch with a dog resting beside them',
+    'Une personne sur un canapé avec un chien qui se repose à côté'),
 
   'city-toronto': scene('scene/city-toronto', 1600, 900, 2,
-    'toronto street dog walker',
-    'A dog on a Toronto street',
-    'Un chien dans une rue de Toronto'),
+    'dog walker toronto street with dog',
+    'Someone with a dog on a Toronto street',
+    'Une personne avec un chien dans une rue de Toronto'),
 
   'city-montreal': scene('scene/city-montreal', 1600, 900, 0,
-    'montreal plateau street dog',
-    'A dog on a Montréal street',
-    'Un chien dans une rue de Montréal'),
+    'person with dog montreal plateau street',
+    'Someone with a dog on a Montréal street',
+    'Une personne avec un chien dans une rue de Montréal'),
 
-  'home-a': scene('scene/home-a', 1200, 800, 1, 'bright living room plants',
-    'A bright living room', 'Un salon lumineux'),
-  'home-b': scene('scene/home-b', 1200, 800, 2, 'backyard garden fence house',
-    'A fenced backyard', 'Une cour clôturée'),
-  'home-c': scene('scene/home-c', 1200, 800, 3, 'dog bed blanket corner home',
-    'A dog bed in the corner of a room', 'Un panier pour chien dans un coin de la pièce'),
+  'home-a': scene('scene/home-a', 1200, 800, 1, 'dog lying on rug in bright living room',
+    'A dog lying on a rug in a bright living room',
+    'Un chien allongé sur un tapis dans un salon lumineux'),
+  'home-b': scene('scene/home-b', 1200, 800, 2, 'dog playing in fenced backyard garden',
+    'A dog playing in a fenced backyard',
+    'Un chien qui joue dans une cour clôturée'),
+  'home-c': scene('scene/home-c', 1200, 800, 3, 'dog sleeping in its bed at home',
+    'A dog asleep in its own bed', 'Un chien endormi dans son panier'),
 
-  'care-a': scene('scene/care-a', 1000, 750, 0, 'person feeding dog kitchen',
-    'A person feeding a dog in a kitchen', 'Une personne nourrissant un chien dans une cuisine'),
-  'care-b': scene('scene/care-b', 1000, 750, 1, 'veterinarian examining dog clinic',
+  'care-a': scene('scene/care-a', 1000, 750, 0, 'woman feeding dog in kitchen smiling',
+    'Someone feeding a dog in a kitchen', 'Une personne nourrissant un chien dans une cuisine'),
+  'care-b': scene('scene/care-b', 1000, 750, 1, 'veterinarian with dog in clinic caring',
     'A dog being examined at a clinic', 'Un chien examiné dans une clinique'),
 
-  'person-01': portrait('people/01', 0, 'portrait smiling woman outdoors'),
-  'person-02': portrait('people/02', 1, 'portrait smiling man outdoors'),
-  'person-03': portrait('people/03', 2, 'portrait young woman city'),
-  'person-04': portrait('people/04', 3, 'portrait man beard friendly'),
-  'person-05': portrait('people/05', 0, 'portrait woman glasses smiling'),
-  'person-06': portrait('people/06', 1, 'portrait man smiling casual'),
-  'person-07': portrait('people/07', 2, 'portrait woman curly hair smiling'),
-  'person-08': portrait('people/08', 3, 'portrait older woman warm smile'),
-  'person-09': portrait('people/09', 0, 'portrait man older friendly'),
-  'person-10': portrait('people/10', 1, 'portrait woman short hair smiling'),
-  'person-11': portrait('people/11', 2, 'portrait man glasses smiling'),
-  'person-12': portrait('people/12', 3, 'portrait woman smiling park'),
+  'person-01': portrait('people/01', 0, 'woman hugging her dog outdoors'),
+  'person-02': portrait('people/02', 1, 'man holding cat in his arms'),
+  'person-03': portrait('people/03', 2, 'young woman sitting with golden retriever park'),
+  'person-04': portrait('people/04', 3, 'bearded man petting dog on the sofa'),
+  'person-05': portrait('people/05', 0, 'woman with glasses holding a kitten'),
+  'person-06': portrait('people/06', 1, 'man laughing with dog licking his face'),
+  'person-07': portrait('people/07', 2, 'woman with curly hair holding small dog'),
+  'person-08': portrait('people/08', 3, 'older woman cuddling a cat at home'),
+  'person-09': portrait('people/09', 0, 'older man walking his dog in the park'),
+  'person-10': portrait('people/10', 1, 'woman with short hair hugging a big dog'),
+  'person-11': portrait('people/11', 2, 'man with glasses holding a rabbit'),
+  'person-12': portrait('people/12', 3, 'woman kneeling beside dog in a garden'),
 } as const satisfies Record<string, PhotoSpec>;
 
 /** Kisi fotografi yuvalari — seed ve profil atamasi bunu kullanir. */

@@ -48,7 +48,19 @@ const force = args.includes('--force');
 const onlyArg = args[args.indexOf('--only') + 1];
 const only = args.includes('--only') && onlyArg ? new Set(onlyArg.split(',')) : null;
 
-interface LockEntry { photoId: string; author: string; authorUrl: string; page: string }
+/*
+  `query` de kilitleniyor: kayittaki arama ifadesi degistiginde (ornegin
+  duz portreler yerine hayvanli kareler istedigimizde) o yuva otomatik
+  YENIDEN seciliyor. Aksi halde kilit eski secimi sonsuza kadar korur ve
+  "sorguyu degistirdim ama fotograf ayni" durumu olusur.
+*/
+interface LockEntry {
+  photoId: string;
+  author: string;
+  authorUrl: string;
+  page: string;
+  query?: string;
+}
 type Lock = Record<string, LockEntry>;
 
 const lock: Lock = await readFile(lockPath, 'utf8').then(JSON.parse).catch(() => ({}));
@@ -106,12 +118,15 @@ for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS
     24 yuvanin hepsini yeniden indiriyordu: ikinci calistirmada kota doluyor
     ve elinizde yarim bir set kaliyordu. Yeniden secmek icin --force.
   */
-  if (!force && lock[id] && (await exists(out)) && !only) {
+  const locked = lock[id];
+  const staleQuery = locked !== undefined && locked.query !== spec.query;
+
+  if (!force && locked && !staleQuery && (await exists(out)) && !only) {
     skipped += 1;
     continue;
   }
 
-  let entry = force ? undefined : lock[id];
+  let entry = force || staleQuery ? undefined : locked;
   let photo: UPhoto;
 
   if (entry) {
@@ -131,6 +146,7 @@ for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS
     entry = {
       photoId: pick.id, author: pick.user.name,
       authorUrl: pick.user.links.html, page: pick.links.html,
+      query: spec.query,
     };
     lock[id] = entry;
   }
