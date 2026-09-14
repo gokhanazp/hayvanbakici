@@ -216,7 +216,7 @@ export default async function LandingPage(
         </div>
       </section>
 
-      <div className="container" style={{ paddingBlock: 'var(--space-10)' }}>
+      <div className="container section">
 
         {/* Arz yetersizse bekleme listesi — sayfa noindex olur ama kullaniciya deger sunar */}
         {rule.showWaitlist && (
@@ -233,7 +233,7 @@ export default async function LandingPage(
         )}
 
         {data.sitters.length > 0 && (
-          <section style={{ marginTop: 'var(--space-10)' }}>
+          <section style={{ marginTop: 'var(--space-12)' }}>
             <h2 className="text-h3" style={{ marginBottom: 'var(--space-5)' }}>
               {interpolate(m.search.resultsCount, { count: numberFmt(data.sitterCount, r.locale) })}
             </h2>
@@ -246,7 +246,7 @@ export default async function LandingPage(
         )}
 
         {/* SSS — hem kullanici hem FAQPage semasi hem AI alinti kaynagi */}
-        <section style={{ marginTop: 'var(--space-16)', maxWidth: '48rem' }}>
+        <section style={{ marginTop: 'calc(var(--section-y) * 1.1)', maxWidth: '48rem' }}>
           <h2 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>
             {r.locale === 'fr-CA' ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
@@ -260,7 +260,7 @@ export default async function LandingPage(
           </div>
         </section>
 
-        <section style={{ marginTop: 'var(--space-16)' }}>
+        <section style={{ marginTop: 'calc(var(--section-y) * 1.1)' }}>
           <h2 className="text-h3" style={{ marginBottom: 'var(--space-4)' }}>
             {r.locale === 'fr-CA' ? 'Autres services à ' + name : 'Other services in ' + name}
           </h2>
@@ -277,7 +277,7 @@ export default async function LandingPage(
           </div>
         </section>
 
-        <section style={{ marginTop: 'var(--space-10)' }}>
+        <section style={{ marginTop: 'var(--space-12)' }}>
           <h2 className="text-h3" style={{ marginBottom: 'var(--space-4)' }}>
             {r.locale === 'fr-CA' ? 'Villes à proximité' : 'Nearby cities'}
           </h2>

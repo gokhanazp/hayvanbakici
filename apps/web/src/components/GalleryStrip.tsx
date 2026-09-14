@@ -47,7 +47,7 @@ export function GalleryStrip({
   const hasPhotos = photos.length > 0;
 
   return (
-    <section className="container" style={{ paddingBlock: 'var(--space-16) var(--space-10)' }}>
+    <section className="container section">
       <span className="badge" style={{
         background: 'var(--color-primary-subtle)',
         color: 'var(--color-primary-active)',

@@ -122,7 +122,7 @@ a { color: inherit; text-decoration: none; }
 */
 .hero {
   position: relative;
-  padding-block: var(--space-12) var(--space-24);
+  padding-block: var(--space-12) calc(var(--section-y) * 1.5);
   isolation: isolate;
 }
 .hero-grid {
@@ -830,7 +830,7 @@ a { color: inherit; text-decoration: none; }
 @media (min-width: 1000px) {
   .sitter-page { grid-template-columns: minmax(0, 1fr) 22rem; gap: var(--space-12); align-items: start; }
 }
-.sitter-main { display: grid; gap: var(--space-12); min-width: 0; }
+.sitter-main { display: grid; gap: calc(var(--section-y) * 0.85); min-width: 0; }
 
 .sitter-head { display: flex; gap: var(--space-5); align-items: center; flex-wrap: wrap; }
 .sitter-avatar {
@@ -906,10 +906,24 @@ a { color: inherit; text-decoration: none; }
 .band-round-b { border-end-start-radius: 2.25rem; border-end-end-radius: 2.25rem; }
 .band-round-t { border-start-start-radius: 2.25rem; border-start-end-radius: 2.25rem; }
 
-.section { padding-block: var(--space-14); }
-.section-lg { padding-block: var(--space-16); }
-.section-tight { padding-block: var(--space-10); }
-.section-head { display: grid; gap: var(--space-3); max-width: 44rem; margin-bottom: var(--space-8); }
+/*
+  DIKEY RITIM.
+
+  Bolum boslugu SABIT DEGIL, ekranla buyuyor: telefonda 3,5rem yeterli,
+  1280px'te ayni deger bolumleri birbirine yapistiriyordu. clamp() ile tek
+  yerden yonetiliyor; bir bolumu sikistirmak isteyen carpani degistirir,
+  rastgele bir padding yazmaz.
+
+  NOT: burada bir kez --space-14 (tanimsiz) kullanilmisti ve tarayici
+  bildirimi SESSIZCE atmisti — butun sayfa boyunca dikey bosluk sifirdi.
+  css-vars.test.ts artik bu hatayi yakaliyor.
+*/
+:root { --section-y: clamp(3.5rem, 6vw, 5.75rem); }
+
+.section { padding-block: var(--section-y); }
+.section-lg { padding-block: calc(var(--section-y) * 1.3); }
+.section-tight { padding-block: calc(var(--section-y) * 0.65); }
+.section-head { display: grid; gap: var(--space-3); max-width: 44rem; margin-bottom: var(--space-10); }
 .section-head > h2 { margin: 0; }
 .section-head > p { margin: 0; }
 
@@ -1028,7 +1042,7 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 640px) { .banner-card { margin: var(--space-3); padding: var(--space-6); } }
 
 /* ---------- Sayfa basligi (ic sayfalar) ---------- */
-.page-head { padding-block: var(--space-12) var(--space-10); }
+.page-head { padding-block: var(--space-12) calc(var(--section-y) * 0.9); }
 .page-head-grid {
   display: grid; gap: var(--space-8); align-items: center;
   grid-template-columns: minmax(0, 1fr);
@@ -1094,14 +1108,19 @@ a { color: inherit; text-decoration: none; }
 
 /* Okuma sutunu ~68 karakter; hukuki metin bunun disinda okunmuyor */
 .prose { max-width: 42rem; }
-.prose > * + * { margin-top: var(--space-5); }
-.prose h2 { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.9rem; letter-spacing: -0.03em; font-weight: 600; margin-top: var(--space-10); }
-.prose h3 { font-size: 1.0625rem; font-weight: 600; margin-top: var(--space-6); }
+.prose > * + * { margin-top: var(--space-6); }
+.prose h2 { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.9rem; letter-spacing: -0.03em; font-weight: 600; margin-top: var(--space-14); }
+/* Baslik kendi paragrafina YAKIN, bir onceki bloktan UZAK durmali;
+   esit bosluk, basligin hangi metne ait oldugunu belirsiz birakiyor. */
+.prose h2 + * { margin-top: var(--space-4); }
+.prose h3 { font-size: 1.0625rem; font-weight: 600; margin-top: var(--space-8); }
+.prose h3 + * { margin-top: var(--space-3); }
+.prose > section + section { margin-top: 0; }
 .prose p { line-height: 1.65rem; }
 .prose ul, .prose ol { display: grid; gap: var(--space-2); padding-inline-start: var(--space-5); }
 .prose li { line-height: 1.6rem; }
 .prose a { color: var(--color-primary-hover); text-decoration: underline; text-underline-offset: 2px; }
-.prose dl { display: grid; gap: var(--space-4); }
+.prose dl { display: grid; gap: var(--space-6); }
 .prose dt { font-weight: 600; }
 .prose dd { margin: var(--space-1) 0 0; color: var(--color-ink-secondary); }
 .prose table { width: 100%; border-collapse: collapse; }

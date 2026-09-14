@@ -18,7 +18,9 @@ export function FeatureCards({ locale }: { locale: Locale }) {
   const m = getMessages(locale);
 
   return (
-    <section className="container" style={{ paddingBlock: 'var(--space-10)' }}>
+    /* Bolum boslugu .section'dan gelir — bu blok bir bandin icinde yasiyor
+       ve kendi padding'ini yazsaydi banttaki ritim diger bolumlerden kayardi. */
+    <section className="container section">
       <span className="badge" style={{
         background: 'var(--color-accent-subtle)',
         color: 'var(--color-accent-hover)',
