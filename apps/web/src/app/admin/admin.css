@@ -11,9 +11,10 @@
   gibi gosteriyordu. Ayrim RENKLE degil YERLESIMLE yapiliyor: sol sabit
   menu, yogun tablolar, pazarlama bantlari ve hero yok.
 
-  TIPOGRAFI: govde 14px (sitede 15px). 13px denendi; o boyutta rakamlar
-  ve basliklar eziliyordu. Basliklar ve buyuk rakamlar display ailesinden,
-  sayi sutunlari tabular.
+  TIPOGRAFI: Inter, 14px govde. Sitenin Bricolage + Schibsted ikilisi
+  burada KULLANILMIYOR — marka yazi tipi pazarlama sayfasinda karakter
+  katar, tablo ekraninda ise notrluk gerekir. Basliklar da Inter, sadece
+  daha siki harf araligiyla; rakam tasiyan her sutun tabular.
 
   Dokunma hedefleri 36px'in altina inmiyor.
 */
@@ -43,48 +44,74 @@
 
 /* ---------------------------------------------------------- yerlesim */
 
+/*
+  Sol sutun AUTO: menu daralinca (72px) icerik kendiliginden genisliyor.
+  Sabit 248px yazilsaydi daraltma dugmesi bosluk birakmaktan baska ise
+  yaramazdi.
+*/
 .a-shell {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   min-height: 100vh;
 }
+.a-side { width: 248px; }
 
 .a-side {
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
-  padding: var(--space-5) var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-3) var(--space-4);
   display: flex; flex-direction: column; gap: 2px;
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
 }
 
 .a-brand {
   display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-1) var(--space-3) var(--space-6);
-  font-family: var(--font-display);
-  font-weight: 800; font-size: 1.25rem; letter-spacing: -0.035em;
+  padding: var(--space-1) 0 var(--space-5) var(--space-2);
+  min-height: 40px;
 }
-.a-brand span {
-  font-family: var(--font-ui);
-  font-size: 0.625rem; font-weight: 600;
-  letter-spacing: .09em; text-transform: uppercase;
+.a-brand-mark {
+  display: inline-flex; align-items: baseline; gap: var(--space-2);
+  font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.03em;
+  white-space: nowrap; overflow: hidden;
+}
+.a-brand-mark:hover { text-decoration: none; }
+.a-brand-mark span {
+  font-size: 0.5625rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
   color: var(--color-primary-active);
   background: var(--color-primary-subtle);
   border-radius: var(--radius-full);
-  padding: 3px 8px;
+  padding: 3px 7px;
+}
+
+/* Daraltma dugmesi: ikon-only, 32px kare, menunun sag ust kosesinde */
+.a-collapse {
+  margin-left: auto; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border: 1px solid transparent; border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-ink-muted); cursor: pointer;
+}
+.a-collapse:hover { background: var(--color-surface-sunken); color: var(--color-ink); }
+
+.a-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 
 .a-navlabel {
   font-size: 0.6875rem; font-weight: 600;
-  letter-spacing: .1em; text-transform: uppercase;
+  letter-spacing: .08em; text-transform: uppercase;
   color: var(--color-ink-muted);
   padding: var(--space-5) var(--space-3) var(--space-2);
 }
 
 .a-nav {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  display: flex; align-items: center; gap: var(--space-3);
   min-height: 38px; padding: 0 var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-ink-secondary);
+  position: relative;
   transition: background var(--duration-micro) var(--easing-standard);
 }
 .a-nav:hover {
@@ -97,20 +124,57 @@
   color: var(--color-primary-active);
   font-weight: 600;
 }
+.a-nav-icon { flex: none; display: inline-flex; color: currentColor; }
+.a-nav.is-active .a-nav-icon { color: var(--color-primary); }
+.a-nav-label { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
+.a-nav-quiet { color: var(--color-ink-muted); font-size: 0.8125rem; }
+
 /* Bekleyen is sayisi menude: gunun basinda ilk bakilan yer burasi */
 .a-nav b {
+  flex: none;
   font-size: 0.6875rem; font-weight: 700; line-height: 1;
   min-width: 20px; text-align: center;
   padding: 4px 6px; border-radius: var(--radius-full);
   background: var(--color-primary); color: var(--color-primary-on);
+  font-variant-numeric: tabular-nums;
 }
 
+/* ---- daraltilmis menu ---- */
+.a-side.is-narrow { width: 72px; padding-left: var(--space-2); padding-right: var(--space-2); }
+.a-side.is-narrow .a-nav { justify-content: center; padding: 0; }
+.a-side.is-narrow .a-nav-label,
+.a-side.is-narrow .a-navlabel,
+.a-side.is-narrow .a-side-email,
+.a-side.is-narrow .a-nav b { display: none; }
+/*
+  Daralinca marka YAZISI da gidiyor. Kirpilmis bir kelime ("havr…") ya da
+  altinda tek basina duran bir ok, ikisi de dagilmis gorunuyordu; geriye
+  yalnizca ortalanmis genisletme dugmesi kaliyor.
+*/
+.a-side.is-narrow .a-brand-mark { display: none; }
+.a-side.is-narrow .a-brand { padding: 0 0 var(--space-4); justify-content: center; }
+.a-side.is-narrow .a-collapse { margin: 0; }
+/*
+  Daralinca sayi kayboluyor ama BEKLEYEN IS kaybolmuyor: ikonun kosesinde
+  bir nokta kaliyor. Gorunmez hale gelen bir uyari, uyari degildir.
+*/
+.a-side.is-narrow .a-nav.has-dot::after {
+  content: ''; position: absolute; top: 7px; right: 13px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+.a-side.is-narrow ~ .a-main { min-width: 0; }
+
 .a-side-foot {
-  margin-top: auto; padding: var(--space-4) var(--space-3) 0;
+  margin-top: auto; padding: var(--space-4) 0 0;
   border-top: 1px solid var(--color-border);
   font-size: 0.75rem; color: var(--color-ink-muted);
 }
-.a-side-foot p + p { margin-top: var(--space-2); }
+.a-side-email {
+  padding: 0 var(--space-3) var(--space-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 .a-main { min-width: 0; display: flex; flex-direction: column; }
 
@@ -121,9 +185,8 @@
   background: var(--color-surface);
 }
 .a-top h1 {
-  font-family: var(--font-display);
-  font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em;
-  line-height: 1.2;
+  font-size: 1.375rem; font-weight: 650; letter-spacing: -0.022em;
+  line-height: 1.25;
 }
 .a-top p {
   color: var(--color-ink-muted); font-size: 0.8125rem; line-height: 1.5;
@@ -143,8 +206,11 @@
     overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   .a-side::-webkit-scrollbar { display: none; }
-  .a-brand { padding: 0 var(--space-3) 0 var(--space-1); flex: none; }
-  .a-nav { flex: none; }
+  .a-side, .a-side.is-narrow { width: auto; padding: var(--space-3); }
+  .a-brand { padding: 0 var(--space-3) 0 0; flex: none; }
+  .a-collapse { display: none; }
+  .a-nav, .a-side.is-narrow .a-nav { flex: none; justify-content: flex-start; padding: 0 var(--space-3); }
+  .a-side.is-narrow .a-nav-label { display: inline; }
   .a-navlabel, .a-side-foot { display: none; }
   .a-top { padding: var(--space-5) var(--space-4) var(--space-4); }
   .a-content { padding: var(--space-5) var(--space-4) var(--space-12); }
@@ -159,10 +225,7 @@
   padding: var(--space-5);
   box-shadow: var(--shadow-sm);
 }
-.a-card h2 {
-  font-family: var(--font-ui);
-  font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.01em;
-}
+.a-card h2 { font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.012em; }
 
 .a-grid { display: grid; gap: var(--space-4); }
 .a-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
@@ -183,10 +246,9 @@
   text-transform: uppercase; color: var(--color-ink-muted);
 }
 .a-stat .v {
-  font-family: var(--font-display);
-  font-size: 1.875rem; font-weight: 700; letter-spacing: -0.035em;
+  font-size: 1.75rem; font-weight: 650; letter-spacing: -0.028em;
   font-variant-numeric: tabular-nums;
-  margin-top: var(--space-2); line-height: 1.1;
+  margin-top: var(--space-2); line-height: 1.15;
 }
 .a-stat .d { font-size: 0.75rem; margin-top: var(--space-2); }
 .a-up { color: var(--color-accent-hover); font-weight: 600; }

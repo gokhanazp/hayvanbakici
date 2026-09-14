@@ -10,11 +10,25 @@
  * Sabit genislikli buton/etiket kullanmayin; iki satira tasmayi her bilesen kaldirmali.
  */
 
+/**
+ * DIKKAT — `--font-ui` KENDI ICINDE var(--font-ui) CAGIRMAZ.
+ *
+ * Onceden soyleydi:  --font-ui: var(--font-ui), 'Helvetica Neue', ...
+ * Bu bir DONGU. next/font ayni degiskeni <html> uzerinde tanimladigi icin
+ * cogu sayfada kazara calisiyordu: hangi bildirimin sonra geldigine
+ * bagliydi. Yonetici panelinde sira degisti, dongu olustu ve tarayici
+ * bildirimi sessizce atti — butun panel Times New Roman'a dustu.
+ *
+ * Artik iki ayri ad var: next/font KAYNAK degiskeni (`--font-ui-src`)
+ * yaziyor, token onu SARIYOR. Sira ne olursa olsun dongu yok. Bu ayrica
+ * iki agacin farkli yazi tipi kullanmasini mumkun kiliyor: site
+ * Schibsted, /admin Inter.
+ */
 export const fontFamily = {
   /** Baslik ve buyuk sayilar. Agirlik 600-800, siki tracking ile kullanilir. */
-  display: "var(--font-display), 'Helvetica Neue', Arial, sans-serif",
+  display: "var(--font-display-src), 'Helvetica Neue', Arial, sans-serif",
   /** Tum arayuz metni. */
-  ui: "var(--font-ui), 'Helvetica Neue', Arial, sans-serif",
+  ui: "var(--font-ui-src), 'Helvetica Neue', Arial, sans-serif",
   mono: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace",
 } as const;
 

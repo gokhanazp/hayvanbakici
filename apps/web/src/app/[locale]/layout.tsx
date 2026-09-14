@@ -29,14 +29,14 @@ import { organizationJsonLd, SITE_URL } from '@/lib/seo';
  */
 const display = localFont({
   src: '../fonts/bricolage-grotesque-latin-wght-normal.woff2',
-  variable: '--font-display',
+  variable: '--font-display-src',
   display: 'swap',
   weight: '200 800',
 });
 
 const ui = localFont({
   src: '../fonts/schibsted-grotesk-latin-wght-normal.woff2',
-  variable: '--font-ui',
+  variable: '--font-ui-src',
   display: 'swap',
   weight: '400 900',
 });

@@ -19,26 +19,40 @@ import { AdminNav } from '@/components/admin/AdminNav';
  *     (Ingilizce) tutuluyor. Bill 96 MUSTERIYE sunulan arayuzu baglar;
  *     ekibin kendi araci ayri bir mesele ve iki dilde bir panel, iki kat
  *     bakim ve iki kat "ceviri eksik" hatasi demekti.
- *  3. Tema SITENIN kendisi. Panel icin ayri bir arduvaz palet denendi ve
- *     geri alindi: ayni urunun iki renk dunyasi olmasi paneli "baska bir
- *     yazilim" gibi gosteriyordu. Ayrim renkle degil yerlesimle.
+ *  3. RENK sitenin kendisi, YAZI TIPI degil. Panel icin ayri bir arduvaz
+ *     palet denendi ve geri alindi (ayni urunun iki renk dunyasi olmasi
+ *     paneli "baska bir yazilim" gibi gosteriyordu); ayrim renkle degil
+ *     yerlesimle ve tipografiyle yapiliyor.
  *
  * Yetki kontrolu BURADA: her alt sayfa ayrica requireAdmin cagiriyor
  * (duzen kontrolune guvenip sayfada atlamak, bir gun birinin unutmasiyla
  * acik kapi birakir), ama menunun bile cizilmemesi icin ilk kapi bu.
  */
-const display = localFont({
-  src: '../fonts/bricolage-grotesque-latin-wght-normal.woff2',
-  variable: '--font-display',
+/*
+  PANELDE TEK YAZI TIPI: Inter.
+
+  Sitenin yazi tipleri (Bricolage + Schibsted) burada KULLANILMIYOR.
+  Marka yazi tipi bir pazarlama sayfasinda karakter katar; gunde saatlerce
+  bakilan bir tablo ekraninda istenen sey karakter degil NOTRLUK —
+  rakamlarin ayni genislikte hizalanmasi, kucuk puntoda kirilmamasi,
+  basliklarin dikkat dagitmamasi. Inter degisken agirlikli tek bir dosya
+  (48 KB) ve sitedeki fontlarla ayni yolla kendi sunucumuzdan gidiyor.
+
+  Iki degisken de Inter'e baglaniyor: ortak bilesenler `--font-display`
+  kullaniyor ve panelde iki ayri aile gormek istemiyoruz.
+*/
+const inter = localFont({
+  src: '../fonts/inter-latin-wght-normal.woff2',
+  variable: '--font-ui-src',
   display: 'swap',
-  weight: '200 800',
+  weight: '100 900',
 });
 
-const ui = localFont({
-  src: '../fonts/schibsted-grotesk-latin-wght-normal.woff2',
-  variable: '--font-ui',
+const interDisplay = localFont({
+  src: '../fonts/inter-latin-wght-normal.woff2',
+  variable: '--font-display-src',
   display: 'swap',
-  weight: '400 900',
+  weight: '100 900',
 });
 
 export const dynamic = 'force-dynamic';
@@ -55,7 +69,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const counts = await getAdminCounts();
 
   return (
-    <html lang="en" className={`${display.variable} ${ui.variable}`}>
+    <html lang="en" className={`${inter.variable} ${interDisplay.variable}`}>
       <body className="a-body">
         <a href="#a-main" className="a-btn a-btn-ghost" style={{
           position: 'absolute', left: -9999, top: 0,

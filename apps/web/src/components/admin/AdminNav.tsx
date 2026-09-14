@@ -1,18 +1,21 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Icon, type IconName } from './icons';
 
 /**
  * SOL MENU.
  *
- * Istemci bileseni olmasinin tek sebebi `usePathname`: aktif satiri
- * isaretlemek icin. Veri almiyor, durum tutmuyor.
+ * Istemci bileseni olmasinin iki sebebi var: aktif satiri isaretlemek
+ * (`usePathname`) ve daraltma tercihini hatirlamak. Veri cekmiyor.
  *
  * BEKLEYEN IS SAYILARI MENUDE. Bir yonetici gunun basinda menuye bakar;
  * "3 basvuru, 2 sikayet bekliyor" bilgisi ancak ilk bakilan yerde ise
  * yarar. Gosterge panelini acmayi gerektiren bir uyari, uyari degildir.
+ * Menu daraldiginda sayi, ikonun kosesinde bir noktaya donusuyor —
+ * bekleyen is hicbir durumda gorunmez olmuyor.
  */
 export interface AdminCounts {
   applications: number;
@@ -21,39 +24,83 @@ export interface AdminCounts {
 }
 
 /**
- * Menu IKI BOLUME ayrildi. Duz bir yedi maddelik liste, hepsini esit
+ * Menu IKI BOLUME ayrildi. Duz bir yedi maddelik liste hepsini esit
  * onemde gosteriyordu; oysa ust grup gunluk isin yapildigi yer, alt grup
- * denetim. Baslikli gruplar aramayi da hizlandiriyor.
+ * denetim.
  */
-const GROUPS = [
+const GROUPS: ReadonlyArray<{
+  label: string | null;
+  items: ReadonlyArray<{ href: string; label: string; icon: IconName; badge?: keyof AdminCounts }>;
+}> = [
   {
     label: null,
-    items: [{ href: '/admin/', label: 'Dashboard' }],
+    items: [{ href: '/admin/', label: 'Dashboard', icon: 'dashboard' }],
   },
   {
     label: 'Operations',
     items: [
-      { href: '/admin/applications/', label: 'Applications', badge: 'applications' },
-      { href: '/admin/users/', label: 'Users' },
-      { href: '/admin/bookings/', label: 'Bookings', badge: 'requestedBookings' },
+      { href: '/admin/applications/', label: 'Applications', icon: 'applications', badge: 'applications' },
+      { href: '/admin/users/', label: 'Users', icon: 'users' },
+      { href: '/admin/bookings/', label: 'Bookings', icon: 'bookings', badge: 'requestedBookings' },
     ],
   },
   {
     label: 'Oversight',
     items: [
-      { href: '/admin/reviews/', label: 'Reviews' },
-      { href: '/admin/reports/', label: 'Reports', badge: 'reports' },
-      { href: '/admin/audit/', label: 'Audit log' },
+      { href: '/admin/reviews/', label: 'Reviews', icon: 'reviews' },
+      { href: '/admin/reports/', label: 'Reports', icon: 'reports', badge: 'reports' },
+      { href: '/admin/audit/', label: 'Audit log', icon: 'audit' },
     ],
   },
-] as const;
+];
+
+const STORE_KEY = 'havre.admin.nav';
 
 export function AdminNav({ counts, email }: { counts: AdminCounts; email: string }) {
   const pathname = usePathname() ?? '/admin/';
 
+  /*
+    Daraltma tercihi TARAYICIDA saklaniyor, sunucuda degil: bu bir kisinin
+    o bilgisayardaki goruntuleme tercihi, hesabinin bir ozelligi degil.
+
+    Ilk cizim her zaman GENIS. Sunucunun bilemedigi bir degerle render
+    etmek hydration uyusmazligi olurdu; tercih bagli olduktan sonra
+    uygulaniyor.
+  */
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(window.localStorage.getItem(STORE_KEY) === 'collapsed');
+    } catch { /* gizli sekme / kapali depolama: genis kalir */ }
+  }, []);
+
+  const toggle = () => {
+    setCollapsed((was) => {
+      const next = !was;
+      try {
+        window.localStorage.setItem(STORE_KEY, next ? 'collapsed' : 'wide');
+      } catch { /* onemli degil */ }
+      return next;
+    });
+  };
+
   return (
-    <nav className="a-side" aria-label="Admin sections">
-      <p className="a-brand">havre <span>internal</span></p>
+    <nav className={`a-side${collapsed ? ' is-narrow' : ''}`} aria-label="Admin sections">
+      <div className="a-brand">
+        <Link href="/admin/" className="a-brand-mark">
+          havre<span>internal</span>
+        </Link>
+        <button
+          type="button"
+          className="a-collapse"
+          onClick={toggle}
+          aria-pressed={collapsed}
+          title={collapsed ? 'Expand menu' : 'Collapse menu'}
+        >
+          <Icon name={collapsed ? 'expand' : 'collapse'} />
+          <span className="a-sr">{collapsed ? 'Expand menu' : 'Collapse menu'}</span>
+        </button>
+      </div>
 
       {GROUPS.map((group) => (
         <Fragment key={group.label ?? 'top'}>
@@ -62,16 +109,18 @@ export function AdminNav({ counts, email }: { counts: AdminCounts; email: string
             const active = item.href === '/admin/'
               ? pathname === '/admin' || pathname === '/admin/'
               : pathname.startsWith(item.href.slice(0, -1));
-            const n = 'badge' in item ? counts[item.badge as keyof AdminCounts] : 0;
+            const n = item.badge ? counts[item.badge] : 0;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`a-nav${active ? ' is-active' : ''}`}
+                className={`a-nav${active ? ' is-active' : ''}${n > 0 ? ' has-dot' : ''}`}
                 aria-current={active ? 'page' : undefined}
+                title={collapsed ? item.label : undefined}
               >
-                <span>{item.label}</span>
-                {n > 0 && <b aria-label={`${n} waiting`}>{n}</b>}
+                <span className="a-nav-icon"><Icon name={item.icon} /></span>
+                <span className="a-nav-label">{item.label}</span>
+                {n > 0 && <b>{n}</b>}
               </Link>
             );
           })}
@@ -79,14 +128,13 @@ export function AdminNav({ counts, email }: { counts: AdminCounts; email: string
       ))}
 
       <div className="a-side-foot">
-        <p>{email}</p>
-        {/*
-          Siteye donus baglantisi: panel siteden ayri bir uygulama gibi
-          davraniyor, kapisi da acikca gorunmeli.
-        */}
-        <p>
-          <Link href="/en/">← Back to the site</Link>
-        </p>
+        <p className="a-side-email" title={email}>{email}</p>
+        {/* Siteye donus: panel ayri bir uygulama gibi davraniyor, kapisi
+            da acikca gorunmeli. */}
+        <Link href="/en/" className="a-nav a-nav-quiet">
+          <span className="a-nav-icon"><Icon name="back" /></span>
+          <span className="a-nav-label">Back to the site</span>
+        </Link>
       </div>
     </nav>
   );

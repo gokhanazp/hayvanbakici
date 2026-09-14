@@ -18,6 +18,13 @@ Québec Law 25 açısından gereksiz bir PIA yükü yaratır.
 |---|---|---|
 | `bricolage-grotesque-latin-wght-normal.woff2` | `@fontsource-variable/bricolage-grotesque` | 5.3.0 |
 | `schibsted-grotesk-latin-wght-normal.woff2` | `@fontsource-variable/schibsted-grotesk` | 5.3.0 |
+| `inter-latin-wght-normal.woff2` | `@fontsource-variable/inter` | 5.3.0 |
+
+Ilk ikisi SITENIN yazi tipleri. **Inter yalnizca `/admin` altinda** kullaniliyor:
+marka yazi tipleri bir pazarlama sayfasinda karakter katiyor, ama gunde
+saatlerce bakilacak bir tablo ekraninda karakter degil NOTRLUK isteniyor —
+rakamlarin ayni genislikte hizalanmasi, kucuk puntoda kirilmamasi. Panelde
+Bricolage hic kullanilmiyor.
 
 İkisi de **SIL Open Font License 1.1** — lisans metinleri bu klasörde.
 
@@ -25,7 +32,8 @@ Québec Law 25 açısından gereksiz bir PIA yükü yaratır.
 
 ```bash
 npm install -D -w @havre/web @fontsource-variable/bricolage-grotesque@latest \
-                             @fontsource-variable/schibsted-grotesk@latest
+                             @fontsource-variable/schibsted-grotesk@latest \
+                             @fontsource-variable/inter@latest
 npm run fonts:sync -w @havre/web
 ```
 
