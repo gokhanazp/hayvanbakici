@@ -143,3 +143,29 @@ export const sitters = pgTable(
     uniqueIndex('sitters_referral_code_uq').on(t.referralCode),
   ],
 );
+
+/**
+ * BAKICI FOTOGRAFLARI — profil sayfasindaki ev/ortam galerisi.
+ *
+ * NEDEN AYRI TABLO, profiles'ta bir dizi degil: her fotografin kendi
+ * alternatif metni, sirasi ve silinme zamani var; birini kaldirmak digerlerini
+ * yeniden yazmayi gerektirmemeli. Ayrica moderasyon (uygunsuz icerik) tek
+ * fotograf seviyesinde calisir.
+ *
+ * GIZLILIK: ev fotograflari YAKLASIK konumla birlikte gosterilir, tam adresle
+ * degil. Fotografin kendisi adresi ele verebilir (kapi numarasi, sokak
+ * tabelasi) — bakiciya yukleme ekraninda bu uyari gosterilir.
+ */
+export const sitterPhotos = pgTable(
+  'sitter_photos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sitterId: uuid('sitter_id').notNull().references(() => sitters.userId, { onDelete: 'cascade' }),
+    url: text('url').notNull(),
+    /** Ekran okuyucu icin — bakicinin kendi yazdigi aciklama */
+    alt: text('alt'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('sitter_photos_sitter_idx').on(t.sitterId, t.sortOrder)],
+);

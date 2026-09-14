@@ -7,6 +7,8 @@ import {
   type Locale, type Messages,
 } from '@havre/i18n';
 import { VerificationBadge, ShieldIcon } from '@/components/VerificationBadge';
+import { Avatar } from '@/components/Avatar';
+import { SitterGallery } from '@/components/SitterGallery';
 import { getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
@@ -103,18 +105,21 @@ export default async function SitterPage({
 
   return (
     <>
-      <div className="container" style={{ paddingBlock: 'var(--space-6) 0' }}>
-        <Link href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/${serviceSlug('boarding', locale)}/`}
-          className="text-body-sm muted">
-          ← {interpolate(m.sitter.backToCity, { city: cityName(sitter, locale) })}
-        </Link>
-      </div>
+      {/*
+        KIMLIK BLOGU RENKLI BANTTA — ana sayfa ve sehir sayfasiyla ayni dil.
+        Bant, "bu bir kisinin sayfasi" bilgisini sayfanin geri kalanindan
+        (hizmetler, yorumlar) gorsel olarak ayiriyor.
+      */}
+      <section className="band band-blush band-round-b">
+        <div className="container" style={{ paddingBlock: 'var(--space-6) var(--space-10)' }}>
+          <Link href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/${serviceSlug('boarding', locale)}/`}
+            className="text-body-sm muted">
+            ← {interpolate(m.sitter.backToCity, { city: cityName(sitter, locale) })}
+          </Link>
 
-      <section className="container sitter-page">
-        <div className="sitter-main">
-          {/* --- Kimlik --- */}
-          <header className="sitter-head">
-            <span className="sitter-avatar" aria-hidden="true">{sitter.photoInitials}</span>
+          <header className="sitter-head" style={{ marginTop: 'var(--space-6)' }}>
+            {/* Fotograf varsa fotograf, yoksa bas harfler */}
+            <Avatar src={sitter.avatarUrl} initials={sitter.photoInitials} size={92} className="sitter-avatar" />
             <div style={{ minWidth: 0 }}>
               <h1 className="text-h1" style={{ margin: 0 }}>{name}</h1>
               <p className="muted" style={{ marginTop: 'var(--space-1)' }}>{where}</p>
@@ -136,12 +141,19 @@ export default async function SitterPage({
             etiket diye kullanmak ("Replies in about") Ingilizce'de yarim
             cumle, Fransizca'da ise dogrudan yanlis uretiyordu.
           */}
-          <ul className="sitter-stats">
+          <ul className="sitter-stats sitter-stats-on-band" style={{ marginTop: 'var(--space-8)' }}>
             <Stat value={numberFmt(sitter.completedBookings, locale)} label={m.sitter['stat.completed']} />
             <Stat value={numberFmt(sitter.repeatClients, locale)} label={m.sitter['stat.repeat']} />
             <Stat value={responseTime(sitter.medianResponseMinutes, locale)} label={m.sitter['stat.responds']} />
             <Stat value={`${Math.round(sitter.acceptanceRate * 100)}%`} label={m.sitter['stat.acceptance']} />
           </ul>
+        </div>
+      </section>
+
+      <section className="container sitter-page">
+        <div className="sitter-main">
+          {/* Ev fotograflari — sahiplerin ilk sorusu "kopegim nerede kalacak" */}
+          <SitterGallery locale={locale} photos={sitter.photos} name={sitter.firstName} />
 
           {sitter.bio && (
             <section>
@@ -231,8 +243,15 @@ export default async function SitterPage({
                   {sitter.reviews.map((r) => (
                     <article key={r.id} className="card card-pad">
                       <div className="row" style={{ justifyContent: 'space-between' }}>
-                        <span style={{ fontWeight: 600 }}>
-                          {r.authorFirstName} {r.authorInitial}.
+                        <span className="row" style={{ gap: 'var(--space-3)' }}>
+                          <Avatar
+                            src={r.authorAvatarUrl}
+                            initials={`${r.authorFirstName.slice(0, 1)}${r.authorInitial}`}
+                            size={36}
+                          />
+                          <span style={{ fontWeight: 600 }}>
+                            {r.authorFirstName} {r.authorInitial}.
+                          </span>
                         </span>
                         <span className="tabular text-body-sm">
                           {'★'.repeat(r.rating)}

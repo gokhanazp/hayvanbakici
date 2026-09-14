@@ -25,6 +25,7 @@ export interface SitterReview {
   body: string | null;
   authorFirstName: string;
   authorInitial: string;
+  authorAvatarUrl: string | null;
   publishedAt: string;
   responseBody: string | null;
 }
@@ -48,6 +49,9 @@ export interface SitterProfile {
   lastNameInitial: string;
   bio: string | null;
   photoInitials: string;
+  avatarUrl: string | null;
+  /** Ev/ortam galerisi — sitter_photos, sirali */
+  photos: Array<{ url: string; alt: string | null }>;
 
   citySlugEn: string;
   citySlugFr: string;
@@ -91,7 +95,7 @@ export async function getSitterProfile(
         st.median_response_minutes, st.acceptance_rate, st.home_type,
         st.has_yard, st.yard_fenced, st.has_own_pets, st.smoke_free,
         st.max_concurrent_pets, st.activated_at, st.created_at,
-        p.first_name, p.last_name_initial, p.bio, p.province,
+        p.first_name, p.last_name_initial, p.bio, p.province, p.avatar_url,
         c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
         c.name_en AS city_name_en, c.name_fr AS city_name_fr,
         COALESCE(n.name_en, '') AS hood_en, COALESCE(n.name_fr, '') AS hood_fr
@@ -110,7 +114,7 @@ export async function getSitterProfile(
     if (!row) return null;
     const userId = String(row.user_id);
 
-    const [svcRows, reviewRows, statRows] = await Promise.all([
+    const [svcRows, reviewRows, statRows, photoRows] = await Promise.all([
       db.execute(sql`
         SELECT service_type, price_cents, price_unit, cancellation_policy,
                accepts_dogs, accepts_cats, accepts_other,
@@ -121,7 +125,7 @@ export async function getSitterProfile(
       `),
       db.execute(sql`
         SELECT r.id, r.rating, r.body, r.published_at, r.response_body,
-               p.first_name, p.last_name_initial
+               p.first_name, p.last_name_initial, p.avatar_url
         FROM reviews r
         -- LEFT JOIN sart: yazarin profil satiri eksikse yorum DUSMEMELI.
         -- Iç birlestirmeyle 21 yorumun 21'i sessizce kayboluyordu ve sayfa
@@ -150,6 +154,12 @@ export async function getSitterProfile(
               AND a.status = 'open'
               AND a.date BETWEEN CURRENT_DATE AND CURRENT_DATE + 30) AS open_days
       `),
+      db.execute(sql`
+        SELECT url, alt FROM sitter_photos
+        WHERE sitter_id = ${userId}
+        ORDER BY sort_order ASC
+        LIMIT 6
+      `),
     ]);
 
     const stats = (statRows as unknown as Array<Record<string, unknown>>)[0] ?? {};
@@ -164,6 +174,11 @@ export async function getSitterProfile(
       lastNameInitial: initial,
       bio: (row.bio as string | null) ?? null,
       photoInitials: `${first.slice(0, 1)}${initial}`.toUpperCase(),
+      avatarUrl: (row.avatar_url as string | null) ?? null,
+      photos: (photoRows as unknown as Array<Record<string, unknown>>).map((ph) => ({
+        url: String(ph.url),
+        alt: (ph.alt as string | null) ?? null,
+      })),
 
       citySlugEn: String(row.city_slug_en),
       citySlugFr: String(row.city_slug_fr),
@@ -209,6 +224,7 @@ export async function getSitterProfile(
         // Gizlilik: yorum yazan da yalnizca ad + bas harf
         authorFirstName: String(r.first_name ?? ''),
         authorInitial: String(r.last_name_initial ?? ''),
+        authorAvatarUrl: (r.avatar_url as string | null) ?? null,
         publishedAt: new Date(r.published_at as Date).toISOString(),
         responseBody: (r.response_body as string | null) ?? null,
       })),
@@ -242,6 +258,89 @@ export async function listSitterSlugsForBuild(
       slug: String(r.slug),
       citySlugEn: String(r.city_slug_en),
       citySlugFr: String(r.city_slug_fr),
+    }));
+  });
+}
+
+/**
+ * ANA SAYFA REFERANSLARI.
+ *
+ * Uydurma alinti YOK: bunlar sitede yazilmis gercek yorum satirlarindan
+ * geliyor (tohum veride demo yorumlar, canlida gercek musteriler). Ana
+ * sayfaya elle "musterilerimiz ne diyor" metni yazmak, hicbir zaman
+ * dogrulanamayacak bir iddia olurdu; bu sorgu sayesinde ana sayfadaki
+ * referans, bakici profilindeki yorumla AYNI kaynaktan gelir.
+ *
+ * Yalnizca 5 yildizli, govdesi yeterince uzun ve YAYIMLANMIS yorumlar.
+ */
+export interface FeaturedReview {
+  id: string;
+  rating: number;
+  body: string;
+  authorFirstName: string;
+  authorInitial: string;
+  authorAvatarUrl: string | null;
+  sitterFirstName: string;
+  sitterSlug: string;
+  citySlugEn: string;
+  citySlugFr: string;
+  cityNameEn: string;
+  cityNameFr: string;
+  publishedAt: string;
+}
+
+export async function listFeaturedReviews(
+  db: Database, limit = 3,
+): Promise<FeaturedReview[]> {
+  return withDbErrors(async () => {
+    /*
+      DISTINCT ON (r.body): ilk denemede uc referansin UCU DE ayni cumleydi.
+      Tohum verideki yorum havuzu kucuk ve en yeni uc bes yildizli yorum ayni
+      metni tasiyabiliyor; canlida da iki musteri ayni sablonu yazabilir.
+      Ayni ovguyu uc kez gostermek, referansin inandiriciligini bitirir.
+    */
+    const rows = await db.execute(sql`
+      SELECT * FROM (
+      SELECT DISTINCT ON (r.body)
+             r.id, r.rating, r.body, r.published_at,
+             a.first_name AS author_first, a.last_name_initial AS author_initial,
+             a.avatar_url AS author_avatar,
+             sp.first_name AS sitter_first, st.slug AS sitter_slug,
+             c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
+             c.name_en AS city_name_en, c.name_fr AS city_name_fr
+      FROM reviews r
+      JOIN sitters st ON st.user_id = r.subject_id AND st.status = 'active'
+      JOIN profiles sp ON sp.user_id = st.user_id
+      JOIN cities c ON c.id = sp.city_id
+      LEFT JOIN profiles a ON a.user_id = r.author_id
+      WHERE r.direction = 'owner_to_sitter'
+        AND r.published_at IS NOT NULL
+        AND r.rating = 5
+        AND st.slug IS NOT NULL
+        -- Alt sinir 90 idi ve tohum yorumlarinin tamami 63-91 karakterdi:
+        -- filtreden tek bir cumle geciyordu, ana sayfada da tek referans
+        -- kartı cikiyordu. Alt sinir kisa "harika, tesekkurler" tipi
+        -- yorumlari eler; ust sinir kartin tasmasini onler.
+        AND length(COALESCE(r.body, '')) BETWEEN 55 AND 320
+      ORDER BY r.body, r.published_at DESC
+      ) d
+      ORDER BY d.published_at DESC
+      LIMIT ${limit}
+    `);
+    return (rows as unknown as Array<Record<string, unknown>>).map((r) => ({
+      id: String(r.id),
+      rating: Number(r.rating),
+      body: String(r.body ?? ''),
+      authorFirstName: String(r.author_first ?? ''),
+      authorInitial: String(r.author_initial ?? ''),
+      authorAvatarUrl: (r.author_avatar as string | null) ?? null,
+      sitterFirstName: String(r.sitter_first ?? ''),
+      sitterSlug: String(r.sitter_slug ?? ''),
+      citySlugEn: String(r.city_slug_en),
+      citySlugFr: String(r.city_slug_fr),
+      cityNameEn: String(r.city_name_en),
+      cityNameFr: String(r.city_name_fr),
+      publishedAt: new Date(r.published_at as Date).toISOString(),
     }));
   });
 }

@@ -8,7 +8,9 @@
     "start": "node --env-file-if-exists=../../.env scripts/next.mjs start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "next lint",
-    "fonts:sync": "cp ../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 src/app/fonts/"
+    "fonts:sync": "cp ../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 src/app/fonts/",
+    "photos:placeholders": "tsx scripts/make-photo-placeholders.mts",
+    "photos:fetch": "tsx --env-file-if-exists=../../.env scripts/fetch-photos.mts"
   },
   "dependencies": {
     "@havre/core": "0.1.0",
@@ -28,6 +30,7 @@
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "sharp": "^0.35.4"
   }
 }

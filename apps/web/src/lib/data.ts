@@ -8,16 +8,16 @@
 import { cache } from 'react';
 import {
   getDb, listCities, listTier1Cities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
-  getSitterProfile as dbGetSitterProfile, listSitterSlugsForBuild,
+  getSitterProfile as dbGetSitterProfile, listSitterSlugsForBuild, listFeaturedReviews,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
-  type SitterProfile,
+  type SitterProfile, type FeaturedReview,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
 
-export type { CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile };
+export type { CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview };
 export { cityName, citySlug };
 
 const db = () => getDb();
@@ -72,4 +72,12 @@ export const getSitterProfile = cache(
 /** Build'de uretilecek profiller — Tier-1 sehirlerin en ust siradaki bakicilari */
 export const getSitterSlugsForBuild = cache(
   async () => listSitterSlugsForBuild(db(), 40),
+);
+
+/**
+ * Ana sayfadaki referanslar — sitede yazilmis gercek yorumlardan.
+ * Elle yazilmis "musteri yorumu" metni YOK; bkz. listFeaturedReviews.
+ */
+export const getFeaturedReviews = cache(
+  async (limit = 3): Promise<FeaturedReview[]> => listFeaturedReviews(db(), limit),
 );

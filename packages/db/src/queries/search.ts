@@ -44,6 +44,7 @@ export async function searchSitters(
       st.slug,
       st.user_id::text AS id,
       pr.first_name, pr.last_name_initial,
+      pr.avatar_url,
       ${sql.raw(nameCol)} AS neighbourhood,
       ss.price_cents::int, st.average_rating::float8 AS rating, st.review_count::int,
       st.median_response_minutes::int AS response_minutes,
@@ -116,6 +117,7 @@ export async function searchSitters(
       acceptsCats: Boolean(row.accepts_cats),
       homeType: String(row.home_type),
       photoInitials: `${first[0] ?? 'A'}${initial}`,
+      avatarUrl: (row.avatar_url as string | null) ?? null,
       distanceMeters: Number(row.distance_meters),
     };
   });

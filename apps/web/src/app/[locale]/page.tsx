@@ -5,13 +5,15 @@ import { servicesForPhase, calculateCommission, compareToRover, dollars } from '
 import { SearchBar } from '@/components/SearchBar';
 import { TrustStrip } from '@/components/TrustStrip';
 import { ServiceTiles } from '@/components/ServiceTiles';
-import { GalleryStrip } from '@/components/GalleryStrip';
+import { SitterStrip } from '@/components/SitterStrip';
+import { Testimonials } from '@/components/Testimonials';
 import { FeatureCards } from '@/components/FeatureCards';
-import { HeroArt } from '@/components/HeroArt';
-import { BannerDoodles, HeroDoodles } from '@/components/Doodles';
+import { Photo } from '@/components/Photo';
+import { Avatar } from '@/components/Avatar';
+import { HeroDoodles } from '@/components/Doodles';
 import { ShieldIcon } from '@/components/VerificationBadge';
-import { cityName, citySlug, getDefaultCity, getLandingData } from '@/lib/data';
-import { money } from '@/lib/format';
+import { cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData } from '@/lib/data';
+import { money, numberFmt } from '@/lib/format';
 
 export const revalidate = 3600;
 
@@ -21,9 +23,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (!locale) notFound();
 
   const m = getMessages(locale);
+  const fr = locale === 'fr-CA';
   const services = servicesForPhase('v1');
   const city = await getDefaultCity();
-  const data = await getLandingData(city, 'boarding', locale);
+  const [data, reviews] = await Promise.all([
+    getLandingData(city, 'boarding', locale),
+    getFeaturedReviews(3),
+  ]);
 
   /**
    * Ucret seffafligi bolumu icin canli karsilastirma.
@@ -35,36 +41,101 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const sample = dollars(500);
   const ours = calculateCommission({ subtotalCents: sample, attribution: 'sitter_referral' });
   const vsRover = compareToRover(sample, ours, 'standard');
-  const zero = calculateCommission({ subtotalCents: sample, attribution: 'sitter_referral' }).sitterPct;
+  const zero = ours.sitterPct;
 
   return (
     <>
-      {/* ---- Kahraman: krem zemin, kesilmis gorsel, el cizimi konturlar ---- */}
-      <section className="container hero">
-        <HeroDoodles />
+      {/*
+        ---- Kahraman ----
+        BANT: sayfanin geri kalanindan farkli bir sicaklikta (blush -> kayisi).
+        Tek krem zeminde kahraman ile govde birbirine giriyordu; renkli bant
+        sayfanin ilk ekranini kendi basina bir yer haline getiriyor.
+        Alt kose kavisi, arama kartinin banda binmesiyle birlikte bolum
+        gecisini yumusatiyor.
+      */}
+      <section className="band band-blush band-round-b">
+        <div className="container hero">
+          <HeroDoodles />
 
-        <div className="hero-grid">
-          <div className="hero-copy">
-            <span className="badge" style={{
-              background: 'var(--color-accent-subtle)',
-              color: 'var(--color-accent-hover)',
-              gap: 'var(--space-2)',
-            }}>
-              <ShieldIcon size={13} />
-              {locale === 'fr-CA'
-                ? 'Antécédents vérifiés pour chaque gardien'
-                : 'Every sitter background-checked'}
-            </span>
+          <div className="hero-grid">
+            <div className="hero-copy">
+              <span className="badge" style={{
+                background: 'var(--color-surface)',
+                color: 'var(--color-accent-hover)',
+                gap: 'var(--space-2)',
+              }}>
+                <ShieldIcon size={13} />
+                {fr ? 'Antécédents vérifiés pour chaque gardien' : 'Every sitter background-checked'}
+              </span>
 
-            <h1 className="text-display" style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
-              {m.home.heroTitle}
-            </h1>
-            <p className="text-body-lg muted" style={{ textWrap: 'pretty' }}>
-              {m.home.heroSubtitle}
-            </p>
+              <h1 className="text-display" style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
+                {m.home.heroTitle}
+              </h1>
+              <p className="text-body-lg muted" style={{ textWrap: 'pretty', maxWidth: '32rem' }}>
+                {m.home.heroSubtitle}
+              </p>
+
+              {/*
+                Uc madde, ucu de sitede KARSILIGI OLAN iddialar: adli sicil
+                kontrolu (screening), tam fiyat (drip pricing yasagi), konaklama
+                sirasindaki mesaj/fotograf. "7/24 destek" gibi henuz kurmadigimiz
+                bir sey yazmiyoruz — Competition Act, iddianin ispatlanabilir
+                olmasini istiyor.
+              */}
+              <ul className="hero-points">
+                {(fr
+                  ? ['Vérification approfondie des antécédents et de l’identité',
+                     'Tous les frais affichés avant la réservation',
+                     'Photos et messages pendant le séjour']
+                  : ['Enhanced criminal record and identity checks',
+                     'Every fee shown before you book',
+                     'Photos and messages during the stay']
+                ).map((t) => (
+                  <li key={t}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"
+                         fill="none" stroke="var(--color-accent-hover)" strokeWidth="2"
+                         strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m3 8.4 3.2 3.2L13 4.8" />
+                    </svg>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              {/*
+                Fotograf kolaji. Metin fotografin UZERINDE DEGIL yaninda:
+                hangi fotograf gelirse gelsin basligin kontrasti degismiyor.
+                Ilk fotograf `priority` — LCP ogesi bu (yol haritasi §7).
+              */}
+              <div className="hero-photos">
+                <div className="photo-frame">
+                  <Photo id="hero-primary" locale={locale} priority
+                         sizes="(min-width: 900px) 15rem, 55vw" />
+                </div>
+                <div className="photo-frame">
+                  <Photo id="hero-side-a" locale={locale} sizes="(min-width: 900px) 11rem, 40vw" />
+                </div>
+                <div className="photo-frame">
+                  <Photo id="hero-side-b" locale={locale} sizes="(min-width: 900px) 11rem, 40vw" />
+                </div>
+              </div>
+
+              {/* Canli veri — uydurma "10.000 mutlu musteri" degil, sorgudan gelen sayi */}
+              <div className="hero-float">
+                <span className="avatar-stack">
+                  {data.sitters.slice(0, 3).map((s) => (
+                    <Avatar key={s.id} src={s.avatarUrl} initials={s.photoInitials} size={30} />
+                  ))}
+                </span>
+                <span className="text-body-sm" style={{ lineHeight: '1.1rem' }}>
+                  <strong className="tabular">{numberFmt(data.sitterCount, locale)}</strong>{' '}
+                  {fr ? `gardiens vérifiés à ${cityName(city, locale)}` : `verified sitters in ${cityName(city, locale)}`}
+                </span>
+              </div>
+            </div>
           </div>
-
-          <HeroArt />
         </div>
       </section>
 
@@ -83,42 +154,53 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ---- Hizmetler ---- */}
-      <section className="container" style={{ paddingBlock: 'var(--space-16) var(--space-10)' }}>
-        <h2 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>
-          {locale === 'fr-CA' ? 'De quoi avez-vous besoin?' : 'What do you need?'}
-        </h2>
+      <section className="container section">
+        <div className="section-head">
+          <h2 className="text-h2">{fr ? 'De quoi avez-vous besoin?' : 'What do you need?'}</h2>
+        </div>
         <ServiceTiles locale={locale} services={services} citySlug={citySlug(city, locale)} />
       </section>
 
-      {/* ---- Ne yapiyoruz ---- */}
-      <FeatureCards locale={locale} />
+      {/* ---- Ne yapiyoruz — adacayi bant ---- */}
+      <section className="band band-sage band-round-t band-round-b">
+        <FeatureCards locale={locale} />
+      </section>
 
-      {/*
-        ---- Havre Anlari ----
-        photos bos: gercek rezervasyon fotografi yok. Stokla doldurmak yerine
-        kendi cizimlerimiz duruyor ve bunun gecici oldugu sayfada yaziyor.
-      */}
-      <GalleryStrip locale={locale} />
+      {/* ---- Bakici seridi: gercek profiller, gercek fotograflar ---- */}
+      <SitterStrip
+        locale={locale}
+        sitters={data.sitters}
+        citySlug={citySlug(city, locale)}
+        cityName={cityName(city, locale)}
+      />
 
-      {/* ---- Bakici banneri: urunun en guclu hamlesi, tek blokta ---- */}
-      <section className="container" style={{ paddingBlock: 'var(--space-6) var(--space-16)' }}>
-        <div className="banner">
-          <BannerDoodles />
-          <div className="banner-body">
-            <span className="badge" style={{ background: 'var(--color-surface)', color: 'var(--color-accent-hover)' }}>
-              {locale === 'fr-CA' ? 'Pour les gardiens' : 'For sitters'}
+      {/* ---- Referanslar: sitede yazilmis yorumlardan ---- */}
+      <Testimonials locale={locale} reviews={reviews} />
+
+      {/* ---- Bakici banneri: urunun en guclu hamlesi ---- */}
+      <section className="container section">
+        <div className="banner-photo">
+          <span className="photo-fill" aria-hidden="true">
+            <Photo id="sitter-banner" locale={locale} decorative sizes="100vw" />
+          </span>
+
+          <div className="banner-card">
+            <span className="badge" style={{
+              background: 'var(--color-accent-subtle)', color: 'var(--color-accent-hover)',
+            }}>
+              {fr ? 'Pour les gardiens' : 'For sitters'}
             </span>
 
             <h2 className="text-h1" style={{ margin: 'var(--space-4) 0 0' }}>
-              {locale === 'fr-CA' ? 'Amenez vos propres clients.' : 'Bring your own clients.'}
+              {fr ? 'Amenez vos propres clients.' : 'Bring your own clients.'}
               <br />
-              {locale === 'fr-CA' ? 'Gardez ' : 'Keep '}
+              {fr ? 'Gardez ' : 'Keep '}
               <span style={{ color: 'var(--color-primary)' }}>{100 - zero}%</span>
-              {locale === 'fr-CA' ? ' de ce qu’ils paient.' : ' of what they pay.'}
+              {fr ? ' de ce qu’ils paient.' : ' of what they pay.'}
             </h2>
 
-            <p className="text-body-lg muted" style={{ marginTop: 'var(--space-4)', maxWidth: '32rem' }}>
-              {locale === 'fr-CA'
+            <p className="text-body-lg muted" style={{ marginTop: 'var(--space-4)' }}>
+              {fr
                 ? 'Invitez un client avec votre propre code et nous ne prenons rien sur ses réservations — de façon permanente, pas pour un mois d’essai.'
                 : 'Invite a client with your own code and we take nothing on their bookings — permanently, not for a trial month.'}
             </p>
@@ -128,7 +210,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {m.nav.becomeSitter}
               </Link>
               <Link href={`/${seg}/pricing/`} className="btn btn-secondary">
-                {locale === 'fr-CA' ? 'Voir nos frais' : 'See how our fees work'}
+                {fr ? 'Voir nos frais' : 'See how our fees work'}
               </Link>
             </div>
 
@@ -137,7 +219,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               packages/core/commission.ts icindeki compareToRover().
             */}
             <p className="text-body-sm dim" style={{ marginTop: 'var(--space-5)' }}>
-              {locale === 'fr-CA'
+              {fr
                 ? `Sur une réservation de ${money(sample, locale)}, un gardien garde jusqu’à ${money(vsRover.sitterSavesCents, locale)} de plus qu’ailleurs.`
                 : `On a ${money(sample, locale)} booking, a sitter keeps up to ${money(vsRover.sitterSavesCents, locale)} more than elsewhere.`}
             </p>
@@ -146,15 +228,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ---- Ucret defteri: uc oran, tek tabloda ---- */}
-      <section className="container" style={{ paddingBlock: '0 var(--space-16)' }}>
-        <h2 className="text-h2" style={{ marginBottom: 'var(--space-2)' }}>
-          {locale === 'fr-CA' ? 'Trois taux, publiés.' : 'Three rates, published.'}
-        </h2>
-        <p className="muted" style={{ marginBottom: 'var(--space-6)', maxWidth: '38rem' }}>
-          {locale === 'fr-CA'
-            ? 'C’est toute la page de tarification. Aucun frais caché, ni pour vous ni pour le gardien.'
-            : 'That is the whole pricing page. No hidden fees, for you or your sitter.'}
-        </p>
+      <section className="container section" style={{ paddingTop: 0 }}>
+        <div className="section-head">
+          <h2 className="text-h2">{fr ? 'Trois taux, publiés.' : 'Three rates, published.'}</h2>
+          <p className="muted">
+            {fr
+              ? 'C’est toute la page de tarification. Aucun frais caché, ni pour vous ni pour le gardien.'
+              : 'That is the whole pricing page. No hidden fees, for you or your sitter.'}
+          </p>
+        </div>
 
         <div className="grid grid-3">
           {(['platform', 'sitter_referral', 'repeat'] as const).map((a) => {

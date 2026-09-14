@@ -222,7 +222,10 @@ a { color: inherit; text-decoration: none; }
 /* ---------- Site kabugu ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 50;
-  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+  /* Beyaz cubuk, krem degil: baslik artik RENKLI bantlarin uzerinde duruyor
+     ve krem zemin blush bandin yaninda "yanlis krem" gibi bir dikis
+     birakiyordu. Beyaz, bilincli bir cubuk gibi okunuyor. */
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
 }
@@ -390,11 +393,34 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- Kimlik ekranlari ---------- */
 .auth-shell {
-  min-height: calc(100vh - 68px);
   display: grid;
   place-items: start center;
-  padding-block: var(--space-10) var(--space-16);
+  padding: var(--space-10) var(--space-4) var(--space-16);
 }
+@media (min-width: 768px) { .auth-shell { padding-inline: var(--space-8); } }
+
+/*
+  Giris ekrani: solda form, sagda fotograf.
+  Fotograf 960px altinda HIC gosterilmiyor — telefonda form zaten tum
+  ekrani dolduruyor ve fotograf klavye acilinca yeri daraltiyordu.
+*/
+.auth-split { display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 960px) {
+  .auth-split { grid-template-columns: minmax(0, 1fr) 40%; min-height: calc(100vh - 68px); }
+  .auth-shell { place-items: center; }
+}
+.auth-aside { display: none; position: relative; overflow: hidden; }
+@media (min-width: 960px) { .auth-aside { display: block; } }
+.auth-aside-card {
+  position: absolute; z-index: 2; inset-inline: var(--space-8); bottom: var(--space-8);
+  padding: var(--space-6);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius-lg);
+}
+.auth-aside-card ul { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.auth-aside-card li { display: flex; gap: var(--space-2); align-items: flex-start; font-size: 0.875rem; line-height: 1.25rem; }
+.auth-aside-card svg { flex: none; margin-top: 2px; color: var(--color-accent-hover); }
 .auth-card {
   width: 100%;
   max-width: 27rem;
@@ -763,7 +789,9 @@ a { color: inherit; text-decoration: none; }
 }
 .feature-card-quiet p { color: var(--color-ink-secondary); }
 .feature-card-accent {
-  background: var(--color-accent-subtle);
+  /* Adacayi DEGIL kayisi: bu kart artik adacayi bir bandin uzerinde duruyor
+     ve zeminle ayni tonda oldugunda kart olmaktan cikiyordu. */
+  background: var(--color-tile-apricot);
 }
 .feature-card-accent p { color: var(--color-ink-secondary); }
 
@@ -849,3 +877,237 @@ a { color: inherit; text-decoration: none; }
 .sitter-aside { min-width: 0; }
 @media (min-width: 1000px) { .sitter-aside { position: sticky; top: calc(72px + var(--space-6)); } }
 .sitter-book { display: grid; gap: var(--space-4); }
+
+/* ============================================================
+   BOLUM BANTLARI
+
+   Sayfa tek bir krem zemin degil. Kahraman sicak bir blush/kayisi
+   gecisinde, govde krem, urun anlatimi adacayi, referanslar beyaz.
+   NEDEN: tek zeminde sayfa "uzun bir sutun" gibi okunuyordu; bant
+   degisimi kaydirirken nerede oldugunu soyluyor ve her bolume kendi
+   agirligini veriyor.
+
+   KURAL: her bant contrast.test.ts'te olculur. Yeni bir bant eklemek
+   = testte dort metin tonunu da eklemek.
+   ============================================================ */
+.band { position: relative; }
+.band-blush {
+  /* Beyaz radyal ONCE %75'ti ve bandi krem zeminden ayirt edilemez hale
+     getiriyordu — "bant" fikri ancak gorunurse ise yariyor. %28'e indi. */
+  background:
+    radial-gradient(110% 80% at 86% 4%, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 58%),
+    linear-gradient(162deg, var(--color-band-blush) 0%, var(--color-band-apricot) 100%);
+}
+.band-sage { background: var(--color-band-sage); }
+.band-surface { background: var(--color-surface); }
+.band-canvas { background: var(--color-canvas); }
+
+/* Bantlar arasi gecis: duz cizgi yerine yumusak kavis */
+.band-round-b { border-end-start-radius: 2.25rem; border-end-end-radius: 2.25rem; }
+.band-round-t { border-start-start-radius: 2.25rem; border-start-end-radius: 2.25rem; }
+
+.section { padding-block: var(--space-14); }
+.section-lg { padding-block: var(--space-16); }
+.section-tight { padding-block: var(--space-10); }
+.section-head { display: grid; gap: var(--space-3); max-width: 44rem; margin-bottom: var(--space-8); }
+.section-head > h2 { margin: 0; }
+.section-head > p { margin: 0; }
+
+/* ---------- Fotograf cercevesi ----------
+   Oran KAPTAN gelir, fotograftan degil: farkli oranlardaki fotograflar
+   ayni izgarada satiri bozuyordu. object-fit: cover kirpar, esnetmez. */
+.photo-frame {
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
+}
+.photo-frame > img { width: 100%; height: 100%; object-fit: cover; }
+.photo-fill { position: absolute; inset: 0; }
+.photo-fill > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- Kisi fotografi ---------- */
+.avatar {
+  display: inline-grid; place-items: center;
+  overflow: hidden; flex: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-active);
+  font-family: var(--font-display); font-weight: 700;
+  line-height: 1;
+}
+.avatar > img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-stack { display: flex; align-items: center; }
+.avatar-stack > .avatar { margin-inline-start: -0.6rem; box-shadow: 0 0 0 2px var(--color-surface); }
+.avatar-stack > .avatar:first-child { margin-inline-start: 0; }
+
+/* ---------- Kahraman fotograf kolaji ---------- */
+.hero-photos {
+  display: grid;
+  grid-template-columns: 1.22fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  aspect-ratio: 1 / 1.02;
+}
+.hero-photos > :first-child { grid-row: 1 / 3; }
+.hero-photos .photo-frame { height: 100%; }
+/* Kolajin uzerine binen canli veri karti */
+.hero-float {
+  position: absolute; z-index: 3;
+  inset-inline-start: calc(var(--space-4) * -1); bottom: var(--space-6);
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  max-width: 15rem;
+}
+@media (max-width: 899px) {
+  .hero-photos { aspect-ratio: 3 / 2; }
+  .hero-float { inset-inline-start: var(--space-3); bottom: calc(var(--space-3) * -1); }
+}
+
+/* ---------- Bakici fotograf seridi (ana sayfa) ---------- */
+.sitter-strip-item {
+  display: block; position: relative;
+  break-inside: avoid; margin: 0 0 var(--space-4);
+  border-radius: var(--radius-lg); overflow: hidden;
+  background: var(--color-surface-sunken);
+}
+.sitter-strip-item img { width: 100%; height: 100%; object-fit: cover; }
+.sitter-strip-cap {
+  position: absolute; inset-inline: 0; bottom: 0;
+  display: grid; gap: 2px;
+  padding: var(--space-8) var(--space-4) var(--space-4);
+  color: #FFFFFF;
+  background: linear-gradient(180deg, rgba(20,14,18,0) 0%, rgba(20,14,18,.86) 76%);
+}
+.sitter-strip-name { font-weight: 600; }
+.sitter-strip-meta { font-size: 0.8125rem; line-height: 1.15rem; opacity: .92; }
+.sitter-strip-item:hover img { transform: scale(1.03); }
+.sitter-strip-item img { transition: transform var(--duration-standard) var(--easing-standard); }
+@media (prefers-reduced-motion: reduce) { .sitter-strip-item img { transition: none; } }
+
+/* ---------- Referanslar ---------- */
+.testimonial {
+  display: grid; gap: var(--space-4); align-content: start;
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.testimonial-quote {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: 1.0625rem; line-height: 1.65rem; letter-spacing: -0.01em;
+}
+.testimonial-foot { display: flex; align-items: center; gap: var(--space-3); }
+.stars { color: var(--color-warning); letter-spacing: .12em; font-size: 0.875rem; }
+
+/* ---------- Fotografli banner ----------
+   Metin FOTOGRAFIN UZERINDE DEGIL, fotografin uzerindeki duz karttadir.
+   Fotograf uzerine yazi, hangi fotograf gelirse gelsin kontrast garantisi
+   veremiyor; kart veriyor. */
+.banner-photo {
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-xl);
+  display: grid; align-items: center;
+  min-height: 26rem;
+}
+.banner-photo > .photo-fill > img { filter: saturate(.95); }
+.banner-photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(33,22,33,.42) 0%, rgba(33,22,33,0) 70%);
+}
+.banner-card {
+  position: relative; z-index: 2;
+  margin: var(--space-6); padding: var(--space-8);
+  max-width: 29rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+@media (max-width: 640px) { .banner-card { margin: var(--space-3); padding: var(--space-6); } }
+
+/* ---------- Sayfa basligi (ic sayfalar) ---------- */
+.page-head { padding-block: var(--space-12) var(--space-10); }
+.page-head-grid {
+  display: grid; gap: var(--space-8); align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 900px) {
+  .page-head-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); }
+}
+
+/* Bakici kartinda fotograf — yoksa bas harfler (Avatar ile ayni kural) */
+.sitter-photo { overflow: hidden; }
+.sitter-photo > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Bolum basligindaki rozet: grid icinde tum genisligi kapliyordu */
+.section-head > .badge { justify-self: start; }
+
+/* Kahraman maddeleri */
+.hero-points { display: grid; gap: var(--space-2); margin: var(--space-6) 0 0; padding: 0; list-style: none; }
+.hero-points li { display: flex; align-items: center; gap: var(--space-2); font-size: 0.875rem; color: var(--color-ink-secondary); }
+.hero-points svg { flex: none; }
+
+/* ---------- Bakici ev galerisi ---------- */
+.sitter-gallery { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sitter-gallery .photo-frame { aspect-ratio: 3 / 2; }
+/* Tek fotograf tam genislik; uc fotografta ilki iki satir kaplar */
+.sitter-gallery[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+.sitter-gallery[data-count="1"] .photo-frame { aspect-ratio: 16 / 9; }
+@media (min-width: 700px) {
+  .sitter-gallery[data-count="3"] { grid-template-columns: 2fr 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  .sitter-gallery[data-count="3"] > :first-child { grid-row: 1 / 3; aspect-ratio: auto; }
+}
+
+/* Istatistik seridi renkli bandin uzerindeyken beyaz kart olur:
+   cokuk krem zemin, blush bandin uzerinde kaybolyordu. */
+.sitter-stats-on-band { background: var(--color-surface); box-shadow: var(--shadow-sm); }
+
+/* ---------- Bakici davet sayfasi ---------- */
+.rate-compare {
+  display: grid; gap: var(--space-5); margin: var(--space-5) 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+.rate-compare dt { margin-bottom: var(--space-1); }
+.rate-compare dd { margin: 0; }
+
+.step-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.step-list li { display: flex; align-items: center; gap: var(--space-4); }
+.step-num {
+  display: grid; place-items: center; flex: none;
+  width: 30px; height: 30px; border-radius: var(--radius-full);
+  background: var(--color-surface); color: var(--color-primary);
+  font-weight: 700; font-size: 0.8125rem;
+}
+.req-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; max-width: 42rem; }
+.req-list li { display: flex; gap: var(--space-3); align-items: flex-start; }
+.req-list svg { flex: none; margin-top: 3px; color: var(--color-accent-hover); }
+@media (min-width: 900px) {
+  .step-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------- Icerik sayfalari ---------- */
+.content-grid { display: grid; gap: var(--space-10); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1000px) { .content-grid { grid-template-columns: minmax(0, 1fr) 20rem; gap: var(--space-12); } }
+.content-aside { display: grid; gap: var(--space-4); }
+
+/* Okuma sutunu ~68 karakter; hukuki metin bunun disinda okunmuyor */
+.prose { max-width: 42rem; }
+.prose > * + * { margin-top: var(--space-5); }
+.prose h2 { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.9rem; letter-spacing: -0.03em; font-weight: 600; margin-top: var(--space-10); }
+.prose h3 { font-size: 1.0625rem; font-weight: 600; margin-top: var(--space-6); }
+.prose p { line-height: 1.65rem; }
+.prose ul, .prose ol { display: grid; gap: var(--space-2); padding-inline-start: var(--space-5); }
+.prose li { line-height: 1.6rem; }
+.prose a { color: var(--color-primary-hover); text-decoration: underline; text-underline-offset: 2px; }
+.prose dl { display: grid; gap: var(--space-4); }
+.prose dt { font-weight: 600; }
+.prose dd { margin: var(--space-1) 0 0; color: var(--color-ink-secondary); }
+.prose table { width: 100%; border-collapse: collapse; }
+.prose th, .prose td { text-align: start; padding: var(--space-3) var(--space-2); border-bottom: 1px solid var(--color-border); }
+.prose th { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-ink-muted); font-weight: 600; }
+
+.notice { padding: var(--space-4) var(--space-5); border-radius: var(--radius-lg); border: 1px solid var(--color-border); }
+.notice-warning { background: var(--color-tile-apricot); border-color: transparent; }
+.notice-warning p { color: var(--color-tile-apricot-ink); font-size: 0.875rem; line-height: 1.35rem; }

@@ -10,6 +10,8 @@ import {
 } from '@havre/i18n';
 import { SitterCard } from '@/components/SitterCard';
 import { TrustStrip } from '@/components/TrustStrip';
+import { Photo } from '@/components/Photo';
+import { PHOTOS, type PhotoId } from '@/lib/photos';
 import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
 import { money, numberFmt, dateFmt, responseTime } from '@/lib/format';
@@ -122,6 +124,16 @@ function buildFaqs(data: LandingData, locale: Locale, name: string, svc: string)
   ];
 }
 
+/**
+ * Sehrin kendi fotografi varsa onu kullan.
+ * Kayitta olmayan bir sehir icin genel bir sahne donuyoruz — eksik gorsel
+ * yerine dogru ORANDA bir gorsel, yerlesimin bozulmamasi demek.
+ */
+function cityPhotoId(slugEn: string): PhotoId {
+  const key = `city-${slugEn}`;
+  return (key in PHOTOS ? key : 'sitter-banner') as PhotoId;
+}
+
 export default async function LandingPage(
   { params }: { params: Promise<{ locale: string; city: string; service: string }> },
 ) {
@@ -159,32 +171,52 @@ export default async function LandingPage(
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
+      {/*
+        SAYFA BASLIGI RENKLI BANTTA.
+        Ana sayfayla ayni dil: ilk ekran sicak bir bant, govde krem. Fotograf
+        basligin YANINDA, altinda degil — metin fotografin uzerine binmedigi
+        icin hangi fotograf gelirse gelsin kontrast garantisi bozulmuyor.
+      */}
+      <section className="band band-blush band-round-b">
+        <div className="container page-head">
+          <nav aria-label="Breadcrumb" className="text-body-sm" style={{ marginBottom: 'var(--space-5)' }}>
+            <ol className="row" style={{ gap: 'var(--space-2)', listStyle: 'none', padding: 0 }}>
+              <li><Link href={`/${seg}`} className="muted">{m.brand.name.toLowerCase()}</Link></li>
+              <li aria-hidden="true" className="dim">/</li>
+              <li className="dim">{r.city.province}</li>
+              <li aria-hidden="true" className="dim">/</li>
+              <li>{name}</li>
+            </ol>
+          </nav>
+
+          <div className="page-head-grid">
+            <div>
+              <h1 className="text-h1" style={{ marginBottom: 'var(--space-3)' }}>
+                {r.locale === 'fr-CA' ? `${svc} à ${name}` : `${svc} in ${name}`}
+              </h1>
+              {/* Cevap-once paragrafi: ilk 40-60 kelimede tam cevap (§7.10) */}
+              <p className="text-body-lg muted" style={{ maxWidth: '38rem', marginBottom: 'var(--space-6)' }}>
+                {m.serviceDescription[r.service]}
+              </p>
+
+              <TrustStrip
+                locale={r.locale}
+                cityName={name}
+                sitterCount={data.sitterCount}
+                medianPriceCents={data.medianPriceCents}
+                bookingCount={data.bookingCount}
+              />
+            </div>
+
+            <div className="photo-frame" style={{ aspectRatio: '4 / 3' }}>
+              <Photo id={cityPhotoId(r.city.slugEn)} locale={r.locale}
+                     sizes="(min-width: 900px) 24rem, 100vw" priority />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="container" style={{ paddingBlock: 'var(--space-10)' }}>
-        <nav aria-label="Breadcrumb" className="text-body-sm" style={{ marginBottom: 'var(--space-5)' }}>
-          <ol className="row" style={{ gap: 'var(--space-2)', listStyle: 'none', padding: 0 }}>
-            <li><Link href={`/${seg}`} className="muted">{m.brand.name.toLowerCase()}</Link></li>
-            <li aria-hidden="true" className="dim">/</li>
-            <li className="dim">{r.city.province}</li>
-            <li aria-hidden="true" className="dim">/</li>
-            <li>{name}</li>
-          </ol>
-        </nav>
-
-        <h1 className="text-h1" style={{ marginBottom: 'var(--space-3)' }}>
-          {r.locale === 'fr-CA' ? `${svc} à ${name}` : `${svc} in ${name}`}
-        </h1>
-        {/* Cevap-once paragrafi: ilk 40-60 kelimede tam cevap (§7.10) */}
-        <p className="text-body-lg muted" style={{ maxWidth: '44rem', marginBottom: 'var(--space-6)' }}>
-          {m.serviceDescription[r.service]}
-        </p>
-
-        <TrustStrip
-          locale={r.locale}
-          cityName={name}
-          sitterCount={data.sitterCount}
-          medianPriceCents={data.medianPriceCents}
-          bookingCount={data.bookingCount}
-        />
 
         {/* Arz yetersizse bekleme listesi — sayfa noindex olur ama kullaniciya deger sunar */}
         {rule.showWaitlist && (

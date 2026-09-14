@@ -12,6 +12,7 @@ import * as s from './schema/index.js';
 import {
   SEED_CITIES, FIRST_NAMES, HOME_TYPES, BASE_PRICE_CENTS,
   REVIEW_BODIES_EN, REVIEW_BODIES_FR, BIOS,
+  PERSON_PHOTO_SLOTS, HOME_PHOTO_SLOTS,
 } from './seed-data.js';
 import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
 import { sitterSlug } from './queries/onboarding.js';
@@ -93,6 +94,12 @@ for (const city of SEED_CITIES) {
 
     await db.insert(s.profiles).values({
       userId, firstName: first, lastNameInitial: initial,
+      /*
+        Demo fotografi — gercek bakici kendi fotografini yukleyince degisir.
+        Adim 7, yuva sayisiyla (12) ARALARINDA ASAL olmali: ilk denemede adim
+        6 idi ve her sehirde yalnizca iki yuz donuyordu (bir yuz 40 bakicida).
+      */
+      avatarUrl: PERSON_PHOTO_SLOTS[(sitterTotal * 7) % PERSON_PHOTO_SLOTS.length]!,
       cityId, neighbourhoodId: hoodIds[hoodIdx]!, province: city.province,
       bio: pick(r, BIOS[city.province === 'QC' ? 'fr' : 'en']),
       approxLocation: point(lon, lat) as unknown as string,
@@ -150,6 +157,17 @@ for (const city of SEED_CITIES) {
     });
     await db.insert(s.sitterAvailability).values(days);
 
+    // Ev galerisi: 2-3 fotograf. Profil sayfasinin bos gorunmemesi icin degil,
+    // sahiplerin en cok sorduğu sey "kopegim nerede kalacak" oldugu icin.
+    const shots = 2 + Math.floor(r() * 2);
+    await db.insert(s.sitterPhotos).values(
+      Array.from({ length: shots }, (_, k) => ({
+        sitterId: userId,
+        url: HOME_PHOTO_SLOTS[(i * 3 + k) % HOME_PHOTO_SLOTS.length]!,
+        sortOrder: k,
+      })),
+    );
+
     sitterTotal++;
   }
   console.log(`${city.nameEn}: ${city.sitterCount} bakici`);
@@ -187,6 +205,9 @@ for (let i = 0; i < 30; i++) {
     userId: u!.id,
     firstName: FIRST_NAMES[i % FIRST_NAMES.length]!,
     lastNameInitial: String.fromCharCode(65 + (i * 7) % 26),
+    // Yorumlarin yaninda gorunur. Sahiplerin bir kismi fotograf yuklemez;
+    // ucte biri bilerek fotografsiz birakildi, arayuz o hali de tasimali.
+    avatarUrl: i % 3 === 0 ? null : PERSON_PHOTO_SLOTS[(i * 7) % PERSON_PHOTO_SLOTS.length]!,
   });
   ownerIds.push(u!.id);
 }

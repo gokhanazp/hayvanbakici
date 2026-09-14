@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getMessages, segmentFor, type Locale } from '@havre/i18n';
 import { SERVICES, type ServiceType } from '@havre/core';
 import type { SitterSummary } from '@/lib/data';
 import { money, responseTime } from '@/lib/format';
 import { VerificationBadge } from './VerificationBadge';
+import { resolvePhoto } from '@/lib/photos';
 
 export function SitterCard({
   sitter,
@@ -19,13 +21,22 @@ export function SitterCard({
 }) {
   const m = getMessages(locale);
   const unit = m.unit[SERVICES[serviceType].unit];
+  const photo = resolvePhoto(sitter.avatarUrl);
 
   return (
     <Link
       href={`/${segmentFor(locale)}/${citySlug}/sitter/${sitter.slug}/`}
       className="card card-hover sitter-card">
-      {/* Fotograf yerine gecen blok — gercek gorseller Faz 1'de */}
-      <div className="sitter-photo" aria-hidden="true">{sitter.photoInitials}</div>
+      {/*
+        Fotograf varsa fotograf, yoksa bas harfler. Karti bos bir gri kutuyla
+        birakmak, fotograf yuklememis bakicinin aleyhine olurdu.
+        alt="" bilincli: ad hemen altinda yaziyor, ekran okuyucu iki kez okumasin.
+      */}
+      <div className="sitter-photo" aria-hidden={photo ? undefined : true}>
+        {photo
+          ? <Image src={photo} alt="" width={516} height={387} sizes="(min-width: 700px) 258px, 50vw" />
+          : sitter.photoInitials}
+      </div>
 
       <div className="sitter-body">
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>

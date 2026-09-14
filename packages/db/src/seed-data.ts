@@ -114,6 +114,13 @@ export const REVIEW_BODIES_EN = [
   'Kept to our routine exactly, right down to the evening walk time.',
   'Told us the boring parts too — what he ate, whether he slept. That is what we wanted.',
   'The fenced yard was perfect. Our dog came back tired and happy.',
+  'Answered within minutes every time, even on the Sunday we were delayed at the airport.',
+  'Gave our diabetic cat her injections on schedule and wrote down every single one.',
+  'Met us beforehand, asked good questions, and took notes. It showed during the stay.',
+  'Two dogs, one of them reactive, and she walked them separately without being asked.',
+  'Sent a photo of the water bowl being refilled. Small thing, but it is why we rebooked.',
+  'Our old beagle needs stairs avoided and he was carried up every night without a word.',
+  'Flight got cancelled and she kept him an extra night. Charged exactly what was agreed.',
 ];
 
 export const REVIEW_BODIES_FR = [
@@ -122,6 +129,13 @@ export const REVIEW_BODIES_FR = [
   'La routine a été respectée à la lettre, jusqu’à l’heure de la promenade du soir.',
   'On nous a aussi raconté les détails ennuyeux — ce qu’il a mangé, s’il a dormi.',
   'La cour clôturée était parfaite. Notre chien est revenu fatigué et heureux.',
+  'Elle a répondu en quelques minutes à chaque fois, même le dimanche où notre vol a été retardé.',
+  'A donné ses injections à notre chatte diabétique à l’heure et a tout noté.',
+  'Nous avons fait connaissance avant, avec de bonnes questions et des notes prises. Ça s’est vu.',
+  'Deux chiens, dont un réactif, promenés séparément sans qu’on ait à le demander.',
+  'Une photo du bol d’eau qu’on remplit. Un détail, mais c’est pour ça qu’on a réservé de nouveau.',
+  'Notre vieux beagle ne doit pas monter les escaliers : il a été porté chaque soir, sans un mot.',
+  'Vol annulé, elle l’a gardé une nuit de plus. Elle a facturé exactement ce qui était convenu.',
 ];
 
 
@@ -148,3 +162,22 @@ export const BIOS = {
     'Je cours, donc votre chien a une vraie promenade. Je raccourcis volontiers le parcours pour les chiens plus \u00e2g\u00e9s.',
   ],
 } as const;
+
+/**
+ * FOTOGRAF YUVALARI — apps/web/src/lib/photos.ts kaydindaki adlar.
+ *
+ * Neden burada sadece AD var, yol yok: yol uygulama katmaninin isi
+ * (resolvePhoto). Veritabani ya bir yuva adi ya da gercek bir yukleme
+ * adresi tutar; ikisi de ayni alanda yasar.
+ *
+ * DIKKAT — bunlar DEMO verisidir. Stok bir yuzu gercek bir bakici ya da
+ * gercek bir musteri gibi sunmak uydurma sosyal kanittir; bu yuvalar
+ * yalnizca tohum veride kullanilir, canliya cikmadan once gercek
+ * kullanicilarin kendi yukledikleriyle degisir.
+ */
+export const PERSON_PHOTO_SLOTS = [
+  'person-01', 'person-02', 'person-03', 'person-04', 'person-05', 'person-06',
+  'person-07', 'person-08', 'person-09', 'person-10', 'person-11', 'person-12',
+] as const;
+
+export const HOME_PHOTO_SLOTS = ['home-a', 'home-b', 'home-c', 'care-a', 'care-b'] as const;

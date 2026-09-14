@@ -26,9 +26,13 @@ export const palette = {
   // Murekkep (metin) — patlican
   ink:          '#2A1C26',
   inkSecondary: '#6B5A64',
-  // 4.64:1 — krem zemin uzerinde kucuk metin icin AA'yi gecen en acik ton.
-  // Daha acik bir gri (#9C8D95) 2.95'te kaliyordu ve fiyat satirlari okunmuyordu.
-  inkMuted:     '#7C6B78',
+  /*
+    5.46:1 krem zeminde. Daha acik bir gri (#9C8D95) 2.95'te kaliyordu.
+    #7C6B78 krem zeminde 4.64 ile geciyordu ama RENKLI BANTLAR eklenince
+    (blush 4.27, sage 4.44) AA'nin altina dustu: ayni token artik dort ayri
+    zemin uzerinde yasiyor, dolayisiyla en KOYU banda gore secildi.
+  */
+  inkMuted:     '#71606E',
 
   // Birincil — "Bogurtlen". EYLEM rengi.
   primary50:  '#FADDE6',
@@ -42,7 +46,20 @@ export const palette = {
   // Aksan — "Adacayi". DESTEK rengi.
   accent100: '#DEEBE0',
   accent500: '#6F9E7F',
-  accent600: '#4B7A5C',
+  /* Rozet metni pastel adacayi zeminde yasiyor: #4B7A5C orada 4.03'te
+     kaliyordu (11px yari kalin = kucuk metin, 4.5 gerekir). */
+  accent600: '#456F54',
+
+  /*
+    BOLUM BANTLARI — sayfa artik tek bir krem zemin degil.
+    Kahraman bandi govdeden ACIK SEKILDE farkli bir sicaklikta; aralarindaki
+    gecis yuvarlatilmis kose ile yapiliyor. Bantlar bilincli olarak SOLUK:
+    ustlerinde ink/ink-secondary/ink-muted/primary hepsi AA'yi gecmek zorunda
+    (contrast.test.ts'te dordu de olculuyor), bu da tonu sinirliyor.
+  */
+  bandBlush:   '#F8E5EC',
+  bandApricot: '#FBEBDE',
+  bandSage:    '#E9F2EC',
 
   // Durum
   success500: '#2E7D4F',
@@ -98,6 +115,9 @@ export const lightTheme = {
   'accent':          palette.accent500,
   'accent-hover':    palette.accent600,
   'accent-subtle':   palette.accent100,
+  'band-blush':      palette.bandBlush,
+  'band-apricot':    palette.bandApricot,
+  'band-sage':       palette.bandSage,
   'panel':           palette.panel,
   'panel-raised':    palette.panelRaised,
   'panel-ink':       palette.panelInk,
@@ -150,6 +170,9 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'accent':          '#8CBE9C',
   'accent-hover':    '#A3CDB0',
   'accent-subtle':   '#17261B',
+  'band-blush':      '#20141C',
+  'band-apricot':    '#1F1711',
+  'band-sage':       '#131B16',
   'panel':           '#120C12',
   'panel-raised':    '#1D141C',
   'panel-ink':       '#F9F2F4',

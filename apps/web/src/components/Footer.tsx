@@ -83,7 +83,11 @@ export function Footer({
             <Link href={`/${seg}/protection/`}>{m.nav.protection}</Link>
             <Link href={`/${seg}/pricing/`}>{m.nav.pricing}</Link>
             <Link href={`/${seg}/become-a-sitter/`}>{m.nav.becomeSitter}</Link>
-            <Link href={`/${seg}/blog/`}>{m.footer.blog}</Link>
+            {/*
+              "Rehberler ve yazilar" baglantisi KALDIRILDI: blog yok.
+              Var olmayan bir sayfaya baglanti vermek hem 404 hem de
+              sitemap'te olu adres demek. Blog yayina girdiginde geri gelir.
+            */}
             <Link href={`/${seg}/help/`}>{m.footer.help}</Link>
             <Link href={`/${seg}/contact/`}>{m.footer.contact}</Link>
           </FooterColumn>

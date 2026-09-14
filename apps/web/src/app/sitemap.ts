@@ -15,8 +15,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const services = servicesForPhase('v1');
   const cities = await getCities();
 
+  /*
+    SABIT SAYFALAR. Hepsi iki dilde var ve birbirine hreflang ile bagli
+    (Bill 96 acisindan da gerekli: her sayfanin Fransizca esdegeri var).
+    Hesap ekranlari ve sihirbaz adimlari BILEREK DISARIDA — noindex'ler.
+  */
+  const STATIC_PATHS = [
+    'how-it-works', 'protection', 'pricing', 'become-a-sitter',
+    'help', 'contact',
+    'legal/terms', 'legal/privacy', 'legal/cookies',
+    'legal/accessibility', 'legal/sitter-agreement',
+  ] as const;
+
   for (const locale of LOCALES) {
     entries.push({ url: urlFor(locale), changeFrequency: 'daily', priority: 1 });
+
+    for (const path of STATIC_PATHS) {
+      entries.push({
+        url: urlFor(locale, ...path.split('/')),
+        changeFrequency: 'monthly',
+        priority: path === 'become-a-sitter' ? 0.8 : 0.4,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map((l) => [l, urlFor(l, ...path.split('/'))]),
+          ),
+        },
+      });
+    }
 
     /*
       HIZMET HUB SAYFALARI (/en/dog-boarding) SITEMAP'TE DEGIL.

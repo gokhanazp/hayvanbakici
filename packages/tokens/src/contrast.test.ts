@@ -53,6 +53,22 @@ const PAIRS: Array<[keyof Theme, keyof Theme, number, string]> = [
   ['tile-sage-ink', 'tile-sage', 4.5, 'pastel kutucuk — adacayi'],
   ['tile-apricot-ink', 'tile-apricot', 4.5, 'pastel kutucuk — kayisi'],
   ['tile-peri-ink', 'tile-peri', 4.5, 'pastel kutucuk — peri'],
+  /*
+    RENKLI BANTLAR. Her bant dort ayri metin tonu tasiyor; biri bile
+    4.5'in altina dusunce bant tonu degil, METIN tonu duzeltilir — bant
+    rengi tasarim karari, kontrast degil.
+  */
+  ['ink', 'band-blush', 4.5, 'kahraman bandi — baslik'],
+  ['ink-secondary', 'band-blush', 4.5, 'kahraman bandi — ikincil'],
+  ['ink-muted', 'band-blush', 4.5, 'kahraman bandi — soluk'],
+  ['primary', 'band-blush', 4.5, 'kahraman bandi — vurgu'],
+  ['ink', 'band-apricot', 4.5, 'kayisi bandi — baslik'],
+  ['ink-muted', 'band-apricot', 4.5, 'kayisi bandi — soluk'],
+  ['ink', 'band-sage', 4.5, 'adacayi bandi — baslik'],
+  ['ink-muted', 'band-sage', 4.5, 'adacayi bandi — soluk'],
+  ['primary', 'band-sage', 4.5, 'adacayi bandi — vurgu'],
+  ['accent-hover', 'accent-subtle', 4.5, 'adacayi rozet metni'],
+  ['ink-muted', 'surface-sunken', 4.5, 'cokuk yuzeyde soluk metin'],
   // Arayuz bilesenleri ve buyuk metin: 3:1 yeterli
   ['primary', 'canvas', 3, 'baglanti / vurgu rengi'],
   ['border-strong', 'surface', 1.5, 'girdi cercevesi'],
