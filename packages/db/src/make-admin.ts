@@ -32,8 +32,48 @@ const rows = await db.execute(sql`
 const user = (rows as unknown as Array<Record<string, unknown>>)[0];
 
 if (!user) {
-  console.error(`Boyle bir kullanici yok: ${email}`);
-  console.error('Once siteden hesap acin (/en/account/sign-up/), sonra bu komutu calistirin.');
+  console.error(`Boyle bir kullanici yok: ${email}\n`);
+
+  /*
+    BENZERLERINI GOSTER.
+
+    Bu komut bir kez yazilan bir e-postayla calisiyor ve tek bir yazim
+    hatasi (sonuna kacan bir '~', eksik bir harf) "boyle bir kullanici
+    yok" ile bitiyordu — dogru adresin ne oldugunu soylemeden. Yerel bir
+    gelistirme aracinda cikmaz sokak birakmanin anlami yok.
+
+    ONCE benzer adresler, sonra son acilan hesaplar. Tohum hesaplari
+    (seed.havre.test) listeden cikariliyor: yuzlerce tane var ve hicbiri
+    aranmiyor.
+  */
+  const local = email.split('@')[0] ?? email;
+  const near = await db.execute(sql`
+    SELECT email, role::text, created_at FROM users
+    WHERE email NOT LIKE '%seed.havre.test'
+      AND email ILIKE ${'%' + local.replace(/[\\%_]/g, (c) => '\\' + c) + '%'} ESCAPE '\\'
+    ORDER BY created_at DESC LIMIT 5
+  `);
+  const nearRows = near as unknown as Array<Record<string, unknown>>;
+
+  if (nearRows.length > 0) {
+    console.error('Bunu mu demek istediniz?');
+    for (const r of nearRows) console.error(`  ${r.email}${r.role === 'admin' ? '  (zaten yonetici)' : ''}`);
+  } else {
+    const recent = await db.execute(sql`
+      SELECT email, role::text FROM users
+      WHERE email NOT LIKE '%seed.havre.test'
+      ORDER BY created_at DESC LIMIT 10
+    `);
+    const list = recent as unknown as Array<Record<string, unknown>>;
+    if (list.length === 0) {
+      console.error('Veritabaninda hic gercek hesap yok.');
+      console.error('Once siteden hesap acin: /en/account/sign-up/');
+    } else {
+      console.error('Son acilan hesaplar:');
+      for (const r of list) console.error(`  ${r.email}${r.role === 'admin' ? '  (zaten yonetici)' : ''}`);
+    }
+  }
+
   await client.end();
   process.exit(1);
 }
