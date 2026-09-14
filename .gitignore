@@ -27,3 +27,6 @@ _src*.tar.gz
 # Claude'un sohbetten indirdigi dosyalar
 Claude outputs/
 .uploads/
+
+# Bu ortamda git kendi kilit dosyalarini silemiyor; buraya tasiniyorlar
+_to_delete/
