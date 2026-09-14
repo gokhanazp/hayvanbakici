@@ -2,7 +2,24 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema/index.js';
 
-let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+type Db = ReturnType<typeof drizzle<typeof schema>>;
+
+/*
+  HAVUZ, MODULUN DEGIL SURECIN OMRU KADAR YASAMALI.
+
+  Gelistirme sunucusu her degisiklikte modulleri YENIDEN degerlendiriyor.
+  Havuz yalnizca modul duzeyinde bir degiskende dursaydi, her yeniden
+  derleme yeni bir havuz acar, eskisi de baglantilarini tutmaya devam
+  ederdi: yirmi kayitli degisiklikten sonra Postgres "too many clients
+  already" (53300) diyor ve site aciliyor gibi gorunup her sayfada
+  patliyor (bizzat yasandi).
+
+  `globalThis` modul yeniden degerlendirilse de ayni kaliyor; bu yuzden
+  havuzun adresi orada tutuluyor. Uretimde de zarari yok — orada modul
+  zaten bir kez degerlendiriliyor.
+*/
+const GLOBAL_KEY = Symbol.for('havre.db.pool');
+const globalStore = globalThis as unknown as Record<symbol, Db | undefined>;
 
 /**
  * Postgres hatalarini ne yapilacagini soyleyen mesajlara cevirir.
@@ -93,7 +110,16 @@ function explain(err: unknown): Error {
       case '3F000':
         return 'Sema bulunamadi. Veritabani bos olabilir. → npm run db:migrate';
       case '53300':
-        return 'Sunucu baglanti sinirina ulasti (too many connections). Calisan eski dev sunucularini kapatin; Docker kullaniyorsaniz: npm run db:down && npm run db:up';
+        /*
+          Bu hatanin sebebi neredeyse hicbir zaman "cok kullanici" degil:
+          arkada unutulmus dev sunuculari ya da eski havuzlar. Recete de
+          bunu soyluyor — once kimin tuttuguna BAKMANIN yolunu veriyoruz,
+          korlemesine yeniden baslatmayi degil.
+        */
+        return 'Sunucu baglanti sinirina ulasti (too many connections). '
+          + 'Genellikle arkada unutulmus dev sunuculari tutuyor. '
+          + 'Kim tutuyor: npm run db:doctor  ·  Hepsini kapatmak icin: '
+          + 'pkill -f "next dev"  ·  Docker ise: npm run db:down && npm run db:up';
       case '57P03':
         return 'Sunucu henuz hazir degil (baslatiliyor ya da kurtariliyor). Birkac saniye sonra tekrar deneyin.';
       case '57P01':
@@ -141,15 +167,41 @@ export function getDb(connectionString = process.env.DATABASE_URL) {
       'Monorepo kokunde .env olusturun: cp .env.example .env',
     );
   }
-  if (!_db) {
-    const client = postgres(connectionString, {
-      max: 10,
-      prepare: false,
-      onnotice: () => {},
-    });
-    _db = drizzle(client, { schema });
-  }
-  return _db;
+  const existing = globalStore[GLOBAL_KEY];
+  if (existing) return existing;
+
+  /*
+    HAVUZ BOYU. Postgres'in varsayilan siniri 100 baglanti ve bunun bir
+    kismi zaten bakim islerine ayrilmis. Gelistirmede ayni anda birkac
+    surec acik olabiliyor (web, testler, drizzle studio, psql), o yuzden
+    varsayilan daha kucuk. DB_POOL_MAX ile degistirilebilir.
+
+    idle_timeout: bos baglantiyi sonsuza kadar tutmuyoruz; birkac dakika
+    once kapatilmis bir sayfanin baglantisi, acilmak isteyen yeni surecin
+    yerini kaplamamali.
+  */
+  const fromEnv = Number(process.env.DB_POOL_MAX);
+  const max = Number.isFinite(fromEnv) && fromEnv > 0
+    ? Math.floor(fromEnv)
+    : (process.env.NODE_ENV === 'production' ? 10 : 5);
+
+  const client = postgres(connectionString, {
+    max,
+    idle_timeout: 20,
+    max_lifetime: 60 * 30,
+    prepare: false,
+    onnotice: () => {},
+    /*
+      Baglantiya AD veriyoruz. `npm run db:doctor` baglantilari kim
+      tutuyor diye sordugunda, isimsiz bir liste hicbir sey anlatmiyor;
+      "havre-web" ile "havre-test" ayirt edilebilir olmali.
+    */
+    connection: { application_name: process.env.DB_APP_NAME ?? 'havre-web' },
+  });
+
+  const db = drizzle(client, { schema });
+  globalStore[GLOBAL_KEY] = db;
+  return db;
 }
 
 /** Sorgu hatalarini aciklayici mesaja ceviren sarmalayici. */

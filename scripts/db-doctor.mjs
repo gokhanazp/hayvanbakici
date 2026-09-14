@@ -176,6 +176,47 @@ if (n > 1) {
   }
 }
 
+/*
+  BAGLANTI KULLANIMI.
+
+  "too many clients already" (53300) bu projede en sik gorulen ikinci
+  hata ve sebebi neredeyse her zaman ayni: arkada unutulmus dev
+  sunuculari. Ekran bunu TAHMIN ETTIRMEK yerine gosteriyor — kac
+  baglanti var, siniri ne, kim tutuyor.
+*/
+const [{ used, limit }] = await sqlc`
+  SELECT (SELECT count(*)::int FROM pg_stat_activity) AS used,
+         current_setting('max_connections')::int      AS limit`;
+
+const pct = Math.round((used / limit) * 100);
+if (pct < 70) ok(`Baglanti: ${used}/${limit}`);
+else no(`Baglanti: ${used}/${limit} (%${pct}) — sinira yaklasiyor`);
+
+if (pct >= 50) {
+  const holders = await sqlc`
+    SELECT coalesce(application_name, '(isimsiz)') AS who,
+           state, count(*)::int AS n,
+           max(now() - state_change)::text AS idle_for
+    FROM pg_stat_activity
+    WHERE datname = current_database() AND pid <> pg_backend_pid()
+    GROUP BY 1, 2 ORDER BY n DESC LIMIT 8`;
+
+  console.log('\n  KIM TUTUYOR:');
+  for (const h of holders) {
+    console.log(`    ${String(h.n).padStart(3)} × ${h.who} — ${h.state} (${h.idle_for})`);
+  }
+  console.log(`
+  RECETE:
+    1. Fazladan calisan dev sunucularini kapatin:  pkill -f "next dev"
+    2. Bos baglantilari birakmak icin sunucuyu yeniden baslatin ya da:
+       psql "$DATABASE_URL" -c "SELECT pg_terminate_backend(pid)
+         FROM pg_stat_activity
+         WHERE datname = current_database() AND pid <> pg_backend_pid()
+           AND state = 'idle' AND state_change < now() - interval '5 minutes'"
+    3. Docker kullaniyorsaniz en kolayi: npm run db:down && npm run db:up
+`);
+}
+
 const cityRow = n > 1
   ? await sqlc`SELECT count(*)::int AS n FROM cities`.catch(() => [{ n: 0 }])
   : [{ n: 0 }];
