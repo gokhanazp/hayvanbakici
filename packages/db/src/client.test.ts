@@ -37,4 +37,16 @@ describe('veritabani hata mesajlari', () => {
     const m = await messageFor(sql`SELECT olmayan_sutun FROM users LIMIT 1`);
     expect(m).toContain('42703');
   });
+
+  /*
+    RECETESI OLMAYAN hata da kodunu gostermeli. Once bu durumda ham hata
+    firlatiliyordu ve ekranda yalnizca "Failed query: SELECT ..." yaziyordu;
+    Postgres'in kodu ve cumlesi kaybolmustu.
+  */
+  it('RECETESIZ hatada bile Postgres kodu goruniyor', async () => {
+    // 22012: sifira bolme — sozlukte recetesi OLMAYAN bir ornek
+    const m = await messageFor(sql`SELECT 1 / 0`);
+    expect(m).toMatch(/Postgres 22012/);
+    expect(m).toContain('db:doctor');
+  });
 });

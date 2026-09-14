@@ -92,12 +92,42 @@ function explain(err: unknown): Error {
         return 'Tip veya uzanti bulunamadi. Buyuk ihtimalle PostGIS kurulu degil. → docker compose kullanin veya: brew install postgis';
       case '3F000':
         return 'Sema bulunamadi. Veritabani bos olabilir. → npm run db:migrate';
+      case '53300':
+        return 'Sunucu baglanti sinirina ulasti (too many connections). Calisan eski dev sunucularini kapatin; Docker kullaniyorsaniz: npm run db:down && npm run db:up';
+      case '57P03':
+        return 'Sunucu henuz hazir degil (baslatiliyor ya da kurtariliyor). Birkac saniye sonra tekrar deneyin.';
+      case '57P01':
+      case '57P02':
+        return 'Baglanti sunucu tarafindan kesildi (sunucu yeniden baslatildi ya da kapandi). → npm run db:doctor';
+      case '22P02':
+        return 'Gecersiz deger: bir parametre bekledigi tipe donusturulemedi (ornegin uydurma bir enum degeri ya da bozuk bir UUID).';
+      case '42601':
+        return 'SQL soz dizimi hatasi — bu bizim hatamiz, sorgu yanlis yazilmis.';
       default:
         return null;
     }
   })();
 
-  if (!hint) return err instanceof Error ? err : new Error(base);
+  /*
+    RECETESI OLMAYAN HATADA BILE KOD GORUNSUN.
+
+    Once recete yoksa ham hata oldugu gibi firlatiliyordu; ekranda
+    "Failed query: SELECT ... params: boarding,3" yaziyordu ve Postgres'in
+    KENDI hata kodu ile mesaji hicbir yerde gorunmuyordu (bizzat yasandi —
+    hata ekranina bakip ne oldugunu anlamak mumkun olmadi).
+
+    Artik teshis her zaman var: recete varsa recete + kod, yoksa en azindan
+    kod ve sunucunun soyledigi cumle.
+  */
+  if (!hint) {
+    if (!code || code === '?') return err instanceof Error ? err : new Error(base);
+    const plain = new Error(
+      `Veritabani hatasi (Postgres ${code}): ${base}\n` +
+      'Bu kod icin hazir bir recete yok. → npm run db:doctor',
+    );
+    plain.cause = err;
+    return plain;
+  }
 
   const wrapped = new Error(`${hint}\n\n(Postgres ${code ?? '?'}: ${base})`);
   wrapped.cause = err;
