@@ -33,6 +33,10 @@ export interface SitterReview {
 export interface SitterService {
   serviceType: ServiceType;
   priceCents: number;
+  /* Rezervasyon formundaki CANLI fiyat bu ikisi olmadan sunucunun
+     hesabiyla uyusmuyordu: ek hayvan ve tatil farki sifir gorunuyordu. */
+  extraPetPriceCents: number;
+  holidaySurchargePct: number;
   priceUnit: string;
   cancellationPolicy: 'flexible' | 'moderate' | 'strict';
   acceptsDogs: boolean;
@@ -116,7 +120,8 @@ export async function getSitterProfile(
 
     const [svcRows, reviewRows, statRows, photoRows] = await Promise.all([
       db.execute(sql`
-        SELECT service_type, price_cents, price_unit, cancellation_policy,
+        SELECT service_type, price_cents, extra_pet_price_cents, holiday_surcharge_pct,
+               price_unit, cancellation_policy,
                accepts_dogs, accepts_cats, accepts_other,
                accepted_size_min_kg, accepted_size_max_kg
         FROM sitter_services
@@ -208,6 +213,8 @@ export async function getSitterProfile(
       services: (svcRows as unknown as Array<Record<string, unknown>>).map((s) => ({
         serviceType: s.service_type as ServiceType,
         priceCents: Number(s.price_cents),
+        extraPetPriceCents: Number(s.extra_pet_price_cents ?? 0),
+        holidaySurchargePct: Number(s.holiday_surcharge_pct ?? 0),
         priceUnit: String(s.price_unit),
         cancellationPolicy: s.cancellation_policy as 'flexible' | 'moderate' | 'strict',
         acceptsDogs: Boolean(s.accepts_dogs),

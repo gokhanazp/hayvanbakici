@@ -10,15 +10,24 @@ import {
   getDb, listCities, listTier1Cities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
   getSitterProfile as dbGetSitterProfile, listSitterSlugsForBuild, listFeaturedReviews,
   resolvePlace as dbResolvePlace,
+  getCalendar as dbGetCalendar, setAvailability as dbSetAvailability,
+  createBookingRequest as dbCreateBookingRequest, createPet as dbCreatePet,
+  listPets as dbListPets, listOwnerBookings as dbListOwnerBookings,
+  listSitterBookings as dbListSitterBookings, getBookingForViewer as dbGetBooking,
+  respondToRequest as dbRespond, cancelBooking as dbCancel, isSitter as dbIsSitter,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
   type SitterProfile, type FeaturedReview, type PlaceMatch,
+  type BookingSummary, type BookingDetail, type BookingDraft, type CalendarDay,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
 
-export type { CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview, PlaceMatch };
+export type {
+  CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview,
+  PlaceMatch, BookingSummary, BookingDetail, CalendarDay,
+};
 export { cityName, citySlug };
 
 const db = () => getDb();
@@ -88,3 +97,34 @@ export const resolvePlace = cache(
   async (query: string, locale: Locale): Promise<PlaceMatch | null> =>
     dbResolvePlace(db(), query, locale),
 );
+
+/* ---------------------------------------------------------- rezervasyon */
+/*
+  Bu sarmalayicilarin hicbiri cache() ile sarili DEGIL: rezervasyon ve
+  takvim verisi istek aninda taze olmali. cache() yalnizca ayni istek
+  icinde tekrarlanan OKUMA sorgulari icin var (sehir, landing); burada
+  yazma ve kisiye ozel okuma soz konusu.
+*/
+export const getCalendar = (sitterId: string, from: string, to: string) =>
+  dbGetCalendar(db(), sitterId, from, to);
+
+export const setAvailability = (sitterId: string, dates: string[], status: 'open' | 'blocked') =>
+  dbSetAvailability(db(), sitterId, dates, status);
+
+export const createBookingRequest = (draft: BookingDraft) => dbCreateBookingRequest(db(), draft);
+
+export const createPet = (pet: Parameters<typeof dbCreatePet>[1]) => dbCreatePet(db(), pet);
+export const listPets = (ownerId: string) => dbListPets(db(), ownerId);
+
+export const listOwnerBookings = (ownerId: string) => dbListOwnerBookings(db(), ownerId);
+export const listSitterBookings = (sitterId: string) => dbListSitterBookings(db(), sitterId);
+
+export const getBooking = (id: string, viewerId: string, locale: Locale) =>
+  dbGetBooking(db(), id, viewerId, locale);
+
+export const respondToRequest = (id: string, sitterId: string, to: 'confirmed' | 'declined') =>
+  dbRespond(db(), id, sitterId, to);
+
+export const cancelBooking = (id: string, userId: string) => dbCancel(db(), id, userId);
+
+export const isSitter = (userId: string) => dbIsSitter(db(), userId);

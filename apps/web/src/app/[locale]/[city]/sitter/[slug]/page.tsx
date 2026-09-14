@@ -294,12 +294,19 @@ export default async function SitterPage({
 
             <p className="text-body-sm muted">{m.sitter.feeNote}</p>
 
-            <Link href={`/${seg}/account/sign-in/`} className="btn btn-primary btn-block">
+            {/*
+              Rezervasyon: giris gerekiyorsa book sayfasi kendisi giris
+              ekranina yonlendiriyor ve donusu hatirliyor. Dugmenin
+              dogrudan giris sayfasina gitmesi, giris yapmis kullaniciyi da
+              bos yere oraya gonderiyordu.
+            */}
+            <Link
+              href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/sitter/${sitter.slug}/book/`}
+              className="btn btn-primary btn-block"
+            >
               {m.sitter.bookCta}
             </Link>
-            <Link href={`/${seg}/account/sign-in/`} className="btn btn-secondary btn-block">
-              {m.sitter.messageCta}
-            </Link>
+            {/* Mesajlasma henuz yok; olmayan bir seye dugme koymuyoruz. */}
 
             <ul className="sitter-facts" style={{ marginTop: 'var(--space-2)' }}>
               <Fact>{interpolate(m.sitter.openDays, { count: sitter.openDays })}</Fact>

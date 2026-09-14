@@ -61,4 +61,11 @@ export const consentTypeEnum = pgEnum('consent_type', [
 
 export const bookingEventTypeEnum = pgEnum('booking_event_type', [
   'check_in', 'check_out', 'photo', 'video', 'gps_ping', 'note', 'incident',
+  /*
+    Durum degisikligi — kim, ne zaman, hangi durumdan hangisine.
+    `bookings` tablosunda yalnizca SON durum var; anlasmazlikta ve
+    chargeback savunmasinda gereken sey ise SIRA: talep ne zaman geldi,
+    bakici ne zaman onayladi, iptal kimden geldi.
+  */
+  'status_change',
 ]);

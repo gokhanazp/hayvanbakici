@@ -33,7 +33,9 @@ export function HeaderAccount({ locale }: { locale: Locale }) {
 
   return (
     <>
-      <Link href={`/${seg}/account`} className="text-body-sm muted">
+      {/* /account diye bir sayfa yok; hesabin girisi rezervasyon listesi.
+          Once buraya baglanıyordu ve tiklayan kullanici 404 goruyordu. */}
+      <Link href={`/${seg}/account/bookings/`} className="text-body-sm muted">
         {firstName || m.nav.account}
       </Link>
       <button

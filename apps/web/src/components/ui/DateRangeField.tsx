@@ -19,6 +19,7 @@ export function DateRangeField({
   label,
   defaultStart,
   defaultEnd,
+  onChange,
 }: {
   locale: Locale;
   startName: string;
@@ -27,15 +28,25 @@ export function DateRangeField({
   /** Sonuc sayfasinda aramanin tarihleri geri gosterilir (ISO: 2026-09-20) */
   defaultStart?: string | undefined;
   defaultEnd?: string | undefined;
+  /**
+   * Secim degisince haber verir. Rezervasyon formu bunu CANLI FIYAT icin
+   * kullaniyor: gizli inputlarin degerini okumak yerine (form gonderilene
+   * kadar okunamaz) degisikligi yukari bildiriyoruz.
+   */
+  onChange?: ((range: DayRange) => void) | undefined;
 }) {
   const m = getMessages(locale);
   const baseId = useId();
   const [enhanced, setEnhanced] = useState(false);
   const [open, setOpen] = useState(false);
-  const [range, setRange] = useState<DayRange>({
+  const [range, setRangeState] = useState<DayRange>({
     start: defaultStart || null,
     end: defaultEnd || null,
   });
+  const setRange = (next: DayRange) => {
+    setRangeState(next);
+    onChange?.(next);
+  };
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 

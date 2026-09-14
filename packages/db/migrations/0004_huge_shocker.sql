@@ -1,0 +1,1 @@
+ALTER TYPE "public"."booking_event_type" ADD VALUE 'status_change';

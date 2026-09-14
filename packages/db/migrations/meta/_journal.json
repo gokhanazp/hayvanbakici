@@ -29,6 +29,13 @@
       "when": 1789337771394,
       "tag": "0003_gifted_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789384225709,
+      "tag": "0004_huge_shocker",
+      "breakpoints": true
     }
   ]
 }
