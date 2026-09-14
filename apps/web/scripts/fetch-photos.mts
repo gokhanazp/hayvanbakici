@@ -22,7 +22,7 @@
  * Stok bir yuzu "gercek musterimiz" diye sunmak uydurma sosyal kanit olur —
  * kayittaki kisi fotograflari yalnizca DEMO verisinde (seed) kullanilir.
  */
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PHOTOS, type PhotoId } from '../src/lib/photos.js';
@@ -53,13 +53,36 @@ type Lock = Record<string, LockEntry>;
 
 const lock: Lock = await readFile(lockPath, 'utf8').then(JSON.parse).catch(() => ({}));
 
+/*
+  KOTA GERCEK BIR SINIR.
+  Unsplash'in Demo uygulamalari saatte 50 istek veriyor; her yuva iki API
+  cagrisi harciyor (arama + indirme bildirimi), yani 24 yuvalik tam bir tur
+  48 istek. Tek tur sigar, ikinci tur sigmaz. Bu yuzden:
+   - kota bitince acik bir mesajla DURULUYOR (sessiz 403 yerine),
+   - secimler her yuvadan SONRA kilit dosyasina yaziliyor,
+   - zaten inmis yuvalar tekrar cagri harcamiyor.
+*/
+let remaining = Infinity;
+
 const api = async (path: string): Promise<unknown> => {
   const res = await fetch(`https://api.unsplash.com${path}`, {
     headers: { Authorization: `Client-ID ${KEY}`, 'Accept-Version': 'v1' },
   });
+  const left = res.headers.get('x-ratelimit-remaining');
+  if (left !== null) remaining = Number(left);
+  if (res.status === 403 && remaining === 0) {
+    throw new Error(
+      'Unsplash saatlik kota doldu (Demo uygulama: 50 istek/saat).\n' +
+      'Inen fotograflar ve secimler photos.lock.json icinde duruyor —\n' +
+      'bir saat sonra ayni komutu calistirin, kaldigi yerden devam eder.',
+    );
+  }
   if (!res.ok) throw new Error(`Unsplash ${res.status} ${res.statusText} — ${path}`);
   return res.json();
 };
+
+const exists = async (p: string): Promise<boolean> =>
+  stat(p).then(() => true).catch(() => false);
 
 interface UPhoto {
   id: string;
@@ -70,8 +93,23 @@ interface UPhoto {
 
 const used = new Set(Object.values(lock).map((e) => e.photoId));
 
+let done = 0;
+let skipped = 0;
+
 for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS[PhotoId]]>) {
   if (only && !only.has(id)) continue;
+
+  const out = join(outRoot, `${spec.file}.jpg`);
+
+  /*
+    Zaten inmis ve kilitli bir yuvaya dokunmuyoruz. Ilk surumde her calisma
+    24 yuvanin hepsini yeniden indiriyordu: ikinci calistirmada kota doluyor
+    ve elinizde yarim bir set kaliyordu. Yeniden secmek icin --force.
+  */
+  if (!force && lock[id] && (await exists(out)) && !only) {
+    skipped += 1;
+    continue;
+  }
 
   let entry = force ? undefined : lock[id];
   let photo: UPhoto;
@@ -103,10 +141,14 @@ for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS
   const url = `${photo.urls.raw}&w=${spec.width}&h=${spec.height}&fit=crop&crop=faces,entropy&q=78&fm=jpg`;
   const bin = await fetch(url);
   if (!bin.ok) throw new Error(`indirme basarisiz ${id}: ${bin.status}`);
-  const out = join(outRoot, `${spec.file}.jpg`);
   await mkdir(dirname(out), { recursive: true });
   await writeFile(out, Buffer.from(await bin.arrayBuffer()));
-  console.log(`✓ ${id.padEnd(16)} ${entry.author}`);
+
+  // Kilit HER YUVADAN SONRA yaziliyor: tur ortasinda kota biterse
+  // o ana kadarki secimler kaybolmaz.
+  await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+  done += 1;
+  console.log(`✓ ${id.padEnd(16)} ${entry.author}${remaining < 12 ? `   (kota: ${remaining})` : ''}`);
 }
 
 await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
@@ -121,4 +163,7 @@ kullanilir. Atif lisans geregi zorunlu degil, API sartlari geregi zorunludur.
 
 ${credits}
 `);
-console.log('CREDITS.md ve photos.lock.json guncellendi.');
+console.log(
+  `CREDITS.md ve photos.lock.json guncellendi — ${done} indirildi` +
+  (skipped ? `, ${skipped} zaten vardi (yenilemek icin --force)` : '') + '.',
+);
