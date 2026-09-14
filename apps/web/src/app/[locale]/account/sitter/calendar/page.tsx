@@ -4,7 +4,7 @@ import { getMessages, localeFromSegment } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { CalendarEditor } from '@/components/CalendarEditor';
-import { getCalendar, isSitter } from '@/lib/data';
+import { getCalendar, isSitter, isAdmin } from '@/lib/data';
 import { saveCalendarAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -54,6 +54,7 @@ export default async function CalendarPage({
       lead={m.calendar.lead}
       active="calendar"
       isSitter
+      isAdmin={await isAdmin(session.user.id)}
       actions={
         <div className="row" style={{ gap: 'var(--space-2)' }}>
           {offset > 0 && (

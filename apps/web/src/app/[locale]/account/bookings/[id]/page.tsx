@@ -7,7 +7,7 @@ import { AccountShell } from '@/components/AccountShell';
 import { StatusBadge } from '@/components/BookingCard';
 import { RespondButtons, CancelButton } from '@/components/BookingActions';
 import { Avatar } from '@/components/Avatar';
-import { getBooking, isSitter } from '@/lib/data';
+import { getBooking, isSitter, isAdmin } from '@/lib/data';
 import { money, dateFmt } from '@/lib/format';
 import { respondAction, cancelAction } from './actions';
 
@@ -31,7 +31,9 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const m = getMessages(locale);
-  const sitterPanel = await isSitter(session.user.id);
+  const [sitterPanel, adminPanel] = await Promise.all([
+    isSitter(session.user.id), isAdmin(session.user.id),
+  ]);
   const unit = SERVICES[booking.serviceType].unit;
   const name = `${booking.counterpartFirstName} ${booking.counterpartInitial}.`;
   const isOwner = booking.viewerRole === 'owner';
@@ -44,6 +46,7 @@ export default async function BookingDetailPage({
       title={interpolate(isOwner ? m.booking.withSitter : m.booking.forOwner, { name })}
       active={isOwner ? 'bookings' : 'sitter'}
       isSitter={sitterPanel}
+      isAdmin={adminPanel}
       actions={
         <Link href={`/${seg}/account/${isOwner ? 'bookings' : 'sitter'}/`} className="text-body-sm muted">
           ← {m.booking.backToList}

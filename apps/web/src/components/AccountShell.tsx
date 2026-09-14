@@ -9,13 +9,16 @@ import { getMessages, segmentFor, type Locale } from '@havre/i18n';
  * herkese "Bakici paneli" gostermek, tiklayinca bos sayfa demek olurdu.
  */
 export function AccountShell({
-  locale, title, lead, active, isSitter, children, actions,
+  locale, title, lead, active, isSitter, isAdmin, children, actions,
 }: {
   locale: Locale;
   title: string;
   lead?: string | undefined;
   active: 'bookings' | 'sitter' | 'calendar';
   isSitter: boolean;
+  /** Yonetici sekmesi: panelin adresi hicbir yerde duyurulmuyor,
+      yoneticinin kendi hesabindan girebilmesi icin tek kapi bu. */
+  isAdmin?: boolean | undefined;
   children: ReactNode;
   actions?: ReactNode | undefined;
 }) {
@@ -29,6 +32,9 @@ export function AccountShell({
           { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.requests },
           { key: 'calendar' as const, href: `/${seg}/account/sitter/calendar/`, label: m.account.calendar },
         ]
+      : []),
+    ...(isAdmin
+      ? [{ key: 'admin' as const, href: `/${seg}/admin/`, label: locale === 'fr-CA' ? 'Interne' : 'Internal' }]
       : []),
   ];
 

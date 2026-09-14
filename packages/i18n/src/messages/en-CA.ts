@@ -94,6 +94,16 @@ export const enCA = {
     'status.cancelled': 'Cancelled',
     'status.expired': 'Expired',
     'status.completed': 'Completed',
+    // Su an hicbir akis bu durumlara gecmiyor; yonetici panelinde eski
+    // kayitlar ve tohum veri gorundugu icin karsiliklari yine de burada.
+    'status.draft': 'Draft',
+    'status.counter_offered': 'Counter-offered',
+    'status.paid': 'Paid',
+    'status.in_progress': 'In progress',
+    'status.payout_released': 'Paid out',
+    'status.disputed': 'Disputed',
+    'status.refunded': 'Refunded',
+    'status.resolved': 'Resolved',
     accept: 'Accept',
     decline: 'Decline',
     cancel: 'Cancel booking',

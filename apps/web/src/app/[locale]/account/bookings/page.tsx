@@ -4,7 +4,7 @@ import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { BookingCard } from '@/components/BookingCard';
-import { listOwnerBookings, isSitter } from '@/lib/data';
+import { listOwnerBookings, isSitter, isAdmin } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +21,14 @@ export default async function OwnerBookingsPage({
   if (!session) redirect(`/${seg}/account/sign-in/?next=/${seg}/account/bookings/`);
 
   const m = getMessages(locale);
-  const [bookings, sitter] = await Promise.all([
+  const [bookings, sitter, admin] = await Promise.all([
     listOwnerBookings(session.user.id),
     isSitter(session.user.id),
+    isAdmin(session.user.id),
   ]);
 
   return (
-    <AccountShell locale={locale} title={m.account.myBookings} active="bookings" isSitter={sitter}>
+    <AccountShell locale={locale} title={m.account.myBookings} active="bookings" isSitter={sitter} isAdmin={admin}>
       {bookings.length === 0 ? (
         <div className="card card-pad" style={{ maxWidth: '36rem' }}>
           <h2 className="text-h4">{m.account.noBookings}</h2>

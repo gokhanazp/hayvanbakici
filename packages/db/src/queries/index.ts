@@ -6,3 +6,4 @@ export * from './onboarding.js';
 export * from './sitter.js';
 export * from './place.js';
 export * from './booking.js';
+export * from './admin.js';
