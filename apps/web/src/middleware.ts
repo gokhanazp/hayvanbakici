@@ -8,14 +8,30 @@ import { NextResponse, type NextRequest } from 'next/server';
  * kendi yonlendirmesi bunu yapardi ama /api'yi de yonlendiriyordu (bkz.
  * next.config.ts). Bu yuzden kural burada ve YALNIZCA sayfalara uygulaniyor.
  */
+/**
+ * ISTENEN YOLU SUNUCU BILESENLERINE TASIYAN BASLIK.
+ *
+ * Next, sunucu bilesenlerine "hangi adres istendi" bilgisini vermiyor.
+ * Yonetici korumasinin buna ihtiyaci var: giris ekranina yonlendirirken
+ * kisinin NEREYE gitmek istedigini bilmezsek, girisden sonra herkesi
+ * gosterge paneline atariz ve tikladigi baglanti kaybolur.
+ */
+export const PATH_HEADER = 'x-havre-path';
+
+function pass(req: NextRequest) {
+  const headers = new Headers(req.headers);
+  headers.set(PATH_HEADER, req.nextUrl.pathname + req.nextUrl.search);
+  return NextResponse.next({ request: { headers } });
+}
+
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
-  if (pathname === '/' || pathname.endsWith('/')) return NextResponse.next();
+  if (pathname === '/' || pathname.endsWith('/')) return pass(req);
 
   // Dosya uzantisi olan istekler (robots.txt, sitemap.xml, .png) slash almaz.
   const lastSegment = pathname.slice(pathname.lastIndexOf('/') + 1);
-  if (lastSegment.includes('.')) return NextResponse.next();
+  if (lastSegment.includes('.')) return pass(req);
 
   /*
     DIKKAT — req.nextUrl.clone() BURADA KULLANILAMAZ.

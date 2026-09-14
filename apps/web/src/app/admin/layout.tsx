@@ -3,9 +3,6 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import '@havre/tokens/css';
 import './admin.css';
-import { requireAdmin } from '@/lib/admin';
-import { getAdminCounts } from '@/lib/data';
-import { AdminNav } from '@/components/admin/AdminNav';
 
 /**
  * YONETICI PANELI — SITENIN DISINDA.
@@ -24,23 +21,21 @@ import { AdminNav } from '@/components/admin/AdminNav';
  *     paneli "baska bir yazilim" gibi gosteriyordu); ayrim renkle degil
  *     yerlesimle ve tipografiyle yapiliyor.
  *
- * Yetki kontrolu BURADA: her alt sayfa ayrica requireAdmin cagiriyor
- * (duzen kontrolune guvenip sayfada atlamak, bir gun birinin unutmasiyla
- * acik kapi birakir), ama menunun bile cizilmemesi icin ilk kapi bu.
+ * BU DUZEN YETKI KONTROLU YAPMIYOR — bilerek.
+ * Giris ekrani da (/admin/sign-in) bu agacin altinda ve ayni gorunumu
+ * kullaniyor; kontrol burada olsaydi giris ekrani kendi kendini
+ * yonlendiren bir dongu olurdu. Kontrol `(panel)/layout.tsx` icinde,
+ * korunan her sayfanin ustunde.
+ *
+ * PANELDE TEK YAZI TIPI: Inter.
+ *
+ * Sitenin yazi tipleri (Bricolage + Schibsted) burada KULLANILMIYOR.
+ * Marka yazi tipi bir pazarlama sayfasinda karakter katar; gunde
+ * saatlerce bakilan bir tablo ekraninda istenen sey karakter degil
+ * NOTRLUK — rakamlarin ayni genislikte hizalanmasi, kucuk puntoda
+ * kirilmamasi. Inter degisken agirlikli tek bir dosya (48 KB) ve
+ * sitedeki fontlarla ayni yolla kendi sunucumuzdan gidiyor.
  */
-/*
-  PANELDE TEK YAZI TIPI: Inter.
-
-  Sitenin yazi tipleri (Bricolage + Schibsted) burada KULLANILMIYOR.
-  Marka yazi tipi bir pazarlama sayfasinda karakter katar; gunde saatlerce
-  bakilan bir tablo ekraninda istenen sey karakter degil NOTRLUK —
-  rakamlarin ayni genislikte hizalanmasi, kucuk puntoda kirilmamasi,
-  basliklarin dikkat dagitmamasi. Inter degisken agirlikli tek bir dosya
-  (48 KB) ve sitedeki fontlarla ayni yolla kendi sunucumuzdan gidiyor.
-
-  Iki degisken de Inter'e baglaniyor: ortak bilesenler `--font-display`
-  kullaniyor ve panelde iki ayri aile gormek istemiyoruz.
-*/
 const inter = localFont({
   src: '../fonts/inter-latin-wght-normal.woff2',
   variable: '--font-ui-src',
@@ -64,21 +59,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
-export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const session = await requireAdmin();
-  const counts = await getAdminCounts();
-
+export default function AdminRootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${interDisplay.variable}`}>
-      <body className="a-body">
-        <a href="#a-main" className="a-btn a-btn-ghost" style={{
-          position: 'absolute', left: -9999, top: 0,
-        }}>Skip to content</a>
-        <div className="a-shell">
-          <AdminNav counts={counts} email={session.user.email} />
-          <div className="a-main" id="a-main">{children}</div>
-        </div>
-      </body>
+      <body className="a-body">{children}</body>
     </html>
   );
 }

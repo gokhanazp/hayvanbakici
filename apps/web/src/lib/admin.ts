@@ -2,17 +2,20 @@ import { notFound, redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { getSession } from '@/lib/auth';
 import { isAdmin, recordAudit } from '@/lib/data';
+import { PATH_HEADER } from '@/middleware';
 
 /**
  * YONETICI KORUMASI.
  *
  * IKI FARKLI DURUM, IKI FARKLI CEVAP:
  *
- *  - Oturum YOK  → giris ekranina yonlendir.
+ *  - Oturum YOK  → panelin KENDI giris ekranina yonlendir.
  *    Kimsenin kimligi bilinmiyorken 404 dondurmek, panele girmesi gereken
  *    kisiyi de disari atiyordu (bizzat yasandi: "/en/admin 404 veriyor").
  *    /admin adresinin var oldugunu ogrenmek bir sir degil; koruma
  *    adresin gizliligi degil, yetkinin kontrolu.
+ *    Musteri giris sayfasina degil kendi ekranina gidiyor: o sayfa
+ *    pazarlama basligi, dil secici ve "hesap ac" davetiyle geliyordu.
  *
  *  - Oturum VAR ama yonetici DEGIL → 404.
  *    Burada "giremezsiniz" demek, giris yapmis siradan bir kullaniciya
@@ -21,7 +24,18 @@ import { isAdmin, recordAudit } from '@/lib/data';
  */
 export async function requireAdmin() {
   const session = await getSession();
-  if (!session) redirect('/en/account/sign-in/?next=/admin/');
+  if (!session) {
+    /*
+      Nereye gitmek istedigini koruyoruz: girisden sonra tikladigi
+      baglanti aciliyor, herkesi gosterge paneline atmiyoruz. Yolu
+      middleware bir baslikta tasiyor (Next sunucu bilesenlerine istenen
+      adresi vermiyor).
+    */
+    const h = await headers();
+    const wanted = h.get(PATH_HEADER);
+    const next = wanted && wanted.startsWith('/admin') && !wanted.startsWith('//') ? wanted : null;
+    redirect(next ? `/admin/sign-in/?next=${encodeURIComponent(next)}` : '/admin/sign-in/');
+  }
 
   if (!(await isAdmin(session.user.id))) {
     /*
