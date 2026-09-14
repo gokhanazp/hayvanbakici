@@ -19,8 +19,10 @@ export function Page({
   return (
     <>
       <header className="a-top">
-        <h1>{title}</h1>
-        {lead && <p>{lead}</p>}
+        <div className="a-top-text">
+          <h1>{title}</h1>
+          {lead && <p>{lead}</p>}
+        </div>
         {actions && <div className="a-row" style={{ marginLeft: 'auto' }}>{actions}</div>}
       </header>
       <div className="a-content">{children}</div>

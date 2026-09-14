@@ -19,8 +19,9 @@ import { AdminNav } from '@/components/admin/AdminNav';
  *     (Ingilizce) tutuluyor. Bill 96 MUSTERIYE sunulan arayuzu baglar;
  *     ekibin kendi araci ayri bir mesele ve iki dilde bir panel, iki kat
  *     bakim ve iki kat "ceviri eksik" hatasi demekti.
- *  3. Tema `data-theme="admin"`: notr arduvaz palet. Musterinin koyu
- *     temasindan ayri — gerekce packages/tokens/src/color.ts icinde.
+ *  3. Tema SITENIN kendisi. Panel icin ayri bir arduvaz palet denendi ve
+ *     geri alindi: ayni urunun iki renk dunyasi olmasi paneli "baska bir
+ *     yazilim" gibi gosteriyordu. Ayrim renkle degil yerlesimle.
  *
  * Yetki kontrolu BURADA: her alt sayfa ayrica requireAdmin cagiriyor
  * (duzen kontrolune guvenip sayfada atlamak, bir gun birinin unutmasiyla
@@ -54,7 +55,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const counts = await getAdminCounts();
 
   return (
-    <html lang="en" data-theme="admin" className={`${display.variable} ${ui.variable}`}>
+    <html lang="en" className={`${display.variable} ${ui.variable}`}>
       <body className="a-body">
         <a href="#a-main" className="a-btn a-btn-ghost" style={{
           position: 'absolute', left: -9999, top: 0,

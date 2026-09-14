@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lightTheme, darkTheme, adminTheme } from './color.js';
+import { lightTheme, darkTheme } from './color.js';
 
 /**
  * KONTRAST TESTI.
@@ -77,7 +77,6 @@ const PAIRS: Array<[keyof Theme, keyof Theme, number, string]> = [
 describe.each([
   ['acik tema', lightTheme],
   ['koyu tema', darkTheme],
-  ['yonetici temasi', adminTheme],
 ] as const)('%s kontrasti', (_name, theme) => {
   it.each(PAIRS)('%s / %s >= %s:1 (%s)', (fg, bg, min) => {
     const ratio = contrast(theme[fg], theme[bg]);
@@ -88,11 +87,6 @@ describe.each([
 describe('palet butunlugu', () => {
   it('koyu tema acik temanin TUM anahtarlarini tasir', () => {
     const missing = Object.keys(lightTheme).filter((k) => !(k in darkTheme));
-    expect(missing).toEqual([]);
-  });
-
-  it('yonetici temasi da TUM anahtarlari tasir', () => {
-    const missing = Object.keys(lightTheme).filter((k) => !(k in adminTheme));
     expect(missing).toEqual([]);
   });
 

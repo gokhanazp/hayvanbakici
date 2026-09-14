@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -19,14 +20,32 @@ export interface AdminCounts {
   requestedBookings: number;
 }
 
-const ITEMS = [
-  { href: '/admin/', label: 'Dashboard', exact: true },
-  { href: '/admin/applications/', label: 'Applications', badge: 'applications' },
-  { href: '/admin/users/', label: 'Users' },
-  { href: '/admin/bookings/', label: 'Bookings', badge: 'requestedBookings' },
-  { href: '/admin/reviews/', label: 'Reviews' },
-  { href: '/admin/reports/', label: 'Reports', badge: 'reports' },
-  { href: '/admin/audit/', label: 'Audit log' },
+/**
+ * Menu IKI BOLUME ayrildi. Duz bir yedi maddelik liste, hepsini esit
+ * onemde gosteriyordu; oysa ust grup gunluk isin yapildigi yer, alt grup
+ * denetim. Baslikli gruplar aramayi da hizlandiriyor.
+ */
+const GROUPS = [
+  {
+    label: null,
+    items: [{ href: '/admin/', label: 'Dashboard' }],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { href: '/admin/applications/', label: 'Applications', badge: 'applications' },
+      { href: '/admin/users/', label: 'Users' },
+      { href: '/admin/bookings/', label: 'Bookings', badge: 'requestedBookings' },
+    ],
+  },
+  {
+    label: 'Oversight',
+    items: [
+      { href: '/admin/reviews/', label: 'Reviews' },
+      { href: '/admin/reports/', label: 'Reports', badge: 'reports' },
+      { href: '/admin/audit/', label: 'Audit log' },
+    ],
+  },
 ] as const;
 
 export function AdminNav({ counts, email }: { counts: AdminCounts; email: string }) {
@@ -36,23 +55,28 @@ export function AdminNav({ counts, email }: { counts: AdminCounts; email: string
     <nav className="a-side" aria-label="Admin sections">
       <p className="a-brand">havre <span>internal</span></p>
 
-      {ITEMS.map((item) => {
-        const active = item.href === '/admin/'
-          ? pathname === '/admin' || pathname === '/admin/'
-          : pathname.startsWith(item.href.slice(0, -1));
-        const n = 'badge' in item ? counts[item.badge as keyof AdminCounts] : 0;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`a-nav${active ? ' is-active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-          >
-            <span>{item.label}</span>
-            {n > 0 && <b aria-label={`${n} waiting`}>{n}</b>}
-          </Link>
-        );
-      })}
+      {GROUPS.map((group) => (
+        <Fragment key={group.label ?? 'top'}>
+          {group.label && <p className="a-navlabel">{group.label}</p>}
+          {group.items.map((item) => {
+            const active = item.href === '/admin/'
+              ? pathname === '/admin' || pathname === '/admin/'
+              : pathname.startsWith(item.href.slice(0, -1));
+            const n = 'badge' in item ? counts[item.badge as keyof AdminCounts] : 0;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`a-nav${active ? ' is-active' : ''}`}
+                aria-current={active ? 'page' : undefined}
+              >
+                <span>{item.label}</span>
+                {n > 0 && <b aria-label={`${n} waiting`}>{n}</b>}
+              </Link>
+            );
+          })}
+        </Fragment>
+      ))}
 
       <div className="a-side-foot">
         <p>{email}</p>
@@ -60,7 +84,7 @@ export function AdminNav({ counts, email }: { counts: AdminCounts; email: string
           Siteye donus baglantisi: panel siteden ayri bir uygulama gibi
           davraniyor, kapisi da acikca gorunmeli.
         */}
-        <p style={{ marginTop: 6 }}>
+        <p>
           <Link href="/en/">← Back to the site</Link>
         </p>
       </div>
