@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
+import { getMessages, unitLabel, interpolate, segmentFor, type Locale } from '@havre/i18n';
 import { SERVICES } from '@havre/core';
 import type { BookingSummary } from '@/lib/data';
 import { Avatar } from './Avatar';
@@ -47,7 +47,7 @@ export function BookingCard({
           {m.service[booking.serviceType]} · {dateFmt(booking.startAt, locale)} – {dateFmt(booking.endAt, locale)}
         </p>
         <p className="text-body-sm dim tabular">
-          {booking.units} {m.unit[unit]}
+          {booking.units} {unitLabel(locale, unit, booking.units)}
         </p>
       </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { getMessages, segmentFor, type Locale, type Messages } from '@havre/i18n';
+import { getMessages, interpolate, segmentFor, unitLabel, type Locale, type Messages } from '@havre/i18n';
 import { SERVICES, calculateQuote, type ServiceType } from '@havre/core';
 import { petLabel } from './PetLine';
 import { Select } from '@/components/ui/Select';
@@ -18,6 +18,73 @@ export interface BookableService {
 }
 
 /**
+ * FIYAT DOKUMU TABLOSU.
+ *
+ * Iki yerde ayni sekilde cizilyor: tarih secildikten sonraki GERCEK
+ * tutar ve tarih secilmeden gosterilen ORNEK. Ikisinin ayni tabloyu
+ * paylasmasi bilincli — ornekte gizli kalem olmadigini kullanici
+ * bicimden de goruyor (drip pricing yasagi, Competition Act).
+ */
+function QuoteTable({
+  locale, quote, units, petCount, unitPriceCents, unit, heading, note, muted = false,
+}: {
+  locale: Locale;
+  quote: ReturnType<typeof calculateQuote>;
+  units: number;
+  petCount: number;
+  unitPriceCents: number;
+  unit: keyof Messages['unit'];
+  heading: string;
+  note: string;
+  /** Ornek hesap: gercek tutarla karistirilmasin diye daha soluk */
+  muted?: boolean;
+}) {
+  const m = getMessages(locale);
+  const line = (key: string) => quote.lines.find((l) => l.key === key)?.amountCents ?? 0;
+
+  return (
+    <div className={`card card-pad${muted ? ' card-muted' : ''}`}>
+      <h2 className="text-h4">{heading}</h2>
+      <table style={{ width: '100%', marginTop: 'var(--space-4)', fontSize: '0.875rem' }}>
+        <tbody>
+          <tr>
+            <td style={{ padding: 'var(--space-1) 0' }}>
+              {money(unitPriceCents, locale)} × {units} {unitLabel(locale, unit, units)}
+            </td>
+            <td className="tabular" style={{ textAlign: 'right' }}>
+              {money(line('quote.base'), locale)}
+            </td>
+          </tr>
+          {petCount > 1 && (
+            <tr>
+              <td style={{ padding: 'var(--space-1) 0' }}>{m.quote.extraPets}</td>
+              <td className="tabular" style={{ textAlign: 'right' }}>
+                {money(line('quote.extraPets'), locale)}
+              </td>
+            </tr>
+          )}
+          <tr>
+            <td style={{ padding: 'var(--space-1) 0' }}>{m.quote.serviceFee}</td>
+            <td className="tabular" style={{ textAlign: 'right' }}>{money(quote.ownerFeeCents, locale)}</td>
+          </tr>
+          <tr>
+            <td className="dim" style={{ padding: 'var(--space-1) 0' }}>{m.quote.tax}</td>
+            <td className="tabular dim" style={{ textAlign: 'right' }}>{money(quote.ownerTaxCents, locale)}</td>
+          </tr>
+          <tr style={{ borderTop: '1px solid var(--color-border)' }}>
+            <th scope="row" style={{ padding: 'var(--space-3) 0', textAlign: 'left' }}>{m.quote.total}</th>
+            <td className="tabular text-h4" style={{ textAlign: 'right' }}>
+              {money(quote.ownerTotalCents, locale)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="field-hint" style={{ marginTop: 'var(--space-3)' }}>{note}</p>
+    </div>
+  );
+}
+
+/**
  * REZERVASYON TALEBI FORMU.
  *
  * Fiyat CANLI hesaplaniyor (packages/core/calculateQuote) — Competition
@@ -30,12 +97,20 @@ export interface BookableService {
  * bakicidan kesilir), bu yuzden istemcinin atif oranini bilmesi gerekmiyor.
  */
 export function BookingForm({
-  locale, sitterId, sitterFirstName, services, pets, province, action,
+  locale, sitterId, sitterFirstName, services, initialService, pets, province, action,
 }: {
   locale: Locale;
   sitterId: string;
   sitterFirstName: string;
   services: BookableService[];
+  /**
+   * Formun ACILDIGI hizmet — sunucuda karara baglaniyor.
+   *
+   * Once ziyaretcinin niyeti (?service=), yoksa vitrin hizmeti. Burada
+   * services[0] almak, listenin sirasina gore rastgele bir hizmetle
+   * acmak demekti.
+   */
+  initialService?: ServiceType | undefined;
   pets: Array<{ id: string; name: string; species: string; weightKg: number | null }>;
   province: string;
   action: (prev: RequestState, form: FormData) => Promise<RequestState>;
@@ -43,7 +118,9 @@ export function BookingForm({
   const m = getMessages(locale);
   const [state, formAction, busy] = useActionState<RequestState, FormData>(action, {});
 
-  const [serviceType, setServiceType] = useState<ServiceType>(services[0]?.serviceType ?? 'boarding');
+  const [serviceType, setServiceType] = useState<ServiceType>(
+    initialService ?? services[0]?.serviceType ?? 'boarding',
+  );
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [petIds, setPetIds] = useState<string[]>(pets[0] ? [pets[0].id] : []);
@@ -63,18 +140,35 @@ export function BookingForm({
   })();
 
   const petCount = Math.max(petIds.length + (addingPet ? 1 : 0), 1);
-  const quote = svc && units > 0
-    ? calculateQuote({
-        serviceType,
-        unitPriceCents: svc.priceCents,
-        units,
-        petCount,
-        extraPetPriceCents: svc.extraPetPriceCents,
-        holidaySurchargePct: svc.holidaySurchargePct,
-        attribution: 'platform',
-        province: province as never,
-      })
-    : null;
+
+  const priceFor = (n: number) =>
+    svc
+      ? calculateQuote({
+          serviceType,
+          unitPriceCents: svc.priceCents,
+          units: n,
+          petCount,
+          extraPetPriceCents: svc.extraPetPriceCents,
+          holidaySurchargePct: svc.holidaySurchargePct,
+          attribution: 'platform',
+          province: province as never,
+        })
+      : null;
+
+  const quote = units > 0 ? priceFor(units) : null;
+
+  /*
+    TARIH SECILMEDEN ORNEK HESAP.
+
+    Sitenin vaadi "her ucreti rezervasyondan ONCE gorursunuz" ama tarih
+    secilene kadar ekranda tek bir rakam yoktu — bos bir form ve sonunda
+    devre disi bir dugme. Ornek hesap vaadi tarih secmeden tutuyor.
+
+    Ornek birim sayisi hizmetin dogasina gore: cok gunluk hizmetlerde
+    uc gece, tek seferliklerde bir. ORNEK OLDUGU acikca yaziyor.
+  */
+  const sampleUnits = SERVICES[serviceType].multiDay ? 3 : 1;
+  const sample = quote ? null : priceFor(sampleUnits);
 
   const errorText = state.error
     ? ((m.booking[`error.${state.error}` as keyof Messages['booking']] as string) ?? state.error)
@@ -165,46 +259,24 @@ export function BookingForm({
         <span className="field-hint">{m.booking.notesHint}</span>
       </div>
 
-      {/* --- Canli fiyat: gonder dugmesinin USTUNDE --- */}
+      {/* --- Fiyat: gonder dugmesinin USTUNDE --- */}
       {quote && (
-        <div className="card card-pad">
-          <h2 className="text-h4">{m.booking.priceHeading}</h2>
-          <table style={{ width: '100%', marginTop: 'var(--space-4)', fontSize: '0.875rem' }}>
-            <tbody>
-              <tr>
-                <td style={{ padding: 'var(--space-1) 0' }}>
-                  {money(svc!.priceCents, locale)} × {units} {m.unit[unit]}
-                </td>
-                <td className="tabular" style={{ textAlign: 'right' }}>
-                  {money(quote.lines.find((l) => l.key === 'quote.base')?.amountCents ?? 0, locale)}
-                </td>
-              </tr>
-              {petCount > 1 && (
-                <tr>
-                  <td style={{ padding: 'var(--space-1) 0' }}>{m.quote.extraPets}</td>
-                  <td className="tabular" style={{ textAlign: 'right' }}>
-                    {money(quote.lines.find((l) => l.key === 'quote.extraPets')?.amountCents ?? 0, locale)}
-                  </td>
-                </tr>
-              )}
-              <tr>
-                <td style={{ padding: 'var(--space-1) 0' }}>{m.quote.serviceFee}</td>
-                <td className="tabular" style={{ textAlign: 'right' }}>{money(quote.ownerFeeCents, locale)}</td>
-              </tr>
-              <tr>
-                <td className="dim" style={{ padding: 'var(--space-1) 0' }}>{m.quote.tax}</td>
-                <td className="tabular dim" style={{ textAlign: 'right' }}>{money(quote.ownerTaxCents, locale)}</td>
-              </tr>
-              <tr style={{ borderTop: '1px solid var(--color-border)' }}>
-                <th scope="row" style={{ padding: 'var(--space-3) 0', textAlign: 'left' }}>{m.quote.total}</th>
-                <td className="tabular text-h4" style={{ textAlign: 'right' }}>
-                  {money(quote.ownerTotalCents, locale)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="field-hint" style={{ marginTop: 'var(--space-3)' }}>{m.booking.priceNote}</p>
-        </div>
+        <QuoteTable
+          locale={locale} quote={quote} units={units} petCount={petCount}
+          unitPriceCents={svc!.priceCents} unit={unit}
+          heading={m.booking.priceHeading} note={m.booking.priceNote}
+        />
+      )}
+      {sample && (
+        <QuoteTable
+          locale={locale} quote={sample} units={sampleUnits} petCount={petCount}
+          unitPriceCents={svc!.priceCents} unit={unit}
+          heading={interpolate(m.booking.sampleHeading, {
+            units: sampleUnits, unit: unitLabel(locale, unit, sampleUnits),
+          })}
+          note={m.booking.sampleNote}
+          muted
+        />
       )}
 
       <div className="notice notice-warning">
@@ -214,6 +286,12 @@ export function BookingForm({
       <button type="submit" className="btn btn-primary btn-block" disabled={busy || units === 0}>
         {busy ? m.booking.submitting : m.booking.submit}
       </button>
+      {/*
+        DEVRE DISI DUGME NEDENINI SOYLUYOR. Eskiden tarih secilmeden
+        dugme sessizce tiklanamiyordu; kullanici neyin eksik oldugunu
+        bilmiyordu.
+      */}
+      {units === 0 && <p className="field-hint">{m.booking.needDates}</p>}
       <p className="field-hint">
         {sitterFirstName} · {m.booking.policy}:{' '}
         {m.onboarding[`cancellation.${svc?.cancellationPolicy ?? 'moderate'}` as keyof Messages['onboarding']] as string}

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { getMessages, interpolate, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
+import { getMessages, unitLabel, interpolate, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
 import { SERVICES } from '@havre/core';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
@@ -82,7 +82,7 @@ export default async function BookingDetailPage({
               <div>
                 <dt className="dim text-body-sm">{m.search.service}</dt>
                 <dd className="tabular" style={{ fontWeight: 600 }}>
-                  {booking.units} {m.unit[unit]}
+                  {booking.units} {unitLabel(locale, unit, booking.units)}
                 </dd>
               </div>
               <div>
@@ -134,7 +134,7 @@ export default async function BookingDetailPage({
               <tbody>
                 <tr>
                   <td style={{ padding: 'var(--space-1) 0' }}>
-                    {money(booking.unitPriceCents, locale)} × {booking.units} {m.unit[unit]}
+                    {money(booking.unitPriceCents, locale)} × {booking.units} {unitLabel(locale, unit, booking.units)}
                   </td>
                   <td className="tabular" style={{ textAlign: 'right' }}>{money(booking.baseCents, locale)}</td>
                 </tr>

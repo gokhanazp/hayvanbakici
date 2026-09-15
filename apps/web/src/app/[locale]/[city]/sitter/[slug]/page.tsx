@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { SERVICES, servicesForPhase } from '@havre/core';
+import { SERVICES, primaryService, servicesForPhase, type ServiceType } from '@havre/core';
 import {
   getMessages, interpolate, localeFromSegment, LOCALES, segmentFor, serviceSlug,
   type Locale, type Messages,
@@ -116,7 +116,20 @@ export default async function SitterPage({
   const name = `${sitter.firstName} ${sitter.lastNameInitial}.`;
   const where = [hoodName(sitter, locale), cityName(sitter, locale)].filter(Boolean).join(', ');
   const bookable = sitter.services.filter((s) => V1_SERVICES.has(s.serviceType));
-  const cheapest = bookable[0];
+  /*
+    VITRIN HIZMETI — "en ucuz" DEGIL.
+
+    Eskiden bookable[0] (fiyata gore siralanmis listenin ilki) aliniyordu:
+    liste sayfasinda "konaklama 62 $" gorup profile giren kisi 31 $
+    (gezdirme) goruyordu. Simdi hizmet agirligina gore belirlenimci
+    secim yapiliyor ve fiyatin YANINDA hangi hizmet oldugu yaziyor.
+  */
+  const primary = primaryService(bookable);
+  const citySlug = locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn;
+  /** Rezervasyon adresi — hizmet verildiyse form o hizmetle aciliyor. */
+  const bookHref = (svc?: ServiceType) =>
+    `/${seg}/${citySlug}/sitter/${sitter.slug}/book/`
+    + (svc ? `?service=${serviceSlug(svc, locale)}` : '');
 
   return (
     <>
@@ -218,9 +231,26 @@ export default async function SitterPage({
 
                   {/* Drip pricing yasagi: gosterilen rakam bakicinin ucreti,
                       toplam ucret rezervasyon ekraninda kalem kalem acilir. */}
-                  <div className="sitter-price tabular">
-                    <span className="text-h3">{money(s.priceCents, locale)}</span>
+                  <div className="sitter-price">
+                    <span className="text-h3 tabular">{money(s.priceCents, locale)}</span>
                     <span className="dim text-body-sm">/ {m.unit[SERVICES[s.serviceType].unit]}</span>
+                    {/*
+                      HER HIZMETIN KENDI REZERVASYON BAGLANTISI.
+
+                      Tek bir "Rezervasyon iste" dugmesi varken form hep
+                      ayni hizmetle aciliyordu; konaklama arayan kisi
+                      gezdirme formunu buluyordu. Buradan gelince form
+                      DOGRU hizmetle aciliyor.
+                    */}
+                    <Link
+                      href={bookHref(s.serviceType)}
+                      className="btn btn-secondary btn-sm"
+                      aria-label={interpolate(m.sitter.bookServiceAria, {
+                        service: m.service[s.serviceType], name: sitter.firstName,
+                      })}
+                    >
+                      {m.sitter.bookCta}
+                    </Link>
                   </div>
                 </article>
               ))}
@@ -300,11 +330,25 @@ export default async function SitterPage({
         {/* --- Rezervasyon kutusu --- */}
         <aside className="sitter-aside">
           <div className="card card-pad sitter-book">
-            {cheapest && (
-              <p className="tabular">
-                <span className="text-h2">{money(cheapest.priceCents, locale)}</span>
-                <span className="dim"> / {m.unit[SERVICES[cheapest.serviceType].unit]}</span>
-              </p>
+            {primary && (
+              <div>
+                <p className="tabular" style={{ margin: 0 }}>
+                  <span className="text-h2">{money(primary.priceCents, locale)}</span>
+                  <span className="dim"> / {m.unit[SERVICES[primary.serviceType].unit]}</span>
+                </p>
+                {/*
+                  HANGI HIZMETIN fiyati oldugu YAZIYOR. Rakamin tek basina
+                  durmasi, birden fazla hizmeti olan bakicida "her sey bu
+                  fiyata" gibi okunuyordu.
+                */}
+                <p className="text-body-sm dim" style={{ marginTop: 'var(--space-1)' }}>
+                  {m.service[primary.serviceType]}
+                  {bookable.length > 1 && ` · ${interpolate(
+                    bookable.length === 2 ? m.sitter.moreServices : m.sitter.moreServicesPlural,
+                    { count: bookable.length - 1 },
+                  )}`}
+                </p>
+              </div>
             )}
 
             <p className="text-body-sm muted">{m.sitter.feeNote}</p>
@@ -315,10 +359,7 @@ export default async function SitterPage({
               dogrudan giris sayfasina gitmesi, giris yapmis kullaniciyi da
               bos yere oraya gonderiyordu.
             */}
-            <Link
-              href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/sitter/${sitter.slug}/book/`}
-              className="btn btn-primary btn-block"
-            >
+            <Link href={bookHref(primary?.serviceType)} className="btn btn-primary btn-block">
               {m.sitter.bookCta}
             </Link>
             {/*
@@ -359,7 +400,7 @@ export default async function SitterPage({
         "Rezervasyon iste" baglantisi var ve ekran okuyucu kullanan biri
         hangisinin ne oldugunu bilmeli.
       */}
-      {cheapest && (
+      {primary && (
         <div className="book-bar">
           {/*
             Fiyat ve birim AYRI satirlarda: tek satirda "31,00 $ / promenade"
@@ -367,13 +408,13 @@ export default async function SitterPage({
             kaliyordu. Birim kendi icinde bolunmuyor (nowrap).
           */}
           <p className="book-bar-price">
-            <span className="text-h4">{money(cheapest.priceCents, locale)}</span>
+            <span className="text-h4">{money(primary.priceCents, locale)}</span>
             <span className="dim text-body-sm">
-              / {m.unit[SERVICES[cheapest.serviceType].unit]}
+              / {m.unit[SERVICES[primary.serviceType].unit]}
             </span>
           </p>
           <Link
-            href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/sitter/${sitter.slug}/book/`}
+            href={bookHref(primary?.serviceType)}
             className="btn btn-primary"
             aria-label={interpolate(m.sitter.bookAria, { name: sitter.firstName })}
           >

@@ -27,6 +27,23 @@ export function interpolate(
 }
 
 /**
+ * BIRIM ADI, SAYIYA GORE.
+ *
+ * "3 night" gibi ciktilar vardi: birim sozlugu yalnizca tekildi ve
+ * sayinin yanina oldugu gibi konuyordu. Tek yerden okunmasi, bir
+ * sonraki ekranda ayni hatanin tekrarlanmamasi icin.
+ *
+ * Fransizca 0'i TEKIL sayar ("0 nuit"), Ingilizce cogul ("0 nights").
+ */
+export function unitLabel(
+  locale: Locale, unit: keyof Messages['unit'], count: number,
+): string {
+  const m = getMessages(locale);
+  const singular = locale === 'fr-CA' ? Math.abs(count) < 2 : Math.abs(count) === 1;
+  return singular ? m.unit[unit] : m.unitPlural[unit];
+}
+
+/**
  * Katalog butunlugu kontrolu — Bill 96 icin kritik.
  * FR katalogunda eksik anahtar varsa CI kirilmalidir; Fransizca versiyon
  * Ingilizce'nin ALT KUMESI OLAMAZ.

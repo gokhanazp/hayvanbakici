@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   findMissingKeys, getMessages, interpolate, localeFromSegment,
-  segmentFor, suggestLocale, serviceSlug, serviceFromSlug, normalizeSlug,
+  segmentFor, suggestLocale, serviceSlug, serviceFromSlug, normalizeSlug, unitLabel,
 } from './index.js';
 
 describe('Bill 96 butunluk kontrolu', () => {
@@ -49,5 +49,32 @@ describe('interpolate', () => {
   });
   it('bilinmeyen anahtari oldugu gibi birakir', () => {
     expect(interpolate('Hi {name}', {})).toBe('Hi {name}');
+  });
+});
+
+/*
+  BIRIM COGULU.
+
+  "3 night" gibi ciktilar vardi. Fransizca 0'i tekil sayar, Ingilizce
+  cogul — ayni fonksiyonun iki dilde farkli davranmasi bilincli.
+*/
+describe('unitLabel', () => {
+  it('Ingilizcede 1 tekil, gerisi cogul', () => {
+    expect(unitLabel('en-CA', 'night', 1)).toBe('night');
+    expect(unitLabel('en-CA', 'night', 3)).toBe('nights');
+    expect(unitLabel('en-CA', 'night', 0)).toBe('nights');
+  });
+
+  it('Fransizcada 0 ve 1 tekil', () => {
+    expect(unitLabel('fr-CA', 'night', 0)).toBe('nuit');
+    expect(unitLabel('fr-CA', 'night', 1)).toBe('nuit');
+    expect(unitLabel('fr-CA', 'night', 2)).toBe('nuits');
+  });
+
+  it('her birim icin iki dilde de cogul var', () => {
+    for (const unit of ['night', 'visit', 'walk', 'day', 'session'] as const) {
+      expect(unitLabel('en-CA', unit, 2)).not.toBe(unitLabel('en-CA', unit, 1));
+      expect(unitLabel('fr-CA', unit, 2)).not.toBe(unitLabel('fr-CA', unit, 1));
+    }
   });
 });

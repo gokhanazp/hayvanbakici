@@ -231,6 +231,9 @@ export const enCA = {
     noPayment: 'Havre is not taking payments yet. Sending a request costs nothing and charges nothing — you and your sitter agree the dates here, and we will add payment before launch.',
     priceHeading: 'What it would cost',
     priceNote: 'This is the full price. Nothing is added later.',
+    sampleHeading: 'What {units} {unit} would cost',
+    sampleNote: 'An example, so you can see every fee before you pick dates. Choose your dates for the exact total.',
+    needDates: 'Pick your dates to send the request.',
     policy: 'Cancellation policy',
     status: 'Status',
     'status.requested': 'Waiting for the sitter',
@@ -308,6 +311,17 @@ export const enCA = {
     walk: 'walk',
     day: 'day',
     session: 'session',
+  },
+  /*
+    COGUL BIRIMLER. Sayiyla birlikte yazilan her yerde bu kullanilir;
+    tekil sozluk "3 night" gibi ciktilar veriyordu.
+  */
+  unitPlural: {
+    night: 'nights',
+    visit: 'visits',
+    walk: 'walks',
+    day: 'days',
+    session: 'sessions',
   },
   quote: {
     base: 'Sitter’s rate',
@@ -636,6 +650,9 @@ export const enCA = {
     response: 'Reply from {name}',
     bookCta: 'Request a booking',
     bookAria: 'Request a booking with {name}',
+    bookServiceAria: 'Request {service} with {name}',
+    moreServices: '{count} more service',
+    moreServicesPlural: '{count} more services',
     messageCta: 'Ask a question first',
     priceFrom: 'From {price}',
     feeNote: 'You will see the full price — our fee and taxes included — before you confirm anything.',

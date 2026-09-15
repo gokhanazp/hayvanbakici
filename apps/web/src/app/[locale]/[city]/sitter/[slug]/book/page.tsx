@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { getMessages, interpolate, localeFromSegment } from '@havre/i18n';
-import { servicesForPhase } from '@havre/core';
+import { getMessages, interpolate, localeFromSegment, serviceFromSlug } from '@havre/i18n';
+import { primaryService, servicesForPhase, type ServiceType } from '@havre/core';
 import { getSession } from '@/lib/auth';
 import { BookingForm, type BookableService } from '@/components/BookingForm';
 import { Avatar } from '@/components/Avatar';
@@ -17,9 +17,21 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 const V1 = new Set(servicesForPhase('v1'));
 
 export default async function BookPage({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ locale: string; city: string; slug: string }>;
+  /**
+   * ?service=dog-boarding — ziyaretcinin NIYETI.
+   *
+   * Profildeki her hizmetin kendi rezervasyon baglantisi var. Bu
+   * parametre olmadan form hep ayni hizmetle aciliyordu: konaklama
+   * arayan kisi gezdirme formunu buluyor ve fiyat farkini ancak
+   * dokumde goruyordu.
+   *
+   * Sayfa zaten force-dynamic (kisiye ozel), searchParams okumak
+   * onbellek acisindan bir sey kaybettirmiyor.
+   */
+  searchParams: Promise<{ service?: string }>;
 }) {
   const { locale: seg, city, slug } = await params;
   const locale = localeFromSegment(seg);
@@ -52,6 +64,18 @@ export default async function BookPage({
 
   if (services.length === 0) notFound();
 
+  /*
+    Istenen hizmet bu bakicida yoksa sessizce vitrin hizmetine
+    dusuluyor — 404 vermek asiri sert: adres elle yazilmis ya da bakici
+    o hizmeti kapatmis olabilir.
+  */
+  const { service: wanted } = await searchParams;
+  const requested = wanted ? serviceFromSlug(wanted, locale) : null;
+  const initialService: ServiceType =
+    (requested && services.some((s) => s.serviceType === requested) ? requested : null)
+    ?? primaryService(services)?.serviceType
+    ?? services[0]!.serviceType;
+
   return (
     <>
       <section className="band band-blush band-round-b">
@@ -80,6 +104,7 @@ export default async function BookPage({
             sitterId={sitter.userId}
             sitterFirstName={sitter.firstName}
             services={services}
+            initialService={initialService}
             pets={pets}
             province={sitter.province}
             action={requestBookingAction}
