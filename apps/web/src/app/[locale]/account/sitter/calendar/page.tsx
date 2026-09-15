@@ -44,9 +44,22 @@ export default async function CalendarPage({
   const { from, to, first } = monthRange(now.getUTCFullYear(), now.getUTCMonth() + offset);
 
   const days = await getCalendar(session.user.id, from, to);
-  const monthLabel = new Intl.DateTimeFormat(locale, {
-    month: 'long', year: 'numeric', timeZone: 'UTC',
-  }).format(first);
+  const fmtMonth = (d: Date) =>
+    new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(d);
+  const monthLabel = fmtMonth(first);
+
+  /*
+    AY DUGMELERI AY ADINI SOYLUYOR.
+
+    Tek basina duran bir "→" nereye gittigini soylemiyordu; ekran
+    okuyucuda da yalnizca "ok" diye okunuyordu.
+  */
+  const shortMonth = (delta: number) =>
+    new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offset + delta, 1)));
+
+  /* Bugun SUNUCUDAN: istemcide hesaplanirsa saat dilimine gore kayar. */
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <AccountShell
@@ -60,10 +73,14 @@ export default async function CalendarPage({
       actions={
         <div className="row" style={{ gap: 'var(--space-2)' }}>
           {offset > 0 && (
-            <Link href={`?m=${offset - 1}`} className="btn btn-secondary">←</Link>
+            <Link href={`?m=${offset - 1}`} className="btn btn-secondary btn-sm">
+              ← {shortMonth(-1)}
+            </Link>
           )}
           {offset < 11 && (
-            <Link href={`?m=${offset + 1}`} className="btn btn-secondary">→</Link>
+            <Link href={`?m=${offset + 1}`} className="btn btn-secondary btn-sm">
+              {shortMonth(1)} →
+            </Link>
           )}
         </div>
       }
@@ -74,6 +91,7 @@ export default async function CalendarPage({
           days={days}
           action={saveCalendarAction}
           monthLabel={monthLabel}
+          today={today}
         />
       </div>
     </AccountShell>
