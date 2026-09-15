@@ -280,10 +280,53 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   silinmis) olarak zemine oturuyor, dolayisiyla metnin arkasinda hic fotograf
   olmuyor ve karartmaya gerek kalmiyor.
 */
+/* ---------- KAHRAMAN ---------- */
+/*
+  TAM GENISLIK, TAM EKRAN.
+
+  Once hero 1180 piksellik konteynerin icinde duruyordu: 1440px'te
+  fotograf sutununun sagi ile ekranin kenari arasinda 162 piksel bos
+  bant kaliyordu ve bolum ekranin yalnizca ucte ikisini dolduruyordu
+  (602 / 900). Ilk ekran bir sayfanin en pahali yeri; yarisini bos
+  birakmak onu harcamak.
+
+  Metin sutunu konteynerde KALIYOR — satir uzunlugu okunabilirligi
+  belirliyor ve 1440px'te tam genisliğe yayilan bir paragraf
+  okunmuyor. Tasan yalnizca fotograf kolaji.
+*/
+.hero-band {
+  /*
+    clip, scroll DEGIL: tasan fotograf sutunu yatay kaydirma cubugu
+    acmasin. overflow:hidden bir kaydirma baglami yaratir ve icerideki
+    position:sticky'yi bozar; clip yaratmiyor.
+
+    IKI EKSENDE: yalnizca x'te kirpmak, y'yi bazi tarayicilarda `auto`ya
+    ceviriyor; ayrica bandin alt kose kavisinin tasan fotografi da
+    kirpmasi gerekiyor.
+  */
+  overflow: clip;
+}
 .hero {
   position: relative;
   padding-block: var(--space-12) calc(var(--section-y) * 1.5);
   isolation: isolate;
+}
+@media (min-width: 900px) {
+  .hero {
+    /*
+      svh: mobil tarayicilarda adres cubugu kaybolunca 100vh sicriyor.
+      min() ile tavan var — 1400 piksel yuksek bir ekranda hero'nun
+      tamamini kaplamasi, altindaki her seyi gorunmez yapardi.
+    */
+    min-height: min(84svh, 46rem);
+    display: grid; align-content: center;
+    /*
+      Dolgu min-height'in USTUNE ekleniyor. Eski degerlerle bant 1440x900
+      bir ekranda 957 piksel oluyordu — ilk ekrana sigmiyordu. Ust/alt
+      dolgu min-height devredeyken daraliyor.
+    */
+    padding-block: var(--space-8) calc(var(--section-y) * 1.1);
+  }
 }
 .hero-grid {
   position: relative; z-index: 2;
@@ -294,7 +337,32 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (min-width: 900px) {
   .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: var(--space-10); }
 }
+@media (min-width: 1100px) {
+  /*
+    Metin sutunu 32 -> 38rem. 32rem'de baslik 1440px'te UC satira
+    boluniyordu (once iki satirdi) ve buyuk punto etkisini kaybediyordu.
+    38rem hala okunabilir satir uzunlugu (~70 karakter tavani
+    .hero-copy'de duruyor).
+  */
+  .hero-grid { grid-template-columns: minmax(0, 38rem) minmax(0, 1fr); gap: var(--space-10); }
+  /*
+    SAGA TASMA — KONTEYNERIN KENARINA KADAR, daha fazla degil.
+
+    Ilk denemede `calc(50% - 50vw)` yazdim: yuzde IZGARA SUTUNUNA gore
+    cozuluyor, konteynere gore degil. 1440px'te kolaj 1720'ye tasip
+    280 piksel kirpildi. Deger artik yalnizca ekran genisligi ve
+    konteynerin bilinen tavanindan hesaplaniyor.
+
+    min(0px, ...): 1180+dolgu altinda deger POZITIFE donuyordu, yani
+    tasma yerine bosluk ekliyordu.
+  */
+  .hero-media {
+    /* Tam ekranin KENARINA: konteynerin kenar boslugu + ic dolgusu. */
+    margin-inline-end: min(0px, calc((1180px - 100vw) / 2 - var(--space-8)));
+  }
+}
 .hero-copy { max-width: 34rem; }
+.hero-media { position: relative; }
 
 /* El cizimi konturlar. Metin sutununa GIRMEZ — ilk denemede kalp konturu
    basligin uzerine bindi ve okunurlugu bozdu. */
@@ -1496,6 +1564,113 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (max-width: 899px) {
   .hero-photos { aspect-ratio: 3 / 2; }
   .hero-float { inset-inline-start: var(--space-3); bottom: calc(var(--space-3) * -1); }
+}
+/* Genis ekranda kolaj yatay uzaniyor: saga tastigi icin artik yeri var */
+@media (min-width: 1100px) {
+  .hero-photos { aspect-ratio: 1.24 / 1; gap: var(--space-4); }
+}
+
+/* ---------- KAHRAMAN ANIMASYONU ---------- */
+/*
+  HEPSI CSS. Bir animasyon kutuphanesi (Motion/Framer) bu is icin
+  gerekmiyordu: burada yapilan sey bir GIRIS — sirayla soluklanip
+  yukselme — ve suren hafif bir salinim. Kutuphane, layout gecisleri,
+  surukleme jestleri, yay fizigi ve kesintiye ugrayabilen diziler icin
+  kazanc saglar; bunlarin hicbiri burada yok. Karsiliginda hero'nun
+  istemci bilesenine donmesi ve paylasilan JS'in buyumesi gerekirdi —
+  SEO'ya dayanan bir landing sayfasinda pahali bir takas.
+
+  Sure ve egri DEGERLERI degil, mevcut hareket TOKENLERI kullaniliyor.
+*/
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+/*
+  LCP ADAYLARI ICIN: soluklanma YOK.
+
+  opacity: 0 ile baslayan bir oge "boyanmis" sayilmaz; baslik ve ilk
+  fotografi soldurarak getirmek, LCP'yi animasyon suresi kadar geriye
+  atardi. Bu ikisi ilk kareden itibaren gorunur, yalnizca yerine
+  kayiyor.
+*/
+@keyframes hero-rise-solid {
+  from { transform: translateY(18px); }
+  to   { transform: none; }
+}
+@keyframes hero-drift {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-9px); }
+}
+
+.hero-in, .hero-in-solid {
+  animation-duration: var(--duration-enter);
+  animation-timing-function: var(--easing-standard);
+  animation-fill-mode: both;
+}
+.hero-in { animation-name: hero-rise; }
+.hero-in-solid { animation-name: hero-rise-solid; }
+
+/* Siralama: rozet, baslik, alt metin, maddeler, veri karti */
+.hero-in-1 { animation-delay: 0ms; }
+.hero-in-2 { animation-delay: 60ms; }
+.hero-in-3 { animation-delay: 140ms; }
+.hero-in-4 { animation-delay: 220ms; }
+.hero-in-5 { animation-delay: 320ms; }
+
+/*
+  Maddeler TEK TEK geliyor. Listenin tamamini birlikte getirmek, uc
+  satiri tek bir blok gibi gosteriyordu; sirayla gelince goz onlari
+  okuyor.
+*/
+.hero-points li {
+  animation: hero-rise var(--duration-enter) var(--easing-standard) both;
+}
+.hero-points li:nth-child(1) { animation-delay: 260ms; }
+.hero-points li:nth-child(2) { animation-delay: 320ms; }
+.hero-points li:nth-child(3) { animation-delay: 380ms; }
+
+/*
+  SUREN SALINIM — giris bittikten SONRA basliyor.
+
+  Uc cerceve ayni anda ayni yone gitseydi kolaj tek parca gibi
+  zipliyordu; farkli sure ve gecikmeyle her biri kendi ritminde.
+  Kapsayici degil CERCEVELER hareket ediyor: giris animasyonu
+  kapsayicinin transform'unu kullaniyor, ikisi ayni ogede cakisirdi.
+*/
+@media (min-width: 900px) {
+  .hero-photos .photo-frame > * {
+    animation: hero-drift 7s var(--easing-standard) infinite;
+    animation-delay: 700ms;
+  }
+  .hero-photos .photo-frame:nth-child(2) > * { animation-duration: 8.5s; animation-delay: 1100ms; }
+  .hero-photos .photo-frame:nth-child(3) > * { animation-duration: 9.5s; animation-delay: 900ms; }
+}
+
+/*
+  KONTURLAR TEK PARCA HALINDE suzuluyor — her biri ayri degil.
+
+  Ilk surumde on konturun her biri kendi animasyonunu calistiriyordu:
+  sayfada surekli donen 13 animasyon (10 kontur + 3 cerceve) ve
+  bilesikleyicide 13 ayri katman. Konturlar zaten cok soluk; ayri
+  ritimlerinin fark edilmesi mumkun degil ama pili tuketiyorlardi.
+  Kapsayici tek katman, tek animasyon.
+*/
+.hero-doodles { animation: hero-drift 16s var(--easing-standard) infinite; }
+
+/*
+  HAREKETI AZALT: her sey yerinde ve gorunur.
+
+  `animation: none` yeterli degil — fill-mode: both ile ogeler
+  baslangic karesinde (opacity 0) DONAR. Ozellikler de sifirlaniyor.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-in, .hero-in-solid, .hero-points li,
+  .hero-photos .photo-frame > *, .hero-doodles {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---------- Bakici fotograf seridi (ana sayfa) ---------- */

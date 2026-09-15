@@ -53,13 +53,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         Alt kose kavisi, arama kartinin banda binmesiyle birlikte bolum
         gecisini yumusatiyor.
       */}
-      <section className="band band-blush band-round-b">
+      <section className="band band-blush band-round-b hero-band">
         <div className="container hero">
           <HeroDoodles />
 
           <div className="hero-grid">
             <div className="hero-copy">
-              <span className="badge" style={{
+              <span className="badge hero-in hero-in-1" style={{
                 background: 'var(--color-surface)',
                 color: 'var(--color-accent-hover)',
                 gap: 'var(--space-2)',
@@ -68,10 +68,21 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {fr ? 'Antécédents vérifiés pour chaque gardien' : 'Every sitter background-checked'}
               </span>
 
-              <h1 className="text-display" style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
+              {/*
+                LCP ADAYI: SOLUKLANMA YOK, yalnizca kayma.
+
+                opacity: 0 ile baslayan bir oge tarayici tarafindan
+                "boyanmis" sayilmaz; basligi solduraraak getirmek LCP'yi
+                animasyon suresi kadar geriye atiyor. Sayfanin en buyuk
+                iki ogesi (baslik ve ilk fotograf) bu yuzden yalnizca
+                transform ile geliyor — ilk karede gorunurler.
+              */}
+              <h1 className="text-display hero-in-solid hero-in-2"
+                  style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
                 {m.home.heroTitle}
               </h1>
-              <p className="text-body-lg muted" style={{ textWrap: 'pretty', maxWidth: '32rem' }}>
+              <p className="text-body-lg muted hero-in hero-in-3"
+                 style={{ textWrap: 'pretty', maxWidth: '32rem' }}>
                 {m.home.heroSubtitle}
               </p>
 
@@ -82,7 +93,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 bir sey yazmiyoruz — Competition Act, iddianin ispatlanabilir
                 olmasini istiyor.
               */}
-              <ul className="hero-points">
+              <ul className="hero-points hero-in hero-in-4">
                 {(fr
                   ? ['Vérification approfondie des antécédents et de l’identité',
                      'Tous les frais affichés avant la réservation',
@@ -103,27 +114,28 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </ul>
             </div>
 
-            <div style={{ position: 'relative' }}>
+            <div className="hero-media">
               {/*
                 Fotograf kolaji. Metin fotografin UZERINDE DEGIL yaninda:
                 hangi fotograf gelirse gelsin basligin kontrasti degismiyor.
                 Ilk fotograf `priority` — LCP ogesi bu (yol haritasi §7).
               */}
               <div className="hero-photos">
-                <div className="photo-frame">
+                {/* Ilk fotograf da LCP adayi — o da yalnizca transform ile geliyor. */}
+                <div className="photo-frame hero-in-solid hero-in-2">
                   <Photo id="hero-primary" locale={locale} priority
-                         sizes="(min-width: 900px) 15rem, 55vw" />
+                         sizes="(min-width: 1100px) 24rem, (min-width: 900px) 15rem, 55vw" />
                 </div>
-                <div className="photo-frame">
-                  <Photo id="hero-side-a" locale={locale} sizes="(min-width: 900px) 11rem, 40vw" />
+                <div className="photo-frame hero-in hero-in-3">
+                  <Photo id="hero-side-a" locale={locale} sizes="(min-width: 1100px) 15rem, (min-width: 900px) 11rem, 40vw" />
                 </div>
-                <div className="photo-frame">
-                  <Photo id="hero-side-b" locale={locale} sizes="(min-width: 900px) 11rem, 40vw" />
+                <div className="photo-frame hero-in hero-in-4">
+                  <Photo id="hero-side-b" locale={locale} sizes="(min-width: 1100px) 15rem, (min-width: 900px) 11rem, 40vw" />
                 </div>
               </div>
 
               {/* Canli veri — uydurma "10.000 mutlu musteri" degil, sorgudan gelen sayi */}
-              <div className="hero-float">
+              <div className="hero-float hero-in hero-in-5">
                 <span className="avatar-stack">
                   {data.sitters.slice(0, 3).map((s) => (
                     <Avatar key={s.id} src={s.avatarUrl} initials={s.photoInitials} size={30} />
