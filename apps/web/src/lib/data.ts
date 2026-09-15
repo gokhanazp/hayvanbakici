@@ -34,6 +34,7 @@ import {
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
+  countSitters as dbCountSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
   type SitterProfile, type FeaturedReview, type PlaceMatch,
@@ -80,6 +81,11 @@ export const getLandingData = cache(
 
 export async function searchSitters(params: SearchParams, locale: Locale): Promise<SearchResult[]> {
   return dbSearchSitters(db(), params, locale);
+}
+
+/** Filtrelere uyan toplam sayi — listeleme sorgusuyla ayni kosullar. */
+export async function countSitters(params: SearchParams): Promise<number> {
+  return dbCountSitters(db(), params);
 }
 
 /** Ana sayfanin ornek sehri — en buyuk Tier-1 */

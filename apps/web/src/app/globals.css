@@ -1448,6 +1448,12 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
 }
 
+/* Sayfalama: onceki / konum / sonraki */
+.pager {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); margin-top: var(--space-8);
+}
+
 /* ---------- Sag alttaki sohbet ---------- */
 
 /*

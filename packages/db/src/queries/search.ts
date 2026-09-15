@@ -6,7 +6,7 @@
  *
  * ST_DWithin geography uzerinde METRE calisir ve GIST indeksini kullanir.
  */
-import { sql } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
 import type { SitterSummary } from './landing.js';
@@ -25,10 +25,78 @@ export interface SearchParams {
   requireFencedYard?: boolean;
   minBadgeLevel?: number;
   limit?: number;
+  offset?: number;
 }
 
 export interface SearchResult extends SitterSummary {
   distanceMeters: number;
+}
+
+/**
+ * ARAMA SAYFA BOYU.
+ *
+ * Eskiden sorgu sessizce ilk 30 kaydi donuyordu ve ekran bunu
+ * SOYLEMIYORDU: 43 bakicisi olan bir sehirde kullanici 30 gorup
+ * "hepsi bu" saniyordu. Artik sayfa boyu burada, toplam ayri
+ * sayiliyor ve ekran "43 icinden 1-24" diyor.
+ */
+/**
+ * ARAMA KOSULLARI — TEK YERDE.
+ *
+ * Hem listeleme hem sayim sorgusu bunu kullaniyor. Kosullari iki kez
+ * yazmak, bir filtre eklendiginde birinde unutmak ve ekranin "43 sonuc"
+ * deyip 12 tane gostermesi demekti.
+ *
+ * Kullanici girdisi HER ZAMAN bagli parametre — ham SQL'e hicbir deger
+ * gomulmuyor (enjeksiyon testleri place.test.ts icinde).
+ */
+function filters(params: SearchParams, origin: SQL, radius: number): SQL {
+  return sql`
+    ss.service_type = ${params.serviceType}::service_type
+    AND ss.is_active
+    AND st.status = 'active'
+    AND st.slug IS NOT NULL
+    AND ST_DWithin(pr.approx_location, ${origin}, ${radius})
+    ${params.petWeightKg !== undefined
+      ? sql`AND ${params.petWeightKg} BETWEEN ss.accepted_size_min_kg AND ss.accepted_size_max_kg`
+      : sql``}
+    ${params.needsCats ? sql`AND ss.accepts_cats` : sql``}
+    ${params.maxPriceCents !== undefined ? sql`AND ss.price_cents <= ${params.maxPriceCents}` : sql``}
+    ${params.requireFencedYard ? sql`AND st.yard_fenced` : sql``}
+    ${params.minBadgeLevel !== undefined ? sql`AND st.badge_level >= ${params.minBadgeLevel}` : sql``}
+    ${params.startDate && params.endDate
+      ? sql`AND NOT EXISTS (
+            SELECT 1 FROM sitter_availability a
+            WHERE a.sitter_id = st.user_id
+              AND a.date BETWEEN ${params.startDate}::date AND ${params.endDate}::date
+              AND a.status <> 'open')`
+      : sql``}
+  `;
+}
+
+export const SEARCH_PAGE_SIZE = 24;
+
+/**
+ * Filtrelere uyan TOPLAM bakici sayisi.
+ *
+ * Listeleme sorgusuyla ayni WHERE — ikisi ayri yazilirsa bir gun
+ * birbirinden farkli sayilar gosterirler. Bu yuzden kosullar tek bir
+ * yardimci fonksiyondan (`filters`) geliyor.
+ */
+export async function countSitters(
+  db: Database, params: SearchParams,
+): Promise<number> {
+  const radius = params.radiusMeters ?? 15000;
+  const origin = sql`ST_SetSRID(ST_MakePoint(${params.lon}, ${params.lat}), 4326)::geography`;
+  const rows = await withDbErrors(() => db.execute(sql`
+    SELECT count(*)::int AS n
+    FROM sitter_services ss
+    JOIN sitters  st ON st.user_id = ss.sitter_id
+    JOIN profiles pr ON pr.user_id = ss.sitter_id
+    JOIN neighbourhoods n ON n.id = pr.neighbourhood_id
+    WHERE ${filters(params, origin, radius)}
+  `));
+  return Number((rows as unknown as Array<{ n: number }>)[0]?.n ?? 0);
 }
 
 export async function searchSitters(
@@ -36,7 +104,8 @@ export async function searchSitters(
 ): Promise<SearchResult[]> {
   const nameCol = locale === 'fr-CA' ? 'n.name_fr' : 'n.name_en';
   const radius = params.radiusMeters ?? 15000;
-  const limit = params.limit ?? 30;
+  const limit = params.limit ?? SEARCH_PAGE_SIZE;
+  const offset = params.offset ?? 0;
   const origin = sql`ST_SetSRID(ST_MakePoint(${params.lon}, ${params.lat}), 4326)::geography`;
 
   const rows = await withDbErrors(() => db.execute(sql`
@@ -58,25 +127,7 @@ export async function searchSitters(
     JOIN sitters  st ON st.user_id = ss.sitter_id
     JOIN profiles pr ON pr.user_id = ss.sitter_id
     JOIN neighbourhoods n ON n.id = pr.neighbourhood_id
-    WHERE ss.service_type = ${params.serviceType}::service_type
-      AND ss.is_active
-      AND st.status = 'active'
-      AND st.slug IS NOT NULL
-      AND ST_DWithin(pr.approx_location, ${origin}, ${radius})
-      ${params.petWeightKg !== undefined
-        ? sql`AND ${params.petWeightKg} BETWEEN ss.accepted_size_min_kg AND ss.accepted_size_max_kg`
-        : sql``}
-      ${params.needsCats ? sql`AND ss.accepts_cats` : sql``}
-      ${params.maxPriceCents !== undefined ? sql`AND ss.price_cents <= ${params.maxPriceCents}` : sql``}
-      ${params.requireFencedYard ? sql`AND st.yard_fenced` : sql``}
-      ${params.minBadgeLevel !== undefined ? sql`AND st.badge_level >= ${params.minBadgeLevel}` : sql``}
-      ${params.startDate && params.endDate
-        ? sql`AND NOT EXISTS (
-              SELECT 1 FROM sitter_availability a
-              WHERE a.sitter_id = st.user_id
-                AND a.date BETWEEN ${params.startDate}::date AND ${params.endDate}::date
-                AND a.status <> 'open')`
-        : sql``}
+    WHERE ${filters(params, origin, radius)}
     ORDER BY
       (st.average_rating / 5 * 0.30
        + (1 - LEAST(st.median_response_minutes::numeric / 1440, 1)) * 0.20
@@ -85,8 +136,16 @@ export async function searchSitters(
        + st.profile_completeness * 0.10
        + (st.badge_level::numeric / 4) * 0.05) * 0.65
       + (1 - LEAST(ST_Distance(pr.approx_location, ${origin})::numeric / ${radius}, 1)) * 0.35
-      DESC
-    LIMIT ${limit}
+      DESC,
+      /*
+        ESITLIK BOZUCU — SAYFALAMANIN SARTI.
+        Skorlar esit oldugunda Postgres siralamayi GARANTI ETMIYOR: ayni
+        bakici hem 1. hem 2. sayfada cikabilir, bir baskasi hic cikmayabilir.
+        Kimlik ile ikincil siralama, iki ayri sorgunun ayni sirayi
+        uretmesini saglar.
+      */
+      st.user_id
+    LIMIT ${limit} OFFSET ${offset}
   `));
 
   return (rows as unknown as Array<Record<string, unknown>>).map((row) => {

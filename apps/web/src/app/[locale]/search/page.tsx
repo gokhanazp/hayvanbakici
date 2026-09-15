@@ -7,10 +7,11 @@ import {
 } from '@havre/i18n';
 import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
 import { SearchBar } from '@/components/SearchBar';
+import { SEARCH_PAGE_SIZE } from '@havre/db';
 import { SitterCard } from '@/components/SitterCard';
 import { Select } from '@/components/ui/Select';
 import {
-  cityName, citySlug, getLinkableCities, resolvePlace, searchSitters,
+  cityName, citySlug, countSitters, getLinkableCities, resolvePlace, searchSitters,
   type PlaceMatch, type SearchResult,
 } from '@/lib/data';
 import { money, numberFmt } from '@/lib/format';
@@ -45,6 +46,16 @@ const readRadius = (v: string): number => {
   return (RADIUS_KM as readonly number[]).includes(n) ? n : 15;
 };
 
+/**
+ * Sayfa numarasi. UST SINIR VAR: adres cubuguna `?page=999999` yazan bir
+ * istek, kocaman bir OFFSET ile veritabanini bosuna calistirirdi.
+ */
+const MAX_PAGE = 100;
+const readPage = (v: string): number => {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 1 && n <= MAX_PAGE ? n : 1;
+};
+
 const BADGES = [0, 1, 2, 3, 4] as const;
 const readBadge = (v: string): 0 | 1 | 2 | 3 | 4 => {
   const n = Number(v);
@@ -74,27 +85,61 @@ export default async function SearchPage({
   const needsCats = one(sp.cats) === '1';
   const requireFencedYard = one(sp.yard) === '1';
   const minBadge = readBadge(one(sp.badge));
+  /* Sayfa adresten: geri tusu calissin, bag paylasilabilsin, JS'siz gezilsin */
+  let page = readPage(one(sp.page));
 
   const place: PlaceMatch | null = location ? await resolvePlace(location, locale) : null;
 
   let results: SearchResult[] = [];
+  let total = 0;
   if (place) {
+    const criteria = {
+      serviceType: service,
+      lon: place.lon,
+      lat: place.lat,
+      radiusMeters: radiusKm * 1000,
+      ...(start && end ? { startDate: start, endDate: end } : {}),
+      ...(needsCats ? { needsCats: true } : {}),
+      ...(requireFencedYard ? { requireFencedYard: true } : {}),
+      ...(maxPrice > 0 ? { maxPriceCents: maxPrice * 100 } : {}),
+      ...(minBadge > 0 ? { minBadgeLevel: minBadge } : {}),
+    };
+    /*
+      ONCE SAYIM, SONRA LISTE.
+      Ikisini paralel calistirmak bir istek tasarruf ediyordu ama adres
+      cubuguna var olmayan bir sayfa numarasi yazildiginda ekran BOS bir
+      izgara ve "Sayfa 50 / 2" gosteriyordu. Sayimi once yapip sayfayi son
+      sayfaya kirpmak, bir sorgu daha calistirmaya deger.
+    */
+    total = await countSitters(criteria);
+    const pages = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
+    page = Math.min(page, pages);
+
     results = await searchSitters(
-      {
-        serviceType: service,
-        lon: place.lon,
-        lat: place.lat,
-        radiusMeters: radiusKm * 1000,
-        ...(start && end ? { startDate: start, endDate: end } : {}),
-        ...(needsCats ? { needsCats: true } : {}),
-        ...(requireFencedYard ? { requireFencedYard: true } : {}),
-        ...(maxPrice > 0 ? { maxPriceCents: maxPrice * 100 } : {}),
-        ...(minBadge > 0 ? { minBadgeLevel: minBadge } : {}),
-        limit: 48,
-      },
+      { ...criteria, limit: SEARCH_PAGE_SIZE, offset: (page - 1) * SEARCH_PAGE_SIZE },
       locale,
     );
   }
+
+  const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
+  const first = total === 0 ? 0 : (page - 1) * SEARCH_PAGE_SIZE + 1;
+  const last = Math.min(page * SEARCH_PAGE_SIZE, total);
+
+  /** Filtreleri koruyarak sayfa degistiren adres. */
+  const pageHref = (n: number) => {
+    const q = new URLSearchParams();
+    if (serviceParam) q.set('service', serviceParam);
+    if (location) q.set('location', location);
+    if (start) q.set('start', start);
+    if (end) q.set('end', end);
+    if (radiusKm !== 15) q.set('radius', String(radiusKm));
+    if (maxPrice > 0) q.set('price', String(maxPrice));
+    if (needsCats) q.set('cats', '1');
+    if (requireFencedYard) q.set('yard', '1');
+    if (minBadge > 0) q.set('badge', String(minBadge));
+    if (n > 1) q.set('page', String(n));
+    return `/${segmentFor(locale)}/search/?${q.toString()}`;
+  };
 
   const cities = await getLinkableCities();
   const placeLabel = place?.label ?? location;
@@ -163,9 +208,19 @@ export default async function SearchPage({
             />
 
             <p className="muted" style={{ margin: 'var(--space-8) 0 var(--space-5)' }}>
-              {results.length === 1
+              {total === 1
                 ? t.introOne
-                : interpolate(t.intro, { count: numberFmt(results.length, locale) })}
+                : interpolate(t.intro, { count: numberFmt(total, locale) })}
+              {/* Sayfa basina 24 gosteriliyor; ekran kacini gosterdigini de
+                  SOYLUYOR, yoksa "43 bakici" yazip 24 kart cizen bir sayfa
+                  cikiyor. */}
+              {pageCount > 1 && (
+                <> · {interpolate(t.showingRange, {
+                  first: numberFmt(first, locale),
+                  last: numberFmt(last, locale),
+                  total: numberFmt(total, locale),
+                })}</>
+              )}
             </p>
 
             {results.length === 0 ? (
@@ -201,6 +256,27 @@ export default async function SearchPage({
                   />
                 ))}
               </div>
+            )}
+
+            {pageCount > 1 && (
+              <nav className="pager" aria-label={t.pagination}>
+                {page > 1 ? (
+                  <Link href={pageHref(page - 1)} className="btn btn-secondary" rel="prev">
+                    ← {t.previous}
+                  </Link>
+                ) : <span />}
+                <span className="muted text-body-sm tabular">
+                  {interpolate(t.pageOf, {
+                    page: numberFmt(page, locale),
+                    pages: numberFmt(pageCount, locale),
+                  })}
+                </span>
+                {page < pageCount ? (
+                  <Link href={pageHref(page + 1)} className="btn btn-secondary" rel="next">
+                    {t.next} →
+                  </Link>
+                ) : <span />}
+              </nav>
             )}
           </>
         )}

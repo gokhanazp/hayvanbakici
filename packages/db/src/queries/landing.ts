@@ -60,6 +60,20 @@ interface StatsRow {
   median_response: number | null;
 }
 
+/**
+ * Sehir sayfasinda gosterilen bakici sayisi.
+ *
+ * Sayfa TOPLAM sayiyi da yaziyor ("43 bakici") — dolayisiyla ekran kac
+ * tanesini gosterdigini de soylemek zorunda; aksi halde "43" diyip 9 kart
+ * cizen bir sayfa cikiyor (bizzat bildirildi). Tamami icin arama
+ * sayfasina baglaniyoruz: sayfalama orada.
+ *
+ * Neden burada sayfalama yok: bu sayfa bir SEO acilis sayfasi; ikinci,
+ * ucuncu sayfalari ayni kahraman/istatistik/SSS icerigini tekrarlayan
+ * ince kopyalar olurdu.
+ */
+export const LANDING_SITTERS = 12;
+
 export async function getLandingData(
   db: Database, city: CityRecord, serviceType: ServiceType, locale: Locale,
 ): Promise<LandingData> {
@@ -146,8 +160,9 @@ export async function getLandingData(
        + st.acceptance_rate * 0.20
        + (1 - LEAST(st.cancellation_rate * 5, 1)) * 0.15
        + st.profile_completeness * 0.10
-       + (st.badge_level::numeric / 4) * 0.05) DESC
-    LIMIT 9
+       + (st.badge_level::numeric / 4) * 0.05) DESC,
+      st.user_id            -- esitlikte sira sabit kalsin
+    LIMIT ${LANDING_SITTERS}
   `));
 
   const sitters: SitterSummary[] = (sitterRes as unknown as Array<Record<string, never>>).map(

@@ -238,12 +238,41 @@ export default async function LandingPage(
           <section style={{ marginTop: 'var(--space-12)' }}>
             <h2 className="text-h3" style={{ marginBottom: 'var(--space-5)' }}>
               {interpolate(m.search.resultsCount, { count: numberFmt(data.sitterCount, r.locale) })}
+              {/*
+                EKRAN KACINI GOSTERDIGINI SOYLUYOR.
+                Once yalnizca toplam yaziyordu ("43 bakici") ama liste ilk
+                12'yi cizip duruyordu; kullanici eksik sonuc sandi ve hakliydi
+                (bizzat bildirildi). Tamami arama sayfasinda, sayfalamasiyla.
+              */}
+              {data.sitterCount > data.sitters.length && (
+                <span className="text-body-lg muted" style={{ fontWeight: 400 }}>
+                  {' · '}
+                  {interpolate(m.searchPage.showingRange, {
+                    first: '1',
+                    last: numberFmt(data.sitters.length, r.locale),
+                    total: numberFmt(data.sitterCount, r.locale),
+                  })}
+                </span>
+              )}
             </h2>
             <div className="grid grid-cards">
               {data.sitters.map((s) => (
                 <SitterCard key={s.id} sitter={s} serviceType={r.service} locale={r.locale} citySlug={citySlug(r.city, r.locale)} />
               ))}
             </div>
+
+            {data.sitterCount > data.sitters.length && (
+              <p style={{ marginTop: 'var(--space-6)' }}>
+                <Link
+                  href={`/${segmentFor(r.locale)}/search/?location=${encodeURIComponent(name)}&service=${serviceSlug(r.service, r.locale)}`}
+                  className="btn btn-secondary"
+                >
+                  {interpolate(m.search.seeAll, {
+                    count: numberFmt(data.sitterCount, r.locale),
+                  })}
+                </Link>
+              </p>
+            )}
           </section>
         )}
 
