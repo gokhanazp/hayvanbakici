@@ -6,30 +6,35 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /**
- * "BU BAKICI FAVORIMDE MI?" — tek bakici, tek cevap.
+ * "BU BAKICILARDAN HANGILERI FAVORIMDE?"
  *
- * NEDEN VAR: bakici profili ISR ile onbellege aliniyor (saatte bir
- * uretiliyor, bkz. sitter/[slug]/page.tsx). Kalbi sunucuda cizmek icin
- * cerez okumak gerekir, cerez okuyan sayfa da onbellege alinamaz — tek
- * bir kalp ugruna profil sayfalarinin statik uretimini kaybederdik.
- * Kalp bu yuzden istemci tarafinda durumunu soruyor.
+ * NEDEN VAR: sehir sayfasi ve bakici profili ISR ile onbellege aliniyor
+ * (saatte bir uretiliyor). Kalbi sunucuda cizmek icin cerez okumak
+ * gerekir, cerez okuyan sayfa da onbellege alinamaz — birkac kalp
+ * ugruna sehir sayfalarinin statik uretimini kaybederdik. O sayfalarda
+ * kalp durumunu buradan soruyor.
  *
- * NEDEN TUM LISTE DEGIL: kullanicinin favori listesinin tamami, sorulan
- * soruya gore fazla veri. Soru "bu bakici" ise cevap da "evet/hayir"
- * olmali.
+ * NEDEN "TUM FAVORILERIM" DEGIL: cevap yalnizca SORULAN bakicilari
+ * kapsiyor. Kullanicinin butun favori listesini dondurmek, sorulan
+ * soruya gore fazla veri olurdu.
  *
- * Yanit ONBELLEGE ALINMAZ: kisiye ozel.
+ * TAVAN: bir sayfada en fazla bu kadar kart var; daha uzun bir liste
+ * gonderen, sorusunu degil baska bir seyi soruyor demektir.
  */
+const MAX_ASK = 60;
+
 export async function GET(req: Request): Promise<Response> {
-  const sitterId = new URL(req.url).searchParams.get('sitter') ?? '';
-  if (!sitterId) return Response.json({ error: 'missing_sitter' }, { status: 400 });
+  const asked = new URL(req.url).searchParams.getAll('sitter').slice(0, MAX_ASK);
+  if (asked.length === 0) return Response.json({ error: 'missing_sitter' }, { status: 400 });
 
   const session = await getSession();
-  const isFavourite = session
-    ? (await favouriteIds(session.user.id)).has(sitterId)
-    : (await readAnonFavourites()).includes(sitterId);
+  const mine = session
+    ? await favouriteIds(session.user.id)
+    : new Set(await readAnonFavourites());
 
-  return Response.json({ isFavourite }, {
-    headers: { 'Cache-Control': 'private, no-store' },
-  });
+  return Response.json(
+    { favourites: asked.filter((id) => mine.has(id)) },
+    /* Kisiye ozel — onbellege ALINMAZ. */
+    { headers: { 'Cache-Control': 'private, no-store' } },
+  );
 }

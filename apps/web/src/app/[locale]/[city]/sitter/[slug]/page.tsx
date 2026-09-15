@@ -11,7 +11,7 @@ import {
 } from '@/components/VerificationBadge';
 import { Avatar } from '@/components/Avatar';
 import { SitterGallery } from '@/components/SitterGallery';
-import { ProfileFavourite } from '@/components/ProfileFavourite';
+import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
@@ -155,11 +155,9 @@ export default async function SitterPage({
               <div className="row" style={{ gap: 'var(--space-3)', alignItems: 'center' }}>
                 <h1 className="text-h1" style={{ margin: 0 }}>{name}</h1>
                 {/* Kalp basligin YANINDA: karar burada veriliyor. */}
-                <ProfileFavourite
-                  sitterId={sitter.userId}
-                  locale={locale}
-                  path={`/${seg}/favourites/`}
-                />
+                <FavouriteScope ids={[sitter.userId]} locale={locale} path={`/${seg}/favourites/`}>
+                  <FavouriteHeart sitterId={sitter.userId} />
+                </FavouriteScope>
               </div>
               <p className="muted" style={{ marginTop: 'var(--space-1)' }}>{where}</p>
               <div className="row" style={{ marginTop: 'var(--space-3)' }}>

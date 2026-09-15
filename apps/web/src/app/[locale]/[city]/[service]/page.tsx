@@ -9,6 +9,7 @@ import {
   type Locale,
 } from '@havre/i18n';
 import { SitterCard } from '@/components/SitterCard';
+import { FavouriteScope } from '@/components/FavouriteScope';
 import { TrustStrip } from '@/components/TrustStrip';
 import { Photo } from '@/components/Photo';
 import { Faq } from '@/components/Faq';
@@ -255,11 +256,26 @@ export default async function LandingPage(
                 </span>
               )}
             </h2>
-            <div className="grid grid-cards">
-              {data.sitters.map((s) => (
-                <SitterCard key={s.id} sitter={s} serviceType={r.service} locale={r.locale} citySlug={citySlug(r.city, r.locale)} />
-              ))}
-            </div>
+            {/*
+              Kalpler KAPSAM icinde: sayfa ISR ile onbellege aliniyor,
+              dolayisiyla durum sunucuda bilinemiyor. Kapsam on iki
+              kimligi TEK istekte soruyor (bkz. FavouriteScope).
+            */}
+            <FavouriteScope
+              ids={data.sitters.map((s) => s.id)}
+              locale={r.locale}
+              path={`/${segmentFor(r.locale)}/favourites/`}
+            >
+              <div className="grid grid-cards">
+                {data.sitters.map((s) => (
+                  <SitterCard
+                    key={s.id} sitter={s} serviceType={r.service} locale={r.locale}
+                    citySlug={citySlug(r.city, r.locale)}
+                    favourite={{ path: `/${segmentFor(r.locale)}/favourites/` }}
+                  />
+                ))}
+              </div>
+            </FavouriteScope>
 
             {data.sitterCount > data.sitters.length && (
               <p style={{ marginTop: 'var(--space-6)' }}>

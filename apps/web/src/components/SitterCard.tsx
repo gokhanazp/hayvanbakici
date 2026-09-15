@@ -6,6 +6,7 @@ import type { SitterSummary } from '@/lib/data';
 import { money, responseTime } from '@/lib/format';
 import { VerificationBadge } from './VerificationBadge';
 import { FavouriteButton } from './FavouriteButton';
+import { FavouriteHeart } from './FavouriteScope';
 import { resolvePhoto } from '@/lib/photos';
 
 export function SitterCard({
@@ -24,11 +25,15 @@ export function SitterCard({
   /** Yalnizca aramada: "1,2 km uzakta". Landing sayfasinda mesafe anlamsiz. */
   distanceLabel?: string | undefined;
   /**
-   * Favori kalbi. Verilmezse kalp CIZILMIYOR — ana sayfadaki tanitim
-   * seridi gibi yerlerde favori dugmesi anlamsiz (ve orada hangi
-   * sayfanin tazelenecegi de belirsiz).
+   * Favori kalbi. Verilmezse kalp CIZILMIYOR.
+   *
+   * isFavourite VERILMISSE kalp sunucuda ciziliyor ve JS'siz calisiyor
+   * (arama, favoriler sayfasi — ikisi de zaten dinamik). VERILMEMISSE
+   * kart ONBELLEGE ALINAN bir sayfada demektir (sehir sayfasi): orada
+   * durum sunucuda bilinemez, kalp kendi durumunu istemcide soruyor ve
+   * bunun icin kartin bir FavouriteScope icinde olmasi gerekir.
    */
-  favourite?: { isFavourite: boolean; path: string } | undefined;
+  favourite?: { path: string; isFavourite?: boolean | undefined } | undefined;
 }) {
   const m = getMessages(locale);
   const unit = m.unit[SERVICES[serviceType].unit];
@@ -63,12 +68,16 @@ export function SitterCard({
 
       {favourite && (
         <div className="sitter-fav">
-          <FavouriteButton
-            sitterId={sitter.id}
-            isFavourite={favourite.isFavourite}
-            locale={locale}
-            path={favourite.path}
-          />
+          {favourite.isFavourite === undefined
+            ? <FavouriteHeart sitterId={sitter.id} />
+            : (
+              <FavouriteButton
+                sitterId={sitter.id}
+                isFavourite={favourite.isFavourite}
+                locale={locale}
+                path={favourite.path}
+              />
+            )}
         </div>
       )}
 
