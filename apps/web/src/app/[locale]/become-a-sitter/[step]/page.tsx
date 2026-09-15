@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
   completedSteps, isOnboardingStep, missingRequiredSteps, ONBOARDING_STEPS, photoTotal,
-  type OnboardingStep,
+  type OnboardingStep, type ProvinceCode,
 } from '@havre/core';
 import { getMessages, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
 import {
@@ -104,6 +104,9 @@ export default async function OnboardingStepPage({
           initial={state.services}
           /* Fiyat onerisi yalnizca sehir secildiyse anlamli */
           ranges={state.cityId ? await servicePriceRanges(db, state.cityId) : {}}
+          /* Net kazanc satiri: vergi ile bagli, promosyon varsa komisyon sifir */
+          province={(state.province as ProvinceCode | null) ?? null}
+          promoEndsAt={state.promoEndsAt}
         />
       )}
 

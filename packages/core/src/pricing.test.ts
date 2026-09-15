@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateQuote } from './pricing.js';
+import { calculateQuote, netPerUnit } from './pricing.js';
 import { dollars, formatMoney } from './money.js';
 
 describe('calculateQuote — Toronto konaklama', () => {
@@ -97,5 +97,56 @@ describe('formatMoney', () => {
   });
   it('fr-CA formati virgul kullanir', () => {
     expect(formatMoney(dollars(52.5), 'fr-CA')).toMatch(/52,50/);
+  });
+});
+
+/*
+  "SIZE NE KALIR" SATIRI.
+
+  Bakicinin fiyat adiminda gordugu rakam ile rezervasyonda gercekten
+  kesilen rakam ayni olmali; bu yuzden netPerUnit calculateQuote'u
+  cagiriyor, kendi carpimini yapmiyor. Testler de bunu kontrol ediyor.
+*/
+describe('netPerUnit — bakiciya ne kaliyor', () => {
+  const base = { serviceType: 'boarding' as const, unitPriceCents: 6500, province: 'ON' as const };
+
+  it('uc atif da donuyor ve siralama en yuksekten baslıyor', () => {
+    const rows = netPerUnit(base);
+    expect(rows.map((r) => r.attribution)).toEqual(['sitter_referral', 'repeat', 'platform']);
+    expect(rows[0]!.netCents).toBeGreaterThan(rows[1]!.netCents);
+    expect(rows[1]!.netCents).toBeGreaterThan(rows[2]!.netCents);
+  });
+
+  it('bakicinin kendi getirdigi musteride komisyon yok — tam fiyat kaliyor', () => {
+    const own = netPerUnit(base)[0]!;
+    expect(own.commissionPct).toBe(0);
+    expect(own.netCents).toBe(6500);
+  });
+
+  it('komisyonun VERGISI de dusuluyor — eksik gosterilirse bakici az para gormus olur', () => {
+    const platform = netPerUnit(base)[2]!;
+    expect(platform.commissionPct).toBe(18);
+    // ON: %18 komisyon = 1170, uzerine %13 HST = 152 -> 6500 - 1322
+    expect(platform.netCents).toBe(6500 - 1170 - 152);
+  });
+
+  it('rezervasyon hesabiyla AYNI sonucu veriyor', () => {
+    const q = calculateQuote({
+      serviceType: 'boarding', unitPriceCents: 6500, units: 1, petCount: 1,
+      attribution: 'platform', province: 'ON',
+    });
+    expect(netPerUnit(base)[2]!.netCents).toBe(q.sitterPayoutCents);
+  });
+
+  it('promosyon acikken her atifta komisyon sifir', () => {
+    const rows = netPerUnit({ ...base, promoActive: true });
+    expect(rows.every((r) => r.commissionPct === 0)).toBe(true);
+    expect(rows.every((r) => r.netCents === 6500)).toBe(true);
+  });
+
+  it('il degisince vergi degisiyor — QC ile ON ayni cikmamali', () => {
+    const on = netPerUnit(base)[2]!.netCents;
+    const qc = netPerUnit({ ...base, province: 'QC' })[2]!.netCents;
+    expect(qc).not.toBe(on);
   });
 });

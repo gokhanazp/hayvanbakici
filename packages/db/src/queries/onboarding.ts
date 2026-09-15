@@ -52,6 +52,15 @@ export interface OnboardingState {
     acceptsOther: boolean;
   }>;
   screening: { status: string; providerRef: string | null } | null;
+  /**
+   * Lansman promosyonu bitis tarihi — null ise promosyon YOK.
+   *
+   * Fiyat adiminda "size ne kalir" satiri bu alani okuyor: promosyon
+   * acikken komisyon sifir, kapaliyken normal oranlar. Ekranin
+   * soyledigi ile rezervasyonda hesaplanan ayni olmali
+   * (bkz. queries/booking.ts -> promoActive).
+   */
+  promoEndsAt: string | null;
 }
 
 export async function getOnboardingState(
@@ -81,6 +90,7 @@ export async function getOnboardingState(
         hasOwnPets: sitters.hasOwnPets,
         smokeFree: sitters.smokeFree,
         maxConcurrentPets: sitters.maxConcurrentPets,
+        promoEndsAt: sitters.promoEndsAt,
       })
       .from(users)
       .leftJoin(profiles, eq(profiles.userId, users.id))
@@ -133,6 +143,7 @@ export async function getOnboardingState(
       maxConcurrentPets: row.maxConcurrentPets ?? 1,
       services: svc,
       screening: check ?? null,
+      promoEndsAt: row.promoEndsAt ? row.promoEndsAt.toISOString() : null,
     };
   });
 }

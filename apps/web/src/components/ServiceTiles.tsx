@@ -56,11 +56,13 @@ export function ServiceTiles({
             </span>
             <h3 className="text-h4">{m.service[s]}</h3>
             <p className="text-body-sm muted">{m.serviceDescription[s]}</p>
+            {/* .tabular YOK: "53 $ / nuit" gibi metinde rakam disi karakterleri de araliyor */}
             {cents !== undefined && (
-              <p className="text-body-sm dim tabular">
+              <p className="text-body-sm dim">
+                {/* Birim adi da cevrilmeli — ham anahtar ('night') Ingilizce */}
                 {locale === 'fr-CA'
-                  ? `à partir de ${Math.round(cents / 100)} $ / ${SERVICES[s].unit}`
-                  : `from $${Math.round(cents / 100)} / ${SERVICES[s].unit}`}
+                  ? `à partir de ${Math.round(cents / 100)} $ / ${m.unit[SERVICES[s].unit]}`
+                  : `from $${Math.round(cents / 100)} / ${m.unit[SERVICES[s].unit]}`}
               </p>
             )}
           </Link>

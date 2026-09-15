@@ -4,7 +4,8 @@ import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import {
   MAX_PRICE_CENTS, MIN_PRICE_CENTS, MIN_RANGE_SAMPLE, SERVICES, servicesForPhase,
-  previousStep, type OnboardingStep, type PriceRange, type ServiceType,
+  netPerUnit, previousStep,
+  type OnboardingStep, type PriceRange, type ProvinceCode, type ServiceType,
 } from '@havre/core';
 import { getMessages, interpolate, segmentFor, type Locale, type Messages } from '@havre/i18n';
 import { Select } from '@/components/ui/Select';
@@ -95,6 +96,82 @@ function rangeHint(
   return interpolate(m.onboarding['services.priceRange'], {
     low: money(r.p25Cents), high: money(r.p75Cents), median: money(r.medianCents),
   });
+}
+
+/**
+ * "SIZ $65 YAZDINIZ — SIZE NE KALIR?"
+ *
+ * Havre'nin tek gercek farki komisyon seffafligi ama bakici kendi
+ * ekraninda net kazancini goremiyordu: fiyat kutusunun yaninda yalnizca
+ * "/ gece" yaziyordu. Rakamlar netPerUnit'ten geliyor, o da
+ * calculateQuote'u cagiriyor — ekranin soyledigi ile rezervasyonda
+ * kesilen AYNI kod.
+ *
+ * Bos ya da gecersiz fiyatta hicbir sey cizilmiyor: sifirlarla dolu bir
+ * tablo, yazmaya yeni baslayan birini urkutur.
+ */
+function NetEarnings({
+  locale, type, price, province, promoEndsAt,
+}: {
+  locale: Locale;
+  type: ServiceType;
+  price: string;
+  province: ProvinceCode | null;
+  promoEndsAt: string | null;
+}) {
+  const m = getMessages(locale);
+  if (!province) return null;
+
+  const dollarsTyped = Number(price);
+  if (!Number.isFinite(dollarsTyped) || dollarsTyped <= 0) return null;
+  const cents = Math.round(dollarsTyped * 100);
+  if (cents < MIN_PRICE_CENTS || cents > MAX_PRICE_CENTS) return null;
+
+  const promoActive = promoEndsAt !== null && new Date(promoEndsAt).getTime() > Date.now();
+  const rows = netPerUnit({
+    serviceType: type, unitPriceCents: cents, province, promoActive,
+  });
+
+  const money = (c: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency: 'CAD' }).format(c / 100);
+  const unit = m.unit[SERVICES[type].unit];
+
+  return (
+    <div className="net-earnings">
+      <p className="text-body-sm" style={{ fontWeight: 600, margin: 0 }}>
+        {interpolate(m.onboarding['services.net.heading'], { unit })}
+      </p>
+
+      {promoActive ? (
+        <p className="field-hint" style={{ marginTop: 'var(--space-2)' }}>
+          {interpolate(m.onboarding['services.net.promo'], {
+            date: new Date(promoEndsAt).toLocaleDateString(locale, {
+              year: 'numeric', month: 'long', day: 'numeric',
+            }),
+          })}
+        </p>
+      ) : null}
+
+      <dl className="net-list">
+        {rows.map((r) => (
+          <div key={r.attribution} className="net-row">
+            <dt>
+              {m.onboarding[`services.net.${r.attribution}` as keyof Messages['onboarding']] as string}
+              <span className="dim">
+                {' · '}
+                {r.commissionPct === 0
+                  ? m.onboarding['services.net.noFee']
+                  : interpolate(m.onboarding['services.net.fee'], { pct: r.commissionPct })}
+              </span>
+            </dt>
+            <dd>{money(r.netCents)}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <p className="field-hint">{m.onboarding['services.net.tax']}</p>
+    </div>
+  );
 }
 
 /* ---------------------------------------------------------------- hakkinda */
@@ -273,11 +350,15 @@ interface ServiceDraft {
 }
 
 export function ServicesForm({
-  locale, action, initial, ranges = {},
+  locale, action, initial, ranges = {}, province = null, promoEndsAt = null,
 }: {
   locale: Locale;
   action: Action;
   initial: Array<{ serviceType: string; priceCents: number; cancellationPolicy: string; acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean }>;
+  /** Net kazanc satirinin vergisi ile icin — konum adimi bundan once geliyor */
+  province?: ProvinceCode | null | undefined;
+  /** Lansman promosyonu bitisi; null ise promosyon yok */
+  promoEndsAt?: string | null | undefined;
   /**
    * Bakicinin sehrindeki fiyat araliklari.
    *
@@ -364,7 +445,10 @@ export function ServicesForm({
                         required
                         aria-describedby={`price-hint-${type}`}
                       />
-                      <span className="dim text-body-sm">/ {SERVICES[type as ServiceType].unit}</span>
+                      {/* m.unit[...] — ham anahtar Ingilizce: FR ekranda "/ night" yaziyordu */}
+                      <span className="dim text-body-sm">
+                        / {m.unit[SERVICES[type as ServiceType].unit]}
+                      </span>
                     </span>
                     {/*
                       ZORUNLULUK YAZIYOR. Bos birakip kaydete basinca alan
@@ -374,6 +458,10 @@ export function ServicesForm({
                     <span className="field-hint" id={`price-hint-${type}`}>
                       {rangeHint(m, locale, ranges[type])}
                     </span>
+                    <NetEarnings
+                      locale={locale} type={type as ServiceType} price={d.price}
+                      province={province} promoEndsAt={promoEndsAt}
+                    />
                     {state.errors[`price.${type}`] && (
                       <span className="field-error" role="alert">{err(m, state.errors[`price.${type}`])}</span>
                     )}

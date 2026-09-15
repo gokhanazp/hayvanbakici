@@ -188,3 +188,60 @@ export interface PriceRange {
   readonly medianCents: Cents;
   readonly p75Cents: Cents;
 }
+
+
+/* --------------------------------------------- bakiciya ne kaliyor */
+
+export interface NetPerUnit {
+  readonly attribution: Attribution;
+  /** Bu atifta gecerli bakici komisyonu yuzdesi */
+  readonly commissionPct: number;
+  /** Bir birim (gece/yuruyus/ziyaret) icin bakicinin eline gecen */
+  readonly netCents: Cents;
+}
+
+/**
+ * "SIZ $65 YAZDINIZ, SIZE NE KALIR?"
+ *
+ * Havre'nin tek gercek farki komisyon seffafligi ama bakici KENDI
+ * ekraninda net kazancini goremiyordu; fiyat kutusunun yaninda sadece
+ * "/ gece" yaziyordu.
+ *
+ * Hesap calculateQuote uzerinden yapiliyor, elle degil: ekranin
+ * soyledigi rakam ile rezervasyonda kesilen rakam AYNI kodu kullanmali.
+ * Komisyonun kendisi de vergiye tabi bir hizmet oldugu icin net tutar
+ * komisyon + komisyon vergisi dusuldukten sonra kaliyor.
+ *
+ * Tek birim, tek hayvan, tatil disi: bakiciya gosterilen referans
+ * senaryo. Ek hayvan ve tatil ek ucreti bunun USTUNE biner.
+ */
+export function netPerUnit(input: {
+  readonly serviceType: ServiceType;
+  readonly unitPriceCents: Cents;
+  readonly province: ProvinceCode;
+  readonly promoActive?: boolean;
+  readonly sitterGstRegistered?: boolean;
+  readonly config?: CommissionConfig;
+}): NetPerUnit[] {
+  const order: Attribution[] = ['sitter_referral', 'repeat', 'platform'];
+  return order.map((attribution) => {
+    const q = calculateQuote({
+      serviceType: input.serviceType,
+      unitPriceCents: input.unitPriceCents,
+      units: 1,
+      petCount: 1,
+      attribution,
+      province: input.province,
+      ...(input.promoActive === undefined ? {} : { promoActive: input.promoActive }),
+      ...(input.sitterGstRegistered === undefined
+        ? {}
+        : { sitterGstRegistered: input.sitterGstRegistered }),
+      ...(input.config === undefined ? {} : { config: input.config }),
+    });
+    return {
+      attribution,
+      commissionPct: q.commission.sitterPct,
+      netCents: q.sitterPayoutCents,
+    };
+  });
+}

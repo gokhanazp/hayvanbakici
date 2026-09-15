@@ -633,6 +633,27 @@ a { color: inherit; text-decoration: none; }
 .price-input { display: flex; align-items: center; gap: var(--space-2); }
 .price-input input { max-width: 9rem; }
 
+/*
+  "Size ne kalir" blogu — fiyat kutusunun hemen altinda.
+
+  Kart icinde ikinci bir kart gibi durmasin diye cercevesiz: yalnizca
+  ust ayrac cizgisi ve biraz bosluk. Rakamlar tabular-nums ile hizali,
+  cunku yan yana okunacaklar.
+*/
+.net-earnings {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-border-strong);
+}
+.net-list { margin: var(--space-2) 0 var(--space-2); display: grid; gap: var(--space-1); }
+.net-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.875rem; line-height: 1.4rem;
+}
+.net-row dt { margin: 0; }
+.net-row dd { margin: 0; font-weight: 600; white-space: nowrap; }
+
 /* Onemli bir bilgilendirme blogu — sayfada bir tane */
 .notice {
   border-left: 3px solid var(--color-primary);
