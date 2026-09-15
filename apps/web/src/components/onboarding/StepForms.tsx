@@ -9,6 +9,7 @@ import {
   type OnboardingStep, type PriceRange, type ProvinceCode, type ServiceType,
 } from '@havre/core';
 import { getMessages, interpolate, segmentFor, type Locale, type Messages } from '@havre/i18n';
+import { ServiceIcon, SERVICE_TILE } from '@/components/ServiceIcon';
 import { Select } from '@/components/ui/Select';
 import { DateOfBirthField } from '@/components/ui/DateOfBirthField';
 import type { StepState } from '@/app/[locale]/become-a-sitter/[step]/actions';
@@ -419,13 +420,20 @@ export function ServicesForm({
       )}
 
       <div className="grid" style={{ gap: 'var(--space-3)' }}>
-        {available.map((type) => {
+        {available.map((type, i) => {
           const d = drafts[type] as ServiceDraft;
           const label = m.service[type as ServiceType];
+          const r = ranges[type];
 
           return (
             <div key={type} className={`service-card${d.on ? ' service-card-on' : ''}`}>
-              <div className="checkbox-row">
+              {/*
+                KARTIN ICI BOSTU: yalnizca hizmetin adi ve bir kutu vardi.
+                Bakici "drop-in ne kadar eder" bilmeden secim yapiyordu.
+                Simdi ikon + ne oldugu + cevredeki tipik fiyat. Ikon ana
+                sayfadakiyle AYNI kaynaktan (components/ServiceIcon).
+              */}
+              <div className="checkbox-row service-head">
                 <input
                   id={`svc-${type}`}
                   type="checkbox"
@@ -434,7 +442,32 @@ export function ServicesForm({
                   checked={d.on}
                   onChange={(e) => patch(type, { on: e.target.checked })}
                 />
-                <label htmlFor={`svc-${type}`} className="text-h4">{label}</label>
+                <span className="service-head-text">
+                  <span className="row" style={{ gap: 'var(--space-3)', alignItems: 'center' }}>
+                    <span className={`tile tile-sm ${SERVICE_TILE[i % SERVICE_TILE.length]}`}>
+                      <ServiceIcon service={type as ServiceType} size={20} />
+                    </span>
+                    <label htmlFor={`svc-${type}`} className="text-h4">{label}</label>
+                  </span>
+                  <span className="field-hint" style={{ display: 'block' }}>
+                    {m.serviceDescription[type as ServiceType]}
+                  </span>
+                  {/*
+                    Tipik fiyat GERCEK veriden; ornek kucukse (bkz.
+                    MIN_RANGE_SAMPLE) hicbir sey yazmiyor. Uydurma bir
+                    "ortalama", bakicinin fiyatini yanlis yere cakar.
+                  */}
+                  {r && r.count >= MIN_RANGE_SAMPLE && (
+                    <span className="field-hint" style={{ display: 'block' }}>
+                      {interpolate(m.onboarding['services.typical'], {
+                        median: new Intl.NumberFormat(locale, {
+                          style: 'currency', currency: 'CAD', maximumFractionDigits: 0,
+                        }).format(r.medianCents / 100),
+                        unit: m.unit[SERVICES[type as ServiceType].unit],
+                      })}
+                    </span>
+                  )}
+                </span>
               </div>
 
               {d.on && (

@@ -746,6 +746,16 @@ a { color: inherit; text-decoration: none; }
   box-shadow: inset 3px 0 0 var(--color-primary);
 }
 .service-detail { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+
+/*
+  Kart basligi: kutu | ikon + ad + aciklama + tipik fiyat.
+  Onay kutusu en ustte hizali kaliyor, metin blogu kendi icinde akiyor.
+*/
+.service-head { align-items: start; }
+.service-head-text { display: grid; gap: var(--space-1); min-width: 0; }
+.service-head-text label { cursor: pointer; }
+/* Kart icindeki kucuk kutucuk — ana sayfadaki 52px'lik surumun yarisi */
+.tile-sm { width: 34px; height: 34px; border-radius: var(--radius-sm); }
 /*
   Ek ucretler yan yana; dar ekranda alt alta. Ikisi de istege bagli
   oldugu icin ana fiyattan gorsel olarak AYRI duruyorlar.

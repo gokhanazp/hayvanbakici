@@ -562,6 +562,7 @@ export const enCA = {
     'services.net.fee': '{pct}% commission',
     'services.net.tax': 'Commission is a service, so sales tax on it comes off too. Extra-pet and holiday rates are added on top of this.',
     'services.net.promo': 'Your launch offer is on: Havre takes no commission until {date}.',
+    'services.typical': 'Sitters near you usually charge about {median} / {unit}',
     'services.price': 'Your price',
     'services.extraPet': 'Each extra pet',
     'services.extraPetHint': 'Leave empty if a second pet costs nothing extra. Added per night, visit or walk.',

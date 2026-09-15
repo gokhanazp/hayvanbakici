@@ -549,6 +549,7 @@ export const frCA = {
     'services.net.fee': '{pct} % de commission',
     'services.net.tax': 'La commission est un service : la taxe de vente sur celle-ci est aussi retenue. Les tarifs animal supplémentaire et jours fériés s’ajoutent par-dessus.',
     'services.net.promo': 'Votre offre de lancement est active : Havre ne prend aucune commission jusqu’au {date}.',
+    'services.typical': 'Les gardiens pr\u00e8s de chez vous demandent environ {median} / {unit}',
     'services.price': 'Votre prix',
     'services.extraPet': 'Par animal suppl\u00e9mentaire',
     'services.extraPetHint': 'Laissez vide si un deuxi\u00e8me animal ne co\u00fbte rien de plus. Ajout\u00e9 par nuit, visite ou promenade.',
