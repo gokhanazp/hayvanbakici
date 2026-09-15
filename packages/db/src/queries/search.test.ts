@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { getDb } from '../client.js';
 import { resolvePlace } from './place.js';
-import { countSitters, searchSitters, SEARCH_PAGE_SIZE } from './search.js';
+import {
+  countSitters, searchSitters, SEARCH_PAGE_SIZE,
+  SEARCH_SORTS, isSearchSort, type SearchSort,
+} from './search.js';
 
 /**
  * ARAMA SAYFALAMASI — gercek veritabanina karsi (tohum veri gerekir).
@@ -71,5 +74,65 @@ describe('arama sayfalamasi', () => {
     expect(cheapCount).toBeLessThanOrEqual(all);
     expect(cheapRows.length).toBe(cheapCount);
     for (const row of cheapRows) expect(row.priceCents).toBeLessThanOrEqual(4000);
+  });
+});
+
+/**
+ * SIRALAMA.
+ *
+ * Siralama sonuc KUMESINI degistirmez, yalnizca sirasini: "fiyata gore"
+ * diyen kullanici daha az bakici gormeye baslarsa bu bir filtre olur ve
+ * kimse ondan bunu istemedi. Testler hem sirayi hem de kumenin ayni
+ * kaldigini kontrol ediyor.
+ */
+describe('arama siralamasi', () => {
+  it('gecerli siralama adlarini taniyor, uydurulani reddediyor', () => {
+    for (const s of SEARCH_SORTS) expect(isSearchSort(s)).toBe(true);
+    expect(isSearchSort('ucuz')).toBe(false);
+    /* Deger dogrudan SQL'e giriyor; suzgecten gecmeyen bir dize
+       buraya kadar gelememeli. */
+    expect(isSearchSort('price; DROP TABLE users')).toBe(false);
+  });
+
+  it('FIYAT siralamasi artan', async () => {
+    const criteria = await toronto();
+    const rows = await searchSitters(db, { ...criteria, sort: 'price', limit: 30 }, 'en-CA');
+    expect(rows.length).toBeGreaterThan(1);
+    for (let i = 1; i < rows.length; i += 1) {
+      expect(rows[i]!.priceCents).toBeGreaterThanOrEqual(rows[i - 1]!.priceCents);
+    }
+  });
+
+  it('MESAFE siralamasi artan', async () => {
+    const criteria = await toronto();
+    const rows = await searchSitters(db, { ...criteria, sort: 'distance', limit: 30 }, 'en-CA');
+    expect(rows.length).toBeGreaterThan(1);
+    for (let i = 1; i < rows.length; i += 1) {
+      expect(rows[i]!.distanceMeters).toBeGreaterThanOrEqual(rows[i - 1]!.distanceMeters);
+    }
+  });
+
+  it('PUAN siralamasinin basi tek yorumlu hesaplarla dolmuyor', async () => {
+    const criteria = await toronto();
+    const rows = await searchSitters(db, { ...criteria, sort: 'rating', limit: 5 }, 'en-CA');
+    expect(rows.length).toBeGreaterThan(0);
+    /* Yorum sayisi agirligi devrede: ilk siradaki, listenin en az
+       yorumlusu olamaz (tohum veride bes ve uzeri yorumlu bakici var). */
+    expect(rows[0]!.reviewCount).toBeGreaterThan(1);
+  });
+
+  it('siralama KUMEYI degistirmiyor — ayni bakicilar, baska sira', async () => {
+    const criteria = await toronto();
+    const ids = async (sort: SearchSort) =>
+      new Set(
+        (await searchSitters(db, { ...criteria, sort, limit: 500 }, 'en-CA')).map((s) => s.id),
+      );
+
+    const best = await ids('best');
+    for (const sort of ['price', 'rating', 'distance'] as const) {
+      const other = await ids(sort);
+      expect(other.size).toBe(best.size);
+      for (const id of best) expect(other.has(id)).toBe(true);
+    }
   });
 });

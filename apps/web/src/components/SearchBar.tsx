@@ -38,9 +38,27 @@ export function SearchBar({
   const m = getMessages(locale);
   const [service, setService] = useState(defaults?.service ?? serviceSlug('boarding', locale));
 
-  /* Ozet satiri: ne arandigi kapaliyken de gorunmeli. */
+  /*
+    Ozet satiri: ne arandigi kapaliyken de gorunmeli.
+
+    TARIHLER DE BURADA. Onceden yalnizca hizmet ve konum yaziyordu;
+    telefonda kart kapaliyken kullanicinin sectigi tarihler gorunmuyordu
+    ve sonuclar o tarihlere gore SUZULUYORDU. Neye gore suzuldugunu
+    gormeden kisalmis bir liste, "bu sehirde bakici yok" gibi okunuyor.
+  */
   const current = LIVE_SERVICES.find((x) => serviceSlug(x, locale) === service);
-  const summary = [current ? m.service[current] : null, defaults?.location]
+  const dates = defaults?.start && defaults?.end
+    ? (() => {
+        const fmt = new Intl.DateTimeFormat(locale, {
+          day: 'numeric', month: 'short', timeZone: 'UTC',
+        });
+        const a = new Date(`${defaults.start}T00:00:00Z`);
+        const b = new Date(`${defaults.end}T00:00:00Z`);
+        if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return null;
+        return a.getTime() === b.getTime() ? fmt.format(a) : `${fmt.format(a)} – ${fmt.format(b)}`;
+      })()
+    : null;
+  const summary = [current ? m.service[current] : null, defaults?.location, dates]
     .filter(Boolean).join(' · ');
 
   // GET: arama sonucu bir ADRES olmali — paylasilabilir, geri tusuyla

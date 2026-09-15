@@ -19,6 +19,16 @@ export interface SearchParams {
   radiusMeters?: number;
   startDate?: string;
   endDate?: string;
+  /**
+   * SIRALAMA — varsayilan 'best'.
+   *
+   * Kullaniciya kontrol vermek, kendi siralamamizin iyi olmadigi
+   * anlamina gelmiyor: sahip "en ucuzu kim" diye bakmak istedigine
+   * karar verebilmeli. Siralama secenegi SATILIK DEGIL ve olmayacak
+   * (Competition Act §8.6 ve sayfadaki "yerlesim satin alinamaz"
+   * cumlesi); yalnizca kullanicinin kendi olcusu.
+   */
+  sort?: SearchSort;
   petWeightKg?: number;
   needsCats?: boolean;
   maxPriceCents?: number;
@@ -72,6 +82,48 @@ function filters(params: SearchParams, origin: SQL, radius: number): SQL {
               AND a.status <> 'open')`
       : sql``}
   `;
+}
+
+/** Siralama secenekleri — adres parametresi olarak da bunlar kullaniliyor. */
+/**
+ * SIRALAMA CUMLESI.
+ *
+ * 'best' bizim skorumuz: puan, yanit suresi, kabul orani, iptal orani,
+ * profil doluluk ve rozet — %65; mesafe %35. YERLESIM SATIN ALINAMAZ,
+ * bu formulde odemeye bagli hicbir terim yok ve olmayacak.
+ *
+ * Digerleri kullanicinin kendi olcusu. Puan siralamasinda yorum SAYISI
+ * da devrede: tek bir 5 yildiz, otuz yorumla 4,8 tutturan bir bakicinin
+ * onune gecmemeli — "en iyi puanli" listesinin basi tek yorumlu
+ * hesaplarla dolarsa siralama bilgi tasimaz.
+ */
+function orderBy(sort: SearchSort, origin: SQL, radius: number): SQL {
+  switch (sort) {
+    case 'price':
+      return sql`ss.price_cents ASC`;
+    case 'rating':
+      return sql`(st.average_rating * LEAST(st.review_count::numeric / 5, 1)) DESC, st.review_count DESC`;
+    case 'distance':
+      return sql`ST_Distance(pr.approx_location, ${origin}) ASC`;
+    case 'best':
+    default:
+      return sql`
+        (st.average_rating / 5 * 0.30
+         + (1 - LEAST(st.median_response_minutes::numeric / 1440, 1)) * 0.20
+         + st.acceptance_rate * 0.20
+         + (1 - LEAST(st.cancellation_rate * 5, 1)) * 0.15
+         + st.profile_completeness * 0.10
+         + (st.badge_level::numeric / 4) * 0.05) * 0.65
+        + (1 - LEAST(ST_Distance(pr.approx_location, ${origin})::numeric / ${radius}, 1)) * 0.35
+        DESC`;
+  }
+}
+
+export const SEARCH_SORTS = ['best', 'price', 'rating', 'distance'] as const;
+export type SearchSort = (typeof SEARCH_SORTS)[number];
+
+export function isSearchSort(v: string): v is SearchSort {
+  return (SEARCH_SORTS as readonly string[]).includes(v);
 }
 
 export const SEARCH_PAGE_SIZE = 24;
@@ -128,21 +180,14 @@ export async function searchSitters(
     JOIN profiles pr ON pr.user_id = ss.sitter_id
     JOIN neighbourhoods n ON n.id = pr.neighbourhood_id
     WHERE ${filters(params, origin, radius)}
-    ORDER BY
-      (st.average_rating / 5 * 0.30
-       + (1 - LEAST(st.median_response_minutes::numeric / 1440, 1)) * 0.20
-       + st.acceptance_rate * 0.20
-       + (1 - LEAST(st.cancellation_rate * 5, 1)) * 0.15
-       + st.profile_completeness * 0.10
-       + (st.badge_level::numeric / 4) * 0.05) * 0.65
-      + (1 - LEAST(ST_Distance(pr.approx_location, ${origin})::numeric / ${radius}, 1)) * 0.35
-      DESC,
+    ORDER BY ${orderBy(params.sort ?? 'best', origin, radius)},
       /*
         ESITLIK BOZUCU — SAYFALAMANIN SARTI.
         Skorlar esit oldugunda Postgres siralamayi GARANTI ETMIYOR: ayni
         bakici hem 1. hem 2. sayfada cikabilir, bir baskasi hic cikmayabilir.
         Kimlik ile ikincil siralama, iki ayri sorgunun ayni sirayi
-        uretmesini saglar.
+        uretmesini saglar. Fiyat/puan siralamasinda bu daha da onemli:
+        esit fiyat cok daha sik gorulur.
       */
       st.user_id
     LIMIT ${limit} OFFSET ${offset}

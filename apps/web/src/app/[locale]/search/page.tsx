@@ -12,7 +12,8 @@ import { SitterCard } from '@/components/SitterCard';
 import { Select } from '@/components/ui/Select';
 import {
   cityName, citySlug, countSitters, getLinkableCities, resolvePlace, searchSitters,
-  type PlaceMatch, type SearchResult,
+  isSearchSort, SEARCH_SORTS,
+  type PlaceMatch, type SearchResult, type SearchSort,
 } from '@/lib/data';
 import { money, numberFmt } from '@/lib/format';
 
@@ -85,6 +86,9 @@ export default async function SearchPage({
   const needsCats = one(sp.cats) === '1';
   const requireFencedYard = one(sp.yard) === '1';
   const minBadge = readBadge(one(sp.badge));
+  /* Siralama da adreste: paylasilan bag ayni sirayi acar */
+  const sortParam = one(sp.sort);
+  const sort: SearchSort = isSearchSort(sortParam) ? sortParam : 'best';
   /* Sayfa adresten: geri tusu calissin, bag paylasilabilsin, JS'siz gezilsin */
   let page = readPage(one(sp.page));
 
@@ -103,6 +107,7 @@ export default async function SearchPage({
       ...(requireFencedYard ? { requireFencedYard: true } : {}),
       ...(maxPrice > 0 ? { maxPriceCents: maxPrice * 100 } : {}),
       ...(minBadge > 0 ? { minBadgeLevel: minBadge } : {}),
+      sort,
     };
     /*
       ONCE SAYIM, SONRA LISTE.
@@ -125,8 +130,15 @@ export default async function SearchPage({
   const first = total === 0 ? 0 : (page - 1) * SEARCH_PAGE_SIZE + 1;
   const last = Math.min(page * SEARCH_PAGE_SIZE, total);
 
-  /** Filtreleri koruyarak sayfa degistiren adres. */
-  const pageHref = (n: number) => {
+  /**
+   * MEVCUT ARAMANIN ADRESI, bir iki parametresi degistirilmis hali.
+   *
+   * Sayfalama ve siralama ayni yerden ureliyor: iki ayri kurucu olsa,
+   * birine eklenen bir filtre digerinde unutulur ve "siralamayi
+   * degistirince filtrelerim ucuyor" hatasi cikardi. Bos deger
+   * parametreyi KALDIRIR (varsayilana donus).
+   */
+  const queryWith = (overrides: Record<string, string> = {}) => {
     const q = new URLSearchParams();
     if (serviceParam) q.set('service', serviceParam);
     if (location) q.set('location', location);
@@ -137,9 +149,17 @@ export default async function SearchPage({
     if (needsCats) q.set('cats', '1');
     if (requireFencedYard) q.set('yard', '1');
     if (minBadge > 0) q.set('badge', String(minBadge));
-    if (n > 1) q.set('page', String(n));
+    if (sort !== 'best') q.set('sort', sort);
+
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value === '') q.delete(key);
+      else q.set(key, value);
+    }
     return `/${segmentFor(locale)}/search/?${q.toString()}`;
   };
+
+  /* Sayfa degisirken siralama ve filtreler korunuyor. */
+  const pageHref = (n: number) => queryWith({ page: n > 1 ? String(n) : '' });
 
   const cities = await getLinkableCities();
   const placeLabel = place?.label ?? location;
@@ -213,6 +233,20 @@ export default async function SearchPage({
               {total === 1
                 ? t.introOne
                 : interpolate(t.intro, { count: numberFmt(total, locale) })}
+              {/*
+                TARIH SUZGECI ZATEN CALISIYORDU ama kimse bilmiyordu.
+
+                Tarih secildiginde o gunlerde kapali olan bakicilar
+                sonuctan cikiyor (bkz. queries/search.ts). Ekran bunu
+                SOYLEMIYORDU: sahip listedeki bakiciya talep atip
+                reddedilir mi diye tereddut ediyor, ya da listenin
+                kisaldigini gorup "az bakici var" saniyordu. Bir cumle,
+                iki yanlis anlamayi birden cozuyor.
+              */}
+              {start && end && (
+                <> · {interpolate(t.openOnDates, { dates: dateRange(start, end, locale) })}</>
+              )}
+            
               {/* Sayfa basina 24 gosteriliyor; ekran kacini gosterdigini de
                   SOYLUYOR, yoksa "43 bakici" yazip 24 kart cizen bir sayfa
                   cikiyor. */}
@@ -240,6 +274,32 @@ export default async function SearchPage({
                 </>
               )}
             </p>
+            {/*
+              SIRALAMA — JS'siz, her secenek bir BAGLANTI.
+
+              Adres parametresi oldugu icin paylasilan bag ayni sirayi
+              aciyor ve geri tusu calisiyor. Diger filtreler korunuyor:
+              siralamayi degistirmek aramayi sifirlamamali.
+
+              SIRALAMA SATILIK DEGIL ve olmayacak — sayfanin kendisi
+              "yerlesim satin alinamaz" diyor, bir odeme terimi
+              eklendigi gun o cumle yalan olur.
+            */}
+            <nav className="sort-row" aria-label={t.sortLabel}>
+              <span className="field-hint">{t.sortLabel}</span>
+              {SEARCH_SORTS.map((option) => (
+                <Link
+                  key={option}
+                  /* Siralama degisince 1. sayfaya: 3. sayfadaki "en ucuz" listesi
+                     kullanicinin beklemedigi bir yer. */
+                  href={queryWith({ sort: option === 'best' ? '' : option, page: '' })}
+                  className={`sort-option${option === sort ? ' is-active' : ''}`}
+                  aria-current={option === sort ? 'true' : undefined}
+                >
+                  {t[`sort.${option}` as keyof typeof t]}
+                </Link>
+              ))}
+            </nav>
 
             {results.length === 0 ? (
               <div className="card card-pad" style={{ maxWidth: '42rem' }}>
@@ -319,6 +379,17 @@ export default async function SearchPage({
       </div>
     </>
   );
+}
+
+/** "12 – 15 Eki 2026" — arama ozetinde ve sonuc satirinda ayni bicim. */
+function dateRange(start: string, end: string, locale: Locale): string {
+  const fmt = new Intl.DateTimeFormat(locale, {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  });
+  const a = new Date(`${start}T00:00:00Z`);
+  const b = new Date(`${end}T00:00:00Z`);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return '';
+  return a.getTime() === b.getTime() ? fmt.format(a) : `${fmt.format(a)} – ${fmt.format(b)}`;
 }
 
 /**

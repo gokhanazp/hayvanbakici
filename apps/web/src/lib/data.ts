@@ -36,10 +36,11 @@ import {
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
-  countSitters as dbCountSitters,
+  countSitters as dbCountSitters, isSearchSort, SEARCH_SORTS,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
   type SitterProfile, type SitterDashboard, type FeaturedReview, type PlaceMatch,
+  type SearchSort,
   type BookingSummary, type BookingDetail, type BookingDraft, type CalendarDay,
   type AdminOverview, type ApplicationRow, type ApplicationDetail, type AuditRow,
   type AdminBookingRow, type AuditEntry, type AdminCounts,
@@ -57,9 +58,9 @@ export type {
   AdminOverview, ApplicationRow, ApplicationDetail, AuditRow, AdminBookingRow, AdminCounts,
   AdminUserRow, AdminUserDetail, UserPage, UserFilter, AdminNote,
   ModerationReview, ReviewFilter, ReportRow, AdminBookingDetail, AdminTransition, AdminMetrics,
-  ConversationSummary, Thread, ThreadMessage, RawMessage,
+  ConversationSummary, Thread, ThreadMessage, RawMessage, SearchSort,
 };
-export { cityName, citySlug };
+export { cityName, citySlug, isSearchSort, SEARCH_SORTS };
 
 const db = () => getDb();
 
