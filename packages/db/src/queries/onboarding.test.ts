@@ -139,20 +139,45 @@ describe('bakici onboarding', () => {
 
   it('hizmetler tam olarak degistirilir, birikmez', async () => {
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6500, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: true, acceptsOther: false },
-      { serviceType: 'dog_walking', priceCents: 2500, priceUnit: 'walk', cancellationPolicy: 'flexible', acceptsDogs: true, acceptsCats: false, acceptsOther: false },
+      { serviceType: 'boarding', priceCents: 6500, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: true, acceptsOther: false, extraPetPriceCents: 1500, holidaySurchargePct: 20 },
+      { serviceType: 'dog_walking', priceCents: 2500, priceUnit: 'walk', cancellationPolicy: 'flexible', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 },
     ]);
     let rows = await db.select().from(sitterServices).where(eq(sitterServices.sitterId, userId));
     expect(rows).toHaveLength(2);
 
     // Secimden cikarilan hizmet SILINMELI
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 7000, priceUnit: 'night', cancellationPolicy: 'strict', acceptsDogs: true, acceptsCats: false, acceptsOther: false },
+      { serviceType: 'boarding', priceCents: 7000, priceUnit: 'night', cancellationPolicy: 'strict', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 },
     ]);
     rows = await db.select().from(sitterServices).where(eq(sitterServices.sitterId, userId));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.priceCents).toBe(7000);
     expect(rows[0]?.cancellationPolicy).toBe('strict');
+  });
+
+  /*
+    EK UCRETLER KAYDEDILIYOR VE GERI OKUNUYOR.
+
+    Alanlar veritabaninda ve rezervasyon hesabinda vardi ama hicbir
+    ekrandan yazilamiyordu: iki hayvanli bir rezervasyonda bakici ek
+    ucret alamiyordu. Tam degistirme oldugu icin, ikinci kayitta
+    verilmeyen deger SIFIRLANMALI — eski degerin sessizce kalmasi,
+    "kaldirdim" sanan bakiciyi yaniltir.
+  */
+  it('ek hayvan ve tatil ucreti kaydediliyor, geri okunuyor ve sifirlanabiliyor', async () => {
+    await saveServices(db, userId, [
+      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 1200, holidaySurchargePct: 25 },
+    ]);
+    let state = await getOnboardingState(db, userId);
+    expect(state?.services[0]?.extraPetPriceCents).toBe(1200);
+    expect(state?.services[0]?.holidaySurchargePct).toBe(25);
+
+    await saveServices(db, userId, [
+      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 },
+    ]);
+    state = await getOnboardingState(db, userId);
+    expect(state?.services[0]?.extraPetPriceCents).toBe(0);
+    expect(state?.services[0]?.holidaySurchargePct).toBe(0);
   });
 
   it('bahce yoksa cevrili bahce iddiasi da kaydedilmez', async () => {

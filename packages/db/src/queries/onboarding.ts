@@ -50,6 +50,8 @@ export interface OnboardingState {
     acceptsDogs: boolean;
     acceptsCats: boolean;
     acceptsOther: boolean;
+    extraPetPriceCents: number;
+    holidaySurchargePct: number;
   }>;
   screening: { status: string; providerRef: string | null } | null;
   /**
@@ -109,6 +111,8 @@ export async function getOnboardingState(
         acceptsDogs: sitterServices.acceptsDogs,
         acceptsCats: sitterServices.acceptsCats,
         acceptsOther: sitterServices.acceptsOther,
+        extraPetPriceCents: sitterServices.extraPetPriceCents,
+        holidaySurchargePct: sitterServices.holidaySurchargePct,
       })
       .from(sitterServices)
       .where(eq(sitterServices.sitterId, userId));
@@ -298,6 +302,10 @@ export interface ServiceInput {
   acceptsDogs: boolean;
   acceptsCats: boolean;
   acceptsOther: boolean;
+  /** Birim basina ek hayvan ucreti — 0 = ucretsiz */
+  extraPetPriceCents: number;
+  /** Tatil donemi ek ucret yuzdesi — 0 = yok */
+  holidaySurchargePct: number;
 }
 
 export async function saveServices(
@@ -325,6 +333,8 @@ export async function saveServices(
         acceptsDogs: s.acceptsDogs,
         acceptsCats: s.acceptsCats,
         acceptsOther: s.acceptsOther,
+        extraPetPriceCents: s.extraPetPriceCents,
+        holidaySurchargePct: s.holidaySurchargePct,
         isActive: true,
       })),
     );

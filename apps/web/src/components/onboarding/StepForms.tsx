@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import {
+  MAX_EXTRA_PET_CENTS, MAX_HOLIDAY_PCT,
   MAX_PRICE_CENTS, MIN_PRICE_CENTS, MIN_RANGE_SAMPLE, SERVICES, servicesForPhase,
   netPerUnit, previousStep,
   type OnboardingStep, type PriceRange, type ProvinceCode, type ServiceType,
@@ -347,6 +348,9 @@ interface ServiceDraft {
   dogs: boolean;
   cats: boolean;
   other: boolean;
+  /** Bos string = ek ucret yok. "0" yazmakla bos birakmak ayni sey. */
+  extraPet: string;
+  holiday: string;
 }
 
 export function ServicesForm({
@@ -354,7 +358,11 @@ export function ServicesForm({
 }: {
   locale: Locale;
   action: Action;
-  initial: Array<{ serviceType: string; priceCents: number; cancellationPolicy: string; acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean }>;
+  initial: Array<{
+    serviceType: string; priceCents: number; cancellationPolicy: string;
+    acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean;
+    extraPetPriceCents: number; holidaySurchargePct: number;
+  }>;
   /** Net kazanc satirinin vergisi ile icin — konum adimi bundan once geliyor */
   province?: ProvinceCode | null | undefined;
   /** Lansman promosyonu bitisi; null ise promosyon yok */
@@ -388,6 +396,10 @@ export function ServicesForm({
         dogs: row?.acceptsDogs ?? true,
         cats: row?.acceptsCats ?? false,
         other: row?.acceptsOther ?? false,
+        // 0 BOS gosteriliyor: "0" yazili bir kutu, doldurulmasi gereken
+        // bir alan gibi duruyor; bosluk "bir sey istemiyorum" demek.
+        extraPet: row?.extraPetPriceCents ? String(row.extraPetPriceCents / 100) : '',
+        holiday: row?.holidaySurchargePct ? String(row.holidaySurchargePct) : '',
       };
     }
     return out;
@@ -465,6 +477,66 @@ export function ServicesForm({
                     {state.errors[`price.${type}`] && (
                       <span className="field-error" role="alert">{err(m, state.errors[`price.${type}`])}</span>
                     )}
+                  </div>
+
+                  {/*
+                    EK UCRETLER.
+
+                    Alanlar veritabaninda ve rezervasyon hesabinda vardi
+                    ama hicbir ekrandan yazilamiyordu: iki hayvanli bir
+                    rezervasyonda bakici ek ucret alamiyordu.
+
+                    Ikisi de ISTEGE BAGLI ve bos birakilabilir; bos =
+                    "istemiyorum". Ust sinirlar yaninda yaziyor cunku
+                    sinirin varligini ancak hata alinca ogrenmek kotu.
+                  */}
+                  <div className="field-row extra-fees">
+                    <div className="field-block">
+                      <label htmlFor={`extra-${type}`}>{m.onboarding['services.extraPet']}</label>
+                      <span className="price-input">
+                        <span aria-hidden="true">$</span>
+                        <input
+                          id={`extra-${type}`}
+                          name={`extraPet.${type}`}
+                          type="number" min={0} max={MAX_EXTRA_PET_CENTS / 100} step="1"
+                          inputMode="decimal"
+                          value={d.extraPet}
+                          onChange={(e) => patch(type, { extraPet: e.target.value })}
+                          aria-describedby={`extra-hint-${type}`}
+                        />
+                        <span className="dim text-body-sm">
+                          / {m.unit[SERVICES[type as ServiceType].unit]}
+                        </span>
+                      </span>
+                      <span className="field-hint" id={`extra-hint-${type}`}>
+                        {m.onboarding['services.extraPetHint']}
+                      </span>
+                      {state.errors[`extraPet.${type}`] && (
+                        <span className="field-error" role="alert">{err(m, state.errors[`extraPet.${type}`])}</span>
+                      )}
+                    </div>
+
+                    <div className="field-block">
+                      <label htmlFor={`hol-${type}`}>{m.onboarding['services.holiday']}</label>
+                      <span className="price-input">
+                        <input
+                          id={`hol-${type}`}
+                          name={`holiday.${type}`}
+                          type="number" min={0} max={MAX_HOLIDAY_PCT} step="1"
+                          inputMode="numeric"
+                          value={d.holiday}
+                          onChange={(e) => patch(type, { holiday: e.target.value })}
+                          aria-describedby={`hol-hint-${type}`}
+                        />
+                        <span aria-hidden="true">%</span>
+                      </span>
+                      <span className="field-hint" id={`hol-hint-${type}`}>
+                        {interpolate(m.onboarding['services.holidayHint'], { max: MAX_HOLIDAY_PCT })}
+                      </span>
+                      {state.errors[`holiday.${type}`] && (
+                        <span className="field-error" role="alert">{err(m, state.errors[`holiday.${type}`])}</span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="field-block">

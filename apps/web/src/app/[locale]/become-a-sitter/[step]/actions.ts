@@ -85,6 +85,21 @@ export async function saveLocationAction(
   redirect(`/${locale}/become-a-sitter/${nextStep('location')}/`);
 }
 
+/** Bos alan = 0. Gecersiz metin NaN kalir ve dogrulamada yakalanir. */
+function centsOrZero(raw: string): number {
+  const v = raw.trim();
+  if (v === '') return 0;
+  const dollars = Number(v.replace(',', '.'));
+  return Number.isFinite(dollars) ? Math.round(dollars * 100) : NaN;
+}
+
+function numberOrZero(raw: string): number {
+  const v = raw.trim();
+  if (v === '') return 0;
+  const n = Number(v.replace(',', '.'));
+  return Number.isFinite(n) ? Math.round(n) : NaN;
+}
+
 export async function saveServicesAction(
   _prev: StepState, form: FormData,
 ): Promise<StepState> {
@@ -106,6 +121,13 @@ export async function saveServicesAction(
       acceptsDogs: bool(form, `dogs.${type}`),
       acceptsCats: bool(form, `cats.${type}`),
       acceptsOther: bool(form, `other.${type}`),
+      /*
+        EK UCRETLER ISTEGE BAGLI. Bos alan 0 demek — "ucretsiz" ya da
+        "tatil farki yok". Bos birakmayi hata saymak, ek ucret almak
+        istemeyen bakiciyi gereksiz bir karara zorlardi.
+      */
+      extraPetPriceCents: centsOrZero(str(form, `extraPet.${type}`)),
+      holidaySurchargePct: numberOrZero(str(form, `holiday.${type}`)),
     };
   });
 

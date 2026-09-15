@@ -223,6 +223,30 @@ export default async function SitterPage({
                       IPTAL POLITIKASI SOZLESME KURULMADAN ONCE tam gosteriliyor
                       (Ontario/Quebec tuketici koruma mevzuati).
                     */}
+                    {/*
+                      EK UCRETLER ILANDA YAZIYOR.
+
+                      Ikisi de KOSULLU ucret: herkes odemiyor, o yuzden
+                      bas fiyata giremezler. Ama sahip bunlari rezervasyon
+                      ekraninda ilk kez gormemeli — drip pricing'i
+                      yasaklayan kuralin (Competition Act §8.6) ruhu bu.
+                      Ucret YOKSA satir da yok: "0 $ ek hayvan" yazmak
+                      gurultu.
+                    */}
+                    {(s.extraPetPriceCents > 0 || s.holidaySurchargePct > 0) && (
+                      <p className="text-body-sm dim" style={{ marginTop: 'var(--space-3)' }}>
+                        {[
+                          s.extraPetPriceCents > 0 && interpolate(m.sitter.extraPetLine, {
+                            amount: money(s.extraPetPriceCents, locale),
+                            unit: m.unit[SERVICES[s.serviceType].unit],
+                          }),
+                          s.holidaySurchargePct > 0 && interpolate(m.sitter.holidayLine, {
+                            pct: s.holidaySurchargePct,
+                          }),
+                        ].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+
                     <p className="text-body-sm dim" style={{ marginTop: 'var(--space-3)' }}>
                       {m.sitter.cancellationLabel}:{' '}
                       {m.onboarding[`cancellation.${s.cancellationPolicy}` as keyof Messages['onboarding']] as string}

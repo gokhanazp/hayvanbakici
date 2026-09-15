@@ -84,6 +84,25 @@ export function ageOn(dateOfBirth: string, on: Date = new Date()): number | null
 
 export const MIN_PRICE_CENTS = 500;
 export const MAX_PRICE_CENTS = 50_000;
+
+/**
+ * EK HAYVAN UCRETI — birim basina, 0 = ucretsiz.
+ *
+ * Ust sinir ana fiyatin kendisi kadar: ikinci hayvan icin birincinin
+ * fiyatindan fazlasini istemek, "ek" olmaktan cikar ve rezervasyon
+ * ekraninda saklanmis ikinci bir fiyat gibi gorunur.
+ */
+export const MAX_EXTRA_PET_CENTS = MAX_PRICE_CENTS;
+
+/**
+ * TATIL EK UCRETI — yuzde, 0 = yok.
+ *
+ * %50 tavan keyfi degil: daha yukarisi, arama sonucunda gorunen fiyatla
+ * odenen tutar arasinda savunulamayacak bir fark acar. Competition Act
+ * §8.6 gizli ucret yasagi bunu dogrudan yasaklamiyor ama fiyatin
+ * "ilanda gorulen fiyat" olmaktan cikmasi ayni sorunun kapisi.
+ */
+export const MAX_HOLIDAY_PCT = 50;
 /** Bio bu uzunlugun altindaysa profil ise yaramiyor — olculmus bir esik degil,
  *  ama "Hayvanlari severim" tek satirini elemek icin yeterli. */
 export const MIN_BIO_LENGTH = 40;
@@ -116,7 +135,13 @@ export function validateLocation(input: {
 }
 
 export function validateServices(
-  input: Array<{ serviceType: string; priceCents: number; acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean }>,
+  input: Array<{
+    serviceType: string; priceCents: number;
+    acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean;
+    /** Istege bagli — verilmezse 0 (ucretsiz / ek ucret yok) */
+    extraPetPriceCents?: number | undefined;
+    holidaySurchargePct?: number | undefined;
+  }>,
 ): FieldErrors {
   const e: FieldErrors = {};
   if (input.length === 0) {
@@ -129,6 +154,21 @@ export function validateServices(
     }
     if (!s.acceptsDogs && !s.acceptsCats && !s.acceptsOther) {
       e[`accepts.${s.serviceType}`] = 'error.required';
+    }
+
+    /*
+      Ek ucretler ISTEGE BAGLI ama yazildiysa gecerli olmali. Bos
+      birakmak "ucretsiz" demek, hata degil — bu yuzden undefined ve 0
+      ayni kovada.
+    */
+    const extra = s.extraPetPriceCents ?? 0;
+    if (!Number.isFinite(extra) || extra < 0 || extra > MAX_EXTRA_PET_CENTS) {
+      e[`extraPet.${s.serviceType}`] = 'error.extraPetRange';
+    }
+
+    const holiday = s.holidaySurchargePct ?? 0;
+    if (!Number.isFinite(holiday) || holiday < 0 || holiday > MAX_HOLIDAY_PCT) {
+      e[`holiday.${s.serviceType}`] = 'error.holidayRange';
     }
   }
   return e;

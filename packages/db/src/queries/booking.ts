@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
 import {
-  SERVICES, calculateQuote, resolveAttribution, assertTransition,
+  SERVICES, calculateQuote, resolveAttribution, assertTransition, holidayUnitsBetween,
   REQUEST_EXPIRY_HOURS,
   type ServiceType, type BookingStatus, type Quote,
 } from '@havre/core';
@@ -197,6 +197,19 @@ export async function createBookingRequest(
       petCount: draft.petIds.length,
       extraPetPriceCents: Number(svc.extra_pet_price_cents ?? 0),
       holidaySurchargePct: Number(svc.holiday_surcharge_pct ?? 0),
+      /*
+        TATIL ZAMMI YALNIZCA TATIL GUNLERINDEN.
+
+        Istemci ayni hesabi yapiyor ama BAGLAYICI OLAN BURASI. Iki taraf
+        da @havre/core'daki ayni takvimi ve ayni birim kuralini
+        kullaniyor; ayrilirlarsa kullanici bir tutar gorup baskasini
+        onaylamis olurdu.
+      */
+      holidayUnits: holidayUnitsBetween(
+        draft.startDate, draft.endDate,
+        SERVICES[draft.serviceType].unit,
+        String(svc.province) as never,
+      ),
       attribution,
       province: String(svc.province) as never,
       promoActive: promoEndsAt !== null && promoEndsAt.getTime() > Date.now(),

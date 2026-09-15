@@ -28,6 +28,17 @@ export interface QuoteInput {
   readonly extraPetPriceCents?: Cents;
   /** Tatil donemi ek ucret yuzdesi (bakici belirler) */
   readonly holidaySurchargePct?: number;
+  /**
+   * Araliktaki TATIL birimi sayisi — holidayUnitsBetween'den.
+   *
+   * Eskiden yuzde, rezervasyonun TAMAMINA uygulaniyordu: "tatillerde
+   * %20 fazla" diyen bakici, subatta sira bir salida da %20 fazla
+   * aliyordu. Profilde yazan cumle ile kesilen tutar ayni olmali.
+   *
+   * Verilmezse 0: tarih bilinmeden tatil zammi hesaplanamaz ve
+   * hesaplanmamali (ornek tutarlar boyle cikiyor).
+   */
+  readonly holidayUnits?: number;
   /** Bakicinin ekledigi opsiyonel ekstralar */
   readonly addOnsCents?: Cents;
   readonly attribution: Attribution;
@@ -101,9 +112,23 @@ export function calculateQuote(input: QuoteInput): Quote {
     lines.push({ key: 'quote.extraPets', amountCents: extraPetCents, side: 'owner' });
   }
 
-  // 3. Tatil ek ucreti
+  /*
+    3. TATIL EK UCRETI — YALNIZCA TATIL GUNLERINE.
+
+    Yuzde, tatile denk gelen birimlerin bedeline uygulaniyor; tum
+    rezervasyona degil. Uc gecelik bir konaklamanin yalnizca biri Noel
+    ise zam o bir geceden aliniyor.
+
+    Ek hayvan ucreti de ayni orana giriyor: tatil gecesinde iki hayvan
+    bakmak, normal gecede iki hayvan bakmaktan daha zor degil ama
+    bakicinin o gunku bedeli butun olarak artiyor.
+  */
+  const holidayUnits = Math.min(Math.max(input.holidayUnits ?? 0, 0), input.units);
+  const holidayBase = input.units > 0
+    ? Math.round(((baseCents + extraPetCents) * holidayUnits) / input.units)
+    : 0;
   const holidayCents = input.holidaySurchargePct
-    ? applyPct(baseCents + extraPetCents, input.holidaySurchargePct)
+    ? applyPct(holidayBase, input.holidaySurchargePct)
     : 0;
   if (holidayCents > 0) {
     lines.push({ key: 'quote.holidaySurcharge', amountCents: holidayCents, side: 'owner' });

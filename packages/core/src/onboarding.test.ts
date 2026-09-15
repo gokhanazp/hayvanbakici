@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   ageOn, isValidPhone, isValidPostalCode, nextStep, previousStep,
   photoTotal, profileCompleteness, completedSteps, missingRequiredSteps,
+  MAX_EXTRA_PET_CENTS, MAX_HOLIDAY_PCT,
   validateAbout, validateLocation, validateServices,
 } from './onboarding.js';
 
@@ -166,5 +167,54 @@ describe('photoTotal', () => {
       screeningStarted: true,
       photoCount: photoTotal({ hasAvatar: true, homePhotoCount: 0 }),
     }).photos).toBe(true);
+  });
+});
+
+/*
+  EK UCRETLER.
+
+  Alanlar veritabaninda ve rezervasyon hesabinda vardi ama hicbir
+  ekrandan yazilamiyordu. Kural: ISTEGE BAGLI ama yazildiysa gecerli.
+  Bos birakmak hata DEGIL — ek ucret istemeyen bakiciyi bir karara
+  zorlamak yanlis olurdu.
+*/
+describe('ek ucret dogrulamasi', () => {
+  const base = {
+    serviceType: 'boarding', priceCents: 6000,
+    acceptsDogs: true, acceptsCats: false, acceptsOther: false,
+  };
+
+  it('verilmemis ek ucretler HATA DEGIL', () => {
+    expect(validateServices([base])).toEqual({});
+  });
+
+  it('sifir gecerli — "ucretsiz" demek', () => {
+    expect(validateServices([{ ...base, extraPetPriceCents: 0, holidaySurchargePct: 0 }])).toEqual({});
+  });
+
+  it('gecerli degerler kabul ediliyor', () => {
+    expect(validateServices([{
+      ...base, extraPetPriceCents: 1500, holidaySurchargePct: MAX_HOLIDAY_PCT,
+    }])).toEqual({});
+  });
+
+  it('negatif ek hayvan ucreti reddediliyor', () => {
+    expect(validateServices([{ ...base, extraPetPriceCents: -1 }]))
+      .toHaveProperty('extraPet.boarding', 'error.extraPetRange');
+  });
+
+  it('ana fiyat tavanini asan ek ucret reddediliyor', () => {
+    expect(validateServices([{ ...base, extraPetPriceCents: MAX_EXTRA_PET_CENTS + 1 }]))
+      .toHaveProperty('extraPet.boarding', 'error.extraPetRange');
+  });
+
+  it('tatil yuzdesi tavani asamaz', () => {
+    expect(validateServices([{ ...base, holidaySurchargePct: MAX_HOLIDAY_PCT + 1 }]))
+      .toHaveProperty('holiday.boarding', 'error.holidayRange');
+  });
+
+  it('sayi olmayan girdi hata veriyor — sessizce sifira dusmuyor', () => {
+    expect(validateServices([{ ...base, extraPetPriceCents: Number.NaN }]))
+      .toHaveProperty('extraPet.boarding', 'error.extraPetRange');
   });
 });

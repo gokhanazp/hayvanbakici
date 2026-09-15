@@ -49,9 +49,24 @@ describe('calculateQuote — Toronto konaklama', () => {
     expect(q.subtotalCents).toBe(dollars(350));
   });
 
-  it('tatil ek ucreti temel + ek hayvan uzerinden hesaplanir', () => {
-    const q = calculateQuote({ ...base, holidaySurchargePct: 20, attribution: 'platform' });
+  /*
+    TATIL EK UCRETI ARTIK TARIHE BAGLI.
+
+    Eski hali yuzdeyi rezervasyonun TAMAMINA uyguluyordu; bakici
+    "tatillerde %20 fazla" diyor ve profilinde de oyle yaziyordu ama
+    subatta sira bir salinin fiyati da artiyordu. Test o eski davranisi
+    olcuyordu; sozlesme degisti (bkz. holidays.test.ts).
+  */
+  it('tatil ek ucreti temel + ek hayvan uzerinden, TUM birimler tatilse', () => {
+    const q = calculateQuote({
+      ...base, holidaySurchargePct: 20, holidayUnits: base.units, attribution: 'platform',
+    });
     expect(q.subtotalCents).toBe(dollars(300)); // 250 + %20
+  });
+
+  it('tarih verilmemisse tatil zammi UYGULANMAZ', () => {
+    const q = calculateQuote({ ...base, holidaySurchargePct: 20, attribution: 'platform' });
+    expect(q.subtotalCents).toBe(dollars(250));
   });
 
   it('bakici GST kayitliysa hizmet bedeline de vergi eklenir ve bakiciya gecer', () => {

@@ -2,7 +2,9 @@
 
 import { useActionState, useState } from 'react';
 import { getMessages, interpolate, segmentFor, unitLabel, type Locale, type Messages } from '@havre/i18n';
-import { SERVICES, calculateQuote, type ServiceType } from '@havre/core';
+import {
+  SERVICES, calculateQuote, holidayUnitsBetween, type ProvinceCode, type ServiceType,
+} from '@havre/core';
 import { petLabel } from './PetLine';
 import { Select } from '@/components/ui/Select';
 import { DateRangeField } from '@/components/ui/DateRangeField';
@@ -60,6 +62,20 @@ function QuoteTable({
               <td style={{ padding: 'var(--space-1) 0' }}>{m.quote.extraPets}</td>
               <td className="tabular" style={{ textAlign: 'right' }}>
                 {money(line('quote.extraPets'), locale)}
+              </td>
+            </tr>
+          )}
+          {/*
+            TATIL ZAMMI SATIRI. Yoktu: tutar toplama giriyordu ama
+            dokumde gorunmuyordu, yani ekrandaki kalemler toplami ile
+            "Toplam" tutmuyordu. Competition Act §8.6'nin yasakladigi sey
+            tam olarak bu — toplamda olup dokumde olmayan ucret.
+          */}
+          {line('quote.holidaySurcharge') > 0 && (
+            <tr>
+              <td style={{ padding: 'var(--space-1) 0' }}>{m.quote.holidaySurcharge}</td>
+              <td className="tabular" style={{ textAlign: 'right' }}>
+                {money(line('quote.holidaySurcharge'), locale)}
               </td>
             </tr>
           )}
@@ -148,8 +164,14 @@ export function BookingForm({
           unitPriceCents: svc.priceCents,
           units: n,
           petCount,
-          extraPetPriceCents: svc.extraPetPriceCents,
+            extraPetPriceCents: svc.extraPetPriceCents,
           holidaySurchargePct: svc.holidaySurchargePct,
+          /*
+            Tatil zammi YALNIZCA tatile denk gelen birimlerden aliniyor.
+            Tarih secilmeden 0 — ornek hesapta tatil zammi gorunmuyor ve
+            gorunmemeli de, hangi gunler oldugu belli degil.
+          */
+          holidayUnits: holidayUnitsBetween(start, end, unit, province as ProvinceCode),
           attribution: 'platform',
           province: province as never,
         })
