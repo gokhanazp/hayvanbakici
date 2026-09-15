@@ -64,9 +64,9 @@ export default async function PetsPage({
         )}
 
         {pets.map((pet) => (
-          <section key={pet.id} className="card card-pad">
+          <section key={pet.id} className="pet-row">
             <PetCard
-              pet={pet} locale={locale} bare
+              pet={pet} locale={locale}
               actions={
                 <>
                   <PetPhoto

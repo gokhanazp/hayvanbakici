@@ -2231,9 +2231,11 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- Hesap ana sayfasi ---------- */
 /*
-  Eskiden icerik 44rem'lik bir sutunda alt alta uc kartti ve genis
-  ekranda sag yari bostu. Artik bolumler tam genislikte, kendi
-  izgaralarini kuruyor.
+  Eskiden icerik 44rem'lik bir sutunda alt alta uc beyaz kartti: genis
+  ekranda sag yari bos, kartlar arasinda hicbir hiyerarsi yok, hepsi ayni
+  agirlikta. Uygulamanin geri kalani (arama kartlari, sehir sayfasi)
+  zaten fotografli, yumusak golgeli bir dil konusuyor; geride kalan
+  yalnizca hesap ekranlariydi.
 */
 .account-home { display: grid; gap: var(--space-10); }
 
@@ -2243,11 +2245,17 @@ a { color: inherit; text-decoration: none; }
   align-items: baseline; justify-content: space-between;
   margin-bottom: var(--space-5);
 }
+.section-row .section-count {
+  margin-left: var(--space-3);
+  color: var(--color-ink-secondary); font-weight: 400; font-size: 0.875rem;
+}
 
 /*
-  BEKLEYEN ISLER — kart degil, kucuk kutucuk SATIRI. Uc kalem varsa uc
-  kutucuk yan yana duruyor; kart icinde liste olarak cizmek bu uc sayiyi
-  ekranin yarisina yayiyordu.
+  BEKLEYEN ISLER — kart degil, kucuk kutucuk SATIRI.
+
+  Sayi KARTIN KAHRAMANI: kullanicinin buraya bakma sebebi "kac tane"
+  sorusu. Etiket sayinin altinda, ok sagda; tiklanabilir oldugu ok ile
+  belli oluyor, ayrica tum kutucuk baglanti.
 */
 .glance-row-list {
   list-style: none; margin: 0; padding: 0;
@@ -2255,77 +2263,309 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
 }
 .glance-tile {
+  position: relative;
   display: grid; gap: var(--space-1);
-  padding: var(--space-5);
+  padding: var(--space-5) var(--space-6);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
   color: inherit; text-decoration: none;
-  transition: border-color 120ms ease, transform 120ms ease;
+  transition: box-shadow var(--duration-standard) var(--easing-standard),
+              transform var(--duration-standard) var(--easing-standard),
+              border-color var(--duration-standard) var(--easing-standard);
+}
+/* Sol kenardaki ince marka seridi — kutucugu "sayi" degil "is" yapiyor */
+.glance-tile::before {
+  content: ''; position: absolute; inset: var(--space-4) auto var(--space-4) 0;
+  width: 3px; border-radius: 999px; background: var(--color-primary);
 }
 .glance-tile:hover {
-  border-color: var(--color-primary);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
 }
-.glance-n { font-family: var(--font-display); font-size: 1.75rem; line-height: 1; font-weight: 600; }
-.glance-label { color: var(--color-ink-secondary); font-size: 0.875rem; }
-@media (prefers-reduced-motion: reduce) {
-  .glance-tile { transition: none; }
-  .glance-tile:hover { transform: none; }
+.glance-n {
+  font-family: var(--font-display); font-size: 2rem; line-height: 1.1; font-weight: 600;
+  color: var(--color-ink);
 }
+.glance-label {
+  color: var(--color-ink-secondary); font-size: 0.875rem;
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.glance-label::after {
+  content: '→'; color: var(--color-primary);
+  transition: transform var(--duration-micro) var(--easing-standard);
+}
+.glance-tile:hover .glance-label::after { transform: translateX(3px); }
 
-/* Rol ve bakicilik kartlari yan yana; dar ekranda alt alta */
+/* Kimlik ve bakicilik kartlari yan yana; dar ekranda alt alta */
 .account-side-by-side {
   display: grid; gap: var(--space-6);
   grid-template-columns: 1fr;
-  align-items: start;
+  align-items: stretch;
 }
 @media (min-width: 880px) {
   .account-side-by-side { grid-template-columns: 1fr 1fr; }
 }
 
+/* ---------- Kimlik karti ---------- */
+.identity-card {
+  padding: var(--space-6);
+  display: grid; gap: var(--space-3);
+  /*
+    Son satir (baglantilar) kartin DIBINE otursun: yanindaki koyu panel
+    daha uzun ve kimlik karti onunla ayni boya cekildiginde altinda genis
+    bir bosluk kaliyordu.
+  */
+  grid-template-rows: auto auto auto 1fr auto;
+  box-shadow: var(--shadow-sm);
+}
+.identity-head { display: flex; gap: var(--space-4); align-items: center; }
+.identity-name {
+  margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 600;
+}
+/* Uzun e-posta adresleri karti yana kaydiriyordu */
+.identity-email { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
+.identity-role {
+  margin: var(--space-2) 0 0; font-weight: 600;
+  padding-top: var(--space-4); border-top: 1px solid var(--color-border);
+}
+.identity-card > p.muted { margin: 0; }
+.identity-links {
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  align-items: end; margin-top: var(--space-2);
+}
+/* Hesap ayari satiri: bilgi + degistirme baglantisi */
+.identity-fact {
+  display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: baseline;
+  margin: 0; font-size: 0.875rem; color: var(--color-ink-secondary);
+}
+.identity-fact strong { color: var(--color-ink); font-weight: 600; }
+
+/* ---------- Bakiciliga davet (koyu panel) ---------- */
+/*
+  Sayfadaki TEK koyu blok. Ayni beyaz kartlardan biri olarak dururken goz
+  onu bir bilgi karti sanip atliyordu.
+*/
+.invite-card {
+  padding: var(--space-6);
+  display: grid; gap: var(--space-4); align-content: start;
+  box-shadow: var(--shadow-md);
+}
+.invite-card h2 { margin: 0; }
+.invite-rate {
+  display: flex; align-items: baseline; gap: var(--space-3);
+  margin: 0; font-size: 0.875rem; color: var(--color-panel-ink-muted);
+}
+.invite-pct {
+  font-family: var(--font-display); font-size: 2.75rem; line-height: 1;
+  font-weight: 600; color: var(--color-panel-ink);
+}
+.invite-card > p.muted { margin: 0; }
+.invite-points { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.invite-points li {
+  position: relative; padding-left: var(--space-6);
+  font-size: 0.875rem; color: var(--color-panel-ink-muted); line-height: 1.5;
+}
+/* Onay isareti: SVG yerine tek karakter — uc madde icin bilesen fazla */
+.invite-points li::before {
+  content: '✓'; position: absolute; left: 0; top: 0;
+  color: var(--color-accent); font-weight: 700;
+}
+.invite-card .btn { justify-self: start; }
+
+/* ---------- Bakici durum karti ---------- */
+.status-card { display: grid; gap: var(--space-2); align-content: start; padding: var(--space-6); box-shadow: var(--shadow-sm); }
+.status-head {
+  display: flex; flex-wrap: wrap; gap: var(--space-3);
+  align-items: center; justify-content: space-between;
+}
+.status-head h2 { margin: 0; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem; font-weight: 600; line-height: 1rem;
+  background: var(--color-surface-sunken); color: var(--color-ink-secondary);
+}
+/* Renk TEK TASIYICI degil (WCAG 1.4.1): durum ayrica YAZIYOR */
+.status-pill .status-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+.status-active  { background: var(--color-accent-subtle); color: var(--color-accent-hover); }
+.status-pending { background: var(--color-tile-apricot); color: var(--color-tile-apricot-ink); }
+
+.status-progress { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
+.status-bar {
+  height: 6px; border-radius: 999px;
+  background: var(--color-surface-sunken); overflow: hidden;
+}
+.status-bar > span { display: block; height: 100%; background: var(--color-primary); border-radius: 999px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .glance-tile, .glance-label::after, .pet-card { transition: none; }
+  .glance-tile:hover { transform: none; }
+  .glance-tile:hover .glance-label::after { transform: none; }
+  .pet-card:hover { transform: none; }
+}
+
 /* ---------- Hayvan kartlari ---------- */
 .pet-grid {
-  display: grid; gap: var(--space-4);
-  /*
-    21rem: "Kopek · Border collie · 4 yasinda · 18,5 kg" satiri tek
-    satira sigsin. 17rem'de bu satir ikiye boluniyor ve iki hayvani olan
-    bir kullanicida kartlar dar, ekranin yarisi bos kaliyordu.
-  */
-  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  display: grid; gap: var(--space-5);
+  /* 19rem: fotografli kart, uc kutucukla birlikte rahat dursun */
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
 }
 .pet-card {
-  display: flex; gap: var(--space-4); align-items: flex-start;
-  padding: var(--space-5);
+  display: flex; flex-direction: column;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--duration-standard) var(--easing-standard),
+              transform var(--duration-standard) var(--easing-standard);
+}
+.pet-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+/*
+  FOTOGRAF KARTIN KENDISI, kosede kucuk bir daire degil. Ilk surumde 72
+  piksellik bir avatar vardi: fotografini yuklemis kullanici "bu kadar
+  mi" diyordu, yuklememis olan da yuklemek icin sebep gormuyordu.
+*/
+/*
+  Telefonda fotograf 16/9: kart tam genislikte oldugu icin 4/3 bir
+  fotograf ekranin ucte birini kapliyordu ve iki hayvani olan kullanici
+  ikinci karti gormek icin kaydirmak zorunda kaliyordu.
+*/
+.pet-photo-tile {
+  position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+  display: grid; place-items: center;
+  background: var(--color-surface-sunken);
 }
 /*
-  Not iki satirdan sonra kesiliyor: kartlarin boyu, en uzun notu yazan
+  Fotograf MUTLAK konumla dolduruyor. `height: 100%` ile birakildiginda
+  ortalanmis izgarada beklendigi gibi esnemiyordu ve fotografli kart,
+  fotografsiz kardesinden uzun duruyordu.
+*/
+.pet-photo-tile > img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+/* Fotograf yoksa BOS GRI KUTU DEGIL: ada gore sabit pastel ton + bas harf */
+.pet-placeholder {
+  font-family: var(--font-display); font-size: 3rem; font-weight: 600;
+  opacity: 0.55;
+}
+.pet-species {
+  position: absolute; left: var(--space-3); bottom: var(--space-3);
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-surface); color: var(--color-ink-secondary);
+  font-size: 0.6875rem; font-weight: 600; line-height: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pet-body { padding: var(--space-5); display: grid; gap: var(--space-3); }
+.pet-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.pet-chips li {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-sunken); color: var(--color-ink-secondary);
+  font-size: 0.75rem; line-height: 1.125rem;
+}
+/*
+  Not iki satirdan sonra kesiliyor: kartlarin boyu en uzun notu yazan
   hayvana gore uzuyordu ve izgara okunmaz hale geliyordu. Tamami
   hayvanin kendi sayfasinda.
 */
 .pet-notes {
-  margin-top: var(--space-2);
+  margin: 0;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .pet-card-actions {
   display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center;
-  margin-top: var(--space-4); padding-top: var(--space-4);
+  margin-top: var(--space-1); padding-top: var(--space-4);
   border-top: 1px solid var(--color-border);
 }
 /* Duzenleme formu acildiginda kendi satirina gecsin */
 .pet-card-actions > div[style*="100%"] { flex-basis: 100%; }
-.pet-card-bare { padding: 0; border: 0; background: none; }
-.pet-empty { padding: var(--space-6); color: var(--color-ink-secondary); }
 
-.pet-photo { display: flex; gap: var(--space-4); align-items: center; }
-/* Dosya secici gizli; etiketin kendisi dugme gibi gorunuyor */
+/*
+  IZGARANIN SONUNDAKI EKLEME KUTUCUGU.
+
+  Iki hayvani olan kullanicida ucuncu sutun bos kaliyordu ve "buraya bir
+  sey gelecek mi" gibi duruyordu. Bosluğu bir ISLE doldurmak, bos
+  birakmaktan da bir kart daha genisletmekten de iyi.
+*/
+.pet-add {
+  display: grid; place-content: center; gap: var(--space-2);
+  min-height: 12rem; padding: var(--space-6);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: transparent; color: var(--color-ink-secondary);
+  text-align: center; text-decoration: none;
+  transition: border-color var(--duration-standard) var(--easing-standard),
+              background var(--duration-standard) var(--easing-standard);
+}
+.pet-add:hover { border-color: var(--color-primary); background: var(--color-surface); }
+.pet-add-plus {
+  justify-self: center;
+  display: grid; place-items: center;
+  width: 2.5rem; height: 2.5rem; border-radius: 999px;
+  background: var(--color-primary-subtle); color: var(--color-primary);
+  font-size: 1.25rem; line-height: 1;
+}
+
+/* Hayvansiz durum — cizgili kutu degil, davet */
+.pet-empty {
+  padding: var(--space-8);
+  color: var(--color-ink-secondary);
+  text-align: center;
+}
+
+/*
+  HAYVANLAR SAYFASI: kart YATAY. Burada is fotografa bakmak degil
+  duzenlemek; dikey kart formu ekranin altina itiyordu.
+*/
+.pet-row { display: grid; gap: var(--space-4); }
+@media (min-width: 560px) {
+  .pet-photo-tile { aspect-ratio: 4 / 3; }
+}
+@media (min-width: 720px) {
+  .pet-row .pet-card { flex-direction: row; }
+  .pet-row .pet-photo-tile { flex: none; width: 15rem; aspect-ratio: 1 / 1; }
+  .pet-row .pet-body { flex: 1; min-width: 0; }
+}
+.pet-row .pet-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+
+/*
+  Fotograf islemleri TEK SATIRDA. Ilk surumde "Fotografi kaldir",
+  "Fotograf degistir"in ALTINA duserek islem serisini ikiye boluyordu ve
+  hangi dugmenin hangi gruba ait oldugu belirsizlesiyordu.
+*/
+.pet-photo { display: contents; }
+.pet-photo-controls { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.pet-photo-controls .field-error { flex-basis: 100%; margin: 0; }
+/* Etiket dugme gibi gorunuyor: .btn'in yuksekligini o da alsin */
 .pet-photo-pick { cursor: pointer; }
 .pet-form { margin-top: var(--space-4); }
 .pet-form-row {
   display: grid; gap: var(--space-4);
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }
+
+/* ---------- Bakicinin kendi hayvanlari (profil) ---------- */
+.pet-photos { margin-top: var(--space-8); }
+/*
+  Hayvan fotograflari KARE: yukleme presetinde kare kirpiliyor
+  (lib/images.ts) ve 4/3 bir cerceve icine koymak yanlarini kirpardi.
+*/
+.pet-photo-grid {
+  list-style: none; margin: var(--space-4) 0 0; padding: 0;
+  display: grid; gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  max-width: 34rem;
+}
+.pet-photo-grid .photo-thumb { aspect-ratio: 1 / 1; }
+.pet-photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }

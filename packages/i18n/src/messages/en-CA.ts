@@ -94,6 +94,7 @@ export const enCA = {
     roleBoth: 'A pet owner and a sitter',
     roleBothLead: 'One account, both sides. You book sitters for your own pets with the same account you use to take bookings.',
     sitterHeading: 'Your sitter application',
+    stepsDone: '{done} of {total} steps done',
     'sitter.draft': 'Started, not sent',
     'sitter.draftLead': 'You began an application but have not submitted it, so owners cannot find you yet. Next step: {step}.',
     'sitter.draftCta': 'Continue where you left off',
@@ -105,7 +106,16 @@ export const enCA = {
     'sitter.deactivated': 'Not visible',
     'sitter.deactivatedLead': 'Your sitter profile is not on the site right now. If you did not do this yourself, write to us.',
     becomeSitterHeading: 'Thinking about sitting?',
-    becomeSitterLead: 'Havre takes a smaller cut than the big platforms, and the whole price is on the screen before anyone books. Applying takes about ten minutes.',
+    /*
+      "Rakiplerden az kesiyoruz" cumlesi KALDIRILDI: baskasinin oranini
+      olcmedik ve olcmeden soylemek, ucret seffafligi iddiasiyla celisir.
+      Yerine kendi oranimizin NE KAPSADIGI yaziyor — dogrulanabilir.
+    */
+    becomeSitterLead: 'That percentage is the whole fee. Nothing is added at checkout, and you keep the rest of what you charge.',
+    inviteRate: 'is all Havre keeps when we bring you the booking. Nothing on repeat clients you brought yourself.',
+    invitePoint1: 'You set your own prices and your own calendar.',
+    invitePoint2: 'The full price, fees included, is on screen before anyone books.',
+    invitePoint3: 'Applying takes about ten minutes and you can stop halfway.',
     suspendedNotice: 'Your account is on hold. You can read your bookings and messages, but you cannot send new requests or write messages. Please contact support.',
     atAGlance: 'Where things stand',
     quickBookings: 'Upcoming bookings',
@@ -225,6 +235,9 @@ export const enCA = {
   */
   profile: {
     notifyMessages: 'Email me when someone sends me a message',
+    emailPrefLabel: 'Message emails',
+    on: 'On',
+    off: 'Off',
     notifyMessagesHint: 'Booking emails — a new request, an answer, a cancellation — always arrive. Those are how the booking works, so they cannot be turned off.',
     title: 'Your profile',
     lead: 'What sitters and owners see when they meet you on Havre.',
@@ -808,6 +821,8 @@ export const enCA = {
   pets: {
     tab: 'Your pets',
     title: 'Your pets',
+    count: '{count} pets',
+    countOne: '1 pet',
     lead: 'Tell us once, and every booking request you send carries it.',
     empty: 'No pets yet.',
     emptyHint: 'Add your pet once and you will not have to type it out on every request. Only a sitter you send a request to can see it.',

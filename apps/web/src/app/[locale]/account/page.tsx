@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { completedSteps, ONBOARDING_STEPS, type OnboardingStep } from '@havre/core';
+import {
+  completedSteps, DEFAULT_COMMISSION, ONBOARDING_STEPS, type OnboardingStep,
+} from '@havre/core';
 import {
   getMessages, interpolate, localeFromSegment, type Locale, type Messages,
 } from '@havre/i18n';
@@ -8,6 +10,7 @@ import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { getAccountSummary, isAdmin, listOwnerPets, type OwnerPet } from '@/lib/data';
 import { PetCard } from '@/components/PetCard';
+import { Avatar } from '@/components/Avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,35 +88,127 @@ export default async function AccountOverviewPage({
         <PetsSection locale={locale} seg={seg} pets={pets} />
 
         <div className="account-side-by-side">
-          <section className="card card-pad">
-            <h2 className="text-h4">{m.account.youAre}</h2>
-            <p style={{ marginTop: 'var(--space-3)', fontWeight: 600 }}>
-              {/* Gonderilmemis basvuru kisiyi bakici yapmaz — rozetle ayni kural */}
-              {approvedSitter ? m.account.roleBoth : m.account.roleOwner}
-              {name && <span className="muted" style={{ fontWeight: 400 }}> — {name}</span>}
-            </p>
-            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
-              {approvedSitter ? m.account.roleBothLead : m.account.roleOwnerLead}
-            </p>
-          </section>
+          <IdentityCard
+            locale={locale} seg={seg} me={me} name={name} approvedSitter={approvedSitter}
+          />
 
           {me.sitter ? (
             <SitterStatusCard locale={locale} seg={seg} sitter={me.sitter} />
           ) : (
-            <section className="card card-pad">
-              <h2 className="text-h4">{m.account.becomeSitterHeading}</h2>
-              <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
-                {m.account.becomeSitterLead}
-              </p>
-              <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary"
-                    style={{ marginTop: 'var(--space-5)' }}>
-                {m.nav.becomeSitter}
-              </Link>
-            </section>
+            <SitterInvite locale={locale} seg={seg} />
           )}
         </div>
       </div>
     </AccountShell>
+  );
+}
+
+/* --------------------------------------------------------------- kimlik */
+
+/**
+ * KIM OLDUGUNUZ — kimlik karti.
+ *
+ * Eskiden burada baslik ve iki paragraf vardi: dogru ama kuru, ve
+ * kisinin kendi hesabina bakarken gormek istedigi ilk sey (fotografim,
+ * adim, hangi e-postayla girdim) hicbir yerde degildi. E-posta sayfa
+ * basligindaki ince gri satirda kayboluyordu.
+ *
+ * Kartin alt serisi BIR ISE YARIYOR: profil ve bildirim ayarlarina
+ * dogrudan gidiyor. Bilgi veren ama hicbir yere goturmeyen bir kart,
+ * kullanicinin ikinci kez okumayacagi bir karttir.
+ */
+function IdentityCard({
+  locale, seg, me, name, approvedSitter,
+}: {
+  locale: Locale;
+  seg: string;
+  me: NonNullable<Awaited<ReturnType<typeof getAccountSummary>>>;
+  name: string;
+  approvedSitter: boolean;
+}) {
+  const m = getMessages(locale);
+  const initials = `${(name.slice(0, 1) || me.email.slice(0, 1)).toUpperCase()}${
+    me.lastNameInitial ?? ''}`;
+
+  return (
+    <section className="card identity-card">
+      <div className="identity-head">
+        <Avatar src={me.avatarUrl} initials={initials} size={64} />
+        <div style={{ minWidth: 0 }}>
+          <p className="identity-name">
+            {name || m.account.title}
+            {me.lastNameInitial && ` ${me.lastNameInitial}.`}
+          </p>
+          {/* E-posta TASMASIN: uzun adresler karti yana kaydiriyordu. */}
+          <p className="dim text-body-sm identity-email">{me.email}</p>
+        </div>
+      </div>
+
+      <p className="identity-role">
+        {/* Gonderilmemis basvuru kisiyi bakici yapmaz — rozetle ayni kural */}
+        {approvedSitter ? m.account.roleBoth : m.account.roleOwner}
+      </p>
+      <p className="muted text-body-sm">
+        {approvedSitter ? m.account.roleBothLead : m.account.roleOwnerLead}
+      </p>
+
+      {/*
+        GERCEK BIR AYARIN DURUMU. Kart yalnizca "kimsiniz" deseydi bir kez
+        okunup bir daha bakilmazdi; bildirim tercihi kullanicinin gercekten
+        merak ettigi ve degistirdigi bir sey.
+      */}
+      <p className="identity-fact">
+        {m.profile.emailPrefLabel}
+        <strong>{me.notifyMessages ? m.profile.on : m.profile.off}</strong>
+      </p>
+
+      <div className="identity-links">
+        <Link href={`/${seg}/account/profile/`} className="btn btn-secondary btn-sm">
+          {m.profile.tab}
+        </Link>
+        <Link href={`/${seg}/account/pets/`} className="btn btn-ghost btn-sm">
+          {m.pets.tab}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * BAKICILIGA DAVET — sayfadaki TEK koyu blok.
+ *
+ * Ayni beyaz kartlardan biri olarak dururken goz onu bir bilgi karti
+ * sanip atliyordu. Koyu panel, sayfada bir tane: "burasi farkli" demenin
+ * en ucuz yolu.
+ *
+ * Rakam GERCEK ve tek kaynaktan geliyor (commission.ts): %18. Rakami
+ * metne elle yazmak, oran degistiginde ekranda eski sayinin kalmasi
+ * demekti — ve bu, ucret seffafligi iddiasiyla celisirdi. "Rakiplerden
+ * az" gibi karsilastirmali bir iddia YOK: baskasinin oranini olcmedik.
+ */
+function SitterInvite({ locale, seg }: { locale: Locale; seg: string }) {
+  const m = getMessages(locale);
+  return (
+    <section className="panel invite-card">
+      <h2 className="text-h4">{m.account.becomeSitterHeading}</h2>
+
+      <p className="invite-rate">
+        <span className="invite-pct tabular">{DEFAULT_COMMISSION.sitterPct.platform}%</span>
+        <span>{m.account.inviteRate}</span>
+      </p>
+
+      <p className="muted text-body-sm">{m.account.becomeSitterLead}</p>
+
+      <ul className="invite-points">
+        <li>{m.account.invitePoint1}</li>
+        <li>{m.account.invitePoint2}</li>
+        <li>{m.account.invitePoint3}</li>
+      </ul>
+
+      <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary">
+        {m.nav.becomeSitter}
+      </Link>
+    </section>
   );
 }
 
@@ -154,11 +249,43 @@ function SitterStatusCard({
 
   const citySlug = locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn;
 
+  /*
+    TASLAKTA ILERLEME GORUNUYOR.
+
+    "Basvurunuz yarim" demek, kullaniciya ne kadar yol kaldigini
+    soylemiyor; yedi adimin besini bitirmis biri, birini bitirmis biriyle
+    ayni cumleyi okuyordu ve ikisi de birakiyordu. Cubuk ADIM SAYAR,
+    yuzde uydurmaz: "5 / 7" olculen bir sey.
+  */
+  const total = ONBOARDING_STEPS.filter((x) => x !== 'review').length;
+  const doneCount = ONBOARDING_STEPS.filter((x) => x !== 'review' && done[x]).length;
+
   return (
-    <section className="card card-pad">
-      <h2 className="text-h4">{m.account.sitterHeading}</h2>
-      <p style={{ marginTop: 'var(--space-3)', fontWeight: 600 }}>{key(`sitter.${status}`)}</p>
-      <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{lead}</p>
+    <section className="card card-pad status-card">
+      <div className="status-head">
+        <h2 className="text-h4">{m.account.sitterHeading}</h2>
+        <span className={`status-pill status-${status}`}>
+          <span aria-hidden="true" className="status-dot" />
+          {key(`sitter.${status}`)}
+        </span>
+      </div>
+
+      {status === 'draft' && (
+        <div className="status-progress">
+          <div
+            className="status-bar" role="progressbar"
+            aria-valuenow={doneCount} aria-valuemin={0} aria-valuemax={total}
+            aria-label={m.account.sitterHeading}
+          >
+            <span style={{ width: `${Math.round((doneCount / total) * 100)}%` }} />
+          </div>
+          <p className="dim text-body-sm tabular">
+            {interpolate(m.account.stepsDone, { done: String(doneCount), total: String(total) })}
+          </p>
+        </div>
+      )}
+
+      <p className="muted text-body-sm" style={{ marginTop: 'var(--space-3)' }}>{lead}</p>
 
       <div className="row" style={{ marginTop: 'var(--space-5)' }}>
         {status === 'draft' && (
@@ -260,19 +387,39 @@ function PetsSection({
   return (
     <section>
       <div className="section-row">
-        <h2 className="text-h3">{m.pets.title}</h2>
-        <Link href={`/${seg}/account/pets/`} className="btn btn-secondary btn-sm">
-          {pets.length === 0 ? m.pets.add : m.pets.manage}
-        </Link>
+        <h2 className="text-h3">
+          {m.pets.title}
+          {pets.length > 0 && (
+            <span className="section-count">
+              {pets.length === 1
+                ? m.pets.countOne
+                : interpolate(m.pets.count, { count: String(pets.length) })}
+            </span>
+          )}
+        </h2>
+        {pets.length > 0 && (
+          <Link href={`/${seg}/account/pets/`} className="btn btn-secondary btn-sm">
+            {m.pets.manage}
+          </Link>
+        )}
       </div>
 
       {pets.length === 0 ? (
         <div className="card card-muted pet-empty">
           <p style={{ margin: 0 }}>{m.pets.emptyHint}</p>
+          <Link href={`/${seg}/account/pets/`} className="btn btn-primary"
+                style={{ marginTop: 'var(--space-5)' }}>
+            {m.pets.add}
+          </Link>
         </div>
       ) : (
         <div className="pet-grid">
           {pets.map((pet) => <PetCard key={pet.id} pet={pet} locale={locale} />)}
+          {/* Izgaranin sonundaki bosluğu bir ISLE dolduruyor. */}
+          <Link href={`/${seg}/account/pets/`} className="pet-add">
+            <span className="pet-add-plus" aria-hidden="true">+</span>
+            <span>{m.pets.add}</span>
+          </Link>
         </div>
       )}
     </section>

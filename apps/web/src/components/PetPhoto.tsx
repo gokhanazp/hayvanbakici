@@ -61,9 +61,9 @@ export function PetPhoto({
           size={72}
         />
       )}
-      <div style={{ minWidth: 0 }}>
+      <div className="pet-photo-controls">
         {error && <p className="field-error" role="alert">{error}</p>}
-        <form action={action} ref={formRef} className="stack">
+        <form action={action} ref={formRef}>
           <input type="hidden" name="petId" value={petId} />
           <label className="btn btn-secondary btn-sm pet-photo-pick">
             {busy ? m.profile.uploading : (photoUrl ? m.pets.changePhoto : m.pets.addPhoto)}
@@ -91,7 +91,7 @@ export function PetPhoto({
           </label>
         </form>
         {photoUrl && !preview && (
-          <form action={removeAction} style={{ marginTop: 'var(--space-2)' }}>
+          <form action={removeAction}>
             <input type="hidden" name="petId" value={petId} />
             <button type="submit" className="btn btn-ghost btn-sm" disabled={removing}>
               {m.pets.removePhoto}
