@@ -757,4 +757,35 @@ export const enCA = {
     dataAsOf: 'Figures as of {date}.',
     privacyNote: 'We show a first name and last initial only. Your sitter\u2019s exact address is shared after you book.',
   },
+  /**
+   * FAVORILER.
+   *
+   * "Save"/"Enregistrer" degil "Favourite": kaydetmek, kullanicinin
+   * kafasinda bir yere KOPYALAMAK demek. Kalp evrensel ve buradaki is
+   * tam olarak o — begendigini isaretlemek.
+   */
+  favourites: {
+    tab: 'Favourites',
+    title: 'Your favourite sitters',
+    lead: 'Sitters you marked while browsing. Nothing is booked and no one is notified \u2014 this list is only for you.',
+    add: 'Add to favourites',
+    remove: 'Remove from favourites',
+    empty: 'No favourites yet.',
+    emptyHint: 'Tap the heart on any sitter card to keep them here while you decide.',
+    findSitter: 'Find a sitter',
+    count: '{count} sitters',
+    countOne: '1 sitter',
+    /* Cerezden hesaba tasima */
+    claimTitle: 'You have {count} favourites saved in this browser.',
+    claimLead: 'Move them to your account so they follow you to your phone and do not disappear when you clear your browser.',
+    claimCta: 'Move to my account',
+    claimed: 'Moved {count} sitters to your account.',
+    claimedNone: 'Nothing to move \u2014 those sitters are already in your account.',
+    /* Giris yapmamis kullaniciya, listenin altinda */
+    anonNote: 'These favourites live in this browser only. Sign in and they move to your account.',
+    signIn: 'Sign in',
+    /* Artik yayinda olmayan bakicilar listeden dustu */
+    dropped: '{count} sitters you had favourited are no longer taking bookings, so they are not shown.',
+  },
+
 } as const;

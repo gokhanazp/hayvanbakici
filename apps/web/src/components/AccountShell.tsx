@@ -14,7 +14,7 @@ export function AccountShell({
   locale: Locale;
   title: string;
   lead?: string | undefined;
-  active: 'overview' | 'profile' | 'bookings' | 'messages' | 'sitter' | 'calendar';
+  active: 'overview' | 'profile' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar';
   isSitter: boolean;
   /**
    * Bakici kaydinin durumu — ROZET icin. `isSitter` yalnizca "kayit var mi"
@@ -48,6 +48,12 @@ export function AccountShell({
     { key: 'overview' as const, href: `/${seg}/account/`, label: m.account.overview },
     { key: 'profile' as const, href: `/${seg}/account/profile/`, label: m.profile.tab },
     { key: 'bookings' as const, href: `/${seg}/account/bookings/`, label: m.account.myBookings },
+    /*
+      FAVORILER /account ALTINDA DEGIL (giris yapmamis ziyaretci de
+      goruyor) ama hesabin bir parcasi gibi davraniyor: sekme burada,
+      sayfa hesap cercevesini ciziyor.
+    */
+    { key: 'favourites' as const, href: `/${seg}/favourites/`, label: m.favourites.tab },
     {
       key: 'messages' as const,
       href: `/${seg}/account/messages/`,

@@ -19,11 +19,20 @@ function passwordMessages(m: Messages, problems: string[]): string[] {
 }
 
 export function SignUpForm({
-  locale, providers, callbackURL,
+  locale, providers, callbackURL, verifyURL,
 }: {
   locale: Locale;
   providers: { google: boolean; apple: boolean };
   callbackURL: string;
+  /**
+   * Dogrulama e-postasindaki baglantinin donecegi adres.
+   *
+   * Normalde onay sayfasi; tarayicida tasinmayi bekleyen favori varsa
+   * once tasima rotasindan geciyor. AYRI bir prop cunku bu baglantiya
+   * bazen baska bir cihazdan tiklaniyor ve orada cerez zaten yok —
+   * callbackURL ile ayni sey degil.
+   */
+  verifyURL: string;
 }) {
   const m = getMessages(locale);
   const seg = segmentFor(locale);
@@ -61,7 +70,7 @@ export function SignUpForm({
         cihazda tikliyor. Dogrudan ana sayfaya dusurmek "oldu mu olmadi mi"
         sorusunu cevapsiz birakiyordu.
       */
-      callbackURL: `/${seg}/account/verify-email/`,
+      callbackURL: verifyURL,
     });
     setBusy(false);
 

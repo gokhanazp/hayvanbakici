@@ -9,3 +9,4 @@ export * from './geo.js';
 export * from './compliance.js';
 export * from './moderation.js';
 export * from './auth.js';
+export * from './favourites.js';

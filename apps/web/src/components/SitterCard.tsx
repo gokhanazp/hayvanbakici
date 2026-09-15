@@ -5,6 +5,7 @@ import { SERVICES, type ServiceType } from '@havre/core';
 import type { SitterSummary } from '@/lib/data';
 import { money, responseTime } from '@/lib/format';
 import { VerificationBadge } from './VerificationBadge';
+import { FavouriteButton } from './FavouriteButton';
 import { resolvePhoto } from '@/lib/photos';
 
 export function SitterCard({
@@ -13,6 +14,7 @@ export function SitterCard({
   locale,
   citySlug,
   distanceLabel,
+  favourite,
 }: {
   sitter: SitterSummary;
   serviceType: ServiceType;
@@ -21,15 +23,33 @@ export function SitterCard({
   citySlug: string;
   /** Yalnizca aramada: "1,2 km uzakta". Landing sayfasinda mesafe anlamsiz. */
   distanceLabel?: string | undefined;
+  /**
+   * Favori kalbi. Verilmezse kalp CIZILMIYOR — ana sayfadaki tanitim
+   * seridi gibi yerlerde favori dugmesi anlamsiz (ve orada hangi
+   * sayfanin tazelenecegi de belirsiz).
+   */
+  favourite?: { isFavourite: boolean; path: string } | undefined;
 }) {
   const m = getMessages(locale);
   const unit = m.unit[SERVICES[serviceType].unit];
   const photo = resolvePhoto(sitter.avatarUrl);
+  const href = `/${segmentFor(locale)}/${citySlug}/sitter/${sitter.slug}/`;
 
+  /*
+    KART ARTIK BIR <a> DEGIL.
+
+    Once tum kart tek bir baglantiydi; kalbi icine koymak, baglantinin
+    icine buton koymak demek — gecersiz HTML ve klavyede tahmin
+    edilemez davranis. Simdi kart bir kutu, baglanti yalnizca BAKICININ
+    ADINDA ve "yayilan baglanti" (::after) ile kartin tamamini
+    tikllanabilir yapiyor. Kalp baglantinin USTUNDE duruyor.
+
+    Kazanci yalnizca kalp degil: sekme ile gezen kullanici artik kartin
+    adini duyuyor ("Camille B."), eskiden kartin BUTUN metnini tek
+    baglanti adi olarak dinliyordu.
+  */
   return (
-    <Link
-      href={`/${segmentFor(locale)}/${citySlug}/sitter/${sitter.slug}/`}
-      className="card card-hover sitter-card">
+    <div className="card card-hover sitter-card">
       {/*
         Fotograf varsa fotograf, yoksa bas harfler. Karti bos bir gri kutuyla
         birakmak, fotograf yuklememis bakicinin aleyhine olurdu.
@@ -41,10 +61,25 @@ export function SitterCard({
           : sitter.photoInitials}
       </div>
 
+      {favourite && (
+        <div className="sitter-fav">
+          <FavouriteButton
+            sitterId={sitter.id}
+            isFavourite={favourite.isFavourite}
+            locale={locale}
+            path={favourite.path}
+          />
+        </div>
+      )}
+
       <div className="sitter-body">
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
           <div style={{ minWidth: 0 }}>
-            <h3 className="text-h4">{sitter.firstName} {sitter.lastNameInitial}.</h3>
+            <h3 className="text-h4">
+              <Link href={href} className="stretch-link">
+                {sitter.firstName} {sitter.lastNameInitial}.
+              </Link>
+            </h3>
             <p className="dim text-body-sm">{sitter.neighbourhood}</p>
           </div>
           {/* Drip pricing yasagi: gosterilen fiyat TAM fiyattir */}
@@ -67,6 +102,6 @@ export function SitterCard({
           {distanceLabel && <> · <span className="tabular">{distanceLabel}</span></>}
         </p>
       </div>
-    </Link>
+    </div>
   );
 }

@@ -13,3 +13,4 @@ export * from './admin-moderation.js';
 export * from './admin-metrics.js';
 export * from './messaging.js';
 export * from './account.js';
+export * from './favourites.js';

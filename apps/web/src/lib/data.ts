@@ -35,6 +35,10 @@ import {
   getSitterDashboard as dbGetSitterDashboard,
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
+  addFavourite as dbAddFavourite, removeFavourite as dbRemoveFavourite,
+  favouriteIds as dbFavouriteIds, favouriteIdsOrdered as dbFavouriteIdsOrdered,
+  favouriteSitters as dbFavouriteSitters, claimFavourites as dbClaimFavourites,
+  existingSitterIds as dbExistingSitterIds,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   countSitters as dbCountSitters, isSearchSort, SEARCH_SORTS,
   cityName, citySlug,
@@ -48,6 +52,7 @@ import {
   type ModerationReview, type ReviewFilter, type ReportRow,
   type AdminBookingDetail, type AdminTransition, type AdminMetrics,
   type ConversationSummary, type Thread, type ThreadMessage, type RawMessage,
+  type FavouriteSitter,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
@@ -58,7 +63,7 @@ export type {
   AdminOverview, ApplicationRow, ApplicationDetail, AuditRow, AdminBookingRow, AdminCounts,
   AdminUserRow, AdminUserDetail, UserPage, UserFilter, AdminNote,
   ModerationReview, ReviewFilter, ReportRow, AdminBookingDetail, AdminTransition, AdminMetrics,
-  ConversationSummary, Thread, ThreadMessage, RawMessage, SearchSort,
+  ConversationSummary, Thread, ThreadMessage, RawMessage, SearchSort, FavouriteSitter,
 };
 export { cityName, citySlug, isSearchSort, SEARCH_SORTS };
 
@@ -237,3 +242,18 @@ export const conversationPing = (viewerId: string, conversationId?: string) =>
   dbConversationPing(db(), viewerId, conversationId);
 export const reportableMessage = (messageId: string, viewerId: string) =>
   dbReportableMessage(db(), messageId, viewerId);
+
+/* ------------------------------------------------------ favoriler */
+export const addFavourite = (userId: string, sitterId: string) =>
+  dbAddFavourite(db(), userId, sitterId);
+export const removeFavourite = (userId: string, sitterId: string) =>
+  dbRemoveFavourite(db(), userId, sitterId);
+/** Kalbin dolu cizilecegi kimlikler — arama sayfasi icin TEK sorgu. */
+export const favouriteIds = (userId: string) => dbFavouriteIds(db(), userId);
+export const favouriteIdsOrdered = (userId: string) => dbFavouriteIdsOrdered(db(), userId);
+export const favouriteSitters = (ids: readonly string[], locale: Locale) =>
+  dbFavouriteSitters(db(), ids, locale);
+/** Tarayicidaki favorileri hesaba tasir; eklenen kayit sayisini doner. */
+export const claimFavourites = (userId: string, ids: readonly string[]) =>
+  dbClaimFavourites(db(), userId, ids);
+export const existingSitterIds = (ids: readonly string[]) => dbExistingSitterIds(db(), ids);

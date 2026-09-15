@@ -39,7 +39,7 @@ export default async function CookiesPage({ params }: { params: Promise<{ locale
       title={t('Cookie choices', 'Choix relatifs aux témoins')}
       lead={t('There is no banner on this site because there is nothing to consent to yet. Here is why.',
               'Il n’y a pas de bandeau sur ce site parce qu’il n’y a encore rien à consentir. Voici pourquoi.')}
-      updated="2026-09-13"
+      updated="2026-09-15"
     >
       <h2>{t('What we set today', 'Ce que nous déposons aujourd’hui')}</h2>
       <table>
@@ -62,12 +62,32 @@ export default async function CookiesPage({ params }: { params: Promise<{ locale
             <td>{t('Remembering your language', 'Mémoriser votre langue')}</td>
             <td>{t('Strictly necessary', 'Strictement nécessaire')}</td>
           </tr>
+          {/*
+            FAVORILER. Kullanicinin kendi istedigi bir ozelligi
+            calistiriyor, olcum ya da profilleme yapmiyor, ucuncu tarafa
+            gitmiyor — ama BURADA YAZIYOR. "Sizde ne sakliyoruz"
+            sorusunun cevabi eksiksiz olmali; listede olmayan bir cerez,
+            olmadigini soylemis oluruz.
+          */}
+          <tr>
+            <td>
+              {t('Remembering sitters you favourited before signing in',
+                 'Mémoriser les gardiens mis en favoris avant la connexion')}
+            </td>
+            <td>{t('Functional', 'Fonctionnel')}</td>
+          </tr>
         </tbody>
       </table>
       <p>
         {t(
           'Strictly necessary cookies are the ones without which the thing you asked for cannot happen — you cannot stay signed in without a session cookie. Under Canadian privacy law these do not require a consent banner, and a banner that asks for consent it will ignore is worse than none.',
           'Les témoins strictement nécessaires sont ceux sans lesquels ce que vous demandez ne peut pas fonctionner — impossible de rester connecté sans témoin de session. En vertu du droit canadien, ceux-ci n’exigent pas de bandeau de consentement, et un bandeau qui demande un consentement qu’il ignorera vaut moins que pas de bandeau du tout.',
+        )}
+      </p>
+      <p>
+        {t(
+          'The favourites cookie holds nothing but a list of sitter identifiers, it is set only when you press a heart, and it is deleted the moment those favourites move into your account. It is not readable by scripts and is never sent anywhere else.',
+          'Le témoin des favoris ne contient qu’une liste d’identifiants de gardiens, il n’est déposé que lorsque vous appuyez sur un cœur, et il est supprimé dès que ces favoris sont transférés dans votre compte. Il n’est pas lisible par des scripts et n’est jamais transmis ailleurs.',
         )}
       </p>
 

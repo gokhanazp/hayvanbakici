@@ -12,10 +12,12 @@ import { SitterCard } from '@/components/SitterCard';
 import { Select } from '@/components/ui/Select';
 import {
   cityName, citySlug, countSitters, getLinkableCities, resolvePlace, searchSitters,
-  isSearchSort, SEARCH_SORTS,
+  isSearchSort, SEARCH_SORTS, favouriteIds,
   type PlaceMatch, type SearchResult, type SearchSort,
 } from '@/lib/data';
 import { money, numberFmt } from '@/lib/format';
+import { getSession } from '@/lib/auth';
+import { readAnonFavourites } from '@/lib/favourites';
 
 /**
  * ARAMA SONUCLARI.
@@ -125,6 +127,18 @@ export default async function SearchPage({
       locale,
     );
   }
+
+  /*
+    KALPLERIN DURUMU — SAYFA BASINA TEK SORGU.
+
+    Kart basina "bu favori mi" diye sormak 24 sorgu demekti. Giris
+    yapmis kullanicida tek sorgu tum kimlikleri getiriyor, giris
+    yapmamista liste zaten cerezde ve istekle birlikte gelmis oluyor.
+  */
+  const session = await getSession();
+  const favIds = session
+    ? await favouriteIds(session.user.id)
+    : new Set(await readAnonFavourites());
 
   const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
   const first = total === 0 ? 0 : (page - 1) * SEARCH_PAGE_SIZE + 1;
@@ -331,6 +345,10 @@ export default async function SearchPage({
                     distanceLabel={interpolate(t.distance, {
                       km: (Math.round(s.distanceMeters / 100) / 10).toFixed(1),
                     })}
+                    favourite={{
+                      isFavourite: favIds.has(s.id),
+                      path: `/${seg}/search/`,
+                    }}
                   />
                 ))}
               </div>
