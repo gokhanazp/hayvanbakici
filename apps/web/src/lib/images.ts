@@ -34,16 +34,21 @@ export type ImageResult =
   | { ok: true; body: Buffer; ext: 'webp'; contentType: 'image/webp'; width: number; height: number }
   | { ok: false; error: ImageError };
 
-export type Preset = 'avatar' | 'home';
+export type Preset = 'avatar' | 'home' | 'pet';
 
 /*
   Avatar KARE ve kirpiliyor: profil fotografi her yerde daire icinde
   gorunuyor, kirpmayi kullaniciya birakmak yerine merkezden aliyoruz.
   Ev fotografi kirpilmiyor — oranini bozmak odayi yanlis gosterir.
+
+  Hayvan fotografi kare ve kirpiliyor: profilde kucuk karelerden olusan
+  bir izgarada duruyor ve orada asil soru "bu hangi hayvan", odanin
+  orani degil. Avatardan kucuk — tam boy gosterilmiyor.
 */
 const PRESETS: Record<Preset, { width: number; height?: number; fit: 'cover' | 'inside' }> = {
   avatar: { width: 512, height: 512, fit: 'cover' },
   home: { width: 1600, fit: 'inside' },
+  pet: { width: 640, height: 640, fit: 'cover' },
 };
 
 export async function processImage(input: Buffer, preset: Preset): Promise<ImageResult> {
@@ -86,7 +91,26 @@ export async function processImage(input: Buffer, preset: Preset): Promise<Image
     })
     .webp({ quality: 82 });
 
-  const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });
+  /*
+    ISLEME DE BASARISIZ OLABILIR, yalnizca basligi okumak degil.
+
+    Basligi gecerli ama govdesi bozuk bir dosya metadata()'yi geciyor,
+    sonra toBuffer() "libpng read error" firlatiyordu. Bu hata
+    yakalanmadigi icin sunucu eylemi 500 veriyor ve kullanici
+    "fotografiniz okunamadi" yerine cokmus bir ekran goruyordu
+    (tarayicida yakalandi). Ayni kapi avatar ve ev fotografi icin de
+    acikti.
+  */
+  let data: Buffer;
+  let info: { width: number; height: number };
+  try {
+    const out = await pipeline.toBuffer({ resolveWithObject: true });
+    data = out.data;
+    info = { width: out.info.width, height: out.info.height };
+  } catch {
+    return { ok: false, error: 'not_an_image' };
+  }
+
   return {
     ok: true, body: data, ext: 'webp', contentType: 'image/webp',
     width: info.width, height: info.height,

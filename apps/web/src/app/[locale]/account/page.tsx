@@ -6,7 +6,8 @@ import {
 } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
-import { getAccountSummary, isAdmin } from '@/lib/data';
+import { getAccountSummary, isAdmin, listOwnerPets, type OwnerPet } from '@/lib/data';
+import { PetCard } from '@/components/PetCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,9 +34,10 @@ export default async function AccountOverviewPage({
   const session = await getSession();
   if (!session) redirect(`/${seg}/account/sign-in/?next=/${seg}/account/`);
 
-  const [me, admin] = await Promise.all([
+  const [me, admin, pets] = await Promise.all([
     getAccountSummary(session.user.id),
     isAdmin(session.user.id),
+    listOwnerPets(session.user.id),
   ]);
   if (!me) notFound();
 
@@ -54,7 +56,22 @@ export default async function AccountOverviewPage({
       isAdmin={admin}
       unread={me.counts.unreadMessages}
     >
-      <div className="stack" style={{ display: 'grid', gap: 'var(--space-8)', maxWidth: '44rem' }}>
+      {/*
+        DUZEN.
+
+        Once uc kart dar bir sutunda alt alta duruyordu: ekranin sag
+        yarisi bostu, en ustteki kart hicbir ise yaramiyordu ("ne
+        oldugunuz") ve en alttaki cogu zaman "bekleyen bir sey yok"
+        diyen bos bir kutuydu. Simdi:
+
+          1. BEKLEYEN ISLER, varsa, en ustte ve SATIR halinde. Yoksa
+             hic cizilmiyor — "bekleyen bir sey yok" diyen bir kutu,
+             yer kaplayan bir sessizlik.
+          2. HAYVANLARIM: sayfanin asil isi. Bugune kadar hic yoktu.
+          3. Rol ve bakicilik kartlari YAN YANA, altta: ikisi de
+             "durum" bilgisi, gunluk is degil.
+      */}
+      <div className="account-home">
         {/* Askı SESSIZ olmamali: kisitli bir hesapla dolasip neden
             calismadigini anlamamak, kisitlamanin kendisinden kotu. */}
         {me.suspended && (
@@ -63,34 +80,38 @@ export default async function AccountOverviewPage({
           </div>
         )}
 
-        <section className="card card-pad">
-          <h2 className="text-h4">{m.account.youAre}</h2>
-          <p style={{ marginTop: 'var(--space-3)', fontWeight: 600 }}>
-            {/* Gonderilmemis basvuru kisiyi bakici yapmaz — rozetle ayni kural */}
-            {approvedSitter ? m.account.roleBoth : m.account.roleOwner}
-            {name && <span className="muted" style={{ fontWeight: 400 }}> — {name}</span>}
-          </p>
-          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
-            {approvedSitter ? m.account.roleBothLead : m.account.roleOwnerLead}
-          </p>
-        </section>
-
-        {me.sitter ? (
-          <SitterStatusCard locale={locale} seg={seg} sitter={me.sitter} />
-        ) : (
-          <section className="card card-pad">
-            <h2 className="text-h4">{m.account.becomeSitterHeading}</h2>
-            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
-              {m.account.becomeSitterLead}
-            </p>
-            <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary"
-                  style={{ marginTop: 'var(--space-5)' }}>
-              {m.nav.becomeSitter}
-            </Link>
-          </section>
-        )}
-
         <Glance locale={locale} seg={seg} me={me} />
+
+        <PetsSection locale={locale} seg={seg} pets={pets} />
+
+        <div className="account-side-by-side">
+          <section className="card card-pad">
+            <h2 className="text-h4">{m.account.youAre}</h2>
+            <p style={{ marginTop: 'var(--space-3)', fontWeight: 600 }}>
+              {/* Gonderilmemis basvuru kisiyi bakici yapmaz — rozetle ayni kural */}
+              {approvedSitter ? m.account.roleBoth : m.account.roleOwner}
+              {name && <span className="muted" style={{ fontWeight: 400 }}> — {name}</span>}
+            </p>
+            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+              {approvedSitter ? m.account.roleBothLead : m.account.roleOwnerLead}
+            </p>
+          </section>
+
+          {me.sitter ? (
+            <SitterStatusCard locale={locale} seg={seg} sitter={me.sitter} />
+          ) : (
+            <section className="card card-pad">
+              <h2 className="text-h4">{m.account.becomeSitterHeading}</h2>
+              <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+                {m.account.becomeSitterLead}
+              </p>
+              <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary"
+                    style={{ marginTop: 'var(--space-5)' }}>
+                {m.nav.becomeSitter}
+              </Link>
+            </section>
+          )}
+        </div>
       </div>
     </AccountShell>
   );
@@ -190,23 +211,69 @@ function Glance({
     },
   ].filter(Boolean) as Array<{ href: string; label: string; n: number }>;
 
+  /*
+    HICBIR SEY BEKLEMIYORSA BOLUM HIC CIZILMIYOR.
+
+    Eskiden burada "Bekleyen bir sey yok" yazan bir kart duruyordu:
+    bilgi tasimayan, ama ekranin en degerli yerini kaplayan bir
+    kutu. Bos bir bolumu gizlemek, bos oldugunu ilan etmekten iyi.
+  */
+  if (rows.length === 0) return null;
+
   return (
-    <section className="card card-pad">
-      <h2 className="text-h4">{m.account.atAGlance}</h2>
-      {rows.length === 0 ? (
-        <p className="muted" style={{ marginTop: 'var(--space-3)' }}>{m.account.nothingWaiting}</p>
+    <section aria-label={m.account.atAGlance}>
+      <ul className="glance-row-list">
+        {rows.map((r) => (
+          <li key={r.href}>
+            <Link href={r.href} className="glance-tile">
+              <span className="glance-n tabular">{r.n}</span>
+              <span className="glance-label">{r.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------- hayvanlarim */
+
+/**
+ * HAYVANLARIM — hesap sayfasinin asil isi.
+ *
+ * Bugune kadar kullanicinin hayvanlari hicbir ekranda gorunmuyordu:
+ * yalnizca rezervasyon formunun icinde yaratilabiliyor, sonra kayboluyordu.
+ *
+ * Kartlar BURADA SALT OKUNUR. Duzenleme kendi sayfasinda; hesap ana
+ * sayfasini bir forma cevirmek, "burada bir sey doldurmam mi gerekiyor"
+ * hissi veriyordu.
+ */
+function PetsSection({
+  locale, seg, pets,
+}: {
+  locale: Locale;
+  seg: string;
+  pets: OwnerPet[];
+}) {
+  const m = getMessages(locale);
+
+  return (
+    <section>
+      <div className="section-row">
+        <h2 className="text-h3">{m.pets.title}</h2>
+        <Link href={`/${seg}/account/pets/`} className="btn btn-secondary btn-sm">
+          {pets.length === 0 ? m.pets.add : m.pets.manage}
+        </Link>
+      </div>
+
+      {pets.length === 0 ? (
+        <div className="card card-muted pet-empty">
+          <p style={{ margin: 0 }}>{m.pets.emptyHint}</p>
+        </div>
       ) : (
-        <ul className="glance-list">
-          {rows.map((r) => (
-            <li key={r.href}>
-              <Link href={r.href} className="glance-row">
-                <span className="tabular" style={{ fontWeight: 600 }}>{r.n}</span>
-                <span>{r.label}</span>
-                <span aria-hidden="true" className="dim">→</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="pet-grid">
+          {pets.map((pet) => <PetCard key={pet.id} pet={pet} locale={locale} />)}
+        </div>
       )}
     </section>
   );

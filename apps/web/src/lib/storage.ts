@@ -34,9 +34,9 @@ export interface Storage {
   remove(key: string): Promise<void>;
 }
 
-export type MediaKind = 'avatar' | 'home';
+export type MediaKind = 'avatar' | 'home' | 'pet';
 
-const KINDS: readonly MediaKind[] = ['avatar', 'home'];
+const KINDS: readonly MediaKind[] = ['avatar', 'home', 'pet'];
 
 /**
  * Anahtar dogrulama — YOL KACISI (path traversal) burada duruyor.

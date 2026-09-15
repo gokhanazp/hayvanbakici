@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { SERVICES, primaryService, servicesForPhase, type ServiceType } from '@havre/core';
 import {
@@ -15,6 +16,7 @@ import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
+import { resolvePhoto } from '@/lib/photos';
 
 /*
   BU FAZDA REZERVASYONU ACIK HIZMETLER.
@@ -298,10 +300,52 @@ export default async function SitterPage({
                 <Fact>{m.onboarding[`home.${sitter.homeType}` as keyof Messages['onboarding']] as string}</Fact>
               )}
               {sitter.hasYard && <Fact>{sitter.yardFenced ? m.sitter['home.yardFenced'] : m.sitter['home.yard']}</Fact>}
-              <Fact>{sitter.hasOwnPets ? m.sitter['home.ownPets'] : m.sitter['home.noOwnPets']}</Fact>
+              {/*
+                EVDEKI HAYVAN — UC DURUM, IKI DEGIL.
+
+                "Hayvanim var" diyip fotograf koymamis bakicida bu satir
+                HIC cikmiyor. "Hayvan yok" demiyoruz (yanlis olur),
+                "hayvan var" da demiyoruz (dogrulanmamis). Sahibin en cok
+                onemsedigi konu bu; bos bir soz vermektense susmak.
+                Fotograflar asagida, kendi bolumunde.
+              */}
+              {!sitter.hasOwnPets && <Fact>{m.sitter['home.noOwnPets']}</Fact>}
+              {sitter.showsOwnPets && <Fact>{m.sitter['home.ownPets']}</Fact>}
               {sitter.smokeFree && <Fact>{m.sitter['home.smokeFree']}</Fact>}
               <Fact>{interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets })}</Fact>
             </ul>
+
+            {/*
+              BAKICININ KENDI HAYVANLARI.
+
+              Sahip icin bu bir yan detay degil: hayvanini baska bir
+              hayvanla ayni eve koyuyor. Sayi degil YUZ gorsun — "bir
+              kopegi var" cumlesi, kopegin fotografiyla ayni sey degil.
+            */}
+            {sitter.petPhotos.length > 0 && (
+              <div className="pet-photos">
+                <h3 className="text-h4">{m.sitter.ownPetsHeading}</h3>
+                <p className="muted text-body-sm" style={{ marginTop: 'var(--space-2)' }}>
+                  {m.sitter.ownPetsLead}
+                </p>
+                <ul className="pet-photo-grid">
+                  {sitter.petPhotos.map((ph, i) => {
+                    const src = resolvePhoto(ph.url);
+                    if (!src) return null;
+                    return (
+                      <li key={ph.url + i}>
+                        <span className="photo-thumb">
+                          <Image
+                            src={src} width={480} height={480} sizes="(min-width: 700px) 12rem, 45vw"
+                            alt={ph.alt ?? interpolate(m.sitter.ownPetsAlt, { name })}
+                          />
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
           </section>
 
           {/* --- Yorumlar --- */}

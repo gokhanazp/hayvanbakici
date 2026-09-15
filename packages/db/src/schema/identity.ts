@@ -2,7 +2,10 @@ import {
   pgTable, uuid, text, timestamp, boolean, integer, index, uniqueIndex,
   customType, real,
 } from 'drizzle-orm/pg-core';
-import { localeEnum, userRoleEnum, provinceEnum, sitterStatusEnum, homeTypeEnum } from './enums.js';
+import {
+  localeEnum, userRoleEnum, provinceEnum, sitterStatusEnum, homeTypeEnum,
+  sitterPhotoKindEnum,
+} from './enums.js';
 
 /**
  * PostGIS geography — cografi arama icin zorunlu.
@@ -200,6 +203,8 @@ export const sitterPhotos = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     sitterId: uuid('sitter_id').notNull().references(() => sitters.userId, { onDelete: 'cascade' }),
     url: text('url').notNull(),
+    /** Ev fotografi mi, bakicinin kendi hayvani mi (bkz. enums.ts) */
+    kind: sitterPhotoKindEnum('kind').notNull().default('home'),
     /** Ekran okuyucu icin — bakicinin kendi yazdigi aciklama */
     alt: text('alt'),
     sortOrder: integer('sort_order').notNull().default(0),

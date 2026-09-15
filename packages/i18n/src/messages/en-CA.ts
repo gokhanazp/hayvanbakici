@@ -240,6 +240,12 @@ export const enCA = {
     photoLead: 'A face makes a booking easier to say yes to. Square photos work best.',
     avatarLabel: 'Choose your profile photo',
     addHomePhoto: 'Add a photo of your home',
+    /* Bakicinin KENDI hayvani — profildeki "evde hayvan var" iddiasinin dayanagi */
+    petHeading: 'Your own pets',
+    petLead: 'Up to {max} photos of the pets who live with you. Owners see these on your profile.',
+    petMissing: 'You said there are pets in your home, but you have not added a photo of them. Until you do, your profile does not mention them — an owner deciding where to leave their animal should be able to see who else lives there.',
+    addPetPhoto: 'Add a photo of your pet',
+    petAltPlaceholder: 'Pepper, my border collie, asleep on the sofa',
     remove: 'Remove',
     upload: 'Upload',
     uploading: 'Uploading…',
@@ -746,6 +752,10 @@ export const enCA = {
     'home.yardFenced': 'Fully fenced yard',
     'home.ownPets': 'Has pets of their own',
     'home.noOwnPets': 'No other pets in the home',
+    /* Bakicinin kendi hayvanlari — yalnizca fotograf varsa gosteriliyor */
+    ownPetsHeading: 'Pets who live here',
+    ownPetsLead: 'Your pet would share the home with them.',
+    ownPetsAlt: 'A pet who lives with {name}',
     'home.smokeFree': 'Smoke-free home',
     'home.maxPets': 'Takes up to {count} pets at a time',
     accepts: 'Accepts',
@@ -786,6 +796,69 @@ export const enCA = {
     signIn: 'Sign in',
     /* Artik yayinda olmayan bakicilar listeden dustu */
     dropped: '{count} sitters you had favourited are no longer taking bookings, so they are not shown.',
+  },
+
+
+  /**
+   * HAYVANLARIM.
+   *
+   * "Pets" degil "Your pets": liste kisiye ait ve baska kimse gormuyor
+   * — rezervasyon gonderdiginde yalnizca o bakici goruyor.
+   */
+  pets: {
+    tab: 'Your pets',
+    title: 'Your pets',
+    lead: 'Tell us once, and every booking request you send carries it.',
+    empty: 'No pets yet.',
+    emptyHint: 'Add your pet once and you will not have to type it out on every request. Only a sitter you send a request to can see it.',
+    add: 'Add a pet',
+    edit: 'Edit',
+    close: 'Close',
+    cancel: 'Cancel',
+    save: 'Save changes',
+    saving: 'Saving\u2026',
+    saved: 'Saved.',
+    /*
+      "Remove" DEGIL "Remove pet". Kartin ayni satirinda fotografi
+      kaldiran bir dugme de duruyordu ve ikisi de "Remove" yaziyordu:
+      hangisinin neyi sildigi ancak basildiktan sonra anlasiliyordu
+      (tarayicida yakalandi).
+    */
+    remove: 'Remove pet',
+    removePhoto: 'Remove photo',
+    removeConfirm: 'Remove this pet?',
+    removeYes: 'Remove',
+    removeNo: 'Keep',
+    addPhoto: 'Add a photo',
+    changePhoto: 'Change photo',
+    manage: 'Manage your pets',
+    maxReached: 'You can keep up to {max} pets on an account.',
+    privacyNote: 'Only a sitter you send a booking request to can see these details. More in the',
+
+    nameLabel: 'Name',
+    speciesLabel: 'What kind of animal',
+    optionalNote: 'Everything below is optional \u2014 you can send a booking request with just a name and a species.',
+    breedLabel: 'Breed',
+    birthLabel: 'Date of birth',
+    weightLabel: 'Weight (kg)',
+    weightHint: 'Sitters set the weight range they accept, so this helps us show you the ones who can take your pet.',
+    notesLabel: 'Anything a sitter should know',
+    notesPlaceholder: 'Nervous around other dogs; needs a walk before bed.',
+    notesHint: 'Habits, fears, routines. Medication and vet details are asked when you book.',
+
+    ageMonthOne: '1 month old',
+    ageMonths: '{count} months old',
+    ageYearOne: '1 year old',
+    ageYears: '{count} years old',
+
+    'error.name_required': 'Please give your pet a name.',
+    'error.species_required': 'Please choose what kind of animal this is.',
+    'error.birth_invalid': 'That date of birth does not look right.',
+    'error.birth_future': 'A date of birth cannot be in the future.',
+    'error.weight_invalid': 'Please enter a weight between 0.1 and 120 kg.',
+    'error.too_many': 'You have reached the maximum number of pets on one account.',
+    'error.not_found': 'We could not find that pet.',
+    'error.not_allowed': 'Please sign in again.',
   },
 
 } as const;

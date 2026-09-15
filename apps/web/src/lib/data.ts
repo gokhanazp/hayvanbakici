@@ -35,6 +35,9 @@ import {
   getSitterDashboard as dbGetSitterDashboard,
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
+  listOwnerPets as dbListOwnerPets, getOwnerPet as dbGetOwnerPet,
+  createOwnerPet as dbCreateOwnerPet, updateOwnerPet as dbUpdateOwnerPet,
+  setPetPhoto as dbSetPetPhoto, deleteOwnerPet as dbDeleteOwnerPet,
   addFavourite as dbAddFavourite, removeFavourite as dbRemoveFavourite,
   favouriteIds as dbFavouriteIds, favouriteIdsOrdered as dbFavouriteIdsOrdered,
   favouriteSitters as dbFavouriteSitters, claimFavourites as dbClaimFavourites,
@@ -52,7 +55,7 @@ import {
   type ModerationReview, type ReviewFilter, type ReportRow,
   type AdminBookingDetail, type AdminTransition, type AdminMetrics,
   type ConversationSummary, type Thread, type ThreadMessage, type RawMessage,
-  type FavouriteSitter,
+  type FavouriteSitter, type OwnerPet, type PetInput, type Species,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
@@ -64,6 +67,7 @@ export type {
   AdminUserRow, AdminUserDetail, UserPage, UserFilter, AdminNote,
   ModerationReview, ReviewFilter, ReportRow, AdminBookingDetail, AdminTransition, AdminMetrics,
   ConversationSummary, Thread, ThreadMessage, RawMessage, SearchSort, FavouriteSitter,
+  OwnerPet, PetInput, Species,
 };
 export { cityName, citySlug, isSearchSort, SEARCH_SORTS };
 
@@ -257,3 +261,16 @@ export const favouriteSitters = (ids: readonly string[], locale: Locale) =>
 export const claimFavourites = (userId: string, ids: readonly string[]) =>
   dbClaimFavourites(db(), userId, ids);
 export const existingSitterIds = (ids: readonly string[]) => dbExistingSitterIds(db(), ids);
+
+/* ------------------------------------------------- sahibin hayvanlari */
+export const listOwnerPets = (ownerId: string) => dbListOwnerPets(db(), ownerId);
+export const getOwnerPet = (petId: string, ownerId: string) => dbGetOwnerPet(db(), petId, ownerId);
+export const createOwnerPet = (ownerId: string, input: PetInput) =>
+  dbCreateOwnerPet(db(), ownerId, input);
+export const updateOwnerPet = (petId: string, ownerId: string, input: PetInput) =>
+  dbUpdateOwnerPet(db(), petId, ownerId, input);
+/** Fotograf kaydeder ve ONCEKI adresi doner — eski dosya depodan silinebilsin. */
+export const setPetPhoto = (petId: string, ownerId: string, url: string | null) =>
+  dbSetPetPhoto(db(), petId, ownerId, url);
+export const deleteOwnerPet = (petId: string, ownerId: string) =>
+  dbDeleteOwnerPet(db(), petId, ownerId);

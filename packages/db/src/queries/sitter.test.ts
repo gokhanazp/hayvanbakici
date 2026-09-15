@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { getDb } from '../client.js';
-import { getSitterDashboard } from './sitter.js';
+import { getSitterDashboard, getSitterProfile } from './sitter.js';
 
 /**
  * BAKICI PANOSU SORGUSU.
@@ -115,5 +115,77 @@ describe('bakici panosu', () => {
     const total = (d?.earnings.awaitingAnswerCents ?? 0)
       + (d?.earnings.upcomingCents ?? 0) + (d?.earnings.doneCents ?? 0);
     expect(total).toBe(24000);
+  });
+});
+
+/**
+ * "EVIMDE HAYVAN VAR" IDDIASI FOTOGRAFA BAGLI.
+ *
+ * Sahibin en cok onemsedigi konulardan biri: hayvanini baska bir
+ * hayvanla ayni eve koyuyor. Kutuyu isaretlemek yetmez — o hayvani
+ * gorebilmeli. Fotograf yoksa profilde NE "hayvan var" NE "hayvan yok"
+ * yaziyor: ikisi de yanlis olurdu.
+ */
+describe('evdeki hayvan iddiasi', () => {
+  const db = getDb();
+
+  async function pick(): Promise<{ slug: string; userId: string }> {
+    const rows = await db.execute(sql`
+      SELECT slug, user_id::text AS id FROM sitters
+      WHERE status = 'active' AND has_own_pets AND slug IS NOT NULL
+      LIMIT 1
+    `);
+    const r = (rows as unknown as Array<{ slug: string; id: string }>)[0];
+    if (!r) throw new Error('Tohum veride kendi hayvani olan bakici yok');
+    return { slug: String(r.slug), userId: String(r.id) };
+  }
+
+  it('FOTOGRAF YOKSA iddia gosterilmiyor — kutu isaretli olsa bile', async () => {
+    const { slug, userId } = await pick();
+    await db.execute(sql`
+      DELETE FROM sitter_photos WHERE sitter_id = ${userId}::uuid AND kind = 'pet'
+    `);
+
+    const p = await getSitterProfile(db, slug, 'en-CA');
+    expect(p!.hasOwnPets).toBe(true);        // veri boyle diyor
+    expect(p!.showsOwnPets).toBe(false);     // ama ekran SUSUYOR
+    expect(p!.petPhotos).toEqual([]);
+  });
+
+  it('FOTOGRAF VARSA iddia gosteriliyor', async () => {
+    const { slug, userId } = await pick();
+    await db.execute(sql`
+      INSERT INTO sitter_photos (sitter_id, url, alt, sort_order, kind)
+      VALUES (${userId}::uuid, 'pet/test.webp', 'Pepper', 0, 'pet')
+    `);
+
+    const p = await getSitterProfile(db, slug, 'en-CA');
+    expect(p!.showsOwnPets).toBe(true);
+    expect(p!.petPhotos).toHaveLength(1);
+    expect(p!.petPhotos[0]!.alt).toBe('Pepper');
+
+    await db.execute(sql`
+      DELETE FROM sitter_photos WHERE sitter_id = ${userId}::uuid AND kind = 'pet'
+    `);
+  });
+
+  it('HAYVAN FOTOGRAFI ev galerisine KARISMIYOR', async () => {
+    const { slug, userId } = await pick();
+    const before = (await getSitterProfile(db, slug, 'en-CA'))!.photos.length;
+
+    await db.execute(sql`
+      INSERT INTO sitter_photos (sitter_id, url, alt, sort_order, kind)
+      VALUES (${userId}::uuid, 'pet/karisma.webp', 'Pepper', 99, 'pet')
+    `);
+
+    const after = await getSitterProfile(db, slug, 'en-CA');
+    /* Ev galerisi buyumemeli: sahip "evi gosteren fotograflar" diye
+       bakiyor, arada bir kopek portresi cikmasi yanlis vaat. */
+    expect(after!.photos.length).toBe(before);
+    expect(after!.photos.some((ph) => ph.url === 'pet/karisma.webp')).toBe(false);
+
+    await db.execute(sql`
+      DELETE FROM sitter_photos WHERE sitter_id = ${userId}::uuid AND kind = 'pet'
+    `);
   });
 });

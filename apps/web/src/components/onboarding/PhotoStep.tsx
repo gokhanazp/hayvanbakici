@@ -5,6 +5,7 @@ import { Avatar } from '@/components/Avatar';
 import { PhotoUpload, PhotoDelete } from '@/components/PhotoUpload';
 import {
   uploadAvatarAction, removeAvatarAction, uploadHomePhotoAction, deleteHomePhotoAction,
+  uploadPetPhotoAction,
 } from '@/app/[locale]/account/profile/actions';
 
 /**
@@ -27,11 +28,16 @@ import {
  * atladigini soylemek, atlattigini gizlemekten iyidir.
  */
 export function PhotoStep({
-  locale, photos, max, avatarUrl, firstName,
+  locale, photos, petPhotos, max, petMax, hasOwnPets, avatarUrl, firstName,
 }: {
   locale: Locale;
   photos: Array<{ id: string; url: string; alt: string | null }>;
+  /** Bakicinin KENDI hayvanlari — ev fotograflarindan ayri tavan. */
+  petPhotos: Array<{ id: string; url: string; alt: string | null }>;
   max: number;
+  petMax: number;
+  /** Ev adiminda "evimde hayvan var" isaretlendi mi. */
+  hasOwnPets: boolean;
   avatarUrl: string | null;
   firstName: string;
 }) {
@@ -92,11 +98,61 @@ export function PhotoStep({
           <div style={{ marginTop: 'var(--space-5)' }}>
             <PhotoUpload
               locale={locale} action={uploadHomePhotoAction}
-              label={m.profile.addHomePhoto} withAlt
+              label={m.profile.addHomePhoto} withAlt fieldId="home"
             />
           </div>
         )}
       </section>
+
+      {/*
+        KENDI HAYVANI — yalnizca "evimde hayvan var" diyene soruluyor.
+
+        Herkese sormak, hayvani olmayan bakiciya cevabi olmayan bir soru
+        sormak olurdu. Ve bu bolum bir SUS degil: profilde "evimde hayvan
+        var" yazmasi artik buradaki fotografa bagli, ekran da bunu
+        acikca soyluyor. Sahip, hayvanini baska bir hayvanla ayni eve
+        koyuyor; o hayvani gorme hakki var.
+      */}
+      {hasOwnPets && (
+        <section>
+          <h2 className="text-h4">{m.profile.petHeading}</h2>
+          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+            {interpolate(m.profile.petLead, { max: petMax })}
+          </p>
+          {petPhotos.length === 0 && (
+            <p className="notice notice-warning" style={{ marginTop: 'var(--space-3)' }}>
+              {m.profile.petMissing}
+            </p>
+          )}
+
+          {petPhotos.length > 0 && (
+            <ul className="photo-grid">
+              {petPhotos.map((p) => (
+                <li key={p.id}>
+                  <span className="photo-thumb">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt={p.alt ?? ''} loading="lazy" />
+                  </span>
+                  <PhotoDelete
+                    locale={locale} action={deleteHomePhotoAction}
+                    photoId={p.id} label={m.profile.remove}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {petPhotos.length < petMax && (
+            <div style={{ marginTop: 'var(--space-5)' }}>
+              <PhotoUpload
+                locale={locale} action={uploadPetPhotoAction}
+                label={m.profile.addPetPhoto} withAlt
+                fieldId="pet" altPlaceholder={m.profile.petAltPlaceholder}
+              />
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="wizard-actions">
         {next && (

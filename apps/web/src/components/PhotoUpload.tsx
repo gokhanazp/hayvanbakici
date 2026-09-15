@@ -28,7 +28,7 @@ const ACCEPT = 'image/jpeg,image/png,image/webp';
 const MAX_BYTES = 8 * 1024 * 1024;
 
 export function PhotoUpload({
-  locale, action, label, withAlt = false, busyLabel,
+  locale, action, label, withAlt = false, busyLabel, altPlaceholder, fieldId,
 }: {
   locale: Locale;
   action: Action;
@@ -36,6 +36,19 @@ export function PhotoUpload({
   /** Ev fotografinda alternatif metin de soruluyor */
   withAlt?: boolean | undefined;
   busyLabel?: string | undefined;
+  /**
+   * Alternatif metin ornegi. Varsayilan ev fotografina gore yazilmis
+   * ("Cevrili arka bahce"); hayvan fotografinda bu ornek yanlis yolu
+   * gosteriyordu.
+   */
+  altPlaceholder?: string | undefined;
+  /**
+   * Alan kimligi. AYNI SAYFADA IKI YUKLEME FORMU olabiliyor (fotograf
+   * adiminda ev ve hayvan) ve ikisi de id="alt" cizdiginde sayfada
+   * yinelenen kimlik olusuyor: etiketler yanlis alana baglaniyor ve
+   * ekran okuyucu ikisini tek alan sanıyor.
+   */
+  fieldId?: string | undefined;
 }) {
   const m = getMessages(locale);
   const [state, formAction, busy] = useActionState<UploadState, FormData>(action, {});
@@ -71,10 +84,10 @@ export function PhotoUpload({
           <img src={preview} alt="" className="upload-preview" />
         )}
         <div className="field-block" style={{ flex: 1, minWidth: 0 }}>
-          <label htmlFor={`file-${label}`}>{label}</label>
+          <label htmlFor={`file-${fieldId ?? label}`}>{label}</label>
           <input
             ref={inputRef}
-            id={`file-${label}`}
+            id={`file-${fieldId ?? label}`}
             type="file"
             name="file"
             accept={ACCEPT}
@@ -104,8 +117,11 @@ export function PhotoUpload({
 
       {withAlt && (
         <div className="field-block">
-          <label htmlFor="alt">{m.profile.altLabel}</label>
-          <input id="alt" name="alt" maxLength={140} placeholder={m.profile.altPlaceholder} />
+          <label htmlFor={`alt-${fieldId ?? label}`}>{m.profile.altLabel}</label>
+          <input
+            id={`alt-${fieldId ?? label}`} name="alt" maxLength={140}
+            placeholder={altPlaceholder ?? m.profile.altPlaceholder}
+          />
           <span className="field-hint">{m.profile.altHint}</span>
         </div>
       )}

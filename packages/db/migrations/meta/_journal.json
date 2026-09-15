@@ -71,6 +71,13 @@
       "when": 1789477769899,
       "tag": "0009_mushy_darkhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789480976203,
+      "tag": "0010_amusing_slyde",
+      "breakpoints": true
     }
   ]
 }

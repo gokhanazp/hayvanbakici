@@ -14,7 +14,7 @@ export function AccountShell({
   locale: Locale;
   title: string;
   lead?: string | undefined;
-  active: 'overview' | 'profile' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar';
+  active: 'overview' | 'profile' | 'pets' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar';
   isSitter: boolean;
   /**
    * Bakici kaydinin durumu — ROZET icin. `isSitter` yalnizca "kayit var mi"
@@ -47,6 +47,9 @@ export function AccountShell({
   const ownerTabs = [
     { key: 'overview' as const, href: `/${seg}/account/`, label: m.account.overview },
     { key: 'profile' as const, href: `/${seg}/account/profile/`, label: m.profile.tab },
+    /* Hayvanlar profilden HEMEN SONRA: ikisi de "ben kimim" bilgisi,
+       rezervasyon ise ondan sonra gelen bir is. */
+    { key: 'pets' as const, href: `/${seg}/account/pets/`, label: m.pets.tab },
     { key: 'bookings' as const, href: `/${seg}/account/bookings/`, label: m.account.myBookings },
     /*
       FAVORILER /account ALTINDA DEGIL (giris yapmamis ziyaretci de

@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { getMessages, interpolate, localeFromSegment, LOCALES, type Locale } from '@havre/i18n';
-import { MAX_SITTER_PHOTOS } from '@havre/db';
+import { MAX_SITTER_PHOTOS, MAX_PET_PHOTOS } from '@havre/db';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { Avatar } from '@/components/Avatar';
@@ -8,7 +8,7 @@ import { PhotoUpload, PhotoDelete } from '@/components/PhotoUpload';
 import { ProfileForm } from '@/components/ProfileForm';
 import { getAccountSummary, listSitterPhotos, isAdmin, unreadCount } from '@/lib/data';
 import {
-  uploadAvatarAction, removeAvatarAction, uploadHomePhotoAction,
+  uploadAvatarAction, removeAvatarAction, uploadHomePhotoAction, uploadPetPhotoAction,
   deleteHomePhotoAction, saveProfileAction,
 } from './actions';
 
@@ -37,11 +37,13 @@ export default async function ProfilePage({
   const me = await getAccountSummary(session.user.id);
   if (!me) notFound();
 
-  const [photos, admin, unread] = await Promise.all([
+  const [allPhotos, admin, unread] = await Promise.all([
     me.sitter ? listSitterPhotos(session.user.id) : Promise.resolve([]),
     isAdmin(session.user.id),
     unreadCount(session.user.id),
   ]);
+  const photos = allPhotos.filter((p) => p.kind === 'home');
+  const petPhotos = allPhotos.filter((p) => p.kind === 'pet');
 
   const m = getMessages(locale);
 
@@ -137,6 +139,57 @@ export default async function ProfilePage({
                   action={uploadHomePhotoAction}
                   label={m.profile.addHomePhoto}
                   withAlt
+                  fieldId="home"
+                />
+              </div>
+            )}
+          </section>
+        )}
+
+        {/*
+          KENDI HAYVANI. Yalnizca "evimde hayvan var" diyene soruluyor —
+          ama fotograf yuklemis biri kutuyu sonradan kaldirdiysa yine
+          gosteriliyor, yoksa fotograflari silecek ekrani kaybederdi.
+        */}
+        {me.sitter && (me.sitter.hasOwnPets || petPhotos.length > 0) && (
+          <section className="card card-pad">
+            <h2 className="text-h4">{m.profile.petHeading}</h2>
+            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+              {interpolate(m.profile.petLead, { max: MAX_PET_PHOTOS })}
+            </p>
+
+            {me.sitter.hasOwnPets && petPhotos.length === 0 && (
+              <p className="notice notice-warning" style={{ marginTop: 'var(--space-4)' }}>
+                {m.profile.petMissing}
+              </p>
+            )}
+
+            {petPhotos.length > 0 && (
+              <ul className="photo-grid">
+                {petPhotos.map((p) => (
+                  <li key={p.id}>
+                    <span className="photo-thumb">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.url} alt={p.alt ?? ''} loading="lazy" />
+                    </span>
+                    <PhotoDelete
+                      locale={locale} action={deleteHomePhotoAction}
+                      photoId={p.id} label={m.profile.remove}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {petPhotos.length < MAX_PET_PHOTOS && (
+              <div style={{ marginTop: 'var(--space-5)' }}>
+                <PhotoUpload
+                  locale={locale}
+                  action={uploadPetPhotoAction}
+                  label={m.profile.addPetPhoto}
+                  withAlt
+                  fieldId="pet"
+                  altPlaceholder={m.profile.petAltPlaceholder}
                 />
               </div>
             )}

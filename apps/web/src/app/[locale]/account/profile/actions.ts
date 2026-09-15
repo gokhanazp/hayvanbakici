@@ -74,6 +74,41 @@ export async function removeAvatarAction(
 }
 
 /** Ev fotografi — yalnizca bakici kaydi olanlar. */
+/**
+ * KENDI HAYVANININ FOTOGRAFI.
+ *
+ * Ev fotografiyla AYNI eylem olabilirdi ama olmadi: tur, formdan gelen
+ * bir alan olsaydi disaridan 'pet' gonderip ev fotografi tavanini
+ * asmanin ya da iddiayi bedavaya kazanmanin yolu acilirdi. Tur BURADA,
+ * kodda sabit.
+ */
+export async function uploadPetPhotoAction(
+  _prev: UploadState, form: FormData,
+): Promise<UploadState> {
+  const session = await getSession();
+  if (!session) return { error: 'not_allowed' };
+  if (!(await getSitterStatus(session.user.id))) return { error: 'not_allowed' };
+
+  const read = await readImage(form, 'file');
+  if (!read.ok) return { error: read.error };
+
+  const saved = await store(read.buf, 'pet');
+  if (!saved.ok) return { error: saved.error };
+
+  const alt = String(form.get('alt') ?? '').trim().slice(0, 140);
+  const res = await addSitterPhoto({
+    sitterId: session.user.id, url: saved.url, kind: 'pet', ...(alt ? { alt } : {}),
+  });
+  if (!res.ok) {
+    const key = keyFromUrl(saved.url);
+    if (key) await getStorage().remove(key);
+    return { error: res.error };
+  }
+
+  revalidatePath('/', 'layout');
+  return { done: 'photo' };
+}
+
 export async function uploadHomePhotoAction(
   _prev: UploadState, form: FormData,
 ): Promise<UploadState> {

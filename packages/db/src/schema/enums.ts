@@ -14,6 +14,18 @@ export const serviceTypeEnum = pgEnum('service_type', [
 
 export const priceUnitEnum = pgEnum('price_unit', ['night', 'visit', 'walk', 'day', 'session']);
 
+/**
+ * BAKICI FOTOGRAFININ NEYIN FOTOGRAFI OLDUGU.
+ *
+ * 'home' — ev ve bahce. 'pet' — bakicinin KENDI hayvani.
+ *
+ * Neden ayri: profilde "evimde hayvan var" diyen bakicinin bu cumlesi
+ * artik fotografa bagli. Iki tur ayni kovada dursaydi, ev fotografi
+ * yukleyen bir bakici hic hayvan gostermeden o cumleyi hak etmis
+ * gorunurdu.
+ */
+export const sitterPhotoKindEnum = pgEnum('sitter_photo_kind', ['home', 'pet']);
+
 export const sitterStatusEnum = pgEnum('sitter_status', [
   'draft', 'pending', 'active', 'paused', 'deactivated',
 ]);

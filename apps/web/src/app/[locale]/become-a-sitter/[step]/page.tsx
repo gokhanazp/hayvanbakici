@@ -8,7 +8,7 @@ import {
 import { getMessages, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
 import {
   getDb, getOnboardingState, listCities, listNeighbourhoods, listSitterPhotos,
-  servicePriceRanges, MAX_SITTER_PHOTOS,
+  servicePriceRanges, MAX_SITTER_PHOTOS, MAX_PET_PHOTOS,
 } from '@havre/db';
 import { getSession } from '@/lib/auth';
 import { Progress } from '@/components/onboarding/Progress';
@@ -45,7 +45,14 @@ export default async function OnboardingStepPage({
 
   const m = getMessages(locale);
 
-  const photos = await listSitterPhotos(db, session.user.id);
+  const allPhotos = await listSitterPhotos(db, session.user.id);
+  /*
+    EV ve HAYVAN fotograflari AYRI sayiliyor. Ilerleme ve tavan
+    hesaplari ev fotografina bakiyor; hayvan fotografi "evimde hayvan
+    var" iddiasini tasiyor ve kendi tavani var.
+  */
+  const photos = allPhotos.filter((p) => p.kind === 'home');
+  const petPhotos = allPhotos.filter((p) => p.kind === 'pet');
   const done = completedSteps({
     hasAbout: Boolean(state.bio && state.dateOfBirth && state.phone),
     hasLocation: Boolean(state.cityId && state.hasExactAddress),
@@ -134,7 +141,10 @@ export default async function OnboardingStepPage({
         <PhotoStep
           locale={locale}
           photos={photos}
+          petPhotos={petPhotos}
           max={MAX_SITTER_PHOTOS}
+          petMax={MAX_PET_PHOTOS}
+          hasOwnPets={state.hasOwnPets}
           avatarUrl={state.avatarUrl ?? null}
           firstName={state.firstName ?? ''}
         />

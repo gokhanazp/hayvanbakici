@@ -33,6 +33,12 @@ export interface AccountSummary {
     citySlugEn: string | null;
     citySlugFr: string | null;
     badgeLevel: number;
+    /**
+     * "Evimde hayvan var" isaretli mi — fotograf adimi bunu soruyor.
+     * Profildeki iddia buna DEGIL, fotografa bagli (bkz. showsOwnPets);
+     * bu alan yalnizca "sana soralim mi" sorusunun cevabi.
+     */
+    hasOwnPets: boolean;
     /** Taslak basvuruda sirada hangi adim var */
     steps: {
       hasAbout: boolean;
@@ -66,7 +72,7 @@ export async function getAccountSummary(
         p.first_name, p.last_name_initial, p.avatar_url,
         s.status::text                          AS sitter_status,
         s.slug                                  AS sitter_slug,
-        s.badge_level,
+        s.badge_level, s.has_own_pets,
         c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
 
         -- onboarding: yalnizca VAR/YOK
@@ -78,8 +84,12 @@ export async function getAccountSummary(
                 WHERE v.sitter_id = u.id AND v.type = 'criminal')                   AS screening_started,
         -- profil fotografi + ev fotograflari: hesap sayfasi "siradaki adim"
         -- derken sihirbazla AYNI sayiyi gormeli
+        -- Hayvan fotografi bu sayiya GIRMIYOR: ilerleme cubugu ev ve
+        -- profil fotografini olcuyor, hayvan fotografi ayri bir iddianin
+        -- dayanagi (bkz. showsOwnPets).
         ((p.avatar_url IS NOT NULL)::int
-         + (SELECT count(*)::int FROM sitter_photos sp WHERE sp.sitter_id = u.id)) AS photo_count,
+         + (SELECT count(*)::int FROM sitter_photos sp
+             WHERE sp.sitter_id = u.id AND sp.kind = 'home'))                       AS photo_count,
 
         -- bugun benden ne bekleniyor
         (SELECT count(*)::int FROM bookings b
@@ -119,6 +129,7 @@ export async function getAccountSummary(
             citySlugEn: (r.city_slug_en as string | null) ?? null,
             citySlugFr: (r.city_slug_fr as string | null) ?? null,
             badgeLevel: Number(r.badge_level ?? 0),
+            hasOwnPets: Boolean(r.has_own_pets),
             steps: {
               hasAbout: Boolean(r.has_about),
               hasLocation: Boolean(r.has_location),
@@ -190,17 +201,21 @@ export async function setAvatar(
   });
 }
 
+export type SitterPhotoKind = 'home' | 'pet';
+
 export interface SitterPhoto {
   id: string;
   url: string;
   alt: string | null;
   sortOrder: number;
+  /** Ev fotografi mi, bakicinin kendi hayvani mi. */
+  kind: SitterPhotoKind;
 }
 
 export async function listSitterPhotos(db: Database, sitterId: string): Promise<SitterPhoto[]> {
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
-      SELECT id::text, url, alt, sort_order FROM sitter_photos
+      SELECT id::text, url, alt, sort_order, kind::text FROM sitter_photos
       WHERE sitter_id = ${sitterId}
       ORDER BY sort_order ASC, created_at ASC
     `);
@@ -209,6 +224,7 @@ export async function listSitterPhotos(db: Database, sitterId: string): Promise<
       url: String(r.url),
       alt: (r.alt as string | null) ?? null,
       sortOrder: Number(r.sort_order ?? 0),
+      kind: String(r.kind) as SitterPhotoKind,
     }));
   });
 }
@@ -216,19 +232,42 @@ export async function listSitterPhotos(db: Database, sitterId: string): Promise<
 /** Bir bakicinin tutabilecegi ev fotografi sayisi. */
 export const MAX_SITTER_PHOTOS = 8;
 
+/**
+ * KENDI HAYVANININ fotograf sayisi — ayri tavan.
+ *
+ * Ev fotograflariyla ayni kovadan saymiyoruz: sekiz ev fotografi
+ * yuklemis bir bakici, hayvanini gosteremez hale gelirdi ve profildeki
+ * "evimde hayvan var" cumlesi artik buna bagli.
+ */
+export const MAX_PET_PHOTOS = 4;
+
 export async function addSitterPhoto(
-  db: Database, input: { sitterId: string; url: string; alt?: string | undefined },
+  db: Database,
+  input: {
+    sitterId: string; url: string; alt?: string | undefined;
+    kind?: SitterPhotoKind | undefined;
+  },
 ): Promise<{ ok: true; id: string } | { ok: false; error: 'too_many' }> {
   return withDbErrors(async () => {
+    /*
+      TAVAN TURE GORE. Iki tur ayni kovadan sayilsaydi sekiz ev
+      fotografi yuklemis bakici hayvanini gosteremezdi — ve profildeki
+      "evimde hayvan var" cumlesi artik fotografa bagli.
+    */
+    const kind: SitterPhotoKind = input.kind ?? 'home';
+    const max = kind === 'pet' ? MAX_PET_PHOTOS : MAX_SITTER_PHOTOS;
+
     const countRows = await db.execute(sql`
-      SELECT count(*)::int AS n FROM sitter_photos WHERE sitter_id = ${input.sitterId}
+      SELECT count(*)::int AS n FROM sitter_photos
+      WHERE sitter_id = ${input.sitterId} AND kind = ${kind}::sitter_photo_kind
     `);
     const n = Number((countRows as unknown as Array<{ n: number }>)[0]?.n ?? 0);
-    if (n >= MAX_SITTER_PHOTOS) return { ok: false as const, error: 'too_many' as const };
+    if (n >= max) return { ok: false as const, error: 'too_many' as const };
 
     const rows = await db.execute(sql`
-      INSERT INTO sitter_photos (sitter_id, url, alt, sort_order)
-      VALUES (${input.sitterId}, ${input.url}, ${input.alt ?? null}, ${n})
+      INSERT INTO sitter_photos (sitter_id, url, alt, sort_order, kind)
+      VALUES (${input.sitterId}, ${input.url}, ${input.alt ?? null}, ${n},
+              ${kind}::sitter_photo_kind)
       RETURNING id::text
     `);
     const id = String((rows as unknown as Array<{ id: string }>)[0]!.id);

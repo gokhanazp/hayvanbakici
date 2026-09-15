@@ -56,6 +56,15 @@ export interface SitterProfile {
   avatarUrl: string | null;
   /** Ev/ortam galerisi — sitter_photos, sirali */
   photos: Array<{ url: string; alt: string | null }>;
+  /**
+   * Bakicinin KENDI hayvanlarinin fotograflari.
+   *
+   * hasOwnPets ile birlikte okunur: sahip, hayvanini baska bir hayvanla
+   * ayni eve koyuyor. "Evimde hayvan var" cumlesini goruyorsa o hayvani
+   * da gorebilmeli — bu yuzden iddia artik fotografa bagli
+   * (bkz. showsOwnPets).
+   */
+  petPhotos: Array<{ url: string; alt: string | null }>;
 
   citySlugEn: string;
   citySlugFr: string;
@@ -77,6 +86,16 @@ export interface SitterProfile {
   hasYard: boolean;
   yardFenced: boolean;
   hasOwnPets: boolean;
+  /**
+   * "Evde hayvan var" cumlesi EKRANDA gosterilsin mi.
+   *
+   * Kutuyu isaretlemek yetmiyor: en az bir hayvan fotografi da olmali.
+   * Dogrulanmamis bir cumle, sahibin en cok onemsedigi konuda
+   * (hayvanim baska bir hayvanla mi kalacak) verilmis bos bir soz
+   * olurdu. Kutuyu isaretleyip fotograf koymayan bakicinin profilinde
+   * bu satir HIC cikmiyor — "hayvan yok" da demiyoruz, cunku bilmiyoruz.
+   */
+  showsOwnPets: boolean;
   smokeFree: boolean;
   maxConcurrentPets: number;
 
@@ -162,14 +181,21 @@ export async function getSitterProfile(
               AND a.date BETWEEN CURRENT_DATE AND CURRENT_DATE + 30) AS open_days
       `),
       db.execute(sql`
-        SELECT url, alt FROM sitter_photos
+        SELECT url, alt, kind::text FROM sitter_photos
         WHERE sitter_id = ${userId}
         ORDER BY sort_order ASC
-        LIMIT 6
+        LIMIT 12
       `),
     ]);
 
     const stats = (statRows as unknown as Array<Record<string, unknown>>)[0] ?? {};
+
+    const allPhotos = (photoRows as unknown as Array<Record<string, unknown>>).map((ph) => ({
+      url: String(ph.url),
+      alt: (ph.alt as string | null) ?? null,
+      kind: String(ph.kind),
+    }));
+    const petPhotos = allPhotos.filter((ph) => ph.kind === 'pet').slice(0, 4);
 
     const first = String(row.first_name ?? '');
     const initial = String(row.last_name_initial ?? '');
@@ -182,10 +208,9 @@ export async function getSitterProfile(
       bio: (row.bio as string | null) ?? null,
       photoInitials: `${first.slice(0, 1)}${initial}`.toUpperCase(),
       avatarUrl: (row.avatar_url as string | null) ?? null,
-      photos: (photoRows as unknown as Array<Record<string, unknown>>).map((ph) => ({
-        url: String(ph.url),
-        alt: (ph.alt as string | null) ?? null,
-      })),
+      photos: allPhotos.filter((ph) => ph.kind === 'home').slice(0, 6)
+        .map(({ url, alt }) => ({ url, alt })),
+      petPhotos: petPhotos.map(({ url, alt }) => ({ url, alt })),
 
       citySlugEn: String(row.city_slug_en),
       citySlugFr: String(row.city_slug_fr),
@@ -209,6 +234,7 @@ export async function getSitterProfile(
       hasYard: Boolean(row.has_yard),
       yardFenced: Boolean(row.yard_fenced),
       hasOwnPets: Boolean(row.has_own_pets),
+      showsOwnPets: Boolean(row.has_own_pets) && petPhotos.length > 0,
       smokeFree: Boolean(row.smoke_free),
       maxConcurrentPets: Number(row.max_concurrent_pets ?? 1),
 

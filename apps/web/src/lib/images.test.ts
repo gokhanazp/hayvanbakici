@@ -114,3 +114,32 @@ describe('depolama anahtari', () => {
     expect(keyFromUrl(null)).toBeNull();
   });
 });
+
+describe('bozuk dosya', () => {
+  it('BASLIGI GECERLI ama govdesi bozuk dosya HATA DONER, patlamaz', async () => {
+    /*
+      Tarayicida yakalandi: boyle bir dosya metadata()'yi geciyor, sonra
+      olcekleme sirasinda "libpng read error" firlatiyordu. Hata
+      yakalanmadigi icin sunucu eylemi 500 veriyor ve kullanici
+      "fotografiniz okunamadi" yerine cokmus bir ekran goruyordu.
+    */
+    const header = Buffer.from('89504e470d0a1a0a', 'hex');
+    const ihdr = Buffer.concat([
+      Buffer.from([0, 0, 0, 13]),
+      Buffer.from('IHDR'),
+      Buffer.from([0, 0, 0, 8, 0, 0, 0, 8, 8, 6, 0, 0, 0]),
+      Buffer.from([0x7a, 0x7a, 0xd4, 0xdd]),
+    ]);
+    const junk = Buffer.alloc(64, 0xab);
+    const broken = Buffer.concat([header, ihdr, junk]);
+
+    const res = await processImage(broken, 'avatar');
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe('not_an_image');
+  });
+
+  it('gorsel olmayan dosya da hata doner', async () => {
+    const res = await processImage(Buffer.from('bu bir metin dosyasi'), 'home');
+    expect(res.ok).toBe(false);
+  });
+});
