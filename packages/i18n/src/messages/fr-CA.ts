@@ -633,6 +633,7 @@ export const frCA = {
     reviewCount: '{count} \u00e9valuations \u00b7 {rating} en moyenne',
     response: 'R\u00e9ponse de {name}',
     bookCta: 'Demander une r\u00e9servation',
+    bookAria: 'Demander une r\u00e9servation aupr\u00e8s de {name}',
     messageCta: 'Poser une question d\u2019abord',
     priceFrom: '\u00c0 partir de {price}',
     feeNote: 'Vous verrez le prix complet — nos frais et les taxes inclus — avant de confirmer quoi que ce soit.',

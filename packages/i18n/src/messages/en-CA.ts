@@ -635,6 +635,7 @@ export const enCA = {
     reviewCount: '{count} reviews · {rating} average',
     response: 'Reply from {name}',
     bookCta: 'Request a booking',
+    bookAria: 'Request a booking with {name}',
     messageCta: 'Ask a question first',
     priceFrom: 'From {price}',
     feeNote: 'You will see the full price — our fee and taxes included — before you confirm anything.',

@@ -1015,6 +1015,56 @@ a { color: inherit; text-decoration: none; }
 @media (min-width: 1000px) { .sitter-aside { position: sticky; top: calc(72px + var(--space-6)); } }
 .sitter-book { display: grid; gap: var(--space-4); }
 
+/*
+  TELEFONDA SABIT REZERVASYON CUBUGU.
+
+  1000px ustunde sag sutun zaten yapiskan; altinda o sutun sayfanin en
+  dibine dusuyor ve fiyat ile "Rezervasyon iste" ekranlarca asagida
+  kaliyordu. Bu kategoride alt cubuk standart.
+
+  Yalnizca kucuk ekranda cizilir. `display: none` ile gizlemek yetmez:
+  gizli de olsa DOM'da duran ikinci bir "Rezervasyon iste" baglantisi
+  ekran okuyucuda iki kez okunurdu — o yuzden ayni baglanti METNI degil,
+  aria-label ile ayirt ediliyor.
+*/
+.book-bar { display: none; }
+
+@media (max-width: 999px) {
+  .book-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    z-index: 150;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    /* Telefonun alt cubugu (home indicator) icin pay */
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 20px rgb(0 0 0 / .08);
+  }
+  .book-bar-price {
+    margin: 0; min-width: 0;
+    display: flex; flex-direction: column; line-height: 1.2;
+  }
+  .book-bar-price > span { white-space: nowrap; }
+  .book-bar .btn { flex: 0 0 auto; white-space: nowrap; }
+
+  /*
+    Sayfanin son satiri cubugun altinda kalmasin. Cubuk ~72px;
+    guvenli alan payi ayrica ekleniyor.
+  */
+  .has-book-bar { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+
+  /*
+    Sohbet balonu cubugun ustune cikiyor. :has() ile yalnizca cubugun
+    BULUNDUGU sayfalarda kaldiriliyor — diger sayfalarda balon yerinde
+    kaliyor.
+  */
+  body:has(.book-bar) .chat-dock:not([data-open='true']) {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ============================================================
    BOLUM BANTLARI
 

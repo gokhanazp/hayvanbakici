@@ -165,7 +165,7 @@ export default async function SitterPage({
         </div>
       </section>
 
-      <section className="container sitter-page">
+      <section className="container sitter-page has-book-bar">
         <div className="sitter-main">
           {/* Ev fotograflari — sahiplerin ilk sorusu "kopegim nerede kalacak" */}
           <SitterGallery locale={locale} photos={sitter.photos} name={sitter.firstName} />
@@ -346,6 +346,41 @@ export default async function SitterPage({
           </div>
         </aside>
       </section>
+
+      {/*
+        TELEFONDA ALT CUBUK.
+
+        Sag sutun 1000px altinda sayfanin en dibine dusuyor: fiyat ve
+        "Rezervasyon iste" ekranlarca asagida kaliyordu. Cubuk yalnizca
+        kucuk ekranda cizilir (CSS), fiyat sag sutundaki ile AYNI
+        kaynaktan (cheapest) geliyor — iki yerde iki rakam gorunmesin.
+
+        aria-label ile ayirt ediliyor: ayni sayfada iki tane
+        "Rezervasyon iste" baglantisi var ve ekran okuyucu kullanan biri
+        hangisinin ne oldugunu bilmeli.
+      */}
+      {cheapest && (
+        <div className="book-bar">
+          {/*
+            Fiyat ve birim AYRI satirlarda: tek satirda "31,00 $ / promenade"
+            390px'de sariyor ve bolu isareti satir sonunda tek basina
+            kaliyordu. Birim kendi icinde bolunmuyor (nowrap).
+          */}
+          <p className="book-bar-price">
+            <span className="text-h4">{money(cheapest.priceCents, locale)}</span>
+            <span className="dim text-body-sm">
+              / {m.unit[SERVICES[cheapest.serviceType].unit]}
+            </span>
+          </p>
+          <Link
+            href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/sitter/${sitter.slug}/book/`}
+            className="btn btn-primary"
+            aria-label={interpolate(m.sitter.bookAria, { name: sitter.firstName })}
+          >
+            {m.sitter.bookCta}
+          </Link>
+        </div>
+      )}
 
       <script
         type="application/ld+json"
