@@ -215,6 +215,8 @@ export const enCA = {
     birakacagi evi gormesi, bakiciyi secerken bakilan ilk seylerden biri.
   */
   profile: {
+    notifyMessages: 'Email me when someone sends me a message',
+    notifyMessagesHint: 'Booking emails — a new request, an answer, a cancellation — always arrive. Those are how the booking works, so they cannot be turned off.',
     title: 'Your profile',
     lead: 'What sitters and owners see when they meet you on Havre.',
     tab: 'Profile',

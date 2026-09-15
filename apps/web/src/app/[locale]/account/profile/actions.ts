@@ -5,6 +5,7 @@ import { isLocale } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import {
   setAvatar, addSitterPhoto, deleteSitterPhoto, updateProfile, getSitterStatus,
+  setMessageEmails,
 } from '@/lib/data';
 import { getStorage, keyFromUrl } from '@/lib/storage';
 import { processImage, MAX_UPLOAD_BYTES, type Preset } from '@/lib/images';
@@ -138,6 +139,10 @@ export async function saveProfileAction(
     lastNameInitial: initialRaw.toUpperCase(),
     locale,
   });
+
+  /* Isaretlenmemis onay kutusu FormData'ya HIC girmez — yoklugu "kapali"
+     demek, "degistirme" demek degil. */
+  await setMessageEmails(session.user.id, form.get('notifyMessages') !== null);
 
   revalidatePath('/', 'layout');
   return { done: 'profile' };

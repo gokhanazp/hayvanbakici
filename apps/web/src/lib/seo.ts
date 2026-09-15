@@ -11,8 +11,17 @@ import { evaluateIndexability } from '@havre/core';
 import { LOCALES, segmentFor, serviceSlug, type Locale } from '@havre/i18n';
 import { citySlug, type CityRecord } from './data';
 
+/*
+  SITENIN ADRESI.
+
+  Gelistirmede varsayilan localhost: bildirim e-postalarindaki
+  baglantilar aksi halde havre.ca'ya gidiyordu ve yerelde
+  denenemiyordu. Uretimde NEXT_PUBLIC_SITE_URL zorunlu degil ama
+  tanimliysa o kazanir; tanimli degilse canli adres.
+*/
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://havre.ca';
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  ?? (process.env.NODE_ENV === 'production' ? 'https://havre.ca' : 'http://localhost:3000');
 
 export function urlFor(locale: Locale, ...segments: string[]): string {
   const path = segments.filter(Boolean).join('/');

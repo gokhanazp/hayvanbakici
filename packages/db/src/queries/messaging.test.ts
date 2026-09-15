@@ -4,6 +4,7 @@ import { getDb } from '../client.js';
 import {
   openConversation, sendMessage, listConversations, getThread, markRead,
   unreadCount, getRawMessage, reportableMessage, conversationPing,
+  messageTarget, setMessageEmails,
   MAX_MESSAGE, NEW_THREAD_LIMIT,
 } from './messaging.js';
 
@@ -246,5 +247,57 @@ describe('yoklama (ping)', () => {
     const res = await conversationPing(db, ownerId);
     expect(res.lastAt).toBeNull();
     expect(typeof res.unread).toBe('number');
+  });
+});
+
+/*
+  BILDIRIM HEDEFI.
+
+  Verilen soz: yazisma sirasinda her satir icin e-posta GITMEZ.
+  Kural, okunmamis kutusu bosken gelen ILK mesajin bildirim uretmesi;
+  sonrakiler kisi zaten haberdarken gelir.
+*/
+describe('bildirim hedefi', () => {
+  it('aliciyi ve gondereni dogru veriyor', async () => {
+    await markRead(db, conversationId, ownerId);
+    const sent = await sendMessage(db, { conversationId, senderId: sitterId, body: 'Hedef testi' });
+    expect(sent.ok).toBe(true);
+
+    const t = await messageTarget(db, sent.ok ? sent.value.id : '');
+    expect(t?.recipientId).toBe(ownerId);
+    expect(t?.senderName).toBeTruthy();
+    expect(t?.wantsEmail).toBe(true);
+  });
+
+  it('ILK okunmamis mesaj bildirim uretir, sonrakiler ETMEZ', async () => {
+    await markRead(db, conversationId, ownerId);
+
+    const first = await sendMessage(db, { conversationId, senderId: sitterId, body: 'Birinci' });
+    const t1 = await messageTarget(db, first.ok ? first.value.id : '');
+    expect(t1?.hadUnreadBefore).toBe(false);
+
+    const second = await sendMessage(db, { conversationId, senderId: sitterId, body: 'Ikinci' });
+    const t2 = await messageTarget(db, second.ok ? second.value.id : '');
+    expect(t2?.hadUnreadBefore).toBe(true);
+
+    // Okununca sayac sifirlaniyor: bir sonraki mesaj yine bildirim uretir
+    await markRead(db, conversationId, ownerId);
+    const third = await sendMessage(db, { conversationId, senderId: sitterId, body: 'Ucuncu' });
+    const t3 = await messageTarget(db, third.ok ? third.value.id : '');
+    expect(t3?.hadUnreadBefore).toBe(false);
+  });
+
+  it('alici bildirimi kapattiysa bu OKUNUYOR', async () => {
+    await setMessageEmails(db, ownerId, false);
+    await markRead(db, conversationId, ownerId);
+    const sent = await sendMessage(db, { conversationId, senderId: sitterId, body: 'Kapali' });
+    const t = await messageTarget(db, sent.ok ? sent.value.id : '');
+    expect(t?.wantsEmail).toBe(false);
+
+    await setMessageEmails(db, ownerId, true);
+  });
+
+  it('olmayan mesaj icin null', async () => {
+    expect(await messageTarget(db, '00000000-0000-0000-0000-000000000000')).toBeNull();
   });
 });

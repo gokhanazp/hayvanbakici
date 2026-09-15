@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import type { ServiceType } from '@havre/core';
 import { getSession } from '@/lib/auth';
 import { createBookingRequest, createPet } from '@/lib/data';
+import { notifyNewRequest } from '@/lib/notify';
 
 export type RequestState = { error?: string | undefined };
 
@@ -60,6 +61,14 @@ export async function requestBookingAction(
     ...(notes ? { specialInstructions: notes } : {}),
   });
   if (!res.ok) return { error: res.error };
+
+  /*
+    Bakiciya haber ver. AWAIT EDILIYOR ama gonderimin kendisi
+    ateşle-unut (bkz. lib/notify.ts): burada beklenen yalnizca alici
+    bilgisini okuyan sorgu, e-posta cagrisi degil. Talep kaydedildi
+    bile olsa bir e-posta hatasi kullaniciya hata gostermemeli.
+  */
+  await notifyNewRequest(res.bookingId).catch(() => undefined);
 
   redirect(`/${locale}/account/bookings/${res.bookingId}/`);
 }

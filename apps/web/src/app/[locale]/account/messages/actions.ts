@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { sendMessage, openConversation, reportableMessage, createReport } from '@/lib/data';
 import { segmentFor, type Locale } from '@havre/i18n';
+import { notifyNewMessage } from '@/lib/notify';
 
 export type MessageState = {
   error?: string | undefined;
@@ -32,6 +33,12 @@ export async function sendMessageAction(
 
   const res = await sendMessage({ conversationId, senderId: session.user.id, body });
   if (!res.ok) return { error: res.error };
+
+  /*
+    Aliciya haber ver. Iki kapi notify icinde: alici mesaj e-postasi
+    istemiyorsa ve zaten okunmamis mesaji varsa gitmez (bkz. notify.ts).
+  */
+  await notifyNewMessage(res.value.id, conversationId).catch(() => undefined);
 
   revalidatePath(`/${seg}/account/messages/${conversationId}/`);
   revalidatePath(`/${seg}/account/messages/`);
@@ -69,6 +76,9 @@ export async function askSitterAction(
     conversationId: conv.value, senderId: session.user.id, body,
   });
   if (!sent.ok) return { error: sent.error };
+
+  // Profilden gelen ilk soru: bakicinin bunu gormesi isin tamami
+  await notifyNewMessage(sent.value.id, conv.value).catch(() => undefined);
 
   const seg = segmentFor(locale);
   revalidatePath(`/${seg}/account/messages/`);

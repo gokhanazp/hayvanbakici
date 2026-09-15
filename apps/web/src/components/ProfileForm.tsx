@@ -16,12 +16,14 @@ import type { UploadState } from '@/app/[locale]/account/profile/actions';
  * Dil secimi hesabin dili: e-postalar bu dilde gidiyor (Bill 96).
  */
 export function ProfileForm({
-  locale, firstName, lastNameInitial, locales, action,
+  locale, firstName, lastNameInitial, locales, notifyMessages, action,
 }: {
   locale: Locale;
   firstName: string;
   lastNameInitial: string;
   locales: readonly Locale[];
+  /** Yeni mesaj e-postasi istiyor mu (users.notify_messages) */
+  notifyMessages: boolean;
   action: (prev: UploadState, form: FormData) => Promise<UploadState>;
 }) {
   const m = getMessages(locale);
@@ -31,6 +33,7 @@ export function ProfileForm({
   const [name, setName] = useState(firstName);
   const [initial, setInitial] = useState(lastNameInitial);
   const [lang, setLang] = useState<string>(locale);
+  const [notify, setNotify] = useState(notifyMessages);
 
   const text = (k: string) =>
     (m.profile[k as keyof Messages['profile']] as string | undefined) ?? k;
@@ -68,6 +71,27 @@ export function ProfileForm({
             value: l, label: l === 'fr-CA' ? 'Français' : 'English',
           }))}
         />
+      </div>
+
+      {/*
+        BILDIRIM TERCIHI.
+
+        Yalnizca MESAJ e-postalari kapatilabiliyor. Rezervasyon
+        bildirimleri (talep geldi, kabul edildi, iptal) islemsel ve
+        kapatilamiyor — karsi taraf bir sey bekliyorken haber vermemek
+        hizmetin kendisini bozar. Bu, kutunun altinda yaziyor.
+      */}
+      <div className="checkbox-row" style={{ marginTop: 'var(--space-2)' }}>
+        <input
+          id="notifyMessages" type="checkbox" name="notifyMessages"
+          checked={notify} onChange={(e) => setNotify(e.target.checked)}
+        />
+        <span>
+          <label htmlFor="notifyMessages">{m.profile.notifyMessages}</label>
+          <span className="field-hint" style={{ display: 'block' }}>
+            {m.profile.notifyMessagesHint}
+          </span>
+        </span>
       </div>
 
       <button type="submit" className="btn btn-primary" disabled={busy}>

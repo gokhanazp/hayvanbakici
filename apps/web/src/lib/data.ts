@@ -29,6 +29,7 @@ import {
   listConversations as dbListConversations, getThread as dbGetThread,
   markRead as dbMarkRead, unreadCount as dbUnreadCount, getRawMessage as dbGetRawMessage,
   reportableMessage as dbReportableMessage, conversationPing as dbConversationPing,
+  setMessageEmails as dbSetMessageEmails,
   getAccountSummary as dbGetAccountSummary,
   getSitterStatus as dbGetSitterStatus, setAvatar as dbSetAvatar,
   getSitterDashboard as dbGetSitterDashboard,
@@ -219,6 +220,8 @@ export const getRawMessage = (messageId: string) => dbGetRawMessage(db(), messag
 /* ------------------------------------------------------------ hesap */
 export const getAccountSummary = (userId: string) => dbGetAccountSummary(db(), userId);
 export const getSitterStatus = (userId: string) => dbGetSitterStatus(db(), userId);
+/** Hesap ayari: yeni mesaj e-postalarini ac/kapat. */
+export const setMessageEmails = (userId: string, on: boolean) => dbSetMessageEmails(db(), userId, on);
 /** Bakici panosu: durum, profil gucu, acik gun, anlasilan tutarlar. */
 export const getSitterDashboard = (userId: string) => dbGetSitterDashboard(db(), userId);
 export const setAvatar = (userId: string, url: string | null) => dbSetAvatar(db(), userId, url);

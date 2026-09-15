@@ -91,6 +91,7 @@ export default async function ProfilePage({
             firstName={me.firstName ?? ''}
             lastNameInitial={me.lastNameInitial ?? ''}
             locales={LOCALES as readonly Locale[]}
+            notifyMessages={me.notifyMessages}
             action={saveProfileAction}
           />
         </section>

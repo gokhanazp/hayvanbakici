@@ -42,6 +42,19 @@ export const users = pgTable(
     phoneVerifiedAt: timestamp('phone_verified_at', { withTimezone: true }),
     locale: localeEnum('locale').notNull().default('en-CA'),
     role: userRoleEnum('role').notNull().default('owner'),
+
+    /**
+     * YENI MESAJ BILDIRIMI — kapatilabilir.
+     *
+     * Rezervasyon bildirimleri (talep geldi, kabul edildi, iptal) ISLEMSEL
+     * ve kapatilamiyor: karsi taraf bir sey bekliyorken haber vermemek
+     * hizmetin kendisini bozar. Mesaj bildirimi ise en cok gelen tur ve
+     * CASL acisindan da kapatma hakki vermek dogru.
+     *
+     * Varsayilan ACIK: kapali varsayilan, mesajlasmayi olu bir kutuya
+     * cevirirdi.
+     */
+    notifyMessages: boolean('notify_messages').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),

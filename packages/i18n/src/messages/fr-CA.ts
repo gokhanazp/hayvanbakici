@@ -212,6 +212,8 @@ export const frCA = {
     'error.self': 'Vous ne pouvez pas vous écrire à vous-même.',
   },
   profile: {
+    notifyMessages: 'M\u2019envoyer un courriel quand on m\u2019\u00e9crit',
+    notifyMessagesHint: 'Les courriels de r\u00e9servation \u2014 nouvelle demande, r\u00e9ponse, annulation \u2014 arrivent toujours. C\u2019est ainsi que la r\u00e9servation fonctionne : ils ne peuvent pas \u00eatre d\u00e9sactiv\u00e9s.',
     title: 'Votre profil',
     lead: 'Ce que les propriétaires et les gardiens voient de vous sur Havre.',
     tab: 'Profil',

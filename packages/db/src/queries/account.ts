@@ -25,6 +25,8 @@ export interface AccountSummary {
   avatarUrl: string | null;
   /** Askidaki kullanici bunu EKRANDA gormeli; sessizce kisitlanmak kotu */
   suspended: boolean;
+  /** Yeni mesaj e-postasi istiyor mu — profil ekranindaki kutu */
+  notifyMessages: boolean;
   sitter: {
     status: 'draft' | 'pending' | 'active' | 'deactivated';
     slug: string | null;
@@ -60,6 +62,7 @@ export async function getAccountSummary(
       SELECT
         u.email,
         (u.suspended_at IS NOT NULL)            AS suspended,
+        u.notify_messages                       AS notify_messages,
         p.first_name, p.last_name_initial, p.avatar_url,
         s.status::text                          AS sitter_status,
         s.slug                                  AS sitter_slug,
@@ -108,6 +111,7 @@ export async function getAccountSummary(
       lastNameInitial: (r.last_name_initial as string | null) ?? null,
       avatarUrl: (r.avatar_url as string | null) ?? null,
       suspended: Boolean(r.suspended),
+      notifyMessages: Boolean(r.notify_messages),
       sitter: status
         ? {
             status: String(status) as 'draft' | 'pending' | 'active' | 'deactivated',

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { respondToRequest, cancelBooking, getBooking, openConversation } from '@/lib/data';
+import { notifyRequestAnswered, notifyCancelled } from '@/lib/notify';
 
 /**
  * Rezervasyon eylemleri.
@@ -27,6 +28,9 @@ export async function respondAction(
   const res = await respondToRequest(id, session.user.id, decision);
   if (!res.ok) return { error: res.error };
 
+  // Sahibe haber ver — e-posta hatasi cevabi geri almamali
+  await notifyRequestAnswered(id, decision === 'confirmed').catch(() => undefined);
+
   revalidatePath(`/${String(formData.get('locale') ?? 'en')}/account/bookings/${id}/`);
   return {};
 }
@@ -38,8 +42,19 @@ export async function cancelAction(
   if (!session) return { error: 'not_allowed' };
 
   const id = String(formData.get('id') ?? '');
+
+  /*
+    Iptali KIMIN yaptigini iptalden ONCE ogreniyoruz: e-posta karsi
+    tarafa gidecek ve "siz iptal ettiniz" diye kendi kendine bildirim
+    gonderilmemeli.
+  */
+  const before = await getBooking(id, session.user.id, 'en-CA');
   const res = await cancelBooking(id, session.user.id);
   if (!res.ok) return { error: res.error };
+
+  if (before) {
+    await notifyCancelled(id, before.viewerRole).catch(() => undefined);
+  }
 
   revalidatePath(`/${String(formData.get('locale') ?? 'en')}/account/bookings/${id}/`);
   return {};

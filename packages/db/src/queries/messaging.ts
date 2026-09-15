@@ -478,3 +478,75 @@ export async function conversationPing(
     };
   });
 }
+
+/* ---------------------------------------------- bildirim hedefleri */
+
+export interface MessageTarget {
+  recipientId: string;
+  recipientEmail: string;
+  recipientLocale: 'en-CA' | 'fr-CA';
+  /** Gonderenin adi — tam soyad DEGIL */
+  senderName: string;
+  /** Alici mesaj e-postasi istiyor mu (users.notify_messages) */
+  wantsEmail: boolean;
+  /**
+   * Bu mesajdan ONCE aliciya okunmamis mesaj var miydi.
+   *
+   * Karsilikli yazisma sirasinda her mesaj icin e-posta gondermek
+   * bildirim yagmuru demek. Kural: yalnizca okunmamis kutusu BOSKEN
+   * gelen ilk mesaj e-posta uretir; okunmamis birikmisse kisi zaten
+   * haberdar.
+   */
+  hadUnreadBefore: boolean;
+}
+
+export async function messageTarget(
+  db: Database, messageId: string,
+): Promise<MessageTarget | null> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT
+        r.id::text            AS recipient_id,
+        r.email               AS recipient_email,
+        r.locale::text        AS recipient_locale,
+        r.notify_messages     AS wants_email,
+        sp.first_name         AS sender_name,
+        EXISTS (
+          SELECT 1 FROM messages other
+           WHERE other.conversation_id = msg.conversation_id
+             AND other.id <> msg.id
+             AND other.sender_id = msg.sender_id
+             AND other.read_at IS NULL
+        )                     AS had_unread_before
+      FROM messages msg
+      JOIN conversations cv ON cv.id = msg.conversation_id
+      JOIN users r
+        ON r.id = CASE WHEN cv.owner_id = msg.sender_id THEN cv.sitter_id ELSE cv.owner_id END
+      LEFT JOIN profiles sp ON sp.user_id = msg.sender_id
+      WHERE msg.id = ${messageId}
+        AND r.deleted_at IS NULL
+        AND r.suspended_at IS NULL
+      LIMIT 1
+    `);
+    const r = (rows as unknown as Array<Record<string, unknown>>)[0];
+    if (!r) return null;
+
+    return {
+      recipientId: String(r.recipient_id),
+      recipientEmail: String(r.recipient_email),
+      recipientLocale: String(r.recipient_locale) as 'en-CA' | 'fr-CA',
+      senderName: (r.sender_name as string | null) ?? 'Havre',
+      wantsEmail: Boolean(r.wants_email),
+      hadUnreadBefore: Boolean(r.had_unread_before),
+    };
+  });
+}
+
+/** Hesap ayari: mesaj bildirimlerini ac/kapat. */
+export async function setMessageEmails(
+  db: Database, userId: string, on: boolean,
+): Promise<void> {
+  await withDbErrors(() => db.execute(sql`
+    UPDATE users SET notify_messages = ${on}, updated_at = now() WHERE id = ${userId}
+  `));
+}

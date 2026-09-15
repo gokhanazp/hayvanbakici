@@ -580,3 +580,78 @@ export async function isSitter(db: Database, userId: string): Promise<boolean> {
     return (rows as unknown as unknown[]).length > 0;
   });
 }
+
+/* ---------------------------------------------- bildirim hedefleri */
+
+export interface BookingParty {
+  email: string;
+  locale: 'en-CA' | 'fr-CA';
+  /** Karsi tarafin adi — bu kisiye "kim" diye gosterilecek olan */
+  counterpartName: string;
+}
+
+export interface BookingNotifyData {
+  serviceType: string;
+  startAt: string;
+  endAt: string;
+  owner: BookingParty;
+  sitter: BookingParty;
+}
+
+/**
+ * BILDIRIM ICIN GEREKEN EN AZ VERI.
+ *
+ * Rezervasyon detay sorgusu (getBookingForViewer) bir BAKAN KISI
+ * istiyor ve fiyat dokumunu de getiriyor; bildirim gonderirken bakan
+ * kimse yok ve fiyat lazim degil. Ayri ve dar bir sorgu, e-postaya
+ * yanlislikla fazla veri sizmasini da engelliyor.
+ *
+ * Askiya alinmis ya da silinmis hesaba e-posta gitmiyor: bos string
+ * dondurmek yerine tarafi olduğu gibi veriyoruz, gonderme karari
+ * cagiranda (bkz. apps/web/src/lib/notify.ts).
+ */
+export async function bookingNotifyData(
+  db: Database, bookingId: string,
+): Promise<BookingNotifyData | null> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT
+        b.service_type::text AS service_type,
+        b.start_at, b.end_at,
+        ou.email AS owner_email, ou.locale::text AS owner_locale,
+        op.first_name AS owner_name,
+        (ou.deleted_at IS NULL AND ou.suspended_at IS NULL) AS owner_reachable,
+        su.email AS sitter_email, su.locale::text AS sitter_locale,
+        sp.first_name AS sitter_name,
+        (su.deleted_at IS NULL AND su.suspended_at IS NULL) AS sitter_reachable
+      FROM bookings b
+      JOIN users ou ON ou.id = b.owner_id
+      JOIN users su ON su.id = b.sitter_id
+      LEFT JOIN profiles op ON op.user_id = ou.id
+      LEFT JOIN profiles sp ON sp.user_id = su.id
+      WHERE b.id = ${bookingId}
+      LIMIT 1
+    `);
+    const r = (rows as unknown as Array<Record<string, unknown>>)[0];
+    if (!r) return null;
+
+    const iso = (v: unknown) => new Date(v as string).toISOString();
+
+    return {
+      serviceType: String(r.service_type),
+      startAt: iso(r.start_at),
+      endAt: iso(r.end_at),
+      owner: {
+        // Ulasilamayan hesaba bos e-posta: cagiran taraf bunu atliyor
+        email: r.owner_reachable ? String(r.owner_email) : '',
+        locale: String(r.owner_locale) as 'en-CA' | 'fr-CA',
+        counterpartName: (r.sitter_name as string | null) ?? 'Havre',
+      },
+      sitter: {
+        email: r.sitter_reachable ? String(r.sitter_email) : '',
+        locale: String(r.sitter_locale) as 'en-CA' | 'fr-CA',
+        counterpartName: (r.owner_name as string | null) ?? 'Havre',
+      },
+    };
+  });
+}
