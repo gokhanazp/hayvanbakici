@@ -115,6 +115,8 @@ export const frCA = {
     quickPets: 'Animaux enregistrés',
     nothingWaiting: 'Rien ne vous attend pour le moment.',
     adminPanel: 'Panneau admin',
+    groupOwner: 'Votre compte',
+    groupSitter: 'Garde',
 
     /* --- Tableau de bord du gardien (P1-5) --- */
     dashTitle: 'Votre garde',

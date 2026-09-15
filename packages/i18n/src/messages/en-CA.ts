@@ -108,6 +108,8 @@ export const enCA = {
     quickPets: 'Pets on file',
     nothingWaiting: 'Nothing is waiting for you right now.',
     adminPanel: 'Admin',
+    groupOwner: 'Your account',
+    groupSitter: 'Sitting',
 
     /* --- Bakici panosu (P1-5) --- */
     dashTitle: 'Your sitting',

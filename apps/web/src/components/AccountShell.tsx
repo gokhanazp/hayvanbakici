@@ -33,7 +33,18 @@ export function AccountShell({
   const m = getMessages(locale);
   const seg = segmentFor(locale);
 
-  const tabs = [
+  /*
+    SEKMELER IKI GRUPTA.
+
+    Onayli bir bakicida yedi sekme tek sirada duruyordu ve sahip isleri
+    ile bakici isleri birbirine karisiyordu: "Rezervasyonlarim" (kendi
+    hayvanim icin aldiklarim) ile "Pano" (bana gelen talepler) yan yana,
+    ayirt edilemez halde. Ayni sira korunuyor — dikey menuye gecmek
+    hesap sayfalarinin duzenini bastan kurmak demekti — ama gruplar
+    gorsel olarak ve EKRAN OKUYUCUDA ayriliyor: her grubun kendi
+    baslikli <nav>'i var.
+  */
+  const ownerTabs = [
     { key: 'overview' as const, href: `/${seg}/account/`, label: m.account.overview },
     { key: 'profile' as const, href: `/${seg}/account/profile/`, label: m.profile.tab },
     { key: 'bookings' as const, href: `/${seg}/account/bookings/`, label: m.account.myBookings },
@@ -47,20 +58,24 @@ export function AccountShell({
       */
       label: unread > 0 ? `${m.messages.tab} (${unread})` : m.messages.tab,
     },
-    /*
-      TASLAK BASVURUDA bakici sekmeleri YOK. Kayit var diye "Talepler" ve
-      "Takvim" gostermek, henuz gonderilmemis bir basvuruyu bitmis gibi
-      gosteriyordu — kullanicinin "ben bakici miyim?" sorusunun
-      kaynaklarindan biri buydu. Basvuru gonderildikten sonra geliyorlar.
-    */
-    ...(isSitter && sitterStatus !== 'draft'
-      ? [
-          /* Sekme adi artik "Talepler" degil: sayfa panoya dondu ve
-             talep listesi onun bir bolumu. */
-          { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.dashTitle },
-          { key: 'calendar' as const, href: `/${seg}/account/sitter/calendar/`, label: m.account.calendar },
-        ]
-      : []),
+  ];
+
+  /*
+    TASLAK BASVURUDA bakici sekmeleri YOK. Kayit var diye "Pano" ve
+    "Takvim" gostermek, henuz gonderilmemis bir basvuruyu bitmis gibi
+    gosteriyordu — kullanicinin "ben bakici miyim?" sorusunun
+    kaynaklarindan biri buydu.
+  */
+  const sitterTabs = isSitter && sitterStatus !== 'draft'
+    ? [
+        /* Sekme adi artik "Talepler" degil: sayfa panoya dondu ve
+           talep listesi onun bir bolumu. */
+        { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.dashTitle },
+        { key: 'calendar' as const, href: `/${seg}/account/sitter/calendar/`, label: m.account.calendar },
+      ]
+    : [];
+
+  const adminTabs = [
     /*
       YONETICI PANELI — yalnizca admin hesaplarda.
 
@@ -87,18 +102,18 @@ export function AccountShell({
               {lead}
             </p>
           )}
-          <nav className="account-tabs" aria-label={m.account.title}>
-            {tabs.map((t) => (
-              <Link
-                key={t.key}
-                href={t.href}
-                className={`account-tab${t.key === active ? ' is-active' : ''}`}
-                aria-current={t.key === active ? 'page' : undefined}
-              >
-                {t.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="account-navs">
+            <TabGroup
+              label={m.account.groupOwner} tabs={ownerTabs} active={active}
+              showLabel={sitterTabs.length > 0}
+            />
+            {sitterTabs.length > 0 && (
+              <TabGroup label={m.account.groupSitter} tabs={sitterTabs} active={active} showLabel />
+            )}
+            {adminTabs.length > 0 && (
+              <TabGroup label={m.account.adminPanel} tabs={adminTabs} active={active} showLabel={false} />
+            )}
+          </div>
         </div>
       </section>
 
@@ -134,6 +149,41 @@ const ROLE_TONE: Record<string, { bg: string; fg: string; dot?: string }> = {
  * Bakici kaydi olmayan icin de ciziliyor ("Sahip") — yalnizca bakiciya
  * rozet vermek, sahibi rozetsiz birakip ayni belirsizligi surdururdu.
  */
+/**
+ * BIR SEKME GRUBU.
+ *
+ * Grubun basligi yalnizca BIRDEN FAZLA grup varken ciziliyor: sahip
+ * hesabinda tek sira var ve ustune "Hesabiniz" yazmak bos gurultu.
+ * Ekran okuyucu icin baslik HER ZAMAN var (aria-label) — gorsel baslik
+ * gizlendiginde de gruplarin nerede ayrildigi duyuluyor.
+ */
+function TabGroup({
+  label, tabs, active, showLabel,
+}: {
+  label: string;
+  tabs: ReadonlyArray<{ key: string; href: string; label: string }>;
+  active: string;
+  showLabel: boolean;
+}) {
+  return (
+    <nav className="account-tab-group" aria-label={label}>
+      {showLabel && <span className="account-group-label" aria-hidden="true">{label}</span>}
+      <div className="account-tabs">
+        {tabs.map((t) => (
+          <Link
+            key={t.key}
+            href={t.href}
+            className={`account-tab${t.key === active ? ' is-active' : ''}`}
+            aria-current={t.key === active ? 'page' : undefined}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function RoleBadge({
   locale, isSitter, status,
 }: {
