@@ -57,10 +57,10 @@ export default async function HowItWorksPage({ params }: { params: Promise<{ loc
       ),
     },
     {
-      h: t('5. Updates while you are away', '5. Des nouvelles pendant votre absence'),
+      h: t('5. Staying in touch', '5. Rester en contact'),
       p: t(
-        'Photos and messages stay inside Havre, so the whole booking is in one place. Vaccination records are recorded before the first stay, for your pet and for every other pet in that home.',
-        'Les photos et les messages restent dans Havre : toute la réservation est au même endroit. Les carnets de vaccination sont enregistrés avant le premier séjour, pour votre animal et pour tous les autres animaux présents.',
+        'Messages stay inside Havre, so the whole booking is in one place — you can write to a sitter before you book and while you are away. Photo updates and vaccination records are coming with the Toronto launch.',
+        'Les messages restent dans Havre : toute la réservation est au même endroit — vous pouvez écrire à un gardien avant de réserver et pendant votre absence. Les photos et les carnets de vaccination arriveront avec le lancement à Toronto.',
       ),
     },
     {

@@ -1448,6 +1448,137 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
 }
 
+/* ---------- Sag alttaki sohbet ---------- */
+
+/*
+  BALON HER SAYFADA. Kullanici bakicilara bakarken sohbeti acik
+  tutabilsin diye sabit konumda; yazdirma ciktisinda ve dar ekranda
+  davranisi asagida.
+
+  z-index: site basligi 100'de. Sohbet onun da ustunde olmali, cunku
+  kullanici sohbeti acikken sayfayi kaydirmaya devam ediyor.
+*/
+.chat-dock {
+  position: fixed; right: var(--space-5); bottom: var(--space-5);
+  z-index: 200; display: flex; flex-direction: column; align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.chat-launcher {
+  position: relative;
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 0; cursor: pointer;
+  background: var(--color-ink); color: var(--color-canvas);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgb(0 0 0 / .22);
+  transition: transform var(--duration-standard) var(--easing-standard);
+}
+.chat-launcher:hover { transform: translateY(-2px); }
+.chat-launcher-badge {
+  position: absolute; top: -2px; right: -2px;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  display: grid; place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--color-primary); color: var(--color-primary-on);
+  font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  border: 2px solid var(--color-canvas);
+}
+
+.chat-panel {
+  width: min(22rem, calc(100vw - var(--space-8)));
+  height: min(30rem, calc(100vh - 8rem));
+  display: grid; grid-template-rows: auto auto 1fr auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgb(0 0 0 / .18);
+  overflow: hidden;
+}
+/* Yazisma gorunumunde arama kutusu yok: uc satir kaliyor. */
+.chat-panel:has(.chat-composer) { grid-template-rows: auto 1fr auto; }
+
+.chat-panel-head {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.chat-title { font-weight: 600; flex: 1; min-width: 0; }
+.chat-icon-btn {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; flex: 0 0 auto;
+  border: 0; background: none; cursor: pointer; border-radius: var(--radius-sm);
+  color: var(--color-ink-secondary);
+}
+.chat-icon-btn:hover { background: var(--color-surface-sunken); color: var(--color-ink); }
+
+.chat-search { padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
+.chat-search input {
+  width: 100%; font: inherit; font-size: 0.875rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+}
+
+.chat-scroll { overflow-y: auto; min-height: 0; padding: var(--space-3); }
+
+.chat-people { list-style: none; margin: 0; padding: 0; }
+.chat-person {
+  width: 100%; display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2); border: 0; background: none; cursor: pointer;
+  border-radius: var(--radius-md); text-align: left; font: inherit; color: inherit;
+}
+.chat-person:hover { background: var(--color-surface-sunken); }
+.chat-person-body { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.chat-person-top { display: flex; justify-content: space-between; gap: var(--space-2); align-items: baseline; }
+.chat-person-last { font-size: 0.8125rem; color: var(--color-ink-secondary); }
+
+.chat-bubble-row { display: flex; margin-bottom: var(--space-3); }
+.chat-bubble-row.is-mine { justify-content: flex-end; }
+.chat-bubble {
+  max-width: 85%;
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+}
+.chat-bubble-row.is-mine .chat-bubble { background: var(--color-primary-subtle); }
+.chat-bubble-meta { margin-top: 2px; font-size: 0.6875rem; color: var(--color-ink-muted); }
+
+.chat-composer {
+  display: flex; gap: var(--space-2); align-items: flex-end;
+  padding: var(--space-3); border-top: 1px solid var(--color-border);
+}
+.chat-composer textarea {
+  flex: 1; min-width: 0; resize: none; font: inherit; font-size: 0.875rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-md);
+  max-height: 6rem;
+}
+.chat-composer .btn { min-height: 38px; padding: 0 var(--space-4); }
+
+.chat-foot {
+  padding: var(--space-3); border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+@media (max-width: 599px) {
+  /*
+    TELEFONDA PENCERE DEGIL, SAYFA. 22rem'lik bir kutu kucuk ekranda
+    hem dar hem de altindaki sayfayi kullanilamaz hale getiriyor.
+    Burada tam ekran aciliyor; balon da yazisma acikken gizleniyor,
+    yoksa gonder dugmesinin ustune biniyor.
+  */
+  .chat-dock { right: 0; bottom: 0; left: 0; gap: 0; align-items: stretch; }
+  .chat-dock[data-open='true'] .chat-launcher { display: none; }
+  .chat-panel {
+    width: 100vw; height: 100dvh; border-radius: 0; border: 0;
+  }
+  .chat-launcher { margin: 0 var(--space-4) var(--space-4) auto; }
+}
+
+/* Yazdirirken sohbetin isi yok */
+@media print { .chat-dock { display: none; } }
+
 /* ---------- Gelen kutusu: iki panel ---------- */
 
 /*

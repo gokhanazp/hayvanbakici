@@ -6,6 +6,7 @@ import localFont from 'next/font/local';
 import { getMessages, localeFromSegment, LOCALES, segmentFor } from '@havre/i18n';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ChatDock } from '@/components/chat/ChatDock';
 import { citySlug, getDefaultCity, getLinkableCities } from '@/lib/data';
 import { organizationJsonLd, SITE_URL } from '@/lib/seo';
 
@@ -82,6 +83,13 @@ export default async function LocaleLayout({
         <Header locale={locale} citySlug={citySlug(city, locale)} />
         <main id="main">{children}</main>
         <Footer locale={locale} cities={linkableCities} />
+        {/*
+          Sohbet balonu: giris yapmis kullaniciya her sayfada sag altta
+          duruyor. Istemci bileseni — oturumu sunucuda okumak tum
+          sayfalari dinamik yapar ve ISR biterdi (bkz. HeaderAccount).
+          Oturum yoksa hicbir sey cizmiyor.
+        */}
+        <ChatDock locale={locale} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}

@@ -86,10 +86,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {(fr
                   ? ['Vérification approfondie des antécédents et de l’identité',
                      'Tous les frais affichés avant la réservation',
-                     'Photos et messages pendant le séjour']
+                     'Messagerie avec votre gardien, avant et pendant']
                   : ['Enhanced criminal record and identity checks',
                      'Every fee shown before you book',
-                     'Photos and messages during the stay']
+                     'Message your sitter, before and during']
                 ).map((t) => (
                   <li key={t}>
                     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"
