@@ -62,12 +62,24 @@ export const palette = {
   bandSage:    '#E9F2EC',
 
   // Durum
+  /*
+    Basari ve bilgi tonlarinin da KENDI zemin/metin ciftleri var.
+
+    Eskiden "basarili" kutusu marka pembesiyle (primary-subtle)
+    ciziliyordu: kayit sonrasi "Onay baglantisi gonderdik" mesaji
+    kirmizimsi bir kutuda cikiyor ve iyi haber HATA gibi okunuyordu.
+    Renk, metnin soyledigi seyle ayni yone bakmali.
+  */
+  success100: '#E3F1E8',
   success500: '#2E7D4F',
+  success700: '#1F5B39',
   warning500: '#C8860D',
   danger100:  '#FBEAE6',
   danger500:  '#B23A2E',
   danger700:  '#8A2A20',
+  info100:    '#E4EEF6',
   info500:    '#2C5F8A',
+  info700:    '#1E4667',
 
   // Panel — koyu patlican. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
   // (tasarim karari: koyu arayuz uzun bakici listelerinde yoruyor).
@@ -131,7 +143,11 @@ export const lightTheme = {
      danger500 zemin olarak kullanilirsa uzerindeki metin okunmuyor. */
   'danger-subtle':   palette.danger100,
   'danger-strong':   palette.danger700,
+  'success-subtle':  palette.success100,
+  'success-strong':  palette.success700,
   'info':            palette.info500,
+  'info-subtle':     palette.info100,
+  'info-strong':     palette.info700,
   'verify-id':       palette.verifyId,
   'verify-check':    palette.verifyCheck,
   'verify-insured':  palette.verifyInsured,
@@ -180,11 +196,15 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'panel-primary':   '#F0A0C0',
   'panel-accent':    '#9CC4A8',
   'success':         '#6BAE83',
+  'success-subtle':  '#16281D',
+  'success-strong':  '#9ED3B0',
   'warning':         '#D9A43A',
   'danger':          '#E0776A',
   'danger-subtle':   '#2E1613',
   'danger-strong':   '#F3B4AA',
   'info':            '#7FA8CC',
+  'info-subtle':     '#15222E',
+  'info-strong':     '#A8C8E2',
   'verify-id':       '#7FA8CC',
   'verify-check':    '#8CBE9C',
   'verify-insured':  '#B29BD8',

@@ -84,8 +84,17 @@ export function ChatDock({ locale }: { locale: Locale }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastSeen = useRef<string | null>(null);
 
-  /* Gelen kutusu sayfasinda balon yok — bkz. dosya basi. */
-  const hidden = path.includes('/account/messages');
+  /*
+    BALONUN GORUNMEDIGI YERLER.
+
+    - Gelen kutusu: sayfanin kendisi zaten yazisma (bkz. dosya basi).
+    - BASVURU SIHIRBAZI: on bes dakikalik bir formun sag alt kosesinde
+      duran balon, telefonda "Devam" dugmesinin ustune biniyor ve
+      dikkat dagitiyor. Basvuru sirasinda bakicinin isi tek: formu
+      bitirmek. Mesajlari basvurudan sonra da okuyabilir.
+  */
+  const hidden = path.includes('/account/messages')
+    || path.includes('/become-a-sitter/');
 
   const loadList = useCallback(async () => {
     try {

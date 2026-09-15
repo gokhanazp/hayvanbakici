@@ -26,7 +26,12 @@ export function SitterGallery({
 
   return (
     <section>
-      <h2 className="sr-only">{m.sitter.homeHeading}</h2>
+      {/*
+        Galerinin kendi basligi. "The home" DEGIL: asagida ayni metni
+        tasiyan bir bolum var ve ekran okuyucu ayni basligi iki kez
+        okuyordu — kullanici iki ayri bolum sandi.
+      */}
+      <h2 className="sr-only">{m.sitter.galleryHeading}</h2>
       <div className="sitter-gallery" data-count={Math.min(usable.length, 3)}>
         {usable.slice(0, 3).map((p, i) => (
           <div key={p.url + i} className="photo-frame">

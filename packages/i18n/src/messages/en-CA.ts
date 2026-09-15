@@ -704,6 +704,7 @@ export const enCA = {
     'stat.acceptance': 'of requests accepted',
     aboutHeading: 'About {name}',
     servicesHeading: 'What {name} offers',
+    galleryHeading: 'Photos of the sitter\u2019s home',
     homeHeading: 'The home',
     reviewsHeading: 'Reviews',
     noReviews: 'No reviews yet.',

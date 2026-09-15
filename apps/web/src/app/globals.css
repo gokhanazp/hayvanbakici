@@ -609,11 +609,32 @@ a { color: inherit; text-decoration: none; }
   font-size: 0.875rem; line-height: 1.35rem;
   border: 1px solid transparent;
 }
+/*
+  KUTUNUN RENGI, METNIN SOYLEDIGI SEYLE AYNI YONE BAKMALI.
+
+  "Basarili" kutusu marka pembesiyle ciziliyordu: kayit sonrasi "Onay
+  baglantisi gonderdik" mesaji kirmizimsi bir kutuda cikiyor ve iyi
+  haber HATA gibi okunuyordu. Uc ayri ton var artik: hata (kirmizi),
+  basari (yesil), bilgi (mavi). Uc cifti de contrast.test.ts olcuyor.
+*/
 .alert-error { background: var(--color-danger-subtle); color: var(--color-danger-strong); border-color: var(--color-danger); }
-.alert-ok { background: var(--color-primary-subtle); color: var(--color-primary-active); border-color: var(--color-primary); }
+.alert-ok { background: var(--color-success-subtle); color: var(--color-success-strong); border-color: var(--color-success); }
+.alert-info { background: var(--color-info-subtle); color: var(--color-info-strong); border-color: var(--color-info); }
 
 .checkbox-row { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; }
 .checkbox-row input { width: 20px; height: 20px; margin-top: 2px; }
+
+/*
+  ONAY KUTULARI MARKA RENGINDE.
+
+  Tarayicinin varsayilani mavi; secili hizmet karti pembe dolarken
+  icindeki kutu mavi kaliyordu ve ekranda iki farkli "secili" rengi
+  birden duruyordu. accent-color tek satirda tum tarayicilarda
+  calisiyor ve kutunun kendi erisilebilirlik davranisini bozmuyor —
+  ozel cizilmis bir kutu klavye ve ekran okuyucu icin yeniden
+  yazilmayi gerektirirdi.
+*/
+:where(input[type='checkbox'], input[type='radio']) { accent-color: var(--color-primary); }
 
 /* ---------- Onboarding sihirbazi ----------
    Once tek sutunda, zeminin uzerinde duran ciplak bir formdu: nerede
@@ -712,7 +733,18 @@ a { color: inherit; text-decoration: none; }
   padding: var(--space-4);
   background: var(--color-surface);
 }
-.service-card-on { border-color: var(--color-primary); background: var(--color-primary-subtle); }
+/*
+  SECILI KART: VURGU, BOYA DEGIL.
+
+  Kart secilince tamamen pembe doluyordu; icindeki alanlar (fiyat,
+  aciklama, net kazanc tablosu) renkli zeminin uzerinde okunuyor ve
+  kart "form" olmaktan cikip "afis"e donusuyordu. Simdi zemin beyaz
+  kaliyor, secim sol kenardaki kalin cizgi ve cerceve ile anlatiliyor.
+*/
+.service-card-on {
+  border-color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
 .service-detail { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
 /*
   Ek ucretler yan yana; dar ekranda alt alta. Ikisi de istege bagli
@@ -747,13 +779,19 @@ a { color: inherit; text-decoration: none; }
 
 /* Onemli bir bilgilendirme blogu — sayfada bir tane */
 .notice {
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--color-info);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface-sunken);
   border-radius: var(--radius-md);
   font-size: 0.875rem; line-height: 1.4rem;
 }
+/*
+  NOTUN VARSAYILANI ARTIK NOTR.
 
+  "Fiyati siz belirlersiniz" notu marka pembesi bir cizgiyle
+  ciziliyordu ve hizmet adiminda uyari gibi duruyordu. Gercekten
+  dikkat isteyen yerlerde .notice-warning var (tanimi asagida).
+*/
 
 /* ---------- Pastel ikon kutucugu ---------- */
 /*

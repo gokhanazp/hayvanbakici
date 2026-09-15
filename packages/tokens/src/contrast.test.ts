@@ -49,6 +49,8 @@ const PAIRS: Array<[keyof Theme, keyof Theme, number, string]> = [
   ['panel-ink', 'panel', 4.5, 'koyu panel metni'],
   ['panel-ink-muted', 'panel', 4.5, 'koyu panelde soluk metin'],
   ['danger-strong', 'danger-subtle', 4.5, 'hata kutusu'],
+  ['success-strong', 'success-subtle', 4.5, 'basari kutusu'],
+  ['info-strong', 'info-subtle', 4.5, 'bilgi kutusu'],
   ['tile-rose-ink', 'tile-rose', 4.5, 'pastel kutucuk — gul'],
   ['tile-sage-ink', 'tile-sage', 4.5, 'pastel kutucuk — adacayi'],
   ['tile-apricot-ink', 'tile-apricot', 4.5, 'pastel kutucuk — kayisi'],

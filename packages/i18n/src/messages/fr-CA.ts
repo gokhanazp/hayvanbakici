@@ -698,6 +698,7 @@ export const frCA = {
     'stat.acceptance': 'des demandes accept\u00e9es',
     aboutHeading: '\u00c0 propos de {name}',
     servicesHeading: 'Ce que {name} propose',
+    galleryHeading: 'Photos du domicile du gardien',
     homeHeading: 'Le logement',
     reviewsHeading: '\u00c9valuations',
     noReviews: 'Aucune \u00e9valuation pour l\u2019instant.',
