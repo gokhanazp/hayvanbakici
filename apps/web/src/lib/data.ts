@@ -31,13 +31,14 @@ import {
   reportableMessage as dbReportableMessage, conversationPing as dbConversationPing,
   getAccountSummary as dbGetAccountSummary,
   getSitterStatus as dbGetSitterStatus, setAvatar as dbSetAvatar,
+  getSitterDashboard as dbGetSitterDashboard,
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   countSitters as dbCountSitters,
   cityName, citySlug,
   type CityRecord, type LandingData, type SitterSummary, type SearchParams, type SearchResult,
-  type SitterProfile, type FeaturedReview, type PlaceMatch,
+  type SitterProfile, type SitterDashboard, type FeaturedReview, type PlaceMatch,
   type BookingSummary, type BookingDetail, type BookingDraft, type CalendarDay,
   type AdminOverview, type ApplicationRow, type ApplicationDetail, type AuditRow,
   type AdminBookingRow, type AuditEntry, type AdminCounts,
@@ -50,7 +51,7 @@ import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
 
 export type {
-  CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, FeaturedReview,
+  CityRecord, LandingData, SitterSummary, SearchResult, SitterProfile, SitterDashboard, FeaturedReview,
   PlaceMatch, BookingSummary, BookingDetail, CalendarDay,
   AdminOverview, ApplicationRow, ApplicationDetail, AuditRow, AdminBookingRow, AdminCounts,
   AdminUserRow, AdminUserDetail, UserPage, UserFilter, AdminNote,
@@ -218,6 +219,8 @@ export const getRawMessage = (messageId: string) => dbGetRawMessage(db(), messag
 /* ------------------------------------------------------------ hesap */
 export const getAccountSummary = (userId: string) => dbGetAccountSummary(db(), userId);
 export const getSitterStatus = (userId: string) => dbGetSitterStatus(db(), userId);
+/** Bakici panosu: durum, profil gucu, acik gun, anlasilan tutarlar. */
+export const getSitterDashboard = (userId: string) => dbGetSitterDashboard(db(), userId);
 export const setAvatar = (userId: string, url: string | null) => dbSetAvatar(db(), userId, url);
 export const listSitterPhotos = (sitterId: string) => dbListSitterPhotos(db(), sitterId);
 export const addSitterPhoto = (input: Parameters<typeof dbAddSitterPhoto>[1]) =>

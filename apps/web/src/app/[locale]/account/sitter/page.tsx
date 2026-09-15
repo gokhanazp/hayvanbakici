@@ -1,14 +1,242 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
+import {
+  getMessages, interpolate, localeFromSegment, segmentFor,
+  type Locale, type Messages,
+} from '@havre/i18n';
+import {
+  REQUEST_EXPIRY_HOURS, completedSteps, profileCompleteness, type OnboardingStep,
+} from '@havre/core';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { BookingCard } from '@/components/BookingCard';
-import { listSitterBookings, getSitterStatus, isAdmin } from '@/lib/data';
+import { listSitterBookings, getSitterDashboard, isAdmin, type SitterDashboard } from '@/lib/data';
+import { money } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SitterRequestsPage({
+/**
+ * BAKICI PANOSU.
+ *
+ * Onaylandiktan sonra bakicinin gordugu tek sey bos bir talep listesiydi:
+ * "Aucune demande" ve altinda takvim dugmesi. Profilinin yayinda oldugunu
+ * soyleyen bir satir, ne kadar para konustugu, neyin eksik oldugu ve
+ * siradaki adim yoktu. Yapacak bir sey bulamayan bakici geri gelmiyor.
+ *
+ * BURADA OLMAYAN IKI SEY, bilerek:
+ *  - Goruntulenme sayisi: profil goruntulenmesini HIC olcmuyoruz.
+ *    Uydurma bir sayi gostermektense hic gostermemek dogru.
+ *  - "Fotograf ekleyin, %40 daha fazla talep alin": elimizde boyle bir
+ *    olcum yok. Eksigi soyluyoruz, uydurma bir getiri vaat etmiyoruz.
+ */
+
+/** Profil gucu halkasi — yuzde, bir cizimle. */
+function StrengthRing({ pct }: { pct: number }) {
+  const r = 26;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width="68" height="68" viewBox="0 0 68 68" aria-hidden="true" className="strength-ring">
+      <circle cx="34" cy="34" r={r} fill="none" stroke="var(--color-border)" strokeWidth="6" />
+      <circle
+        cx="34" cy="34" r={r} fill="none"
+        stroke="var(--color-primary)" strokeWidth="6" strokeLinecap="round"
+        strokeDasharray={`${(c * pct) / 100} ${c}`}
+        transform="rotate(-90 34 34)"
+      />
+    </svg>
+  );
+}
+
+function StatusCard({
+  locale, seg, dash,
+}: {
+  locale: Locale; seg: string; dash: SitterDashboard;
+}) {
+  const m = getMessages(locale);
+  const key = (k: string) => m.account[k as keyof Messages['account']] as string;
+  const citySlug = locale === 'fr-CA' ? dash.citySlugFr : dash.citySlugEn;
+
+  const view: Record<SitterDashboard['status'], { title: string; lead: string }> = {
+    active: { title: key('dashLive'), lead: key('dashLiveLead') },
+    pending: { title: key('dashPending'), lead: key('dashPendingLead') },
+    draft: { title: key('dashDraft'), lead: key('dashDraftLead') },
+    deactivated: { title: key('dashOff'), lead: key('dashOffLead') },
+  };
+  const v = view[dash.status];
+
+  return (
+    <section className="card card-pad">
+      <h2 className="text-h4">{v.title}</h2>
+      <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{v.lead}</p>
+
+      {dash.status === 'active' && dash.slug && citySlug && (
+        <Link
+          href={`/${seg}/${citySlug}/sitter/${dash.slug}/`}
+          className="btn btn-secondary"
+          style={{ marginTop: 'var(--space-4)' }}
+        >
+          {key('dashViewProfile')}
+        </Link>
+      )}
+      {dash.status === 'draft' && (
+        <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary"
+          style={{ marginTop: 'var(--space-4)' }}>
+          {key('dashDraftCta')}
+        </Link>
+      )}
+    </section>
+  );
+}
+
+function MoneyCard({ locale, dash }: { locale: Locale; dash: SitterDashboard }) {
+  const m = getMessages(locale);
+  const key = (k: string) => m.account[k as keyof Messages['account']] as string;
+  const e = dash.earnings;
+  const nothing = e.awaitingAnswerCount + e.upcomingCount + e.doneCount === 0;
+
+  const rows: Array<[string, number, number]> = [
+    [key('moneyWaiting'), e.awaitingAnswerCents, e.awaitingAnswerCount],
+    [key('moneyUpcoming'), e.upcomingCents, e.upcomingCount],
+    [key('moneyDone'), e.doneCents, e.doneCount],
+  ];
+
+  return (
+    <section className="card card-pad">
+      <h2 className="text-h4">{key('moneyHeading')}</h2>
+      {nothing ? (
+        <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{key('moneyEmpty')}</p>
+      ) : (
+        <dl className="money-grid">
+          {rows.map(([label, cents, count]) => (
+            <div key={label}>
+              <dt className="text-body-sm dim">{label}</dt>
+              <dd className="text-h3">{money(cents, locale)}</dd>
+              {/* Cıplak bir sayi ne oldugunu soylemiyordu */}
+              <dd className="text-body-sm dim">
+                {interpolate(count === 1 ? key('moneyCountOne') : key('moneyCountMany'), { count })}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {/*
+        "KAZANDINIZ" DEMIYORUZ. Havre henuz odeme almiyor; bu rakamlar
+        rezervasyonda donmus tutarlar. Yanlis kelime, bakicinin banka
+        hesabina bakip bizi aramasiyla sonuclanir.
+      */}
+      <p className="field-hint" style={{ marginTop: 'var(--space-4)' }}>{key('moneyNote')}</p>
+    </section>
+  );
+}
+
+function StrengthCard({
+  locale, seg, dash,
+}: {
+  locale: Locale; seg: string; dash: SitterDashboard;
+}) {
+  const m = getMessages(locale);
+  const key = (k: string) => m.account[k as keyof Messages['account']] as string;
+
+  const pct = Math.round(profileCompleteness(dash.steps) * 100);
+  const done = completedSteps(dash.steps);
+
+  /* Eksikler onboarding adim sirasinda — bakicinin bildigi sira bu. */
+  const gaps = (['about', 'location', 'services', 'home', 'photos', 'screening'] as OnboardingStep[])
+    .filter((step) => !done[step]);
+
+  return (
+    <section className="card card-pad">
+      <div className="row" style={{ gap: 'var(--space-4)', alignItems: 'center' }}>
+        <StrengthRing pct={pct} />
+        <div>
+          <h2 className="text-h4" style={{ margin: 0 }}>{key('strengthHeading')}</h2>
+          <p className="tabular" style={{ margin: 'var(--space-1) 0 0', fontWeight: 600 }}>
+            {interpolate(key('strengthValue'), { pct })}
+          </p>
+        </div>
+      </div>
+
+      {gaps.length === 0 ? (
+        <p className="muted" style={{ marginTop: 'var(--space-4)' }}>{key('strengthFull')}</p>
+      ) : (
+        <>
+          <p className="muted" style={{ marginTop: 'var(--space-4)' }}>{key('strengthLead')}</p>
+          <ul className="gap-list">
+            {gaps.map((step) => (
+              <li key={step}>
+                <span>{key(`gap.${step}`)}</span>
+                <Link href={`/${seg}/become-a-sitter/${step}/`} className="btn btn-ghost btn-sm">
+                  {key('gap.fix')}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
+}
+
+function NextStepsCard({
+  locale, seg, dash,
+}: {
+  locale: Locale; seg: string; dash: SitterDashboard;
+}) {
+  const m = getMessages(locale);
+  const key = (k: string) => m.account[k as keyof Messages['account']] as string;
+
+  /*
+    Her madde GERCEK bir kosula bagli. Kosulu olmayan genel tavsiye
+    ("daha iyi fotograf cekin") panoyu gurultuye cevirir ve bir sure
+    sonra kimse okumaz.
+  */
+  const items: Array<{ id: string; text: string; cta: string; href: string }> = [];
+
+  if (dash.earnings.awaitingAnswerCount > 0) {
+    items.push({
+      id: 'requests',
+      /* Rakam bizim sistemimizden: "hizli cevap daha cok rezervasyon
+         getirir" diyebilecek bir olcumumuz YOK, sure ise kesin. */
+      text: interpolate(key('next.requests'), { hours: REQUEST_EXPIRY_HOURS }),
+      cta: key('next.requestsCta'),
+      /* Talep listesi bu sayfanin ALTINDA: ayni sayfaya baglanti vermek
+         yerine o bolume kaydiriyoruz. */
+      href: '#requests',
+    });
+  }
+  if (dash.openDays === 0) {
+    items.push({
+      id: 'calendar', text: key('next.calendar'), cta: key('next.calendarCta'),
+      href: `/${seg}/account/sitter/calendar/`,
+    });
+  }
+  if (dash.servicesWithoutExtraPet > 0) {
+    items.push({
+      id: 'extraPet', text: key('next.extraPet'), cta: key('next.extraPetCta'),
+      href: `/${seg}/become-a-sitter/services/`,
+    });
+  }
+
+  return (
+    <section className="card card-pad">
+      <h2 className="text-h4">{key('nextHeading')}</h2>
+      {items.length === 0 ? (
+        <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{key('nextNone')}</p>
+      ) : (
+        <ul className="gap-list">
+          {items.map((it) => (
+            <li key={it.id}>
+              <span>{it.text}</span>
+              <Link href={it.href} className="btn btn-secondary btn-sm">{it.cta}</Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+export default async function SitterDashboardPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -20,32 +248,53 @@ export default async function SitterRequestsPage({
   const session = await getSession();
   if (!session) redirect(`/${seg}/account/sign-in/?next=/${seg}/account/sitter/`);
 
-  const [sitter, admin] = await Promise.all([getSitterStatus(session.user.id), isAdmin(session.user.id)]);
+  const [dash, admin] = await Promise.all([
+    getSitterDashboard(session.user.id), isAdmin(session.user.id),
+  ]);
   // Bakici olmayan biri bu adrese gelirse basvuru sayfasina gonderilir:
   // bos bir "gelen talep yok" ekrani, ne yapmasi gerektigini soylemiyor.
-  if (!sitter) redirect(`/${seg}/become-a-sitter/`);
+  if (!dash) redirect(`/${seg}/become-a-sitter/`);
 
   const m = getMessages(locale);
   const bookings = await listSitterBookings(session.user.id);
+  const segment = segmentFor(locale);
 
   return (
-    <AccountShell locale={locale} title={m.account.requests} active="sitter" isSitter sitterStatus={sitter} isAdmin={admin}>
-      {bookings.length === 0 ? (
-        <div className="card card-pad" style={{ maxWidth: '36rem' }}>
-          <h2 className="text-h4">{m.account.noRequests}</h2>
-          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.account.noRequestsHint}</p>
-          <Link href={`/${segmentFor(locale)}/account/sitter/calendar/`} className="btn btn-secondary"
-                style={{ marginTop: 'var(--space-5)' }}>
-            {m.account.calendar}
-          </Link>
-        </div>
-      ) : (
-        <div className="booking-list">
-          {bookings.map((b) => (
-            <BookingCard key={b.id} booking={b} locale={locale} viewerRole="sitter" />
-          ))}
-        </div>
-      )}
+    <AccountShell
+      locale={locale}
+      title={m.account.dashTitle}
+      lead={m.account.dashLead}
+      active="sitter"
+      isSitter
+      sitterStatus={dash.status}
+      isAdmin={admin}
+    >
+      <div className="sitter-dash">
+        <StatusCard locale={locale} seg={segment} dash={dash} />
+        <MoneyCard locale={locale} dash={dash} />
+        <StrengthCard locale={locale} seg={segment} dash={dash} />
+        <NextStepsCard locale={locale} seg={segment} dash={dash} />
+      </div>
+
+      <section id="requests" style={{ marginTop: 'var(--space-8)', scrollMarginTop: 'var(--space-8)' }}>
+        <h2 className="text-h3" style={{ marginBottom: 'var(--space-5)' }}>{m.account.requests}</h2>
+        {bookings.length === 0 ? (
+          <div className="card card-pad" style={{ maxWidth: '36rem' }}>
+            <h3 className="text-h4">{m.account.noRequests}</h3>
+            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.account.noRequestsHint}</p>
+            <Link href={`/${segment}/account/sitter/calendar/`} className="btn btn-secondary"
+              style={{ marginTop: 'var(--space-5)' }}>
+              {m.account.calendar}
+            </Link>
+          </div>
+        ) : (
+          <div className="booking-list">
+            {bookings.map((b) => (
+              <BookingCard key={b.id} booking={b} locale={locale} viewerRole="sitter" />
+            ))}
+          </div>
+        )}
+      </section>
     </AccountShell>
   );
 }

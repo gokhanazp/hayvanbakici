@@ -1536,6 +1536,37 @@ a { color: inherit; text-decoration: none; }
 .cal-swatch-booked { background: var(--color-accent-subtle); border-color: var(--color-accent); }
 .cal-swatch-past { background: transparent; opacity: .55; }
 
+/* ---------- Bakici panosu ---------- */
+/*
+  Dort kart: durum, anlasilan tutarlar, profil gucu, siradaki adimlar.
+  Genis ekranda ikili izgara, dar ekranda tek sutun — karti asla
+  yaslanmiyoruz, icerik uzunlugu dile gore cok degisiyor.
+*/
+.sitter-dash { display: grid; gap: var(--space-5); align-items: start; }
+@media (min-width: 900px) { .sitter-dash { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.money-grid {
+  display: grid; gap: var(--space-4); margin: var(--space-4) 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+}
+.money-grid dd { margin: 0; }
+/* Rakamin altindaki adet — tutarla karismasin diye kucuk ve soluk */
+.money-grid dd + dd { margin-top: var(--space-1); }
+
+/* Eksikler ve siradaki adimlar: metin solda, tek bir eylem sagda */
+.gap-list { display: grid; gap: var(--space-3); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.gap-list li {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9375rem; line-height: 1.4rem;
+}
+.gap-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.gap-list li > span { flex: 1 1 14rem; min-width: 0; }
+
+.strength-ring { flex: 0 0 auto; }
+
 /* ---------- Rezervasyon detayi ---------- */
 .booking-detail { display: grid; gap: var(--space-8); grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 960px) { .booking-detail { grid-template-columns: minmax(0, 1fr) 22rem; gap: var(--space-10); } }

@@ -355,3 +355,135 @@ export async function listFeaturedReviews(
     }));
   });
 }
+
+/* ------------------------------------------------- bakici panosu */
+
+export interface SitterDashboard {
+  status: 'draft' | 'pending' | 'active' | 'deactivated';
+  slug: string | null;
+  citySlugEn: string | null;
+  citySlugFr: string | null;
+  badgeLevel: number;
+  /** Profil gucu icin — @havre/core profileCompleteness girdisi */
+  steps: {
+    hasAbout: boolean;
+    hasLocation: boolean;
+    serviceCount: number;
+    hasHome: boolean;
+    screeningStarted: boolean;
+    photoCount: number;
+  };
+  /** Onumuzdeki 30 gunde rezervasyona acik gun sayisi */
+  openDays: number;
+  /** Ek hayvan ucreti GIRILMEMIS hizmet sayisi */
+  servicesWithoutExtraPet: number;
+  /**
+   * ANLASILAN tutarlar — odenmis degil.
+   *
+   * Havre henuz odeme almiyor; bu rakamlar rezervasyonda donmus
+   * sitter_payout_cents toplamlari. Ekranda "kazandiniz" DEMIYORUZ.
+   */
+  earnings: {
+    awaitingAnswerCents: number;
+    awaitingAnswerCount: number;
+    upcomingCents: number;
+    upcomingCount: number;
+    doneCents: number;
+    doneCount: number;
+  };
+}
+
+/**
+ * BAKICI PANOSU — tek sorgu.
+ *
+ * Onaylandiktan sonra bakicinin gordugu tek sey bos bir talep listesiydi:
+ * profilinin yayinda oldugunu soyleyen bir satir, ne kadar para
+ * konustugu, neyin eksik oldugu ve siradaki adim yoktu. Yapacak bir sey
+ * bulamayan bakici geri gelmiyor.
+ */
+export async function getSitterDashboard(
+  db: Database, sitterId: string,
+): Promise<SitterDashboard | null> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT
+        s.status::text AS status,
+        s.slug,
+        s.badge_level,
+        c.slug_en AS city_slug_en,
+        c.slug_fr AS city_slug_fr,
+
+        (p.bio IS NOT NULL AND s.date_of_birth IS NOT NULL AND u.phone IS NOT NULL) AS has_about,
+        (p.city_id IS NOT NULL AND p.exact_address_enc IS NOT NULL)                 AS has_location,
+        (s.home_type IS NOT NULL)                                                   AS has_home,
+        (SELECT count(*)::int FROM sitter_services ss WHERE ss.sitter_id = u.id)    AS service_count,
+        EXISTS (SELECT 1 FROM verifications v
+                WHERE v.sitter_id = u.id AND v.type = 'criminal')                   AS screening_started,
+        ((p.avatar_url IS NOT NULL)::int
+         + (SELECT count(*)::int FROM sitter_photos sp WHERE sp.sitter_id = u.id))  AS photo_count,
+
+        -- Onumuzdeki 30 gun: kayit YOKSA gun aciktir (varsayilan 'open')
+        (SELECT count(*)::int
+           FROM generate_series(CURRENT_DATE, CURRENT_DATE + 29, interval '1 day') d
+          WHERE COALESCE((SELECT a.status FROM sitter_availability a
+                           WHERE a.sitter_id = u.id AND a.date = d::date), 'open') = 'open')
+                                                                                    AS open_days,
+
+        (SELECT count(*)::int FROM sitter_services ss
+          WHERE ss.sitter_id = u.id AND ss.is_active
+            AND COALESCE(ss.extra_pet_price_cents, 0) = 0)                          AS no_extra_pet,
+
+        COALESCE((SELECT sum(b.sitter_payout_cents)::int FROM bookings b
+                   WHERE b.sitter_id = u.id AND b.status = 'requested'), 0)         AS wait_cents,
+        (SELECT count(*)::int FROM bookings b
+          WHERE b.sitter_id = u.id AND b.status = 'requested')                      AS wait_count,
+        COALESCE((SELECT sum(b.sitter_payout_cents)::int FROM bookings b
+                   WHERE b.sitter_id = u.id
+                     AND b.status IN ('confirmed','paid','in_progress')), 0)        AS up_cents,
+        (SELECT count(*)::int FROM bookings b
+          WHERE b.sitter_id = u.id
+            AND b.status IN ('confirmed','paid','in_progress'))                     AS up_count,
+        COALESCE((SELECT sum(b.sitter_payout_cents)::int FROM bookings b
+                   WHERE b.sitter_id = u.id
+                     AND b.status IN ('completed','payout_released')), 0)           AS done_cents,
+        (SELECT count(*)::int FROM bookings b
+          WHERE b.sitter_id = u.id
+            AND b.status IN ('completed','payout_released'))                        AS done_count
+
+      FROM sitters s
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN profiles p ON p.user_id = u.id
+      LEFT JOIN cities c ON c.id = p.city_id
+      WHERE s.user_id = ${sitterId}
+      LIMIT 1
+    `);
+    const r = (rows as unknown as Array<Record<string, unknown>>)[0];
+    if (!r) return null;
+
+    return {
+      status: String(r.status) as SitterDashboard['status'],
+      slug: (r.slug as string | null) ?? null,
+      citySlugEn: (r.city_slug_en as string | null) ?? null,
+      citySlugFr: (r.city_slug_fr as string | null) ?? null,
+      badgeLevel: Number(r.badge_level ?? 0),
+      steps: {
+        hasAbout: Boolean(r.has_about),
+        hasLocation: Boolean(r.has_location),
+        serviceCount: Number(r.service_count ?? 0),
+        hasHome: Boolean(r.has_home),
+        screeningStarted: Boolean(r.screening_started),
+        photoCount: Number(r.photo_count ?? 0),
+      },
+      openDays: Number(r.open_days ?? 0),
+      servicesWithoutExtraPet: Number(r.no_extra_pet ?? 0),
+      earnings: {
+        awaitingAnswerCents: Number(r.wait_cents ?? 0),
+        awaitingAnswerCount: Number(r.wait_count ?? 0),
+        upcomingCents: Number(r.up_cents ?? 0),
+        upcomingCount: Number(r.up_count ?? 0),
+        doneCents: Number(r.done_cents ?? 0),
+        doneCount: Number(r.done_count ?? 0),
+      },
+    };
+  });
+}

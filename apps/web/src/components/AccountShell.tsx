@@ -55,7 +55,9 @@ export function AccountShell({
     */
     ...(isSitter && sitterStatus !== 'draft'
       ? [
-          { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.requests },
+          /* Sekme adi artik "Talepler" degil: sayfa panoya dondu ve
+             talep listesi onun bir bolumu. */
+          { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.dashTitle },
           { key: 'calendar' as const, href: `/${seg}/account/sitter/calendar/`, label: m.account.calendar },
         ]
       : []),
