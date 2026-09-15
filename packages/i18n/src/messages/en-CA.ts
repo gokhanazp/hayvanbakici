@@ -107,6 +107,7 @@ export const enCA = {
     quickUnread: 'Unread messages',
     quickPets: 'Pets on file',
     nothingWaiting: 'Nothing is waiting for you right now.',
+    adminPanel: 'Admin',
 
     /* --- Bakici panosu (P1-5) --- */
     dashTitle: 'Your sitting',

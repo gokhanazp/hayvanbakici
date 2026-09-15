@@ -114,6 +114,7 @@ export const frCA = {
     quickUnread: 'Messages non lus',
     quickPets: 'Animaux enregistrés',
     nothingWaiting: 'Rien ne vous attend pour le moment.',
+    adminPanel: 'Panneau admin',
 
     /* --- Tableau de bord du gardien (P1-5) --- */
     dashTitle: 'Votre garde',

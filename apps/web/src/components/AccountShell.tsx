@@ -61,8 +61,16 @@ export function AccountShell({
           { key: 'calendar' as const, href: `/${seg}/account/sitter/calendar/`, label: m.account.calendar },
         ]
       : []),
+    /*
+      YONETICI PANELI — yalnizca admin hesaplarda.
+
+      Etiket eskiden "Internal" idi; ne oldugunu kimseye soylemiyordu,
+      panelin sahibine bile. Gizlemenin bir degeri de yok: panelin kendi
+      giris ekrani ve yetki kontrolu var, yetkisiz kisi 404 goruyor
+      (bkz. app/admin). Bir baglantinin adi, yetkilendirme degildir.
+    */
     ...(isAdmin
-      ? [{ key: 'admin' as const, href: '/admin/', label: locale === 'fr-CA' ? 'Interne' : 'Internal' }]
+      ? [{ key: 'admin' as const, href: '/admin/', label: m.account.adminPanel }]
       : []),
   ];
 
