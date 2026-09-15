@@ -7,6 +7,7 @@ import { PetCard } from '@/components/PetCard';
 import { PetPhoto } from '@/components/PetPhoto';
 import { AddPet, EditPet } from '@/components/PetManager';
 import { PetDelete } from '@/components/PetForm';
+import { EmptyState, PawArt } from '@/components/EmptyState';
 import { getAccountSummary, isAdmin, listOwnerPets } from '@/lib/data';
 import { MAX_PETS } from '@havre/db';
 
@@ -57,10 +58,7 @@ export default async function PetsPage({
     >
       <div className="stack" style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: '48rem' }}>
         {pets.length === 0 && (
-          <div className="card card-muted" style={{ padding: 'var(--space-8)' }}>
-            <p className="text-body-lg" style={{ margin: 0 }}>{m.pets.empty}</p>
-            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.pets.emptyHint}</p>
-          </div>
+          <EmptyState icon={PawArt} title={m.pets.empty} body={m.pets.emptyHint} />
         )}
 
         {pets.map((pet) => (

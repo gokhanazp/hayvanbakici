@@ -242,6 +242,7 @@ export const frCA = {
     saving: 'Enregistrement…',
     saved: 'Enregistré.',
     photoHeading: 'Votre photo',
+    detailsHeading: 'Nom et langue',
     photoLead: 'Un visage rend la réservation plus facile à accepter. Les photos carrées fonctionnent le mieux.',
     avatarLabel: 'Choisir votre photo de profil',
     addHomePhoto: 'Ajouter une photo du domicile',
@@ -283,6 +284,8 @@ export const frCA = {
     other: 'Autre animal',
   },
   booking: {
+    upcoming: '\u00c0 venir',
+    past: 'Pass\u00e9es',
     requestTitle: 'Demander une réservation avec {name}',
     dates: 'Dates',
     pets: 'Quel animal?',

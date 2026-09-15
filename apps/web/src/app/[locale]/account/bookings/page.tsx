@@ -4,6 +4,7 @@ import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { BookingCard } from '@/components/BookingCard';
+import { EmptyState, CalendarArt } from '@/components/EmptyState';
 import { listOwnerBookings, getSitterStatus, isAdmin } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
@@ -27,21 +28,53 @@ export default async function OwnerBookingsPage({
     isAdmin(session.user.id),
   ]);
 
+  /* Bitis tarihi gecmisse gecmis. Sinir GUN bazinda: bugun biten bir
+     rezervasyon hala "yaklasan" — sahip onu bugun arar. */
+    const today = new Date().toISOString().slice(0, 10);
+  const upcoming = bookings.filter((b) => b.endAt.slice(0, 10) >= today);
+  const past = bookings.filter((b) => b.endAt.slice(0, 10) < today);
+
   return (
     <AccountShell locale={locale} title={m.account.myBookings} active="bookings" isSitter={sitter !== null} sitterStatus={sitter} isAdmin={admin}>
       {bookings.length === 0 ? (
-        <div className="card card-pad" style={{ maxWidth: '36rem' }}>
-          <h2 className="text-h4">{m.account.noBookings}</h2>
-          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.account.noBookingsHint}</p>
-          <Link href={`/${segmentFor(locale)}/search/`} className="btn btn-primary"
-                style={{ marginTop: 'var(--space-5)' }}>
-            {m.account.findSitter}
-          </Link>
-        </div>
+        <EmptyState
+          icon={CalendarArt}
+          title={m.account.noBookings}
+          body={m.account.noBookingsHint}
+          action={
+            <Link href={`/${segmentFor(locale)}/search/`} className="btn btn-primary">
+              {m.account.findSitter}
+            </Link>
+          }
+        />
       ) : (
-        <div className="booking-list">
-          {bookings.map((b) => (
-            <BookingCard key={b.id} booking={b} locale={locale} viewerRole="owner" />
+        /*
+          YAKLASAN VE GECMIS AYRI.
+
+          Liste baslangic tarihine gore tersten siralaniyordu, yani
+          Kasim'daki bir rezervasyon ile Agustos'ta BITMIS bir tanesi
+          arada hicbir isaret olmadan alt alta duruyordu. "Bu hala
+          gecerli mi?" sorusunu her satirda yeniden sormak gerekiyordu.
+          Ayrim TARIHTEN cikiyor, durumdan degil: iptal edilmis ama
+          gelecekte olan bir rezervasyon da yaklasanlarda kaliyor,
+          cunku kullanicinin onu aradigi yer orasi.
+        */
+        <div className="booking-groups">
+          {([
+            ['upcoming', upcoming] as const,
+            ['past', past] as const,
+          ]).filter(([, list]) => list.length > 0).map(([key, list]) => (
+            <section key={key}>
+              <h2 className="text-h4 booking-group-head">
+                {key === 'upcoming' ? m.booking.upcoming : m.booking.past}
+                <span className="section-count">{list.length}</span>
+              </h2>
+              <div className="booking-list">
+                {list.map((b) => (
+                  <BookingCard key={b.id} booking={b} locale={locale} viewerRole="owner" />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}

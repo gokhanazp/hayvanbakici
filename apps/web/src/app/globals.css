@@ -205,6 +205,14 @@ a { color: inherit; text-decoration: none; }
   ciziyoruz, dugmeyi tarayiciya birakiyoruz — tamamen gizleyip kendi
   dugmemizi koymak klavye ve ekran okuyucu davranisini bozuyor.
 */
+/* Etiket dugme gorunumunde; gercek input sr-only */
+.upload-pick { cursor: pointer; align-self: start; }
+/* Odak halkasi GIZLI input'ta gorunmez — etikete tasiniyor */
+.upload-row input[type='file']:focus-visible + .field-hint,
+.field-block:has(input[type='file']:focus-visible) .upload-pick {
+  outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 999px;
+}
+
 .file-input {
   width: 100%; font: inherit; font-size: 0.875rem;
   padding: var(--space-2); border: 1px dashed var(--color-border-strong);
@@ -715,7 +723,13 @@ a { color: inherit; text-decoration: none; }
 /* Yan yana duran kisa alanlar (ad + bas harf gibi) */
 .field-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .field-row > * { flex: 1 1 12rem; }
-.field-row > .field-narrow { flex: 0 1 7rem; }
+/*
+  TEK HARFLIK ALAN, TEK HARF GENISLIGINDE. 7rem'lik bir kutu, icine bir
+  harf yazilan bir alan icin cagri gibi duruyordu: kullanici oraya tam
+  soyadini yazmasi gerektigini sandi.
+*/
+.field-row > .field-narrow { flex: 0 0 auto; }
+.field-row > .field-narrow input { width: 4.5rem; text-align: center; }
 
 /* Cok satirli metin alani — daha once satir ici stil olarak yaziliydi */
 .textarea {
@@ -1644,13 +1658,30 @@ a { color: inherit; text-decoration: none; }
   display: grid; gap: var(--space-4); align-items: center;
   grid-template-columns: auto minmax(0, 1fr);
   padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
 }
+.booking-card-body { display: grid; gap: 2px; min-width: 0; }
+/* Tarih kartin kahramani: sahip listeye "ne zamandi" diye bakiyor */
+.booking-when { margin: 0; font-weight: 600; font-size: 1.0625rem; }
 .booking-card-end { display: grid; gap: var(--space-1); justify-items: start; }
 @media (min-width: 640px) {
   .booking-card { grid-template-columns: auto minmax(0, 1fr) auto; }
   .booking-card-end { justify-items: end; text-align: right; }
 }
-.booking-list { display: grid; gap: var(--space-3); }
+/*
+  Liste 56rem'de duruyor. 1180 pikselde kart, solda kucuk bir avatar ve
+  sagda bir fiyatla arasinda genis bir bosluk birakiyordu: iki ucu
+  birbirine bagli okumak icin goz ekranin yarisini gecmek zorundaydi.
+*/
+.booking-list { display: grid; gap: var(--space-3); max-width: 56rem; }
+.booking-groups { display: grid; gap: var(--space-8); }
+.booking-group-head {
+  display: flex; align-items: baseline; gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+.booking-group-head .section-count {
+  color: var(--color-ink-secondary); font-weight: 400; font-size: 0.875rem;
+}
 
 /* ---------- Takvim duzenleyici ---------- */
 .cal-grid {
@@ -1992,6 +2023,17 @@ a { color: inherit; text-decoration: none; }
   gap: var(--space-5);
   height: clamp(30rem, 75vh, 46rem);
 }
+/*
+  HENUZ BIR KONUSMA ACILMADIYSA YUKSEKLIK SABIT DEGIL.
+
+  Sabit yukseklik ACIK bir yazisma icin dogru: mesaj listesinin kendi
+  kaydirmasi var ve yazma kutusu altta sabit duruyor. Ama hicbir sey
+  acilmamisken ayni yukseklik, yan yana iki tane 730 piksellik bos
+  beyaz kutu demekti — tek konusmasi olan kullanici ekranin tamamini
+  bos gorup "yuklenmedi mi?" diye bakiyordu.
+*/
+.inbox:has(.is-placeholder) { height: auto; min-height: 20rem; }
+.inbox:has(.is-placeholder) .inbox-list { max-height: 34rem; }
 
 .inbox-list {
   border: 1px solid var(--color-border);
@@ -2030,6 +2072,14 @@ a { color: inherit; text-decoration: none; }
 }
 
 .inbox-empty-list { padding: var(--space-6); }
+
+/* Secim bekleyen sag panel: ayni bos-durum dili, yalnizca daha sessiz */
+.inbox-placeholder {
+  display: grid; justify-items: center; align-content: center; gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  text-align: center; color: var(--color-ink-secondary);
+}
+.inbox-placeholder p { margin: 0; max-width: 22rem; }
 
 /* --- sag panel --- */
 .inbox-thread {
@@ -2569,3 +2619,51 @@ a { color: inherit; text-decoration: none; }
 }
 .pet-photo-grid .photo-thumb { aspect-ratio: 1 / 1; }
 .pet-photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- Bos durumlar (hesap ekranlari) ---------- */
+/*
+  Her hesap ekrani kendi bos halini ayri yazmisti ve ucu de ayni soruya
+  farkli goruntuyle cevap veriyordu. Tek bir sekil: ortalanmis, cizimli,
+  bir cumlelik yol tarifi ve tek bir islem.
+*/
+.empty-state {
+  display: grid; justify-items: center; gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+/* Izgara icinde duranlar kendi cercevesini cizer */
+.empty-state-card {
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  padding: var(--space-10) var(--space-6);
+}
+.empty-art { line-height: 0; }
+.empty-title { margin: var(--space-2) 0 0; }
+/* Olcu: bir satirda ~65 karakter — bos sayfada uzun satir daha da uzun okunuyor */
+.empty-body { margin: 0; max-width: 34rem; }
+.empty-action { margin-top: var(--space-4); }
+
+/* ---------- Profil sayfasi ---------- */
+/*
+  Once her sey 44rem'lik tek sutunda alt alta duruyordu: 1280 pikselde
+  sag yari bostu ve fotograf bolumu formdan once gelen ayri bir kart
+  oldugu icin "once bunu bitir" gibi okunuyordu.
+*/
+.profile-grid {
+  display: grid; gap: var(--space-6);
+  grid-template-columns: 1fr;
+  align-items: start;
+  margin-bottom: var(--space-8);
+}
+@media (min-width: 880px) {
+  .profile-grid { grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr); }
+}
+/* Bakiciya ozel fotograf bolumleri tam genislikte, alt alta */
+.profile-grid-wide { display: grid; gap: var(--space-6); }
+
+.profile-photo-card { display: grid; gap: var(--space-3); align-content: start; }
+.profile-photo-card h2 { margin: 0; }
+.profile-photo-card .field-hint { margin: 0; }
+/* Fotograf ORTADA ve buyuk: kucuk bir daire, yuklemeye deger gibi durmuyordu */
+.profile-avatar { justify-self: center; margin: var(--space-2) 0; }

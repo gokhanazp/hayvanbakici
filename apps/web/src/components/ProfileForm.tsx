@@ -40,7 +40,9 @@ export function ProfileForm({
 
   return (
     <form action={formAction} className="stack">
-      <h2 className="text-h4">{m.profile.title}</h2>
+      {/* Sayfanin basligi zaten "Profiliniz"; ayni metni ikinci kez
+          yazmak ekran okuyucuda iki ayni baslik demekti. */}
+      <h2 className="text-h4">{m.profile.detailsHeading}</h2>
 
       {state.error && (
         <p className="alert alert-error" role="alert">{text(`error.${state.error}`)}</p>

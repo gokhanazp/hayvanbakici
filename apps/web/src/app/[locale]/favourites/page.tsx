@@ -8,6 +8,7 @@ import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { SitterCard } from '@/components/SitterCard';
 import { ClaimFavourites } from '@/components/ClaimFavourites';
+import { EmptyState, HeartArt } from '@/components/EmptyState';
 import {
   favouriteIdsOrdered, favouriteSitters, getAccountSummary, isAdmin,
 } from '@/lib/data';
@@ -70,13 +71,16 @@ export default async function FavouritesPage({
       )}
 
       {sitters.length === 0 ? (
-        <div className="card card-muted" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
-          <p className="text-body-lg" style={{ margin: 0 }}>{m.favourites.empty}</p>
-          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.favourites.emptyHint}</p>
-          <Link href={`/${seg}/search/`} className="btn btn-primary" style={{ marginTop: 'var(--space-5)' }}>
-            {m.favourites.findSitter}
-          </Link>
-        </div>
+        <EmptyState
+          icon={HeartArt}
+          title={m.favourites.empty}
+          body={m.favourites.emptyHint}
+          action={
+            <Link href={`/${seg}/search/`} className="btn btn-primary">
+              {m.favourites.findSitter}
+            </Link>
+          }
+        />
       ) : (
         <>
           <p className="muted text-body-sm">

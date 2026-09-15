@@ -84,14 +84,25 @@ export function PhotoUpload({
           <img src={preview} alt="" className="upload-preview" />
         )}
         <div className="field-block" style={{ flex: 1, minWidth: 0 }}>
-          <label htmlFor={`file-${fieldId ?? label}`}>{label}</label>
+          {/*
+            DOSYA SECICI GIZLI, ETIKET DUGME.
+
+            Tarayicinin kendi "Choose File — No file chosen" kutusu
+            sayfadaki tek bicimsiz ogeydi: cevresindeki her sey marka
+            tipografisi ve yuvarlak kenarken o, isletim sisteminin gri
+            kutusu olarak duruyordu. Input hala DOM'da ve etiketle
+            bagli — klavye ve ekran okuyucu icin degisen bir sey yok.
+          */}
+          <label className="btn btn-secondary upload-pick" htmlFor={`file-${fieldId ?? label}`}>
+            {label}
+          </label>
           <input
             ref={inputRef}
             id={`file-${fieldId ?? label}`}
             type="file"
             name="file"
             accept={ACCEPT}
-            className="file-input"
+            className="sr-only"
             onChange={(e) => {
               const f = e.target.files?.[0];
               setLocalError(null);
@@ -109,6 +120,14 @@ export function PhotoUpload({
                 return;
               }
               setPreview(URL.createObjectURL(f));
+              /*
+                ALT METIN SORULMUYORSA HEMEN GONDER. Ayri bir "Yukle"
+                dugmesi, dosyayi secip sayfadan ayrilan kullanicinin
+                fotografini kaybetmesi demekti. Alt metin isteniyorsa
+                (ev/hayvan fotografi) beklemek gerekiyor: metin
+                yazilmadan gonderirsek alan bos kalir.
+              */
+              if (!withAlt) e.target.form?.requestSubmit();
             }}
           />
           <span className="field-hint">{m.profile.uploadHint}</span>
@@ -126,9 +145,13 @@ export function PhotoUpload({
         </div>
       )}
 
-      <button type="submit" className="btn btn-secondary" disabled={busy || !preview}>
-        {busy ? (busyLabel ?? m.profile.uploading) : m.profile.upload}
-      </button>
+      {withAlt ? (
+        <button type="submit" className="btn btn-secondary" disabled={busy || !preview}>
+          {busy ? (busyLabel ?? m.profile.uploading) : m.profile.upload}
+        </button>
+      ) : (
+        busy && <p className="field-hint" role="status">{busyLabel ?? m.profile.uploading}</p>
+      )}
     </form>
   );
 }

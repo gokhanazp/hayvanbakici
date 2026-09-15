@@ -3,7 +3,7 @@ import { getMessages, unitLabel, interpolate, segmentFor, type Locale } from '@h
 import { SERVICES } from '@havre/core';
 import type { BookingSummary } from '@/lib/data';
 import { Avatar } from './Avatar';
-import { money, dateFmt } from '@/lib/format';
+import { money, dateRangeFmt } from '@/lib/format';
 
 /** Durum -> rozet rengi. Renk tek tasiyici degil; metin de yaziyor (WCAG 1.4.1). */
 const TONE: Record<string, { bg: string; fg: string }> = {
@@ -39,15 +39,21 @@ export function BookingCard({
       <Avatar src={booking.counterpartAvatarUrl} size={44}
         initials={`${booking.counterpartFirstName.slice(0, 1)}${booking.counterpartInitial}`} />
 
-      <div style={{ minWidth: 0 }}>
-        <p style={{ fontWeight: 600 }}>
-          {interpolate(viewerRole === 'owner' ? m.booking.withSitter : m.booking.forOwner, { name })}
-        </p>
+      <div className="booking-card-body">
+        {/*
+          TARIH EN USTTE VE SOLUK DEGIL.
+
+          Once ad basta, tarih ise hizmetin yaninda gri bir satirdaydi —
+          ve o tarih AY VE YIL veriyordu ("Kasim 2026 – Kasim 2026").
+          Sahibin listeye bakma sebebi "ne zamandi?" sorusu; once ona
+          cevap veriyor.
+        */}
+        <p className="booking-when tabular">{dateRangeFmt(booking.startAt, booking.endAt, locale)}</p>
         <p className="text-body-sm muted">
-          {m.service[booking.serviceType]} · {dateFmt(booking.startAt, locale)} – {dateFmt(booking.endAt, locale)}
+          {m.service[booking.serviceType]} · {booking.units} {unitLabel(locale, unit, booking.units)}
         </p>
-        <p className="text-body-sm dim tabular">
-          {booking.units} {unitLabel(locale, unit, booking.units)}
+        <p className="text-body-sm dim">
+          {interpolate(viewerRole === 'owner' ? m.booking.withSitter : m.booking.forOwner, { name })}
         </p>
       </div>
 

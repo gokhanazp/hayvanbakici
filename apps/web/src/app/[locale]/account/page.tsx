@@ -11,6 +11,7 @@ import { AccountShell } from '@/components/AccountShell';
 import { getAccountSummary, isAdmin, listOwnerPets, type OwnerPet } from '@/lib/data';
 import { PetCard } from '@/components/PetCard';
 import { Avatar } from '@/components/Avatar';
+import { EmptyState, PawArt } from '@/components/EmptyState';
 
 export const dynamic = 'force-dynamic';
 
@@ -405,13 +406,17 @@ function PetsSection({
       </div>
 
       {pets.length === 0 ? (
-        <div className="card card-muted pet-empty">
-          <p style={{ margin: 0 }}>{m.pets.emptyHint}</p>
-          <Link href={`/${seg}/account/pets/`} className="btn btn-primary"
-                style={{ marginTop: 'var(--space-5)' }}>
-            {m.pets.add}
-          </Link>
-        </div>
+        <EmptyState
+          tone="card"
+          icon={PawArt}
+          title={m.pets.empty}
+          body={m.pets.emptyHint}
+          action={
+            <Link href={`/${seg}/account/pets/`} className="btn btn-primary">
+              {m.pets.add}
+            </Link>
+          }
+        />
       ) : (
         <div className="pet-grid">
           {pets.map((pet) => <PetCard key={pet.id} pet={pet} locale={locale} />)}

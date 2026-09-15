@@ -250,6 +250,7 @@ export const enCA = {
     saving: 'Saving…',
     saved: 'Saved.',
     photoHeading: 'Your photo',
+    detailsHeading: 'Name and language',
     photoLead: 'A face makes a booking easier to say yes to. Square photos work best.',
     avatarLabel: 'Choose your profile photo',
     addHomePhoto: 'Add a photo of your home',
@@ -292,6 +293,8 @@ export const enCA = {
     other: 'Other pet',
   },
   booking: {
+    upcoming: 'Coming up',
+    past: 'Past',
     requestTitle: 'Request a booking with {name}',
     dates: 'Dates',
     pets: 'Which pet?',

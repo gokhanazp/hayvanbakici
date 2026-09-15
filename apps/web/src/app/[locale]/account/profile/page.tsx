@@ -58,33 +58,41 @@ export default async function ProfilePage({
       isAdmin={admin}
       unread={unread}
     >
-      <div className="stack" style={{ display: 'grid', gap: 'var(--space-8)', maxWidth: '44rem' }}>
-        <section className="card card-pad">
-          <h2 className="text-h4">{m.profile.photoHeading}</h2>
-          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.profile.photoLead}</p>
+      {/*
+        DUZEN — IKI SUTUN.
 
-          <div className="row" style={{ gap: 'var(--space-5)', marginTop: 'var(--space-5)' }}>
-            <Avatar src={me.avatarUrl} initials={initialsOf(me)} size={96} />
-            <div style={{ flex: 1, minWidth: '14rem' }}>
-              <PhotoUpload
-                locale={locale}
-                action={uploadAvatarAction}
-                label={m.profile.avatarLabel}
-              />
-              <p className="field-hint" style={{ marginTop: 'var(--space-2)' }}>
-                {m.profile.avatarNote}
-              </p>
-              {me.avatarUrl && (
-                <div style={{ marginTop: 'var(--space-3)' }}>
-                  <PhotoDelete
-                    locale={locale}
-                    action={removeAvatarAction}
-                    label={m.profile.remove}
-                  />
-                </div>
-              )}
-            </div>
+        Once her sey 44rem'lik tek bir sutunda alt alta duruyordu:
+        1280 pikselde sag yari bostu ve fotograf bolumu, formdan once
+        gelen ayri bir kart oldugu icin "once bunu bitir" gibi
+        okunuyordu. Fotograf artik solda dar bir sutunda, formun
+        YANINDA: ikisi de ayni seyin parcasi — insanlarin sizi nasil
+        gordugu.
+      */}
+      <div className="profile-grid">
+        <section className="card card-pad profile-photo-card">
+          <h2 className="text-h4">{m.profile.photoHeading}</h2>
+          <p className="muted text-body-sm" style={{ marginTop: 'var(--space-2)' }}>
+            {m.profile.photoLead}
+          </p>
+
+          <div className="profile-avatar">
+            <Avatar src={me.avatarUrl} initials={initialsOf(me)} size={128} />
           </div>
+
+          <PhotoUpload
+            locale={locale}
+            action={uploadAvatarAction}
+            label={m.profile.avatarLabel}
+            fieldId="avatar"
+          />
+          <p className="field-hint">{m.profile.avatarNote}</p>
+          {me.avatarUrl && (
+            <PhotoDelete
+              locale={locale}
+              action={removeAvatarAction}
+              label={m.profile.remove}
+            />
+          )}
         </section>
 
         <section className="card card-pad">
@@ -97,6 +105,9 @@ export default async function ProfilePage({
             action={saveProfileAction}
           />
         </section>
+      </div>
+
+      <div className="profile-grid-wide">
 
         {/*
           EV FOTOGRAFLARI YALNIZCA BAKICIDA. Sahip hesabina bu bolumu

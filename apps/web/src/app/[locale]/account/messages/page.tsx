@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment } from '@havre/i18n';
+import { ChatArt } from '@/components/EmptyState';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,11 +25,9 @@ export default async function MessagesIndexPage({
   return (
     <section className="inbox-thread is-placeholder">
       <div className="inbox-placeholder">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M20 13.5a2 2 0 0 1-2 2H8l-4 3.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z" />
-          <path d="M8.5 9.5h7M8.5 12h4" />
-        </svg>
+        {/* Bos durumlarla AYNI cizim: ayni soruyu soran iki ekran, ayni
+            gorsel dili konussun. */}
+        <span aria-hidden="true" style={{ lineHeight: 0 }}>{ChatArt}</span>
         <p>{m.messages.pickOne}</p>
       </div>
     </section>

@@ -19,6 +19,38 @@ export function dateFmt(iso: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(new Date(iso));
 }
 
+/**
+ * TARIH ARALIGI — "Nov 2 – 4, 2026" / "2 – 4 nov. 2026".
+ *
+ * Rezervasyon karti bugune kadar dateFmt kullaniyordu ve dateFmt AY VE
+ * YIL veriyor: kartta "Kasim 2026 – Kasim 2026" yaziyordu. Sahibin
+ * karta bakma sebebi tam olarak "hangi gun" sorusuydu ve kart ona
+ * cevap vermiyordu (tarayicida yakalandi).
+ *
+ * formatRange KULLANILIYOR, iki tarihi elle birlestirmiyoruz. Ilk
+ * denemede "gun–tamTarih" diye birlestirdim ve Ingilizce'de
+ * "2–Nov 4, 2026" cikti: ay adi gunden ONCE geliyor, dolayisiyla elle
+ * kurulan her sira bir dilde dogru bir dilde yanlis oluyor. formatRange
+ * ortak parcayi (ay, yil) tekrar etmeden dogru sirayla yaziyor ve tek
+ * gunluk araligi tek tarihe indiriyor.
+ *
+ * UTC sabit: rezervasyon tarihleri gun olarak anlamli ve sayfa
+ * sunucuda ciziliyor — sunucunun saat dilimi bir gun kaydirabilirdi.
+ */
+export function dateRangeFmt(startIso: string, endIso: string, locale: Locale): string {
+  const a = new Date(startIso);
+  const b = new Date(endIso);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return '';
+
+  const fmt = new Intl.DateTimeFormat(locale, {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  });
+  /* formatRange her ortamda yok; yoksa iki tarihi tire ile yaziyoruz. */
+  return typeof fmt.formatRange === 'function'
+    ? fmt.formatRange(a, b)
+    : `${fmt.format(a)} – ${fmt.format(b)}`;
+}
+
 /** Gun hassasiyeti — yonetici listelerinde "Eylul 2026" yeterli degil. */
 export function dayFmt(iso: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale, {
