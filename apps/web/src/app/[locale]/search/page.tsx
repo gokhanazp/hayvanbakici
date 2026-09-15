@@ -223,6 +223,22 @@ export default async function SearchPage({
                   total: numberFmt(total, locale),
                 })}</>
               )}
+              {/*
+                ROZETLERE ACIKLAMA KAPISI. Kartlarda "ID verified",
+                "Certified Pro" yan yana duruyor ve hicbiri ne demek
+                oldugunu soylemiyor; aciklamasi olmayan guven rozeti
+                sustur. Kartin kendisi bir baglanti oldugu icin rozetin
+                ICINE baglanti konulamaz (ic ice baglanti) — kapi
+                listenin basinda.
+              */}
+              {results.length > 0 && (
+                <>
+                  {' · '}
+                  <Link href={`/${segmentFor(locale)}/protection/`} style={{ textDecoration: 'underline' }}>
+                    {m.verification.whatTheseMean}
+                  </Link>
+                </>
+              )}
             </p>
 
             {results.length === 0 ? (

@@ -6,7 +6,9 @@ import {
   getMessages, interpolate, localeFromSegment, LOCALES, segmentFor, serviceSlug,
   type Locale, type Messages,
 } from '@havre/i18n';
-import { VerificationBadge, ShieldIcon } from '@/components/VerificationBadge';
+import {
+  VerificationBadge, VerificationExplainer, ShieldIcon,
+} from '@/components/VerificationBadge';
 import { Avatar } from '@/components/Avatar';
 import { SitterGallery } from '@/components/SitterGallery';
 import { getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
@@ -404,10 +406,22 @@ export default async function SitterPage({
               <Fact>{interpolate(m.sitter.memberSince, { date: dateFmt(sitter.memberSince, locale) })}</Fact>
             </ul>
 
-            <p className="field-hint" style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <span style={{ color: 'var(--color-primary)', flex: '0 0 auto' }}><ShieldIcon size={13} /></span>
-              {m.verification.disclaimer}
-            </p>
+            {/*
+              ROZET BURADA ACIKLANIYOR. Kimlik blogundaki rozet tek
+              basina "Certified Pro" diyor; ne kapsadigini — ve neyi
+              KAPSAMADIGINI — soyleyen satir rezervasyon kutusunda,
+              karar verilen yerde.
+            */}
+            <div>
+              <p className="field-hint" style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                <span style={{ color: 'var(--color-primary)', flex: '0 0 auto' }}><ShieldIcon size={13} /></span>
+                {m.verification.disclaimer}
+              </p>
+              <VerificationExplainer level={sitter.badgeLevel} locale={locale} />
+              <Link href={`/${seg}/protection/`} className="field-hint" style={{ textDecoration: 'underline' }}>
+                {m.verification.whatTheseMean}
+              </Link>
+            </div>
           </div>
         </aside>
       </section>

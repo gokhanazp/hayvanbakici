@@ -403,6 +403,13 @@ export const frCA = {
     certification: 'Pro certifié',
     disclaimer:
       "Vérification approfondie des antécédents judiciaires et vérification biométrique de l'identité.",
+
+    'explain.identity': 'Une pièce d’identité avec photo a été comparée à un égoportrait en direct par un fournisseur accrédité. Cela confirme qui elle est, pas comment elle travaille.',
+    'explain.criminal': 'Une vérification approfondie des antécédents judiciaires a été reçue et lue par une personne. C’est un instantané du jour où elle a été faite, pas une promesse sur l’avenir.',
+    'explain.licence': 'Le gardien nous a fourni un numéro de licence d’entreprise de sa municipalité et nous avons vérifié qu’il est au dossier. Nous ne vérifions pas son assurance — posez-lui la question vous-même.',
+    'explain.certification': 'Tout ce qui précède, plus des réservations terminées sur Havre avec des évaluations constamment élevées et aucun signalement d’incident retenu.',
+    whatTheseMean: 'Que veulent dire ces badges ?',
+    heading: 'Ce que couvre chaque badge',
   },
   ranking: {
     'improve.reviewQuality': 'Demandez à vos clients satisfaits de laisser un avis.',

@@ -410,6 +410,20 @@ export const enCA = {
     certification: 'Certified Pro',
     // Yasal not: "vulnerable sector check" IDDIASI KULLANILAMAZ (§5.4)
     disclaimer: 'Enhanced criminal record check and biometric identity verification.',
+
+    /*
+      HER ROZETIN NE OLDUGU VE NE OLMADIGI.
+
+      Aciklamasi olmayan bir guven rozeti sustur. Her satir ne
+      DOGRULANDIGINI soyluyor ve ne dogrulanmadigini saklamiyor — bir
+      rozet, vermedigimiz bir sozu ima ederse guven degil risk uretir.
+    */
+    'explain.identity': 'A government photo ID was matched to a live selfie by an accredited provider. It confirms who they are, not how they work.',
+    'explain.criminal': 'An enhanced criminal record check came back and a person read the result. It is a snapshot of the day it ran, not a promise about the future.',
+    'explain.licence': 'They gave us a business licence number for their municipality and we checked it is on file. We do not verify their insurance — ask them about it yourself.',
+    'explain.certification': 'Everything above, plus completed bookings on Havre with consistently high ratings and no upheld incident report.',
+    whatTheseMean: 'What do these badges mean?',
+    heading: 'What each badge covers',
   },
   ranking: {
     'improve.reviewQuality': 'Ask happy clients to leave a review.',

@@ -33,3 +33,31 @@ export function VerificationBadge({ level, locale }: { level: 0 | 1 | 2 | 3 | 4;
     </span>
   );
 }
+
+/**
+ * ROZETIN NE OLDUGUNU — VE NE OLMADIGINI — SOYLEYEN SATIR.
+ *
+ * Aciklamasi olmayan bir guven rozeti sustur: "Certified Pro" yazan
+ * bir etiket, ne anlama geldigi bilinmiyorsa guven uretmez. Daha
+ * kotusu, insanlar onu kendi hayal ettikleri seyle doldurur —
+ * "sigortali" gibi, hic vermedigimiz bir sozle.
+ *
+ * Tooltip DEGIL: dokunmatik ekranda tooltip yoktur ve klavyeyle
+ * ulasilmasi ayri bir is. Bu yalnizca metin; her yerde calisiyor.
+ */
+export function VerificationExplainer({
+  level, locale,
+}: {
+  level: 0 | 1 | 2 | 3 | 4; locale: Locale;
+}) {
+  if (level === 0) return null;
+  const meta = LEVELS[level];
+  if (!meta) return null;
+  const m = getMessages(locale);
+
+  return (
+    <p className="field-hint" style={{ marginTop: 'var(--space-2)' }}>
+      {m.verification[`explain.${meta.key}` as keyof typeof m.verification]}
+    </p>
+  );
+}

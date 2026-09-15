@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { ContentPage, DraftNotice } from '@/components/ContentPage';
+import { VerificationBadge } from '@/components/VerificationBadge';
 
 /**
  * KORUMA SAYFASI.
@@ -71,6 +72,30 @@ export default async function ProtectionPage({ params }: { params: Promise<{ loc
           'Chaque candidat passe une vérification d’identité et une vérification approfondie des antécédents judiciaires effectuée par un fournisseur accrédité. Une personne lit chaque résultat — une vérification signalée est examinée par un humain, jamais refusée automatiquement.',
         )}
       </p>
+
+      {/*
+        ROZETLERIN TAM ACIKLAMASI.
+
+        Arama kartlarindan ve bakici profilinden buraya baglanti var.
+        Her satir ne DOGRULANDIGINI soyluyor ve ne dogrulanmadigini
+        saklamiyor: bir rozet vermedigimiz bir sozu ima ederse guven
+        degil risk uretir. "Licence" satirinda sigortayi DOGRULAMADIGIMIZ
+        acikca yaziyor — bu, sitede en kolay yanlis anlasilan sey.
+      */}
+      <h2 id="badges">{m.verification.heading}</h2>
+      <dl className="badge-guide">
+        {([
+          [1, 'explain.identity'],
+          [2, 'explain.criminal'],
+          [3, 'explain.licence'],
+          [4, 'explain.certification'],
+        ] as const).map(([level, key]) => (
+          <div key={level}>
+            <dt><VerificationBadge level={level} locale={locale} /></dt>
+            <dd>{m.verification[key]}</dd>
+          </div>
+        ))}
+      </dl>
 
       <h2>{t('What stays private', 'Ce qui reste privé')}</h2>
       <ul>
