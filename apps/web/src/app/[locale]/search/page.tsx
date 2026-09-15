@@ -157,6 +157,8 @@ export default async function SearchPage({
 
           <SearchBar
             locale={locale}
+            /* Sonuc sayfasi: telefonda katlaniyor, masaustunde acik */
+            collapsible
             defaults={{
               service: serviceSlug(service, locale),
               location,
@@ -309,6 +311,20 @@ export default async function SearchPage({
  * Her filtre adresin bir parcasi: sonuc paylasilabilir ve geri tusu
  * beklendigi gibi calisir. Gizli alanlar hizmet/konum/tarihi tasir,
  * aksi halde filtre uygulandiginda arama sifirlanirdi.
+ *
+ * TELEFONDA KATLANIYOR. 390px'de arama karti ve filtre karti ust uste
+ * duruyordu: tek bir bakici gormeden iki ekran kaydirmak gerekiyordu.
+ * Simdi dar ekranda "Filtreler" satirinin arkasinda; genis ekranda
+ * eskisi gibi acik duruyor.
+ *
+ * Acma/kapama JS'siz: gorunmeyen ama odaklanabilir bir onay kutusu ve
+ * ona bagli etiket (`:checked ~` seciciyle). Kutunun `name`i yok, yani
+ * forma dahil olmuyor. <details> kullanmadik cunku genis ekranda
+ * KAPALI bir <details>'i CSS ile acik gostermek tarayicilar arasinda
+ * guvenilir degil.
+ *
+ * FILTRE UYGULANMISSA ACIK BASLIYOR: sonuclari daraltan bir sey varsa
+ * kullanici onu gormeli, kapali bir panelin arkasinda kalmamali.
  */
 function Filters({
   locale, service, location, start, end, radiusKm, maxPrice, needsCats, requireFencedYard, minBadge,
@@ -333,6 +349,11 @@ function Filters({
     label: v === 0 ? t.anyPrice : money(v * 100, locale),
   }));
 
+  /* Varsayilandan sapan her filtre sayiliyor — etikette gorunuyor. */
+  const activeCount = [
+    radiusKm !== 15, maxPrice > 0, needsCats, requireFencedYard, minBadge > 0,
+  ].filter(Boolean).length;
+
   return (
     <form method="get" action={`/${seg}/search/`} className="filters">
       <input type="hidden" name="service" value={service} />
@@ -340,6 +361,21 @@ function Filters({
       {start && <input type="hidden" name="start" value={start} />}
       {end && <input type="hidden" name="end" value={end} />}
 
+      {/* name YOK: forma gonderilmiyor, yalnizca CSS icin durum tasiyor */}
+      <input
+        type="checkbox" id="filters-open" className="filters-toggle"
+        defaultChecked={activeCount > 0}
+      />
+      <label htmlFor="filters-open" className="filters-summary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+          strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+          <path d="M2 4h12M4.5 8h7M7 12h2" />
+        </svg>
+        {t.filters}
+        {activeCount > 0 && <span className="filters-count tabular">{activeCount}</span>}
+      </label>
+
+      <div className="filters-body">
       <div className="field" style={{ flex: '0 1 11rem' }}>
         <label htmlFor="radius">{t.radius}</label>
         <Select
@@ -379,7 +415,7 @@ function Filters({
 
       <button type="submit" className="btn btn-secondary">{t.apply}</button>
 
-      {(maxPrice > 0 || needsCats || requireFencedYard || minBadge > 0 || radiusKm !== 15) && (
+      {activeCount > 0 && (
         <Link
           className="btn btn-ghost"
           href={`/${seg}/search/?service=${encodeURIComponent(service)}&location=${encodeURIComponent(location)}${start ? `&start=${start}` : ''}${end ? `&end=${end}` : ''}`}
@@ -387,6 +423,7 @@ function Filters({
           {t.clear}
         </Link>
       )}
+      </div>
     </form>
   );
 }

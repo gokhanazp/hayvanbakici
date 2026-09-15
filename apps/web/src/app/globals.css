@@ -288,12 +288,51 @@ a { color: inherit; text-decoration: none; }
 }
 
 .searchbar {
-  display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   padding: var(--space-5) var(--space-6);
+}
+.searchbar-body {
+  display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap;
+}
+
+/*
+  SONUC SAYFASINDA ARAMA KARTI TELEFONDA KATLANIYOR.
+
+  Dort alanli kart 390px'de ~440 piksel yiyordu; filtrelerle birlikte
+  tek bir bakici gormeden iki ekran kaydirmak gerekiyordu. Kapaliyken
+  tek satir: ne arandigi + "Degistir".
+
+  Filtrelerdeki ile AYNI teknik: gorunmez ama odaklanabilir onay kutusu.
+  JS'siz de calisiyor.
+*/
+.searchbar-toggle {
+  position: absolute; width: 1px; height: 1px;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
+}
+.searchbar-summary { display: none; }
+
+@media (max-width: 899px) {
+  .searchbar-collapsible .searchbar-summary {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--min-touch-target);
+    cursor: pointer;
+  }
+  .searchbar-summary-text { font-weight: 600; min-width: 0; }
+  .searchbar-summary-action {
+    flex: 0 0 auto;
+    font-size: 0.875rem; font-weight: 600;
+    color: var(--color-primary-active); text-decoration: underline;
+  }
+  .searchbar-toggle:focus-visible + .searchbar-summary {
+    outline: 2px solid var(--color-primary); outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+  .searchbar-collapsible .searchbar-body { display: none; margin-top: var(--space-4); }
+  .searchbar-toggle:checked ~ .searchbar-body { display: flex; }
 }
 
 /* ---------- Site kabugu ---------- */
@@ -420,8 +459,28 @@ a { color: inherit; text-decoration: none; }
 }
 .nav-drawer-item:hover { background: var(--color-surface-sunken); }
 
+.nav-drawer-item:disabled { opacity: .5; cursor: not-allowed; }
+/* Cekmecedeki cikis dugmesi bir baglanti gibi hizalansin */
+.nav-drawer-button {
+  width: 100%; border: 0; background: none; cursor: pointer;
+  font: inherit; color: inherit; text-align: left;
+}
+
 /* Dar ekranda CTA'yi gizle — cekmecede zaten var, baslik tasiyor */
 @media (max-width: 640px) { .header-cta { display: none; } }
+
+/*
+  HESAP ALANI DAR EKRANDA CEKMECEDE.
+
+  390px'de cubuk logo + EN/FR + isim + "Se deconnecter" + hamburger
+  tasiyordu; Fransizcada cikis dugmesi iki satira boluniyor ve baslik
+  ekrandan tasiyordu. Cekmece 1000px'de kayboluyor, hesap alani da tam
+  o noktada cubuga geri geliyor — arada hicbir genislikte iki kopya da
+  gorunmuyor, hicbirinde de kaybolmuyor.
+*/
+.header-account { display: none; }
+@media (min-width: 1000px) { .header-account { display: contents; } }
+@media (min-width: 1000px) { .nav-drawer .header-account { display: none; } }
 
 /* --- Alt bilgi --- */
 .site-footer {
@@ -1411,11 +1470,55 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- Arama filtreleri ---------- */
 .filters {
-  display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-4);
   padding: var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+}
+.filters-body {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-4);
+}
+
+/*
+  TELEFONDA FILTRELER KATLANIYOR.
+
+  390px'de arama karti ve filtre karti ust uste duruyordu: tek bir
+  bakici gormeden iki ekran kaydirmak gerekiyordu.
+
+  Acma/kapama JS'siz. Onay kutusu GORUNMEZ ama odaklanabilir kaliyor
+  (clip-path ile; display:none olsaydi klavyeyle ulasilamazdi) ve
+  etiketi ona bagli. Kutunun `name`i yok, forma gonderilmiyor.
+*/
+.filters-toggle {
+  position: absolute; width: 1px; height: 1px;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
+}
+.filters-summary { display: none; }
+
+@media (max-width: 899px) {
+  .filters-summary {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    min-height: var(--min-touch-target);
+    font-weight: 600; cursor: pointer;
+  }
+  /* Odak halkasi gizli kutuda degil, GORUNEN etikette */
+  .filters-toggle:focus-visible + .filters-summary {
+    outline: 2px solid var(--color-primary); outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+  .filters-body { display: none; margin-top: var(--space-4); }
+  .filters-toggle:checked ~ .filters-body { display: flex; }
+  /* Acikken oku cevir — durumu simge de soyluyor */
+  .filters-toggle:checked + .filters-summary svg { transform: rotate(180deg); }
+}
+
+/* Kac filtre acik — kapaliyken bile gorunuyor */
+.filters-count {
+  display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary); color: var(--color-primary-on);
+  font-size: 0.6875rem; font-weight: 700;
 }
 .filter-check {
   display: inline-flex; align-items: center; gap: var(--space-2);

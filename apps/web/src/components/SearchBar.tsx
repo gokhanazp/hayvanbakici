@@ -13,9 +13,18 @@ const LIVE_SERVICES = servicesForPhase('v1');
  * Arama cubugu ana sayfada BOS, sonuc sayfasinda DOLU ciziliyor.
  * Sonuc sayfasinda kullanicinin yazdigi degerleri geri gostermek sart:
  * bos bir kutu, "aramam kayboldu" demektir.
+ *
+ * SONUC SAYFASINDA TELEFONDA KATLANIYOR (collapsible). Dort alanli kart
+ * 390px'de ~440 piksel yiyordu; filtrelerle birlikte tek bir bakici
+ * gormeden iki ekran kaydirmak gerekiyordu. Kapaliyken tek satir:
+ * "Kopek konaklamasi - Toronto".
+ *
+ * Acma/kapama JS'siz (gorunmez ama odaklanabilir onay kutusu + etiket).
+ * React durumu kullanilmadi: hidrasyondan once dugme olu olurdu ve
+ * JS'siz tarayicida arama alanlarina hic ulasilamazdi.
  */
 export function SearchBar({
-  locale, defaults,
+  locale, defaults, collapsible = false,
 }: {
   locale: Locale;
   defaults?: {
@@ -24,14 +33,35 @@ export function SearchBar({
     start?: string | undefined;
     end?: string | undefined;
   } | undefined;
+  collapsible?: boolean;
 }) {
   const m = getMessages(locale);
   const [service, setService] = useState(defaults?.service ?? serviceSlug('boarding', locale));
 
+  /* Ozet satiri: ne arandigi kapaliyken de gorunmeli. */
+  const current = LIVE_SERVICES.find((x) => serviceSlug(x, locale) === service);
+  const summary = [current ? m.service[current] : null, defaults?.location]
+    .filter(Boolean).join(' · ');
+
   // GET: arama sonucu bir ADRES olmali — paylasilabilir, geri tusuyla
   // calisir, yenilenince ayni sonucu verir.
   return (
-    <form className="searchbar" method="get" action={`/${segmentFor(locale)}/search/`}>
+    <form
+      className={`searchbar${collapsible ? ' searchbar-collapsible' : ''}`}
+      method="get" action={`/${segmentFor(locale)}/search/`}
+    >
+      {collapsible && (
+        <>
+          {/* name YOK: forma gonderilmiyor, yalnizca CSS icin durum tasiyor */}
+          <input type="checkbox" id="search-open" className="searchbar-toggle" />
+          <label htmlFor="search-open" className="searchbar-summary">
+            <span className="searchbar-summary-text">{summary || m.search.submit}</span>
+            <span className="searchbar-summary-action">{m.search.change}</span>
+          </label>
+        </>
+      )}
+
+      <div className="searchbar-body">
       <div className="field">
         <label htmlFor="service">{m.search.service}</label>
         <Select
@@ -78,6 +108,7 @@ export function SearchBar({
             strokeWidth="1.9" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13.2 13.2 3.4 3.4" strokeLinecap="round" /></svg>
           {m.search.submit}
         </button>
+      </div>
       </div>
     </form>
   );

@@ -36,6 +36,7 @@ export const frCA = {
     dates: 'Dates',
     pet: 'Votre animal',
     submit: 'Chercher',
+    change: 'Modifier',
     resultsCount: '{count} gardiens disponibles',
     seeAll: 'Voir les {count} gardiens',
     noResults: 'Aucun gardien dans ce secteur pour le moment',

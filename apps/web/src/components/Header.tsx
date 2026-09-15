@@ -68,7 +68,10 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
 
         <div className="site-header-actions">
           <LocaleSwitch locale={locale} />
-          <HeaderAccount locale={locale} />
+          {/* Hesap alani dar ekranda cekmeceye tasiniyor (CSS) */}
+          <span className="header-account">
+            <HeaderAccount locale={locale} />
+          </span>
           {/* Dugme oturuma gore konusuyor — bakiciya "Bakici ol" demiyor */}
           <SitterCta locale={locale} className="btn btn-ink header-cta" />
 
@@ -93,9 +96,17 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
 
               <p className="nav-drawer-heading">{m.menu.forSitters}</p>
               <SitterCta locale={locale} className="nav-drawer-item" />
-              {/* Giris/cikis burada DEGIL: baslikta her genislikte HeaderAccount
-                  duruyor ve oturum durumunu dogru gosteriyor. Cekmecede sabit
-                  bir "Sign in" olsaydi, giris yapmis kullaniciya da gorunurdu. */}
+
+              {/*
+                HESAP ISLEMLERI CEKMECEDE.
+
+                390px'de cubukta duran "Cikis" iki satira boluniyor ve
+                baslik ekrandan tasiyordu. Sabit bir "Giris yap" satiri
+                degil: ayni bilesen oturumu okuyor, giris yapmis
+                kullaniciya adi ve cikis gorunuyor.
+              */}
+              <p className="nav-drawer-heading">{m.account.title}</p>
+              <HeaderAccount locale={locale} variant="drawer" />
             </div>
           </details>
         </div>

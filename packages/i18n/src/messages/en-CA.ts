@@ -29,6 +29,7 @@ export const enCA = {
     dates: 'Dates',
     pet: 'Your pet',
     submit: 'Search',
+    change: 'Change',
     resultsCount: '{count} sitters available',
     seeAll: 'See all {count} sitters',
     noResults: 'No sitters here yet',
