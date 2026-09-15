@@ -39,7 +39,7 @@ export function ProfileForm({
     (m.profile[k as keyof Messages['profile']] as string | undefined) ?? k;
 
   return (
-    <form action={formAction} className="stack">
+    <form action={formAction} className="stack form-column">
       {/* Sayfanin basligi zaten "Profiliniz"; ayni metni ikinci kez
           yazmak ekran okuyucuda iki ayni baslik demekti. */}
       <h2 className="text-h4">{m.profile.detailsHeading}</h2>

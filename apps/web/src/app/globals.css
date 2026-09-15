@@ -28,6 +28,140 @@ a { color: inherit; text-decoration: none; }
   border-radius: 6px;
 }
 
+/* ---------- FORM KONTROLLERI — TEK KAYNAK ---------- */
+/*
+  Ayni gorunum DORT ayri yerde yeniden tanimlanmisti: .field input,
+  .field-block input, .textarea ve .select-trigger. Dordu de kendi
+  dolgusunu yaziyordu, dolayisiyla ayni satirda duran bir metin kutusu
+  ile bir secim kutusu farkli yukseklikteydi ve kimse bunun neden
+  boyle oldugunu bilmiyordu. Gorunum artik burada; o kurallar yalnizca
+  genislik/duzen belirtiyor.
+
+  KAPSAM: file ve checkbox/radio DISARIDA — birinin kendi dugmesi var
+  (etiketle degistiriliyor), digerleri accent-color ile boyaniyor.
+*/
+.field input,
+.field select,
+.field-block input,
+.field-block textarea,
+.textarea,
+.select-native,
+.select-trigger,
+input[type='text'], input[type='email'], input[type='password'],
+input[type='search'], input[type='tel'], input[type='url'],
+input[type='number'], input[type='date'] {
+  min-height: var(--min-touch-target);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font: inherit;
+  color: var(--color-ink);
+  transition: border-color var(--duration-micro) var(--easing-standard),
+              box-shadow var(--duration-micro) var(--easing-standard);
+}
+/*
+  FORM SUTUNU OKUNABILIR GENISLIKTE.
+
+  Genis bir kartta alanlar kartin tamamini kapliyordu: "Ad" kutusu 1240
+  piksel oluyor ve yanindaki "Soyad bas harfi" ekranin OBUR UCUNDA
+  kaliyordu — iki alan tek bir bilgi (isim) ama goz arada 1200 piksel
+  yol gidiyordu. Bir ada, bir e-postaya ya da bir tarihe bu kadar
+  genislik gerekmiyor.
+*/
+.form-column { max-width: 34rem; }
+
+/* Cok satirli alanda 44px'lik taban anlamsiz — satir sayisi belirler */
+.field-block textarea, .textarea { min-height: 0; }
+
+/* Yer tutucu metni GIRILEN metinden acik: ikisi ayni tonda oldugunda
+   kullanici kutunun dolu oldugunu saniyordu. */
+.field input::placeholder,
+.field-block input::placeholder,
+.field-block textarea::placeholder,
+.textarea::placeholder { color: var(--color-ink-muted); }
+
+/* Fareyle uzerine gelince kenar canlaniyor — kutunun tiklanabilir
+   oldugunu soyluyor. Once yalnizca secim kutusu boyle davraniyordu. */
+.field input:hover,
+.field select:hover,
+.field-block input:hover,
+.field-block textarea:hover,
+.textarea:hover,
+.select-trigger:hover { border-color: var(--color-primary); }
+
+/*
+  ODAK: kenarlik + yumusak halka.
+
+  Genel :focus-visible kurali 2 piksellik bir dis cizgi ciziyordu ve
+  16 piksel yuvarlak bir kutunun etrafinda kose kaciran bir dikdortgen
+  gibi duruyordu. Halka kutunun kendi yariçapini takip ediyor. Gorunur
+  odak gostergesi kaybolmuyor (WCAG 2.4.11/2.4.13): kenar rengi
+  degisiyor VE 3 piksellik bir halka ciziliyor.
+*/
+.field input:focus-visible,
+.field select:focus-visible,
+.field-block input:focus-visible,
+.field-block textarea:focus-visible,
+.textarea:focus-visible,
+.select-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+/* Zorunlu renk kipinde box-shadow cizilmez — orada dis cizgi sart */
+@media (forced-colors: active) {
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field-block input:focus-visible,
+  .field-block textarea:focus-visible,
+  .textarea:focus-visible,
+  .select-trigger:focus-visible { outline: 2px solid; outline-offset: 2px; }
+}
+
+/* Hatali alan: kenar + halka, ikisi de kirmizi. Renk tek tasiyici
+   degil — hata metni her zaman kutunun altinda yaziyor. */
+.field-block input[aria-invalid='true'],
+.field-block textarea[aria-invalid='true'],
+.field input[aria-invalid='true'],
+.textarea[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.field-block input[aria-invalid='true']:focus-visible,
+.field input[aria-invalid='true']:focus-visible,
+.textarea[aria-invalid='true']:focus-visible {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-subtle);
+}
+
+/* Kapali alan: cukur zemin. Yalnizca soluklastirmak, metni okunmaz
+   yapip kutunun hala doldurulabilir gorunmesine yol aciyordu. */
+.field input:disabled,
+.field select:disabled,
+.field-block input:disabled,
+.field-block textarea:disabled,
+.textarea:disabled,
+.select-trigger:disabled {
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+  border-color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/*
+  SAYI ALANINDAKI OK TUSLARI. Kilo gibi alanlarda kutunun sagindaki
+  minik oklar hem dokunmatikte kullanilamiyor hem de sayfanin geri
+  kalaniyla ayni dili konusmuyor; klavye ok tuslari calismaya devam
+  ediyor.
+*/
+input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Tarih alanindaki takvim simgesi marka renginde */
+input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+
 /* ---------- Duzen ---------- */
 .container { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: var(--space-4); }
 @media (min-width: 768px) { .container { padding-inline: var(--space-8); } }
@@ -280,20 +414,19 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ---------- Form ---------- */
-.field { display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 180px; min-width: 0; }
+.field {
+  display: flex; flex-direction: column; gap: var(--space-1);
+  flex: 1 1 180px; min-width: 0;
+  /* Ayni sebep: kutu blok uzadiginda asagi kaymasin */
+  align-items: stretch; justify-content: start;
+}
 .field > label,
 .field > .field-label-static {
   font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--color-ink-muted);
 }
-.field input, .field select {
-  min-height: var(--min-touch-target);
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  width: 100%;
-}
+/* Gorunum ortak kuralda (bkz. "FORM KONTROLLERI" bolumu) */
+.field input, .field select { width: 100%; }
 
 .searchbar {
   background: var(--color-surface);
@@ -575,21 +708,30 @@ a { color: inherit; text-decoration: none; }
 }
 @media (min-width: 480px) { .auth-card { padding: var(--space-10) var(--space-8); } }
 
-.auth-form { display: grid; gap: var(--space-4); }
+/*
+  Formlar OKUNABILIR GENISLIKTE. Kimlik ekranlarinda kart zaten 27rem,
+  dolayisiyla orada bir sey degismiyor; genis kartlarda (hayvan formu,
+  basvuru adimlari) alanlarin sayfa boyunca uzamasini engelliyor.
+*/
+.auth-form { display: grid; gap: var(--space-4); max-width: 34rem; }
 
 /* Kimlik formunda etiketler BUYUK HARF DEGIL: arama filtresi degil, okunacak metin.
    WCAG 1.4.8 ve dislektik okurlar icin buyuk harf blogu zorlastirici. */
-.field-block { display: grid; gap: var(--space-2); }
+/*
+  ALAN BLOGU KENDI ICINDE YUKSEKLIK DAGITMAZ.
+
+  Varsayilan izgara, blok komsusundan uzun bir satira cekildiginde
+  fazladan yuksekligi SATIRLARA dagitiyordu: yaninda ipucu metni olan
+  bir alanin komsulari, kutularini asagi itilmis halde cizdiriyordu
+  ("Soyad bas harfi" ve hayvan formundaki "Irk"/"Dogum tarihi" boyle
+  kaymisti). align-content: start ile blok ne kadar uzarsa uzasin
+  etiket ve kutu en ustte kaliyor — hangi kapsayicinin icinde durdugu
+  fark etmiyor.
+*/
+.field-block { display: grid; gap: var(--space-2); align-content: start; }
 .field-block > label { font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-secondary); }
-.field-block input {
-  min-height: var(--min-touch-target);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  width: 100%;
-}
-.field-block input[aria-invalid='true'] { border-color: var(--color-danger); }
+/* Gorunum ortak kuralda (bkz. "FORM KONTROLLERI" bolumu) */
+.field-block input { width: 100%; }
 .field-hint { font-size: 0.8125rem; line-height: 1.2rem; color: var(--color-ink-muted); }
 .field-error { font-size: 0.8125rem; line-height: 1.2rem; color: var(--color-danger); }
 
@@ -721,8 +863,18 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Yan yana duran kisa alanlar (ad + bas harf gibi) */
-.field-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+/*
+  USTTEN HIZALI.
+
+  Varsayilan `stretch` ile kisa alan (yalnizca etiket + kutu) uzun alanin
+  (etiket + kutu + ipucu) boyuna cekiliyordu: icindeki izgara fazladan
+  yuksekligi kutu satirina dagitiyor ve "Soyad bas harfi" kutusu
+  komsusundan asagida, baska boyda duruyordu — ekran goruntusunde
+  kaymis gibi gorunmesinin sebebi buydu.
+*/
+.field-row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: start; }
 .field-row > * { flex: 1 1 12rem; }
+.field-row > .field-block, .field-row > .field { align-content: start; }
 /*
   TEK HARFLIK ALAN, TEK HARF GENISLIGINDE. 7rem'lik bir kutu, icine bir
   harf yazilan bir alan icin cagri gibi duruyordu: kullanici oraya tam
@@ -731,14 +883,8 @@ a { color: inherit; text-decoration: none; }
 .field-row > .field-narrow { flex: 0 0 auto; }
 .field-row > .field-narrow input { width: 4.5rem; text-align: center; }
 
-/* Cok satirli metin alani — daha once satir ici stil olarak yaziliydi */
-.textarea {
-  width: 100%; resize: vertical;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-}
+/* Cok satirli metin alani — gorunum ortak kuralda */
+.textarea { width: 100%; resize: vertical; }
 
 /* Hizmet secim karti — kutu isaretlenince icerigi acilir */
 .service-card {
@@ -859,17 +1005,14 @@ a { color: inherit; text-decoration: none; }
 .select-native,
 .select-trigger {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
-  width: 100%; min-height: var(--min-touch-target);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  font: inherit; color: var(--color-ink);
+  width: 100%;
+  color: var(--color-ink);
   text-align: start; cursor: pointer;
-  transition: border-color var(--duration-standard) var(--easing-standard);
 }
-.select-trigger:hover { border-color: var(--color-primary); }
-.select-trigger[aria-expanded='true'] { border-color: var(--color-primary); }
+.select-trigger[aria-expanded='true'] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
 .select-trigger[aria-expanded='true'] .select-caret { transform: rotate(180deg); }
 .select-trigger:disabled { opacity: .55; cursor: not-allowed; }
 .select-caret { flex: 0 0 auto; color: var(--color-ink-muted); transition: transform var(--duration-standard) var(--easing-standard); }
@@ -2603,6 +2746,7 @@ a { color: inherit; text-decoration: none; }
 .pet-form-row {
   display: grid; gap: var(--space-4);
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  align-items: start;
 }
 
 /* ---------- Bakicinin kendi hayvanlari (profil) ---------- */
@@ -2643,6 +2787,13 @@ a { color: inherit; text-decoration: none; }
 /* Olcu: bir satirda ~65 karakter — bos sayfada uzun satir daha da uzun okunuyor */
 .empty-body { margin: 0; max-width: 34rem; }
 .empty-action { margin-top: var(--space-4); }
+/*
+  Bos durumun ALTINDAKI islem — form acildiginda ortalanmis degil,
+  okunabilir genislikte bir sutun olmali: uzun bir form ortalandiginda
+  her satir farkli yerden basliyor.
+*/
+.pets-empty-actions { display: grid; justify-items: center; }
+.pets-empty-actions > * { width: 100%; max-width: 40rem; }
 
 /* ---------- Profil sayfasi ---------- */
 /*

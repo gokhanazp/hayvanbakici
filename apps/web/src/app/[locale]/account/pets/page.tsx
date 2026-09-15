@@ -56,11 +56,23 @@ export default async function PetsPage({
       isAdmin={admin}
       unread={me.counts.unreadMessages}
     >
-      <div className="stack" style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: '48rem' }}>
-        {pets.length === 0 && (
-          <EmptyState icon={PawArt} title={m.pets.empty} body={m.pets.emptyHint} />
-        )}
+      {/*
+        HIC HAYVAN YOKSA SAYFA GENISLIGI SINIRLANMIYOR.
 
+        Liste 48rem'de duruyor — uzun formlarin satiri okunabilir
+        kalsin diye. Ama bos durum o sinirin ICINE konunca sola yapisik
+        duruyordu: ayni ekran diger sekmelerde ortaliyken burada
+        ortalanmiyordu (kullanici fark etti).
+      */}
+      {pets.length === 0 ? (
+        <>
+          <EmptyState icon={PawArt} title={m.pets.empty} body={m.pets.emptyHint} />
+          <div className="pets-empty-actions">
+            <AddPet locale={locale} />
+          </div>
+        </>
+      ) : (
+      <div className="stack" style={{ display: 'grid', gap: 'var(--space-6)', maxWidth: '48rem' }}>
         {pets.map((pet) => (
           <section key={pet.id} className="pet-row">
             <PetCard
@@ -90,6 +102,7 @@ export default async function PetsPage({
           <Link href={`/${seg}/legal/privacy/`}>{m.footer.privacy.toLowerCase()}</Link>
         </p>
       </div>
+      )}
     </AccountShell>
   );
 }
