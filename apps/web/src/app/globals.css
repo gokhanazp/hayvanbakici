@@ -282,6 +282,38 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 */
 /* ---------- KAHRAMAN ---------- */
 /*
+  ARKA PLAN: TEK DUZ GECIS DEGIL, USTUSTE YUMUSAK ISIKLAR.
+
+  Once tek bir dogrusal gecis (blush -> kayisi) ve bir beyaz radyal
+  vardi; genis bir ekranda duz bir zemin gibi duruyordu. Uc yumusak
+  isik kaynagi eklendi — sol ustte marka pembesi, sag ustte beyaz, sag
+  altta adacayi — ve bunlar cok yavas suzuluyor. Isiklar AYRI BIR
+  KATMANDA (::before): zeminin kendisini animasyonlamak her karede
+  yeniden boyama demek, ayri katman yalnizca bilesikleme.
+
+  Metnin arkasindaki bolge ACILIYOR (beyaz isik sol ustte degil sag
+  ustte duruyor, sol ust marka pembesi %10): koyu murekkep ile zemin
+  arasindaki kontrast dusmuyor.
+*/
+.hero-band::before {
+  content: '';
+  position: absolute; inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 46% at 18% 22%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 70%),
+    radial-gradient(46% 52% at 88% 8%, rgba(255,255,255,.42) 0%, transparent 68%),
+    radial-gradient(40% 44% at 76% 92%, color-mix(in srgb, var(--color-accent) 14%, transparent) 0%, transparent 72%);
+  animation: hero-glow 26s var(--easing-standard) infinite;
+}
+@keyframes hero-glow {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(1.5%, -1.5%, 0) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-band::before { animation: none; }
+}
+/*
   TAM GENISLIK, TAM EKRAN.
 
   Once hero 1180 piksellik konteynerin icinde duruyordu: 1440px'te
@@ -339,55 +371,70 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 @media (min-width: 1100px) {
   /*
-    Metin sutunu 32 -> 38rem. 32rem'de baslik 1440px'te UC satira
-    boluniyordu (once iki satirdi) ve buyuk punto etkisini kaybediyordu.
-    38rem hala okunabilir satir uzunlugu (~70 karakter tavani
-    .hero-copy'de duruyor).
-  */
-  .hero-grid { grid-template-columns: minmax(0, 38rem) minmax(0, 1fr); gap: var(--space-10); }
-  /*
-    SAGA TASMA — KONTEYNERIN KENARINA KADAR, daha fazla degil.
+    ICERIK KONTEYNERDE KALIYOR.
 
-    Ilk denemede `calc(50% - 50vw)` yazdim: yuzde IZGARA SUTUNUNA gore
-    cozuluyor, konteynere gore degil. 1440px'te kolaj 1720'ye tasip
-    280 piksel kirpildi. Deger artik yalnizca ekran genisligi ve
-    konteynerin bilinen tavanindan hesaplaniyor.
-
-    min(0px, ...): 1180+dolgu altinda deger POZITIFE donuyordu, yani
-    tasma yerine bosluk ekliyordu.
+    Bir ara fotograf kolajini ekranin kenarina kadar tasirmistim; iyi
+    gorunmedi: kolaj metinden kopuyor ve hero iki ayri parcaya
+    bolunuyordu. Tam genislikte olan tek sey ARKA PLAN — bant ve
+    uzerindeki el cizimi konturlar. Icerik, sayfanin geri kalaniyla ayni
+    hizada duruyor.
   */
-  .hero-media {
-    /* Tam ekranin KENARINA: konteynerin kenar boslugu + ic dolgusu. */
-    margin-inline-end: min(0px, calc((1180px - 100vw) / 2 - var(--space-8)));
-  }
+  .hero-grid { grid-template-columns: minmax(0, 34rem) minmax(0, 1fr); gap: var(--space-10); }
 }
 .hero-copy { max-width: 34rem; }
 .hero-media { position: relative; }
 
-/* El cizimi konturlar. Metin sutununa GIRMEZ — ilk denemede kalp konturu
-   basligin uzerine bindi ve okunurlugu bozdu. */
+/*
+  KONTUR SERITLERI — TAM GENISLIK, ICERIGIN DISINDA.
+
+  Once konturlar konteynerin icine serpistirilmisti ve her duzen
+  degisikliginde yeniden olculmeleri gerekiyordu. Artik iki dikey
+  serit: ekranin sol ve sag kenarinda, icerigin DISINDA. Icerik hicbir
+  genislikte konturla cakismiyor.
+*/
 .hero-doodles {
-  position: absolute; inset: 0; z-index: 1;
+  position: absolute; inset-block: 0; z-index: 1;
   pointer-events: none;
+  /*
+    TAM GENISLIK — TRANSFORM ILE DEGIL.
+
+    Ilk denemede `left: 50%; transform: translateX(-50%)` yazdim ve
+    katman 720 pikselde kaldi: bu ogenin uzerinde ayrica cok yavas bir
+    suzulme animasyonu var ve ONUN transform'u duzen transform'unu
+    eziyor. Iki is tek ozelligi paylasamaz. Konumlandirma artik
+    yalnizca `left` ile, transform animasyona kaliyor.
+  */
+  inset-inline-start: calc(50% - 50vw);
+  width: 100vw;
 }
 /*
-  Esik 900 -> 1000. 900px'te metin sutunu uzuyor ve alttaki kontur
-  basliga giriyordu (tarayicida olculdu). Orta bosluktaki uc kontur ise
-  1100px altinda fotograf kolajinin ARKASINA dusuyor — gorunmediklerine
-  gore cizilmesinler.
+  --edge: bandin kenari ile KONTEYNERIN kenari arasindaki mesafe.
+  Konturlarin konumu tek bu degere bagli; 1280'de dar, 1700'de genis
+  seride kendiliginden uyuyorlar.
 */
-@media (max-width: 999px) { .hero-doodles { display: none; } }
+.doodle-rail {
+  --edge: max(0px, calc((100vw - 1180px) / 2 + var(--space-4)));
+  position: absolute; inset-block: 0; width: calc(var(--edge) + 4rem);
+}
 /*
-  Orta ve alt gruplar 1200px'in altinda gizleniyor. Sinir Ingilizceye gore
-  degil FRANSIZCAYA gore secildi: ayni baslik Fransizcada uc satir oluyor,
-  metin sutunu hem uzuyor hem genisliyor; 1100-1150px'te konturlar
-  maddelerin ve paragrafin uzerine biniyordu (tarayicida iki dilde
-  olculdu). Iki dilden DAR olani sinirlari belirler.
-  Ustteki grup her genislikte duruyor: orasi iki dilde de bos.
-*/
-@media (max-width: 1199px) { .doodle-gap, .doodle-lower { display: none; } }
+  FIZIKSEL left/right — mantiksal DEGIL.
 
-/* Kesilmis hayvan gorseli / gecici cizim */
+  Sag serite `direction: rtl` verip mantiksal ozellik kullanmayi
+  denedim: rtl o ogenin KENDI mantiksal ozelliklerini de cevirdigi icin
+  `inset-inline-end: 0` sola yapisti ve iki serit ust uste bindi.
+  Konturlarin yeri sag/sol kenara gore tanimli, yazi yonune gore degil.
+*/
+.doodle-rail-left { left: 0; }
+.doodle-rail-right { right: 0; }
+.doodle-rail svg { display: block; }
+
+/*
+  1180 + iki yanda ~50px altinda serit kalmiyor ve konturlar icerigin
+  ustune biner. O genislikte HIC cizilmiyorlar: okunurlugu bozan bir
+  susten, olmayan bir sus iyidir.
+*/
+@media (max-width: 1279px) { .hero-doodles { display: none; } }
+
 .hero-art { width: 100%; height: auto; display: block; }
 
 /* Kahramanin altina binen arama karti */
@@ -1598,9 +1645,15 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   from { transform: translateY(18px); }
   to   { transform: none; }
 }
+/*
+  Cerceve salinimi DUZ DIKEY DEGIL: cok kucuk bir donme ve olcek de
+  var. Yalnizca yukari-asagi giden bir kart asansor gibi duruyordu;
+  uc eksen birlikte kullanilinca hareket "suzuluyor" gibi okunuyor.
+  Ucu de transform — bilesikleyicide, yeniden boyama yok.
+*/
 @keyframes hero-drift {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-9px); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50%      { transform: translate3d(0, -10px, 0) rotate(-0.4deg) scale(1.008); }
 }
 
 .hero-in, .hero-in-solid {
@@ -1648,15 +1701,24 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 
 /*
-  KONTURLAR TEK PARCA HALINDE suzuluyor — her biri ayri degil.
+  IKI SERIT TERS YONDE suzuluyor.
 
-  Ilk surumde on konturun her biri kendi animasyonunu calistiriyordu:
-  sayfada surekli donen 13 animasyon (10 kontur + 3 cerceve) ve
-  bilesikleyicide 13 ayri katman. Konturlar zaten cok soluk; ayri
-  ritimlerinin fark edilmesi mumkun degil ama pili tuketiyorlardi.
-  Kapsayici tek katman, tek animasyon.
+  Her konturu ayri ayri animasyonlamak on iki katman demekti (ve
+  bilesikleyicide on iki surekli is). Serit basina tek animasyon: iki
+  katman, ve birbirine ZIT yonde gittikleri icin hareket tek yone
+  akan bir kaymadan cok "nefes alma" gibi okunuyor.
 */
-.hero-doodles { animation: hero-drift 16s var(--easing-standard) infinite; }
+.doodle-rail-left  { animation: rail-drift-a 19s var(--easing-standard) infinite; }
+.doodle-rail-right { animation: rail-drift-b 23s var(--easing-standard) infinite; }
+
+@keyframes rail-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(-6px, -14px, 0); }
+}
+@keyframes rail-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(6px, 12px, 0); }
+}
 
 /*
   HAREKETI AZALT: her sey yerinde ve gorunur.
@@ -1666,7 +1728,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 */
 @media (prefers-reduced-motion: reduce) {
   .hero-in, .hero-in-solid, .hero-points li,
-  .hero-photos .photo-frame > *, .hero-doodles {
+  .hero-photos .photo-frame > *, .hero-doodles, .doodle-rail {
     animation: none;
     opacity: 1;
     transform: none;

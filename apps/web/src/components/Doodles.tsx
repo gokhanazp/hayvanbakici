@@ -108,49 +108,119 @@ function Ball({ color, opacity }: { color: string; opacity: number }) {
 const PRIMARY = 'var(--color-primary)';
 const ACCENT = 'var(--color-accent)';
 
+/**
+ * KAHRAMAN KONTURLARI — IKI YANDA, TAM GENISLIKTE.
+ *
+ * Once konturlar konteynerin icine, metnin ustune ve altina ve metin
+ * ile fotograf arasindaki bosluga serpistirilmisti. Uc sorunu vardi:
+ * her yeni duzen degisikliginde konumlarin yeniden olculmesi
+ * gerekiyordu (bosluk kapandiginda konturlar fotografin arkasina
+ * dusuyordu), icerigin ortasinda durduklari icin okumayi bolüyorlardi,
+ * ve bandin tam genisligi bos kaliyordu.
+ *
+ * Artik iki DIKEY SERIT halindeler: ekranin sol ve sag kenarinda,
+ * icerigin disinda. Icerik hicbir genislikte konturla cakismiyor ve
+ * konum hesabi tek bir seye bagli — kenara olan uzaklik.
+ *
+ * KENARDAN TASIYORLAR. Bir kismi ekran disinda kaliyor (bant
+ * kirpiyor): bu hem daha buyuk, daha rahat sekiller kullanmayi
+ * sagliyor hem de serit "kesilmis" degil "devam ediyor" gibi
+ * okunuyor.
+ *
+ * Konum degerleri --edge degiskeninden turuyor; o da bandin kenari ile
+ * konteynerin kenari arasindaki gercek mesafe (CSS'te hesaplaniyor).
+ * Boylece 1280'de dar, 1700'de genis seride kendiliginden uyuyorlar.
+ */
+type RailSide = 'left' | 'right';
+
+/**
+ * Seritteki tek kontur.
+ *
+ * Kenardan uzaklik FIZIKSEL (left/right), mantiksal degil: konturlarin
+ * yeri ekranin sag/sol kenarina gore tanimli, yazi yonune gore degil.
+ * Fransizca da soldan saga yaziliyor; mantiksal ozellik burada yalnizca
+ * bir hata kaynagiydi.
+ */
+function Rail({
+  side, top, offset, size, rotate, viewBox, children,
+}: {
+  side: RailSide;
+  /** Seridin icinde dikey konum (%) */
+  top: number;
+  /** Kenardan uzaklik — --edge'in kati. Negatif deger ekran disina tasirir. */
+  offset: number;
+  size: number;
+  rotate: number;
+  viewBox: string;
+  children: ReactNode;
+}) {
+  const place = `calc(var(--edge) * ${offset})`;
+  return (
+    <svg
+      viewBox={viewBox}
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+      style={{
+        position: 'absolute',
+        top: `${top}%`,
+        ...(side === 'left' ? { left: place } : { right: place }),
+        width: size,
+        height: 'auto',
+        transform: `rotate(${rotate}deg)`,
+      }}
+    >
+      {children}
+    </svg>
+  );
+}
+
 export function HeroDoodles() {
   return (
     <div className="hero-doodles" aria-hidden="true">
-      {/* ---- SOL: metin sutununun USTU (dikey %0–%15 bos) ---- */}
-      <Doodle viewBox="0 0 54 50" style={{ left: '1.5%', top: '1%', width: 44, height: 41, transform: 'rotate(-12deg)' }}>
-        <Paw color={ACCENT} opacity={0.34} />
-      </Doodle>
-      <Doodle viewBox="0 0 40 36" style={{ left: '11%', top: '4%', width: 26, height: 23, transform: 'rotate(11deg)' }}>
-        <Heart color={PRIMARY} opacity={0.3} width={3} />
-      </Doodle>
-      <Doodle viewBox="0 0 48 26" style={{ left: '21%', top: '0.5%', width: 46, height: 25, transform: 'rotate(-7deg)' }}>
-        <Bone color={ACCENT} opacity={0.28} />
-      </Doodle>
+      {/* ---- SOL SERIT ---- */}
+      <div className="doodle-rail doodle-rail-left">
+        <Rail side="left" top={4} offset={0.18} size={56} rotate={-12} viewBox="0 0 54 50">
+          <Paw color={ACCENT} opacity={0.34} />
+        </Rail>
+        <Rail side="left" top={19} offset={-0.22} size={78} rotate={10} viewBox="0 0 40 36">
+          <Heart color={PRIMARY} opacity={0.24} width={2.2} />
+        </Rail>
+        <Rail side="left" top={38} offset={0.42} size={44} rotate={-6} viewBox="0 0 48 26">
+          <Bone color={ACCENT} opacity={0.3} />
+        </Rail>
+        <Rail side="left" top={56} offset={-0.05} size={62} rotate={16} viewBox="0 0 42 32">
+          <Fish color={PRIMARY} opacity={0.22} />
+        </Rail>
+        <Rail side="left" top={74} offset={0.3} size={38} rotate={-9} viewBox="0 0 34 34">
+          <Ball color={ACCENT} opacity={0.3} />
+        </Rail>
+        <Rail side="left" top={88} offset={-0.28} size={70} rotate={8} viewBox="0 0 54 50">
+          <Paw color={PRIMARY} opacity={0.18} />
+        </Rail>
+      </div>
 
-      {/* ---- SOL: metin sutununun ALTI ----
-           Ust sinir metin sutununun alti, alt sinir arama kartinin ustu.
-           Bu pencere 1100px altinda kapaniyor (metin sutunu uzuyor), o
-           genislikte CSS ile gizleniyorlar. */}
-      <Doodle viewBox="0 0 40 36" className="doodle-lower" style={{ left: '2%', bottom: '16%', width: 34, height: 31, transform: 'rotate(-9deg)' }}>
-        <Heart color={PRIMARY} opacity={0.38} />
-      </Doodle>
-      <Doodle viewBox="0 0 54 50" className="doodle-lower" style={{ left: '11.5%', bottom: '13.5%', width: 30, height: 28, transform: 'rotate(15deg)' }}>
-        <Paw color={ACCENT} opacity={0.3} />
-      </Doodle>
-      <Doodle viewBox="0 0 42 32" className="doodle-lower" style={{ left: '21%', bottom: '16.5%', width: 38, height: 29, transform: 'rotate(-5deg)' }}>
-        <Fish color={PRIMARY} opacity={0.26} />
-      </Doodle>
-      <Doodle viewBox="0 0 34 34" className="doodle-lower" style={{ left: '32%', bottom: '13.5%', width: 28, height: 28, transform: 'rotate(9deg)' }}>
-        <Ball color={ACCENT} opacity={0.32} />
-      </Doodle>
-
-      {/* ---- ORTA BOSLUK: metin ile fotograf arasi (%49–%62) ----
-           1100px altinda bu bosluk kapaniyor ve konturlar fotografin
-           arkasina dusuyor; o genislikte CSS ile gizleniyorlar. */}
-      <Doodle viewBox="0 0 40 36" className="doodle-gap" style={{ left: '53%', top: '4%', width: 40, height: 36, transform: 'rotate(-6deg)' }}>
-        <Heart color={PRIMARY} opacity={0.45} />
-      </Doodle>
-      <Doodle viewBox="0 0 54 50" className="doodle-gap" style={{ left: '52.5%', top: '44%', width: 34, height: 31, transform: 'rotate(18deg)' }}>
-        <Paw color={ACCENT} opacity={0.32} />
-      </Doodle>
-      <Doodle viewBox="0 0 40 36" className="doodle-gap" style={{ left: '54%', bottom: '13%', width: 24, height: 22, transform: 'rotate(13deg)' }}>
-        <Heart color={PRIMARY} opacity={0.28} width={3.2} />
-      </Doodle>
+      {/* ---- SAG SERIT ---- */}
+      <div className="doodle-rail doodle-rail-right">
+        <Rail side="right" top={6} offset={-0.24} size={72} rotate={14} viewBox="0 0 40 36">
+          <Heart color={PRIMARY} opacity={0.22} width={2.2} />
+        </Rail>
+        <Rail side="right" top={22} offset={0.34} size={42} rotate={-8} viewBox="0 0 54 50">
+          <Paw color={ACCENT} opacity={0.32} />
+        </Rail>
+        <Rail side="right" top={40} offset={-0.1} size={58} rotate={7} viewBox="0 0 48 26">
+          <Bone color={PRIMARY} opacity={0.22} />
+        </Rail>
+        <Rail side="right" top={58} offset={0.4} size={36} rotate={-14} viewBox="0 0 34 34">
+          <Ball color={ACCENT} opacity={0.3} />
+        </Rail>
+        <Rail side="right" top={72} offset={-0.26} size={74} rotate={11} viewBox="0 0 54 50">
+          <Paw color={PRIMARY} opacity={0.18} />
+        </Rail>
+        <Rail side="right" top={89} offset={0.22} size={48} rotate={-5} viewBox="0 0 42 32">
+          <Fish color={ACCENT} opacity={0.26} />
+        </Rail>
+      </div>
     </div>
   );
 }
