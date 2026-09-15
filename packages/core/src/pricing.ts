@@ -171,3 +171,20 @@ export function calculateQuote(input: QuoteInput): Quote {
     province: input.province,
   };
 }
+
+/**
+ * FIYAT ARALIGI ONERISI ICIN EN AZ ORNEK SAYISI.
+ *
+ * Uc bakicinin altinda "cevrendekiler su kadar aliyor" demiyoruz: iki
+ * kisinin fiyatindan piyasa cikmaz, yanlis capa atmis oluruz. Sabit
+ * burada duruyor cunku hem sunucu sorgusu (packages/db landing.ts) hem
+ * de tarayicidaki form ayni esigi kullanmali.
+ */
+export const MIN_RANGE_SAMPLE = 3;
+
+export interface PriceRange {
+  readonly count: number;
+  readonly p25Cents: Cents;
+  readonly medianCents: Cents;
+  readonly p75Cents: Cents;
+}

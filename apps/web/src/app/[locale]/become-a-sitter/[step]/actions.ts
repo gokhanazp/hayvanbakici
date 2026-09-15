@@ -8,7 +8,7 @@ import {
   setBadgeLevel, submitForReview, listSitterPhotos,
 } from '@havre/db';
 import {
-  nextStep, profileCompleteness, completedSteps, missingRequiredSteps,
+  nextStep, photoTotal, profileCompleteness, completedSteps, missingRequiredSteps,
   validateAbout, validateLocation, validateServices,
   type FieldErrors, type ServiceType, SERVICES,
 } from '@havre/core';
@@ -245,7 +245,7 @@ export async function submitApplicationAction(
     serviceCount: state.services.length,
     hasHome: Boolean(state.homeType),
     screeningStarted: Boolean(state.screening),
-    photoCount: photos.length,
+    photoCount: photoTotal({ hasAvatar: Boolean(state.avatarUrl), homePhotoCount: photos.length }),
   };
   const completeness = profileCompleteness(input);
 

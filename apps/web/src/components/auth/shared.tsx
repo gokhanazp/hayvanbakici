@@ -152,7 +152,7 @@ export function DevInboxLink({ locale }: { locale: string }) {
       href={`/${locale.startsWith('fr') ? 'fr' : 'en'}/account/dev-inbox/`}
       className="btn btn-secondary btn-block"
     >
-      Geliştirme posta kutusunu aç
+      {locale.startsWith('fr') ? 'Ouvrir la boîte de développement' : 'Open the dev inbox'}
     </a>
   );
 }

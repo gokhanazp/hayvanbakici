@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
-  completedSteps, isOnboardingStep, missingRequiredSteps, ONBOARDING_STEPS,
+  completedSteps, isOnboardingStep, missingRequiredSteps, ONBOARDING_STEPS, photoTotal,
   type OnboardingStep,
 } from '@havre/core';
 import { getMessages, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
 import {
   getDb, getOnboardingState, listCities, listNeighbourhoods, listSitterPhotos,
-  MAX_SITTER_PHOTOS,
+  servicePriceRanges, MAX_SITTER_PHOTOS,
 } from '@havre/db';
 import { getSession } from '@/lib/auth';
 import { Progress } from '@/components/onboarding/Progress';
@@ -52,7 +52,7 @@ export default async function OnboardingStepPage({
     serviceCount: state.services.length,
     hasHome: Boolean(state.homeType),
     screeningStarted: Boolean(state.screening),
-    photoCount: photos.length,
+    photoCount: photoTotal({ hasAvatar: Boolean(state.avatarUrl), homePhotoCount: photos.length }),
   });
 
   const key = (k: string) => m.onboarding[k as keyof Messages['onboarding']] as string;
@@ -98,7 +98,13 @@ export default async function OnboardingStepPage({
       {step === 'location' && (await renderLocation())}
 
       {step === 'services' && (
-        <ServicesForm locale={locale} action={saveServicesAction} initial={state.services} />
+        <ServicesForm
+          locale={locale}
+          action={saveServicesAction}
+          initial={state.services}
+          /* Fiyat onerisi yalnizca sehir secildiyse anlamli */
+          ranges={state.cityId ? await servicePriceRanges(db, state.cityId) : {}}
+        />
       )}
 
       {step === 'home' && (
@@ -145,6 +151,32 @@ export default async function OnboardingStepPage({
           action={submitApplicationAction}
           submitted={state.status === 'pending'}
           missing={missingRequiredSteps(done)}
+          /*
+            OZET. Once bu ekranda yalnizca bir dugme vardi: "son bir kez
+            bakin" diyip bakilacak hicbir sey gostermiyordu. On bes
+            dakikalik bir formun sonunda kullanici ne gonderdigini
+            gormeli ve yanlisi buradan duzeltebilmeli.
+          */
+          summary={{
+            name: `${state.firstName ?? ''} ${state.lastNameInitial ?? ''}`.trim(),
+            phone: state.phone,
+            cityName: state.cityId
+              ? (await listCities(db)).find((c) => c.id === state.cityId)?.[
+                  locale === 'fr-CA' ? 'nameFr' : 'nameEn'
+                ] ?? null
+              : null,
+            postalCode: state.postalCode,
+            hasExactAddress: state.hasExactAddress,
+            services: state.services.map((svc) => ({
+              serviceType: svc.serviceType,
+              priceCents: svc.priceCents,
+            })),
+            homeType: state.homeType,
+            maxConcurrentPets: state.maxConcurrentPets,
+            photoCount: photos.length,
+            hasAvatar: Boolean(state.avatarUrl),
+            screeningStarted: Boolean(state.screening),
+          }}
         />
       )}
 

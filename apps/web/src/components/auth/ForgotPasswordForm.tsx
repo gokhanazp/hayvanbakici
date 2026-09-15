@@ -39,7 +39,7 @@ export function ForgotPasswordForm({ locale }: { locale: Locale }) {
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+    <form className="auth-form" method="post" onSubmit={handleSubmit} noValidate>
       <p className="muted">{m.auth.forgotBody}</p>
       <EmailField m={m} value={email} onChange={setEmail} autoFocus />
       <button type="submit" className="btn btn-primary btn-block" disabled={busy}>

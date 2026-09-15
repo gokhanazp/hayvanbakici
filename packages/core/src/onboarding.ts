@@ -140,8 +140,24 @@ export interface CompletenessInput {
   serviceCount: number;
   hasHome: boolean;
   screeningStarted: boolean;
-  /** Ev fotografi sayisi. Istege bagli — bkz. REQUIRED_STEPS. */
+  /**
+   * KAC FOTOGRAF VAR — profil fotografi DAHIL.
+   *
+   * Uc yerde uc farkli tanim vardi: fotograf adimindaki dugme profil
+   * fotografini sayiyor, ilerleme cubugu saymiyordu. Ayni bakici ayni
+   * ekranda hem "Devam" hem "bu adim eksik" goruyordu. Tek tanim:
+   * profil fotografi + ev fotograflari.
+   *
+   * Istege bagli — bkz. REQUIRED_STEPS.
+   */
   photoCount?: number | undefined;
+}
+
+/** Tek yerden: profil fotografi da bir fotograftir. */
+export function photoTotal(
+  input: { hasAvatar: boolean; homePhotoCount: number },
+): number {
+  return (input.hasAvatar ? 1 : 0) + input.homePhotoCount;
 }
 
 /**

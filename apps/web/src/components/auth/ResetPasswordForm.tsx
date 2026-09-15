@@ -56,7 +56,7 @@ export function ResetPasswordForm({ locale, token }: { locale: Locale; token: st
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+    <form className="auth-form" method="post" onSubmit={handleSubmit} noValidate>
       {error && <Alert kind="error">{error}</Alert>}
       <PasswordField
         m={m}

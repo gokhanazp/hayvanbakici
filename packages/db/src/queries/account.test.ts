@@ -53,9 +53,34 @@ describe('hesap ozeti', () => {
     // Bos basvuruda hicbir adim tamam degil — ekran "sirada ne var" diyebiliyor
     expect(me!.sitter?.steps).toEqual({
       hasAbout: false, hasLocation: false, serviceCount: 0,
-      hasHome: false, screeningStarted: false,
+      hasHome: false, screeningStarted: false, photoCount: 0,
     });
     expect(await getSitterStatus(db, sitterId)).toBe('draft');
+  });
+
+  /*
+    PROFIL FOTOGRAFI DA BIR FOTOGRAFTIR.
+
+    Hesap sayfasi "siradaki adim: Fotograflar" diyordu, cunku sayi
+    yalnizca ev fotograflarini sayiyordu. Bakici profil fotografini
+    yuklemisti ve ayni ekranda hem "Devam" hem "eksik" goruyordu.
+  */
+  it('fotograf sayisi profil fotografini de sayar', async () => {
+    await db.execute(sql`
+      UPDATE profiles SET avatar_url = '/media/avatar/x.webp' WHERE user_id = ${sitterId}
+    `);
+    const withAvatar = await getAccountSummary(db, sitterId);
+    expect(withAvatar!.sitter?.steps.photoCount).toBe(1);
+
+    await db.execute(sql`
+      INSERT INTO sitter_photos (sitter_id, url) VALUES (${sitterId}, '/media/home/y.webp')
+    `);
+    const withBoth = await getAccountSummary(db, sitterId);
+    expect(withBoth!.sitter?.steps.photoCount).toBe(2);
+
+    await db.execute(sql`UPDATE profiles SET avatar_url = NULL WHERE user_id = ${sitterId}`);
+    const onlyHome = await getAccountSummary(db, sitterId);
+    expect(onlyHome!.sitter?.steps.photoCount).toBe(1);
   });
 
   it('askidaki hesap bunu SOYLUYOR', async () => {

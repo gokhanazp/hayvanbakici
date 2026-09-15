@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { SERVICES } from '@havre/core';
+import { SERVICES, servicesForPhase } from '@havre/core';
 import {
   getMessages, interpolate, localeFromSegment, LOCALES, segmentFor, serviceSlug,
   type Locale, type Messages,
@@ -12,6 +12,13 @@ import { SitterGallery } from '@/components/SitterGallery';
 import { getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
+
+/*
+  BU FAZDA REZERVASYONU ACIK HIZMETLER.
+  Rezervasyon ekraniyla (book/page.tsx) AYNI kaynak: profil, formun
+  reddettigi bir hizmeti fiyatiyla gostermesin.
+*/
+const V1_SERVICES = new Set(servicesForPhase('v1'));
 
 /**
  * BAKICI PROFIL SAYFASI.
@@ -72,7 +79,14 @@ export async function generateMetadata(
 
   const name = `${sitter.firstName} ${sitter.lastNameInitial}.`;
   const where = [hoodName(sitter, locale), cityName(sitter, locale)].filter(Boolean).join(', ');
-  const services = sitter.services.map((s) => m.service[s.serviceType]).join(' · ');
+  /*
+    YALNIZCA BOOKABLE HIZMETLER.
+    Profil, rezervasyon ekraninin kabul etmedigi bir hizmeti fiyatiyla
+    gosteriyordu (day_care v1.5'te): sahip fiyati goruyor, tikliyor ve
+    listede bulamiyordu. Iki ekran ayni kaynaktan beslenmeli.
+  */
+  const bookable = sitter.services.filter((s) => V1_SERVICES.has(s.serviceType));
+  const services = bookable.map((s) => m.service[s.serviceType]).join(' · ');
 
   return {
     title: `${name} — ${where}`,
@@ -101,7 +115,8 @@ export default async function SitterPage({
   const seg = segmentFor(locale);
   const name = `${sitter.firstName} ${sitter.lastNameInitial}.`;
   const where = [hoodName(sitter, locale), cityName(sitter, locale)].filter(Boolean).join(', ');
-  const cheapest = sitter.services[0];
+  const bookable = sitter.services.filter((s) => V1_SERVICES.has(s.serviceType));
+  const cheapest = bookable[0];
 
   return (
     <>
@@ -173,7 +188,7 @@ export default async function SitterPage({
               {interpolate(m.sitter.servicesHeading, { name: sitter.firstName })}
             </h2>
             <div className="grid" style={{ gap: 'var(--space-3)' }}>
-              {sitter.services.map((s) => (
+              {bookable.map((s) => (
                 <article key={s.serviceType} className="card card-pad sitter-service">
                   <div>
                     <h3 className="text-h4">{m.service[s.serviceType]}</h3>
@@ -343,7 +358,7 @@ export default async function SitterPage({
             description: sitter.bio,
             rating: sitter.averageRating,
             reviewCount: sitter.reviewCount,
-            services: sitter.services.map((s) => ({
+            services: bookable.map((s) => ({
               name: m.service[s.serviceType],
               priceCents: s.priceCents,
             })),

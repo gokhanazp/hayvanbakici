@@ -38,6 +38,8 @@ export interface AccountSummary {
       serviceCount: number;
       hasHome: boolean;
       screeningStarted: boolean;
+      /** Profil fotografi DAHIL — bkz. @havre/core photoTotal */
+      photoCount: number;
     };
   } | null;
   counts: {
@@ -71,6 +73,10 @@ export async function getAccountSummary(
         (SELECT count(*)::int FROM sitter_services ss WHERE ss.sitter_id = u.id)    AS service_count,
         EXISTS (SELECT 1 FROM verifications v
                 WHERE v.sitter_id = u.id AND v.type = 'criminal')                   AS screening_started,
+        -- profil fotografi + ev fotograflari: hesap sayfasi "siradaki adim"
+        -- derken sihirbazla AYNI sayiyi gormeli
+        ((p.avatar_url IS NOT NULL)::int
+         + (SELECT count(*)::int FROM sitter_photos sp WHERE sp.sitter_id = u.id)) AS photo_count,
 
         -- bugun benden ne bekleniyor
         (SELECT count(*)::int FROM bookings b
@@ -115,6 +121,7 @@ export async function getAccountSummary(
               serviceCount: Number(r.service_count ?? 0),
               hasHome: Boolean(r.has_home),
               screeningStarted: Boolean(r.screening_started),
+              photoCount: Number(r.photo_count ?? 0),
             },
           }
         : null,

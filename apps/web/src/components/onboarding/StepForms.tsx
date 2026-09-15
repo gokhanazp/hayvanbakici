@@ -3,10 +3,10 @@
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import {
-  MAX_PRICE_CENTS, MIN_PRICE_CENTS, SERVICES, servicesForPhase,
-  previousStep, type OnboardingStep, type ServiceType,
+  MAX_PRICE_CENTS, MIN_PRICE_CENTS, MIN_RANGE_SAMPLE, SERVICES, servicesForPhase,
+  previousStep, type OnboardingStep, type PriceRange, type ServiceType,
 } from '@havre/core';
-import { getMessages, segmentFor, type Locale, type Messages } from '@havre/i18n';
+import { getMessages, interpolate, segmentFor, type Locale, type Messages } from '@havre/i18n';
 import { Select } from '@/components/ui/Select';
 import { DateOfBirthField } from '@/components/ui/DateOfBirthField';
 import type { StepState } from '@/app/[locale]/become-a-sitter/[step]/actions';
@@ -75,6 +75,26 @@ function Actions({
       )}
     </div>
   );
+}
+
+/** Medyan fiyat, kutunun icinde soluk ornek olarak. */
+function suggestion(r: { count: number; medianCents: number } | undefined): string | undefined {
+  if (!r || r.count < MIN_RANGE_SAMPLE) return undefined;
+  return String(Math.round(r.medianCents / 100));
+}
+
+/** "Yakinindaki bakicilar 45-65 $ aliyor · medyan 53 $" — yoksa zorunluluk notu. */
+function rangeHint(
+  m: Messages, locale: Locale,
+  r: { count: number; p25Cents: number; medianCents: number; p75Cents: number } | undefined,
+): string {
+  if (!r || r.count < MIN_RANGE_SAMPLE) return m.onboarding['services.priceRequired'];
+  const money = (cents: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })
+      .format(cents / 100);
+  return interpolate(m.onboarding['services.priceRange'], {
+    low: money(r.p25Cents), high: money(r.p75Cents), median: money(r.medianCents),
+  });
 }
 
 /* ---------------------------------------------------------------- hakkinda */
@@ -253,11 +273,20 @@ interface ServiceDraft {
 }
 
 export function ServicesForm({
-  locale, action, initial,
+  locale, action, initial, ranges = {},
 }: {
   locale: Locale;
   action: Action;
   initial: Array<{ serviceType: string; priceCents: number; cancellationPolicy: string; acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean }>;
+  /**
+   * Bakicinin sehrindeki fiyat araliklari.
+   *
+   * Ekran zaten "cevrenize gore bir aralik oneriyoruz" diyordu ama
+   * HICBIR aralik gostermiyordu — tutulmayan bir sozdu. Ornek kucukse
+   * (MIN_RANGE_SAMPLE) hicbir sey gosterilmiyor: iki kisinin fiyatindan
+   * "cevrenizde su kadar aliniyor" cumlesi kurmak veri degil tahmindir.
+   */
+  ranges?: Record<string, PriceRange> | undefined;
 }) {
   const m = getMessages(locale);
   const [state, formAction, busy] = useActionState(action, EMPTY);
@@ -331,9 +360,19 @@ export function ServicesForm({
                         inputMode="decimal"
                         value={d.price}
                         onChange={(e) => patch(type, { price: e.target.value })}
+                        placeholder={suggestion(ranges[type])}
                         required
+                        aria-describedby={`price-hint-${type}`}
                       />
                       <span className="dim text-body-sm">/ {SERVICES[type as ServiceType].unit}</span>
+                    </span>
+                    {/*
+                      ZORUNLULUK YAZIYOR. Bos birakip kaydete basinca alan
+                      kirmizi cerceve aliyordu ama NE oldugunu soyleyen bir
+                      metin yoktu; tarayicinin baloncugu da kayboluyor.
+                    */}
+                    <span className="field-hint" id={`price-hint-${type}`}>
+                      {rangeHint(m, locale, ranges[type])}
                     </span>
                     {state.errors[`price.${type}`] && (
                       <span className="field-error" role="alert">{err(m, state.errors[`price.${type}`])}</span>
@@ -525,13 +564,28 @@ export function ScreeningForm({
 
 /* ----------------------------------------------------------------- ozet */
 
+export interface ApplicationSummary {
+  name: string;
+  phone: string | null;
+  cityName: string | null;
+  postalCode: string | null;
+  hasExactAddress: boolean;
+  services: Array<{ serviceType: string; priceCents: number }>;
+  homeType: string | null;
+  maxConcurrentPets: number;
+  photoCount: number;
+  hasAvatar: boolean;
+  screeningStarted: boolean;
+}
+
 export function ReviewForm({
-  locale, action, missing, submitted,
+  locale, action, missing, submitted, summary,
 }: {
   locale: Locale;
   action: Action;
   missing: OnboardingStep[];
   submitted: boolean;
+  summary: ApplicationSummary;
 }) {
   const m = getMessages(locale);
   const seg = segmentFor(locale);
@@ -541,9 +595,85 @@ export function ReviewForm({
     return <p className="alert alert-ok" role="status">{m.onboarding['review.submitted']}</p>;
   }
 
+  const money = (cents: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency: 'CAD' }).format(cents / 100);
+
+  /*
+    OZET SATIRLARI. Her satirin yaninda DUZENLE bagi var: yanlisi
+    gordugu yerde duzeltemeyen kullanici, basa donup adimlari tek tek
+    aramak zorunda kaliyor.
+
+    Eksik olan alan "—" ile gosteriliyor, gizlenmiyor: bos birakilmis
+    bir alan, hic sorulmamis bir alandan farkli.
+  */
+  const rows: Array<{ step: OnboardingStep; label: string; value: string }> = [
+    {
+      step: 'about',
+      label: m.onboarding['step.about'],
+      value: [summary.name, summary.phone].filter(Boolean).join(' · ') || '—',
+    },
+    {
+      step: 'location',
+      label: m.onboarding['step.location'],
+      value: [
+        summary.cityName,
+        summary.postalCode,
+        summary.hasExactAddress ? m.onboarding['review.addressOnFile'] : null,
+      ].filter(Boolean).join(' · ') || '—',
+    },
+    {
+      step: 'services',
+      label: m.onboarding['step.services'],
+      value: summary.services.length === 0
+        ? '—'
+        : summary.services
+            .map((svc) => `${m.service[svc.serviceType as ServiceType]} ${money(svc.priceCents)}`)
+            .join(' · '),
+    },
+    {
+      step: 'home',
+      label: m.onboarding['step.home'],
+      value: summary.homeType
+        ? `${m.onboarding[`home.${summary.homeType}` as keyof Messages['onboarding']] as string
+           ?? summary.homeType} · ${interpolate(m.onboarding['review.petCount'], {
+             count: summary.maxConcurrentPets,
+           })}`
+        : '—',
+    },
+    {
+      step: 'photos',
+      label: m.onboarding['step.photos'],
+      value: summary.photoCount === 0 && !summary.hasAvatar
+        ? m.onboarding['review.noPhotos']
+        : interpolate(m.onboarding['review.photoCount'], {
+            avatar: summary.hasAvatar ? '1' : '0',
+            home: String(summary.photoCount),
+          }),
+    },
+    {
+      step: 'screening',
+      label: m.onboarding['step.screening'],
+      value: summary.screeningStarted
+        ? m.onboarding['review.screeningStarted']
+        : m.onboarding['review.screeningMissing'],
+    },
+  ];
+
   return (
     <form action={formAction} className="auth-form">
       <input type="hidden" name="locale" value={seg} />
+
+      <dl className="review-list">
+        {rows.map((row) => (
+          <div key={row.step} className="review-row">
+            <dt>{row.label}</dt>
+            <dd>{row.value}</dd>
+            <Link href={`/${seg}/become-a-sitter/${row.step}/`} className="review-edit">
+              {m.onboarding['review.edit']}
+            </Link>
+          </div>
+        ))}
+      </dl>
 
       {missing.length > 0 && (
         <div className="alert alert-error" role="alert">

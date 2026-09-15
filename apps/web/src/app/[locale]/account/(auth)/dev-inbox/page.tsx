@@ -30,7 +30,7 @@ export default async function DevInboxPage({
   return (
     <>
       <h1 className="text-h2" style={{ marginBottom: 'var(--space-2)' }}>
-        Geliştirme posta kutusu
+        Dev inbox
       </h1>
       <p className="muted text-body-sm" style={{ marginBottom: 'var(--space-6)' }}>
         Gerçekte gönderilmeyen e-postalar. Bağlantıya tıklayın. Yeni bir e-posta

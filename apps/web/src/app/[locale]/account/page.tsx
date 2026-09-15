@@ -121,6 +121,7 @@ function SitterStatusCard({
     serviceCount: sitter.steps.serviceCount,
     hasHome: sitter.steps.hasHome,
     screeningStarted: sitter.steps.screeningStarted,
+    photoCount: sitter.steps.photoCount,
   });
   const nextIncomplete: OnboardingStep =
     ONBOARDING_STEPS.find((s) => s !== 'review' && !done[s]) ?? 'review';

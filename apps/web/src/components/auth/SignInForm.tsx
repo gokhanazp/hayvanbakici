@@ -75,7 +75,7 @@ export function SignInForm({
       {(providers.google || providers.apple) && <Divider label={m.auth.orDivider} />}
 
       {mode === 'magic' ? (
-        <form className="auth-form" onSubmit={handleMagic} noValidate>
+        <form className="auth-form" method="post" onSubmit={handleMagic} noValidate>
           <EmailField m={m} value={email} onChange={setEmail} autoFocus />
           <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
             {busy ? m.auth.submitting : m.auth.magicLink}
@@ -86,7 +86,7 @@ export function SignInForm({
           </button>
         </form>
       ) : (
-        <form className="auth-form" onSubmit={handlePassword} noValidate>
+        <form className="auth-form" method="post" onSubmit={handlePassword} noValidate>
           <EmailField m={m} value={email} onChange={setEmail} autoFocus />
           <PasswordField m={m} value={password} onChange={setPassword}
             autoComplete="current-password" />

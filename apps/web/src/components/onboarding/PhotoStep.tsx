@@ -1,4 +1,6 @@
-import { getMessages, interpolate, type Locale } from '@havre/i18n';
+import Link from 'next/link';
+import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
+import { nextStep, photoTotal, previousStep } from '@havre/core';
 import { Avatar } from '@/components/Avatar';
 import { PhotoUpload, PhotoDelete } from '@/components/PhotoUpload';
 import {
@@ -15,6 +17,14 @@ import {
  * basvuru kabul ediliyor; ama fotograf doluluk oranina giriyor ve
  * siralamayi etkiliyor, bu yuzden "istege bagli" demek yetmez, NEDEN
  * eklemesi gerektigini de yaziyoruz.
+ *
+ * ILERI DUGMESI SART.
+ * Ilk surumde bu adimda yalnizca "Yukle" dugmeleri vardi: fotograf
+ * yuklemeyen bakici sonraki adima GECEMIYORDU ve ekran ona "fotografsiz
+ * da gonderebilirsiniz" diyordu. Adim, sozunu tutan bir cikis
+ * birakmali — yukleyen icin "Devam", yuklemeyen icin "Simdilik atla".
+ * Ikisi ayni yere gidiyor; fark yalnizca metinde, cunku bir kullaniciya
+ * atladigini soylemek, atlattigini gizlemekten iyidir.
  */
 export function PhotoStep({
   locale, photos, max, avatarUrl, firstName,
@@ -26,6 +36,11 @@ export function PhotoStep({
   firstName: string;
 }) {
   const m = getMessages(locale);
+  const seg = segmentFor(locale);
+  /* Ayni tanim ilerleme cubugunda ve hesap sayfasinda da kullaniliyor. */
+  const hasAny = photoTotal({ hasAvatar: Boolean(avatarUrl), homePhotoCount: photos.length }) > 0;
+  const next = nextStep('photos');
+  const prev = previousStep('photos');
 
   return (
     <div className="stack" style={{ display: 'grid', gap: 'var(--space-8)' }}>
@@ -82,6 +97,19 @@ export function PhotoStep({
           </div>
         )}
       </section>
+
+      <div className="wizard-actions">
+        {next && (
+          <Link href={`/${seg}/become-a-sitter/${next}/`} className="btn btn-primary">
+            {hasAny ? m.onboarding.continueStep : m.onboarding['photos.skip']}
+          </Link>
+        )}
+        {prev && (
+          <Link href={`/${seg}/become-a-sitter/${prev}/`} className="btn btn-ghost">
+            {m.onboarding.back}
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

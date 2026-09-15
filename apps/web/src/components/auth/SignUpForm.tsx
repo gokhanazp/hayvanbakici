@@ -102,7 +102,15 @@ export function SignUpForm({
         onProvider={handleProvider} busy={busy} />
       {(providers.google || providers.apple) && <Divider label={m.auth.orDivider} />}
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+      {/*
+        method="post" — HIDRASYONDAN ONCEKI GONDERIM ICIN.
+        onSubmit yalnizca JS yuklendikten sonra devreye giriyor. O ana
+        kadar Enter'a basilirsa tarayici formu VARSAYILAN olarak GET ile
+        gonderir ve sifre adres cubugunda, gecmiste ve sunucu kayitlarinda
+        goruntulenir. POST bunu engelliyor: sayfa POST kabul etmiyor,
+        istek bos donuyor ve hicbir sey sizmiyor.
+      */}
+      <form className="auth-form" method="post" onSubmit={handleSubmit} noValidate>
         <div className="field-block">
           <label htmlFor="signup-name">{m.auth.name}</label>
           <input id="signup-name" name="name" value={name} autoComplete="name" required

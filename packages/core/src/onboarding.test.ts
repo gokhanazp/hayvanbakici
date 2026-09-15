@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ageOn, isValidPhone, isValidPostalCode, nextStep, previousStep,
-  profileCompleteness, completedSteps, missingRequiredSteps,
+  photoTotal, profileCompleteness, completedSteps, missingRequiredSteps,
   validateAbout, validateLocation, validateServices,
 } from './onboarding.js';
 
@@ -133,5 +133,38 @@ describe('adim sirasi ve doluluk', () => {
     const onlyLocation = profileCompleteness({ hasAbout: false, hasLocation: true, serviceCount: 0, hasHome: false, screeningStarted: false });
     const onlyHome = profileCompleteness({ hasAbout: false, hasLocation: false, serviceCount: 0, hasHome: true, screeningStarted: false });
     expect(onlyLocation).toBeGreaterThan(onlyHome);
+  });
+});
+
+/*
+  FOTOGRAF SAYIMI TEK YERDEN.
+
+  Uc ekran uc farkli sayiyordu: fotograf adimindaki dugme profil
+  fotografini sayiyor, ilerleme cubugu ve hesap sayfasi saymiyordu.
+*/
+describe('photoTotal', () => {
+  it('profil fotografi tek basina sayilir', () => {
+    expect(photoTotal({ hasAvatar: true, homePhotoCount: 0 })).toBe(1);
+  });
+
+  it('ev fotograflari ve profil fotografi toplanir', () => {
+    expect(photoTotal({ hasAvatar: true, homePhotoCount: 3 })).toBe(4);
+  });
+
+  it('hicbiri yoksa sifir — adim eksik sayilir', () => {
+    expect(photoTotal({ hasAvatar: false, homePhotoCount: 0 })).toBe(0);
+    expect(completedSteps({
+      hasAbout: true, hasLocation: true, serviceCount: 1, hasHome: true,
+      screeningStarted: true,
+      photoCount: photoTotal({ hasAvatar: false, homePhotoCount: 0 }),
+    }).photos).toBe(false);
+  });
+
+  it('yalnizca profil fotografi varken adim TAMAM sayilir', () => {
+    expect(completedSteps({
+      hasAbout: true, hasLocation: true, serviceCount: 1, hasHome: true,
+      screeningStarted: true,
+      photoCount: photoTotal({ hasAvatar: true, homePhotoCount: 0 }),
+    }).photos).toBe(true);
   });
 });

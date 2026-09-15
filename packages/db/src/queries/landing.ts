@@ -10,7 +10,7 @@ import { sql } from 'drizzle-orm';
 import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
 import type { CityRecord } from './cities.js';
-import type { ServiceType } from '@havre/core';
+import type { PriceRange, ServiceType } from '@havre/core';
 
 export interface SitterSummary {
   id: string;
@@ -214,4 +214,54 @@ export async function getLandingData(
     sitters,
     dataAsOf: new Date().toISOString().slice(0, 10),
   };
+}
+
+/* ------------------------------------------------- fiyat onerisi */
+
+/*
+  PriceRange ve MIN_RANGE_SAMPLE @havre/core'da.
+
+  Esik hem burada (sorgu) hem de tarayicidaki basvuru formunda gerekiyor;
+  form istemci bileseni oldugu icin @havre/db'yi ithal EDEMEZ (paket
+  sunucuya ozgu). Tek kaynak core, iki taraf da oradan okuyor.
+*/
+export type { PriceRange } from '@havre/core';
+export { MIN_RANGE_SAMPLE } from '@havre/core';
+
+/**
+ * Bir sehirdeki HER hizmet icin fiyat araligi.
+ *
+ * Basvurudaki fiyat adimi icin: bakicinin en cok zorlandigi karar fiyat
+ * ve ekran "cevrenize gore bir aralik oneriyoruz" diyordu ama hicbir
+ * aralik gostermiyordu. Veri zaten burada.
+ *
+ * Tek sorgu: dort hizmet icin dort ayri istek acmanin anlami yok.
+ */
+export async function servicePriceRanges(
+  db: Database, cityId: string,
+): Promise<Record<string, PriceRange>> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT ss.service_type::text AS service,
+             count(*)::int AS n,
+             percentile_cont(0.25) WITHIN GROUP (ORDER BY ss.price_cents)::int AS p25,
+             percentile_cont(0.50) WITHIN GROUP (ORDER BY ss.price_cents)::int AS med,
+             percentile_cont(0.75) WITHIN GROUP (ORDER BY ss.price_cents)::int AS p75
+      FROM sitter_services ss
+      JOIN sitters  st ON st.user_id = ss.sitter_id
+      JOIN profiles pr ON pr.user_id = ss.sitter_id
+      WHERE pr.city_id = ${cityId} AND ss.is_active AND st.status = 'active'
+      GROUP BY 1
+    `);
+    const out: Record<string, PriceRange> = {};
+    for (const r of rows as unknown as Array<Record<string, unknown>>) {
+      out[String(r.service)] = {
+        count: Number(r.n),
+        p25Cents: Number(r.p25),
+        medianCents: Number(r.med),
+        p75Cents: Number(r.p75),
+      };
+    }
+    return out;
+  });
 }
