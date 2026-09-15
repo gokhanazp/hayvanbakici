@@ -329,35 +329,68 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 
 /* ---------- Fotograf yukleme ---------- */
-.upload-row { display: flex; gap: var(--space-4); align-items: flex-start; flex-wrap: wrap; }
-.upload-preview {
-  width: 72px; height: 72px; border-radius: var(--radius-md); object-fit: cover;
-  border: 1px solid var(--color-border); flex: 0 0 auto;
+/* ---------- Fotograf yukleme ---------- */
+/*
+  DOSYA SECILENE KADAR TEK OGE.
+
+  Ilk surumde bir fotograf icin bes oge alt alta duruyordu: tarayicinin
+  dosya kutusu, bicim ipucu, alt metin alani, onun ipucu ve KAPALI bir
+  "Yukle" dugmesi — ve ayni yigin sayfada iki kez tekrarliyordu.
+  Ekranin buyuk bolumu, kullanici henuz hicbir sey secmemisken
+  kullanilamayan alanlarla doluydu.
+*/
+.upload { display: grid; gap: var(--space-4); }
+
+.dropzone {
+  display: grid; justify-items: center; gap: var(--space-2);
+  padding: var(--space-6);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: center; cursor: pointer;
+  transition: border-color var(--duration-micro) var(--easing-standard),
+              background var(--duration-micro) var(--easing-standard);
+}
+.dropzone:hover { border-color: var(--color-primary); background: var(--color-primary-subtle); }
+/* Odak GIZLI input'ta gorunmez — halkasi kutuya tasiniyor */
+.upload:has(input[type='file']:focus-visible) .dropzone {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+.dropzone-icon {
+  display: grid; place-items: center;
+  width: 2.5rem; height: 2.5rem; border-radius: 999px;
+  background: var(--color-primary-subtle); color: var(--color-primary);
+}
+.dropzone-label { font-weight: 600; color: var(--color-ink); }
+.dropzone-hint { font-size: 0.8125rem; color: var(--color-ink-muted); }
+/* Gizlilik sozu bolumun SONUNDA bir kez — her yukleyicinin altinda degil */
+.upload-privacy { margin-top: var(--space-3); }
+
+/* Secildikten sonra: onizleme + dosya adi + degistir */
+.upload-chosen {
+  display: flex; gap: var(--space-4); align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.upload-thumb {
+  flex: 0 0 auto; width: 72px; height: 72px; overflow: hidden;
+  border-radius: var(--radius-md); background: var(--color-surface-sunken);
+}
+.upload-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.upload-chosen-body { min-width: 0; display: grid; gap: var(--space-1); justify-items: start; }
+.upload-filename {
+  margin: 0; font-size: 0.875rem; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
 /*
   Dosya secme alani tarayiciya gore cok farkli goruunuyor; kutuyu biz
   ciziyoruz, dugmeyi tarayiciya birakiyoruz — tamamen gizleyip kendi
   dugmemizi koymak klavye ve ekran okuyucu davranisini bozuyor.
 */
-/* Etiket dugme gorunumunde; gercek input sr-only */
-.upload-pick { cursor: pointer; align-self: start; }
-/* Odak halkasi GIZLI input'ta gorunmez — etikete tasiniyor */
-.upload-row input[type='file']:focus-visible + .field-hint,
-.field-block:has(input[type='file']:focus-visible) .upload-pick {
-  outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 999px;
-}
 
-.file-input {
-  width: 100%; font: inherit; font-size: 0.875rem;
-  padding: var(--space-2); border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-md); background: var(--color-surface);
-}
-.file-input::file-selector-button {
-  font: inherit; font-size: 0.8125rem; margin-right: var(--space-3);
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border-strong); border-radius: var(--radius-full);
-  background: var(--color-surface); color: var(--color-ink); cursor: pointer;
-}
 
 .photo-grid {
   list-style: none; margin: var(--space-4) 0 0; padding: 0;
@@ -2793,7 +2826,8 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   her satir farkli yerden basliyor.
 */
 .pets-empty-actions { display: grid; justify-items: center; }
-.pets-empty-actions > * { width: 100%; max-width: 40rem; }
+/* Yalnizca ACIK form genisliyor; kapali dugme kendi boyunda ve ortali */
+.pets-empty-actions > .add-pet-card { width: 100%; max-width: 40rem; text-align: start; }
 
 /* ---------- Profil sayfasi ---------- */
 /*

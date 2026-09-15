@@ -149,7 +149,7 @@ export function PhotoStep({
                 label={m.profile.addPetPhoto} withAlt
                 fieldId="pet" altPlaceholder={m.profile.petAltPlaceholder}
               />
-            </div>
+              </div>
           )}
         </section>
       )}

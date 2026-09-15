@@ -267,7 +267,15 @@ export const enCA = {
     avatarSection: 'Profile photo',
     homeSection: 'Home photos',
     avatarNote: 'This is the round photo people see next to your name — in search, in messages and on your bookings.',
-    uploadHint: 'JPEG, PNG or WebP, up to 8 MB. We resize it and strip the location data your camera saved.',
+    /*
+      Kutunun ICINDE duruyor, bu yuzden KISA. Gizlilik sozu ayri bir
+      satirda: "konum verisini siliyoruz" cumlesi bir bicim listesinin
+      kuyruguna eklenecek kadar onemsiz degil.
+    */
+    uploadHint: 'JPEG, PNG or WebP \u00b7 up to 8 MB',
+    uploadPrivacy: 'We resize the photo and strip the location data your camera saved.',
+    changePhoto: 'Choose a different photo',
+    cancelUpload: 'Cancel',
     homeHeading: 'Photos of your home',
     homeLead: 'Owners want to see where their pet will sleep — the room, the yard, the walk you take. Up to {max}.',
     altLabel: 'Describe this photo',

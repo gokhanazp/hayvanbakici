@@ -120,11 +120,10 @@ export default async function ProfilePage({
               {interpolate(m.profile.homeLead, { max: MAX_SITTER_PHOTOS })}
             </p>
 
-            {photos.length === 0 ? (
-              <p className="field-hint" style={{ marginTop: 'var(--space-4)' }}>
-                {m.profile.noPhotos}
-              </p>
-            ) : (
+            {/* "Henuz fotograf yok" satiri KALDIRILDI: hemen altinda
+                "Ev fotografi ekleyin" yazan bos bir birakma alani var,
+                ayni seyi iki kez soylemeye gerek yok. */}
+            {photos.length > 0 && (
               <ul className="photo-grid">
                 {photos.map((p) => (
                   <li key={p.id}>
@@ -202,6 +201,7 @@ export default async function ProfilePage({
                   fieldId="pet"
                   altPlaceholder={m.profile.petAltPlaceholder}
                 />
+                <p className="field-hint upload-privacy">{m.profile.uploadPrivacy}</p>
               </div>
             )}
           </section>

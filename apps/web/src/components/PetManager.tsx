@@ -17,18 +17,25 @@ export function AddPet({ locale }: { locale: Locale }) {
   const m = getMessages(locale);
   const [open, setOpen] = useState(false);
 
+  /*
+    KAPALIYKEN SARMALAYICI YOK.
+
+    Dugme 40rem'lik bir sutunun icine konunca o sutunun SOLUNA
+    yapisiyordu: sayfanin geri kalani ortaliyken dugme kayik
+    duruyordu (kullanici bildirdi). Sarmalayici yalnizca form
+    acildiginda gerekiyor — orada satirin okunabilir genislikte
+    kalmasi icin.
+  */
   if (!open) {
     return (
-      <div>
-        <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
-          {m.pets.add}
-        </button>
-      </div>
+      <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
+        {m.pets.add}
+      </button>
     );
   }
 
   return (
-    <section className="card card-pad">
+    <section className="card card-pad add-pet-card">
       <h2 className="text-h4">{m.pets.add}</h2>
       <PetForm locale={locale} onDone={() => setOpen(false)} />
       <button type="button" className="btn btn-ghost btn-sm" onClick={() => setOpen(false)}>
