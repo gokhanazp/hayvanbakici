@@ -193,18 +193,35 @@ export default async function BookingDetailPage({
           )}
 
           {/*
-            KONUSMA: rezervasyon ile mesajlasma ayri yerlerde durmasin.
-            Iptal edilmis rezervasyonda da duruyor — insanlar iptalden
-            SONRA konusmak zorunda kaliyor ("anahtari nerede birakayim").
-          */}
-          <MessageCounterpartButton
-            locale={locale}
-            bookingId={booking.id}
-            label={interpolate(m.messages.messageName, { name: booking.counterpartFirstName })}
-            action={openBookingConversationAction}
-          />
+            EYLEMLER TEK KUTUDA.
 
-          {canCancel && <CancelButton locale={locale} bookingId={booking.id} action={cancelAction} />}
+            Once her eylem kendi formu olarak yan sutunda serbest
+            duruyordu: "Mesaj gonder" ortada asili bir hap, "Rezervasyonu
+            iptal et" ise cercevesi olmayan bir satirdi ve altindaki
+            uyari ayri bir paragraf gibi okunuyordu. Uc ogenin de neye
+            ait oldugu belirsizdi. Artik hepsi TEK kartta, tam
+            genislikte ve iptal ince bir cizgiyle ayrilmis halde —
+            ayni yerde ama ayni sirada degil.
+
+            KONUSMA iptal edilmis rezervasyonda da duruyor: insanlar
+            iptalden SONRA konusmak zorunda kaliyor ("anahtari nerede
+            birakayim").
+          */}
+          <div className="card card-pad booking-actions">
+            <MessageCounterpartButton
+              locale={locale}
+              bookingId={booking.id}
+              label={interpolate(m.messages.messageName, { name: booking.counterpartFirstName })}
+              action={openBookingConversationAction}
+            />
+
+            {canCancel && (
+              <>
+                <hr className="action-rule" />
+                <CancelButton locale={locale} bookingId={booking.id} action={cancelAction} />
+              </>
+            )}
+          </div>
         </aside>
       </div>
     </AccountShell>

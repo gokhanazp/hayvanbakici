@@ -56,7 +56,16 @@ export function RespondButtons({
   );
 }
 
-/** Iptal — iki taraf da kullanabilir. */
+/**
+ * Iptal — iki taraf da kullanabilir.
+ *
+ * NEDEN CERCEVELI, "hayalet" DEGIL: dugme once yalnizca metindi ve
+ * eylem sutununda basligi olmayan, cercevesi olmayan bir satir olarak
+ * duruyordu — tiklanabilir oldugu anlasilmiyordu. Yikici bir eylem
+ * GORUNMEZ degil, AYIRT EDILEBILIR olmali: kirmizi cerceve ve kirmizi
+ * yazi, ama dolu degil; dolu kirmizi bir dugme sayfanin en dikkat
+ * ceken ogesi olurdu ve burada en az tiklanmasi gereken sey o.
+ */
 export function CancelButton({
   locale, bookingId, action,
 }: {
@@ -66,14 +75,22 @@ export function CancelButton({
   const [state, formAction, busy] = useActionState<ActionState, FormData>(action, {});
 
   return (
-    <form action={formAction} className="stack">
+    <form action={formAction}>
       <input type="hidden" name="id" value={bookingId} />
       <input type="hidden" name="locale" value={segmentFor(locale)} />
-      {state.error && <p className="alert alert-error" role="alert">{message(m, state.error)}</p>}
-      <button type="submit" className="btn btn-ghost" disabled={busy}>
+      {state.error && (
+        <p className="alert alert-error" role="alert" style={{ marginBottom: 'var(--space-3)' }}>
+          {message(m, state.error)}
+        </p>
+      )}
+      <button type="submit" className="btn btn-danger-outline btn-block" disabled={busy}>
         {m.booking.cancel}
       </button>
-      <p className="field-hint">{m.booking.cancelConfirm}</p>
+      {/* Uyari dugmenin ALTINDA ve ona bagli: once iki ayri satir gibi
+          duruyordu ve neyin geri alinamayacagi belirsizdi. */}
+      <p className="field-hint" style={{ marginTop: 'var(--space-2)', textAlign: 'center' }}>
+        {m.booking.cancelConfirm}
+      </p>
     </form>
   );
 }
@@ -115,7 +132,7 @@ export function MessageCounterpartButton({
             ?? message(m, state.error)}
         </p>
       )}
-      <button type="submit" className="btn btn-secondary"
+      <button type="submit" className="btn btn-secondary btn-block"
               disabled={busy || Boolean(state.redirectTo)}>
         {busy || state.redirectTo ? m.messages.sending : label}
       </button>

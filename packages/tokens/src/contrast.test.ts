@@ -57,6 +57,11 @@ const PAIRS: Array<[keyof Theme, keyof Theme, number, string]> = [
     kendi zemininde duruyor, uyari kutusunda degil.
   */
   ['warning-strong', 'surface', 4.5, 'beyaz kart uzerinde uyari metni'],
+  /*
+    Cerceveli iptal dugmesi: yazi ve cerceve beyaz yuzeyin uzerinde
+    duruyor, hata kutusunun icinde degil.
+  */
+  ['danger-strong', 'surface', 4.5, 'beyaz yuzeyde yikici eylem metni'],
   ['tile-rose-ink', 'tile-rose', 4.5, 'pastel kutucuk — gul'],
   ['tile-sage-ink', 'tile-sage', 4.5, 'pastel kutucuk — adacayi'],
   ['tile-apricot-ink', 'tile-apricot', 4.5, 'pastel kutucuk — kayisi'],

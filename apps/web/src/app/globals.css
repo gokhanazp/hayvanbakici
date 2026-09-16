@@ -266,6 +266,23 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .btn-secondary { background: var(--color-surface); color: var(--color-ink); border-color: var(--color-border-strong); }
 .btn-secondary:hover { background: var(--color-surface-sunken); }
 
+/*
+  YIKICI EYLEM — CERCEVELI, DOLU DEGIL.
+
+  Dolu kirmizi bir dugme sayfanin en dikkat ceken ogesi olurdu; oysa
+  burada en az tiklanmasi gereken sey o. Cerceve + kirmizi yazi hem
+  "dugme" hem "dikkat" diyor. Renk tek tasiyici degil: dugmenin altinda
+  ne oldugunu YAZAN bir satir var.
+*/
+.btn-danger-outline {
+  background: var(--color-surface);
+  color: var(--color-danger-strong);
+  border-color: var(--color-danger-strong);
+  box-shadow: var(--shadow-sticker-sm);
+}
+.btn-danger-outline:hover { background: var(--color-danger-subtle); }
+.btn-danger-outline:active { box-shadow: none; }
+
 .btn-ghost { background: transparent; color: var(--color-ink-secondary); }
 .btn-ghost:hover { color: var(--color-ink); background: var(--color-surface-sunken); }
 
@@ -277,6 +294,16 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   yalnizca yatay dolgu ve yazi boyutu kuculuyor.
 */
 .btn-sm { padding: var(--space-2) var(--space-4); font-size: 0.875rem; }
+
+/*
+  Eylem kutusu: butonlar alt alta, tam genislikte; iptal ince bir
+  cizgiyle ayri. Once her eylem kendi formu olarak serbest duruyordu.
+*/
+.booking-actions { display: grid; gap: var(--space-4); }
+.action-rule {
+  height: 0; margin: 0;
+  border: 0; border-top: 1px solid var(--color-border);
+}
 
 /* ---------- Yuzeyler ---------- */
 /*
