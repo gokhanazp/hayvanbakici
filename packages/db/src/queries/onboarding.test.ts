@@ -139,15 +139,15 @@ describe('bakici onboarding', () => {
 
   it('hizmetler tam olarak degistirilir, birikmez', async () => {
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6500, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: true, acceptsOther: false, extraPetPriceCents: 1500, holidaySurchargePct: 20 },
-      { serviceType: 'dog_walking', priceCents: 2500, priceUnit: 'walk', cancellationPolicy: 'flexible', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 },
+      { serviceType: 'boarding', priceCents: 6500, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: true, acceptsOther: false, extraPetPriceCents: 1500, holidaySurchargePct: 20 , acceptedSizeMaxKg: 18},
+      { serviceType: 'dog_walking', priceCents: 2500, priceUnit: 'walk', cancellationPolicy: 'flexible', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizeMaxKg: 18},
     ]);
     let rows = await db.select().from(sitterServices).where(eq(sitterServices.sitterId, userId));
     expect(rows).toHaveLength(2);
 
     // Secimden cikarilan hizmet SILINMELI
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 7000, priceUnit: 'night', cancellationPolicy: 'strict', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 },
+      { serviceType: 'boarding', priceCents: 7000, priceUnit: 'night', cancellationPolicy: 'strict', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizeMaxKg: 18},
     ]);
     rows = await db.select().from(sitterServices).where(eq(sitterServices.sitterId, userId));
     expect(rows).toHaveLength(1);
@@ -166,14 +166,14 @@ describe('bakici onboarding', () => {
   */
   it('ek hayvan ve tatil ucreti kaydediliyor, geri okunuyor ve sifirlanabiliyor', async () => {
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 1200, holidaySurchargePct: 25 },
+      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 1200, holidaySurchargePct: 25 , acceptedSizeMaxKg: 18},
     ]);
     let state = await getOnboardingState(db, userId);
     expect(state?.services[0]?.extraPetPriceCents).toBe(1200);
     expect(state?.services[0]?.holidaySurchargePct).toBe(25);
 
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 },
+      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizeMaxKg: 18},
     ]);
     state = await getOnboardingState(db, userId);
     expect(state?.services[0]?.extraPetPriceCents).toBe(0);
@@ -185,6 +185,7 @@ describe('bakici onboarding', () => {
       homeType: 'apartment', hasYard: false, yardFenced: true,
       hasOwnPets: true, smokeFree: true, maxConcurrentPets: 3,
       hasChildren: null, petsOnBed: null, petsOnFurniture: null, pottyBreakHours: null,
+      spayedNeuteredOnly: false, noFemalesInHeat: false, houseTrainedOnly: false, minPetAgeMonths: null,
       scheduleText: null, typicalDayText: null, safetyText: null, ownerPrefsText: null,
     });
     const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
@@ -197,6 +198,7 @@ describe('bakici onboarding', () => {
       homeType: 'house', hasYard: true, yardFenced: true,
       hasOwnPets: false, smokeFree: true, maxConcurrentPets: 99,
       hasChildren: null, petsOnBed: null, petsOnFurniture: null, pottyBreakHours: null,
+      spayedNeuteredOnly: false, noFemalesInHeat: false, houseTrainedOnly: false, minPetAgeMonths: null,
       scheduleText: null, typicalDayText: null, safetyText: null, ownerPrefsText: null,
     });
     const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
@@ -216,6 +218,7 @@ describe('bakici onboarding', () => {
       homeType: 'house', hasYard: false, yardFenced: false,
       hasOwnPets: false, smokeFree: true, maxConcurrentPets: 2,
       hasChildren: null, petsOnBed: false, petsOnFurniture: null, pottyBreakHours: null,
+      spayedNeuteredOnly: false, noFemalesInHeat: false, houseTrainedOnly: false, minPetAgeMonths: null,
       scheduleText: null, typicalDayText: null, safetyText: null, ownerPrefsText: null,
     });
     const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
@@ -234,6 +237,7 @@ describe('bakici onboarding', () => {
       homeType: 'house', hasYard: false, yardFenced: false,
       hasOwnPets: false, smokeFree: true, maxConcurrentPets: 2,
       hasChildren: null, petsOnBed: null, petsOnFurniture: null, pottyBreakHours: 99,
+      spayedNeuteredOnly: true, noFemalesInHeat: false, houseTrainedOnly: false, minPetAgeMonths: 0,
       scheduleText: '   ', typicalDayText: 'Sabah yuruyus.', safetyText: null,
       ownerPrefsText: '',
     });
@@ -243,6 +247,9 @@ describe('bakici onboarding', () => {
     expect(s?.ownerPrefsText).toBeNull();
     expect(s?.typicalDayText).toBe('Sabah yuruyus.');
     expect(s?.pottyBreakHours).toBe(24);
+    /* 0 ay "sinir yok" demek — null ile ayni sey, profilde satir cizilmez */
+    expect(s?.minPetAgeMonths).toBeNull();
+    expect(s?.spayedNeuteredOnly).toBe(true);
   });
 
   it('adli sicil rizasi dil ve surumle birlikte kaydedilir', async () => {

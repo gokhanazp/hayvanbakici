@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   MAX_EXTRA_PET_CENTS, MAX_HOLIDAY_PCT,
   MAX_PRICE_CENTS, MIN_PRICE_CENTS, MIN_RANGE_SAMPLE, SERVICES, servicesForPhase,
+  PET_SIZE_STEPS,
   netPerUnit, previousStep,
   type OnboardingStep, type PriceRange, type ProvinceCode, type ServiceType,
 } from '@havre/core';
@@ -352,6 +353,8 @@ interface ServiceDraft {
   /** Bos string = ek ucret yok. "0" yazmakla bos birakmak ayni sey. */
   extraPet: string;
   holiday: string;
+  /** Kabul edilen en buyuk kilo — kademe sinirlarindan biri */
+  maxKg: string;
 }
 
 export function ServicesForm({
@@ -363,6 +366,7 @@ export function ServicesForm({
     serviceType: string; priceCents: number; cancellationPolicy: string;
     acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean;
     extraPetPriceCents: number; holidaySurchargePct: number;
+    acceptedSizeMaxKg: number;
   }>;
   /** Net kazanc satirinin vergisi ile icin — konum adimi bundan once geliyor */
   province?: ProvinceCode | null | undefined;
@@ -401,6 +405,13 @@ export function ServicesForm({
         // bir alan gibi duruyor; bosluk "bir sey istemiyorum" demek.
         extraPet: row?.extraPetPriceCents ? String(row.extraPetPriceCents / 100) : '',
         holiday: row?.holidaySurchargePct ? String(row.holidaySurchargePct) : '',
+        /*
+          VARSAYILAN EN BUYUK KADEME DEGIL. Sutunun veritabani
+          varsayilani 100 kg ve bu, hicbir bakicinin vermedigi bir
+          sozdu: yeni her profil "dev kopek alirim" diye ilan
+          ediyordu. Yeni hizmette secim BOS basliyor ve alan zorunlu.
+        */
+        maxKg: row ? String(Math.round(row.acceptedSizeMaxKg)) : '',
       };
     }
     return out;
@@ -587,6 +598,38 @@ export function ServicesForm({
                     />
                   </div>
 
+                  {/*
+                    EN BUYUK KABUL EDILEN BOYUT.
+
+                    Alan yoktu: sutun veritabaninda 100 kg varsayiliyla
+                    duruyordu ve her profilde "0-100 kg" yaziyordu —
+                    bakicinin vermedigi bir soz. Arama da bu sayidan
+                    filtreliyor, yani yanlis olmasi yalnizca gorsel
+                    degil: kucuk bir daireye dev kopek istegi gidiyordu.
+                  */}
+                  <div className="field-block">
+                    <label htmlFor={`size-${type}`}>{m.onboarding['services.maxSize']}</label>
+                    <Select
+                      id={`size-${type}`}
+                      name={`size.${type}`}
+                      value={d.maxKg}
+                      required
+                      placeholder="—"
+                      onChange={(next) => patch(type, { maxKg: next })}
+                      options={PET_SIZE_STEPS.map((step) => ({
+                        value: String(step.maxKg),
+                        label: interpolate(
+                          m.onboarding[`services.size.${step.key}` as keyof Messages['onboarding']] as string,
+                          { min: step.minKg, max: step.maxKg },
+                        ),
+                      }))}
+                    />
+                    <span className="field-hint">{m.onboarding['services.maxSizeHint']}</span>
+                    {state.errors[`size.${type}`] && (
+                      <span className="field-error" role="alert">{err(m, state.errors[`size.${type}`])}</span>
+                    )}
+                  </div>
+
                   <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
                     <legend className="field-hint" style={{ marginBottom: 'var(--space-2)' }}>
                       {m.onboarding['services.accepts']}
@@ -666,6 +709,8 @@ export function HomeForm({
     smokeFree: boolean; maxConcurrentPets: number;
     hasChildren: boolean | null; petsOnBed: boolean | null; petsOnFurniture: boolean | null;
     pottyBreakHours: number | null;
+    spayedNeuteredOnly: boolean; noFemalesInHeat: boolean; houseTrainedOnly: boolean;
+    minPetAgeMonths: number | null;
     scheduleText: string; typicalDayText: string; safetyText: string; ownerPrefsText: string;
   };
 }) {
@@ -685,6 +730,10 @@ export function HomeForm({
     petsOnBed: tri(initial.petsOnBed),
     petsOnFurniture: tri(initial.petsOnFurniture),
     pottyBreakHours: initial.pottyBreakHours === null ? '' : String(initial.pottyBreakHours),
+    spayedNeuteredOnly: initial.spayedNeuteredOnly,
+    noFemalesInHeat: initial.noFemalesInHeat,
+    houseTrainedOnly: initial.houseTrainedOnly,
+    minPetAgeMonths: initial.minPetAgeMonths === null ? '' : String(initial.minPetAgeMonths),
     scheduleText: initial.scheduleText,
     typicalDayText: initial.typicalDayText,
     safetyText: initial.safetyText,
@@ -797,6 +846,51 @@ export function HomeForm({
         <input id="pottyBreakHours" name="pottyBreakHours" type="number" min={1} max={24}
           value={v.pottyBreakHours} style={{ maxWidth: '7rem' }}
           onChange={(e) => set('pottyBreakHours', e.target.value)} />
+      </Field>
+
+      {/*
+        KABUL KOSULLARI — "hangi hayvana BAKMAM".
+
+        Onay kutusu burada DOGRU secim (ev ozelliklerindeki uc durumlu
+        listelerden farkli olarak): isaretsiz kutu "boyle bir sartim
+        yok" demek ve profilde hicbir satir cizilmiyor, yani
+        isaretlemeden hicbir iddia uretilmiyor.
+
+        Sahip bu cevaplari bugune kadar mesajla soruyor ve cogu zaman
+        rezervasyon reddedildikten sonra ogreniyordu.
+      */}
+      <h3 className="text-h4 step-group-title">{m.onboarding['home.groupPets']}</h3>
+      <p className="field-hint step-group-lead">{m.onboarding['home.groupPetsLead']}</p>
+
+      <div className="checkbox-row">
+        <input id="spayedNeuteredOnly" type="checkbox" name="spayedNeuteredOnly"
+          checked={v.spayedNeuteredOnly}
+          onChange={(e) => set('spayedNeuteredOnly', e.target.checked)} />
+        <label htmlFor="spayedNeuteredOnly">{m.onboarding['home.spayedOnly']}</label>
+      </div>
+
+      <div className="checkbox-row">
+        <input id="noFemalesInHeat" type="checkbox" name="noFemalesInHeat"
+          checked={v.noFemalesInHeat}
+          onChange={(e) => set('noFemalesInHeat', e.target.checked)} />
+        <label htmlFor="noFemalesInHeat">{m.onboarding['home.noHeat']}</label>
+      </div>
+
+      <div className="checkbox-row">
+        <input id="houseTrainedOnly" type="checkbox" name="houseTrainedOnly"
+          checked={v.houseTrainedOnly}
+          onChange={(e) => set('houseTrainedOnly', e.target.checked)} />
+        <label htmlFor="houseTrainedOnly">{m.onboarding['home.houseTrained']}</label>
+      </div>
+
+      <Field
+        id="minPetAgeMonths"
+        label={m.onboarding['home.minAge']}
+        hint={m.onboarding['home.minAgeHint']}
+      >
+        <input id="minPetAgeMonths" name="minPetAgeMonths" type="number" min={0} max={120}
+          value={v.minPetAgeMonths} style={{ maxWidth: '7rem' }}
+          onChange={(e) => set('minPetAgeMonths', e.target.value)} />
       </Field>
 
       <h3 className="text-h4 step-group-title">{m.onboarding['home.groupWords']}</h3>

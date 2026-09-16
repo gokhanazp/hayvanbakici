@@ -175,6 +175,25 @@ export const sitters = pgTable(
      * oncesi soru-cevap turunu kisaltan tek alan: bakici neyi merak
      * ettigini bir kez yaziyor, her sahip ayni seyi tekrar sormuyor.
      */
+    /**
+     * KABUL KOSULLARI — "hangi hayvana BAKMAM" sorusu.
+     *
+     * Bunlar uc durumlu DEGIL, `notNull().default(false)`.
+     * Sebep: bunlar bir KOSUL. false = "boyle bir sartim yok" ve
+     * ekranda hicbir satir cizilmiyor — yani false hicbir iddia
+     * uretmiyor. Ev ozelliklerinde durum farkliydi ("evde cocuk yok"
+     * cizilen bir cumleydi), o yuzden orada null gerekliydi.
+     *
+     * NEDEN VAR: sahip "kisirlastirilmamis kopegim kabul edilir mi"
+     * sorusunu bugune kadar mesajla soruyordu ve cogu zaman cevabi
+     * rezervasyon reddedildikten sonra ogreniyordu.
+     */
+    spayedNeuteredOnly: boolean('spayed_neutered_only').notNull().default(false),
+    noFemalesInHeat: boolean('no_females_in_heat').notNull().default(false),
+    houseTrainedOnly: boolean('house_trained_only').notNull().default(false),
+    /** En kucuk kabul edilen yas (ay). null = sinir yok. */
+    minPetAgeMonths: integer('min_pet_age_months'),
+
     scheduleText: text('schedule_text'),
     typicalDayText: text('typical_day_text'),
     safetyText: text('safety_text'),

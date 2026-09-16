@@ -73,7 +73,11 @@ describe('konum adimi', () => {
 });
 
 describe('hizmet adimi', () => {
-  const ok = { serviceType: 'boarding', priceCents: 5400, acceptsDogs: true, acceptsCats: false, acceptsOther: false };
+  const ok = {
+    serviceType: 'boarding', priceCents: 5400,
+    acceptsDogs: true, acceptsCats: false, acceptsOther: false,
+    acceptedSizeMaxKg: 18,
+  };
 
   it('hic hizmet secilmediyse ilerlemez', () => {
     expect(validateServices([]).services).toBe('services.none');
@@ -87,6 +91,25 @@ describe('hizmet adimi', () => {
   });
   it('gecerli hizmeti kabul eder', () => {
     expect(validateServices([ok])).toEqual({});
+  });
+
+  /*
+    BOYUT ZORUNLU. Bos birakilirsa sutun varsayilani (100 kg) devreye
+    girer ve profil "dev kopek alirim" diye ilan eder — bakicinin
+    vermedigi bir soz. Kademe disinda bir sayi da kabul edilmiyor:
+    profildeki kutucuklari yarim birakirdi.
+  */
+  it('boyut secilmediyse ilerlemez', () => {
+    const { acceptedSizeMaxKg: _drop, ...noSize } = ok;
+    expect(validateServices([noSize])['size.boarding']).toBe('error.required');
+  });
+  it('kademe disindaki boyutu reddeder', () => {
+    expect(validateServices([{ ...ok, acceptedSizeMaxKg: 30 }])['size.boarding']).toBe('error.required');
+  });
+  it('dort kademenin dordunu de kabul eder', () => {
+    for (const kg of [7, 18, 45, 100]) {
+      expect(validateServices([{ ...ok, acceptedSizeMaxKg: kg }])).toEqual({});
+    }
   });
 });
 
@@ -182,6 +205,7 @@ describe('ek ucret dogrulamasi', () => {
   const base = {
     serviceType: 'boarding', priceCents: 6000,
     acceptsDogs: true, acceptsCats: false, acceptsOther: false,
+    acceptedSizeMaxKg: 18,
   };
 
   it('verilmemis ek ucretler HATA DEGIL', () => {

@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { SERVICES, primaryService, servicesForPhase, type ServiceType } from '@havre/core';
+import {
+  SERVICES, primaryService, servicesForPhase, petSizeStepsFor, PET_SIZE_STEPS,
+  type ServiceType,
+} from '@havre/core';
 import {
   getMessages, interpolate, localeFromSegment, LOCALES, segmentFor, serviceSlug,
   type Locale, type Messages,
@@ -16,7 +19,8 @@ import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { RatingBreakdown } from '@/components/RatingBreakdown';
 import { ServiceIcon } from '@/components/ServiceIcon';
-import { HomeIcon, type HomeIconName } from '@/components/HomeIcon';
+import { HomeIcon, DogSilhouette, VetIcon, type HomeIconName } from '@/components/HomeIcon';
+import { NoIcon } from '@/components/InfoIcons';
 import { getCalendar, getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
@@ -153,6 +157,52 @@ export default async function SitterPage({
   const askUrl = `/${seg}/${citySlug}/sitter/${sitter.slug}/ask/`;
 
   /*
+    KABUL EDILEN BOYUT — HIZMETLERIN BIRLESIMI.
+
+    Bakicinin her hizmeti icin ayri bir ust sinir var (arama da
+    oradan filtreliyor). Profildeki ozet, EN GENIS olani gosteriyor:
+    "bu bakici en fazla bu boyutta bir hayvan aliyor". Hangi hizmette
+    hangi sinir oldugu zaten hizmet kartinda yaziyor.
+
+    Kademe ANCAK tamamen kapsaniyorsa isaretleniyor (petSizeStepsFor):
+    20 kiloya kadar alan bakiciyi "buyuk kopek alir" diye gostermek
+    verilmemis bir soz olurdu.
+  */
+  const maxAcceptedKg = bookable.reduce((a, svc) => Math.max(a, svc.acceptedSizeMaxKg), 0);
+  const sizeSteps = petSizeStepsFor(maxAcceptedKg);
+  const sizeIconPx: Record<string, number> = { small: 20, medium: 26, large: 32, giant: 38 };
+
+  /*
+    KABUL KOSULLARI — "hangi hayvana BAKMAM".
+
+    Yalnizca ISARETLENENLER listeye giriyor. Isaretsiz bir kutu
+    "boyle bir sartim yok" demek ve hicbir satir cizilmiyor; yani
+    varsayilan hicbir iddia uretmiyor.
+  */
+  type PetRule = { icon: 'vet' | 'no' | 'home' | 'clock' | 'pets' | 'paw'; text: string };
+  const petRules: PetRule[] = ([
+    sitter.spayedNeuteredOnly && { icon: 'vet' as const, text: m.sitter['pets.spayedOnly'] },
+    sitter.noFemalesInHeat && { icon: 'no' as const, text: m.sitter['pets.noHeat'] },
+    sitter.houseTrainedOnly && { icon: 'home' as const, text: m.sitter['pets.houseTrained'] },
+    sitter.minPetAgeMonths !== null && {
+      icon: 'clock' as const,
+      text: sitter.minPetAgeMonths % 12 === 0
+        ? (sitter.minPetAgeMonths === 12
+            ? m.sitter['pets.minAgeYear']
+            : interpolate(m.sitter['pets.minAgeYears'], { years: sitter.minPetAgeMonths / 12 }))
+        : interpolate(m.sitter['pets.minAgeMonths'], { months: sitter.minPetAgeMonths }),
+    },
+    {
+      /* Tek hayvan alan bakicida IKI pati cizmek cumlenin tersini
+         soyluyordu — tek pati. */
+      icon: sitter.maxConcurrentPets === 1 ? ('paw' as const) : ('pets' as const),
+      text: sitter.maxConcurrentPets === 1
+        ? m.sitter['home.maxPetsOne']
+        : interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets }),
+    },
+  ] as Array<PetRule | false>).filter((x): x is PetRule => Boolean(x));
+
+  /*
     EV MADDELERI — TEK LISTE, HER BIRI KENDI IKONUYLA.
 
     Once ikiye bolunmustu: solda bizim kaydettigimiz olgular, sagda
@@ -184,12 +234,6 @@ export default async function SitterPage({
     !sitter.hasOwnPets && { icon: 'paw' as const, slashed: true, text: m.sitter['home.noOwnPets'] },
     sitter.showsOwnPets && { icon: 'paw' as const, text: m.sitter['home.ownPets'] },
     sitter.smokeFree && { icon: 'noSmoking' as const, text: m.sitter['home.smokeFree'] },
-    {
-      icon: 'pets' as const,
-      text: sitter.maxConcurrentPets === 1
-        ? m.sitter['home.maxPetsOne']
-        : interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets }),
-    },
     sitter.hasChildren !== null && {
       icon: 'person' as const,
       slashed: !sitter.hasChildren,
@@ -380,9 +424,13 @@ export default async function SitterPage({
                       {s.acceptsDogs && <span className="badge badge-outline">{m.onboarding['services.dogs']}</span>}
                       {s.acceptsCats && <span className="badge badge-outline">{m.onboarding['services.cats']}</span>}
                       {s.acceptsOther && <span className="badge badge-outline">{m.onboarding['services.other']}</span>}
+                      {/*
+                        "0-18 kg" yaziyordu. Alt sinir HER ZAMAN sifir
+                        (kimse "en az 5 kilo" demiyor), yani sifir bir
+                        bilgi tasimiyor ve rozeti gereksiz uzatiyordu.
+                      */}
                       <span className="badge badge-outline tabular">
-                        {interpolate(m.sitter.sizeRange, {
-                          min: Math.round(s.acceptedSizeMinKg),
+                        {interpolate(m.sitter['pets.sizeSmall'], {
                           max: Math.round(s.acceptedSizeMaxKg),
                         })}
                       </span>
@@ -447,6 +495,74 @@ export default async function SitterPage({
                 </article>
               ))}
             </div>
+          </section>
+
+          {/*
+            BAKABILECEGI HAYVANLAR.
+
+            Sahibin ilk eledigi sey bu: kopegim bu bakiciya sigar mi.
+            Bugune kadar cevap yalnizca hizmet kartinin icinde kucuk
+            bir "0-40 kg" rozetiydi ve birden fazla hizmeti olan
+            bakicida hangisinin gecerli oldugu belirsizdi. Simdi tek
+            bir bolum: boyut kademeleri ve bakicinin kosullari.
+
+            Kosullar da burada, cunku "kisirlastirilmamis kopegimi
+            alir mi" sorusu boyut sorusuyla ayni anda soruluyor ve
+            bugune kadar ikisi de mesajla — cogu zaman istek
+            reddedildikten SONRA — ogreniliyordu.
+          */}
+          <section className="card card-pad sitter-block">
+            <h2 className="text-h2">
+              {interpolate(m.sitter.petsHeading, { name: sitter.firstName })}
+            </h2>
+
+            {sizeSteps.length > 0 ? (
+              <>
+                <ul className="size-steps">
+                  {sizeSteps.map((key) => {
+                    const step = PET_SIZE_STEPS.find((x) => x.key === key)!;
+                    const label = key === 'small'
+                      ? interpolate(m.sitter['pets.sizeSmall'], { max: step.maxKg })
+                      : key === 'giant'
+                        ? interpolate(m.sitter['pets.sizeGiant'], { min: step.minKg })
+                        : interpolate(m.sitter['pets.sizeBand'], { min: step.minKg, max: step.maxKg });
+                    return (
+                      <li key={key}>
+                        {/* Siluet kademeye gore buyuyor: fark BOYUTUN kendisi */}
+                        <span className="size-step-art">
+                          <DogSilhouette size={sizeIconPx[key] ?? 24} />
+                        </span>
+                        <span className="size-step-label">{label}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {bookable.length > 1 && (
+                  <p className="field-hint">
+                    {interpolate(m.sitter['pets.sizeNote'], { name: sitter.firstName })}
+                  </p>
+                )}
+              </>
+            ) : (
+              /* Boyut secilmemis bir profilde SUSUYORUZ: "0-100 kg"
+                 varsayilani bakicinin vermedigi bir sozdu. */
+              <p className="muted text-body-sm">
+                {interpolate(m.sitter['pets.noSizes'], { name: sitter.firstName })}
+              </p>
+            )}
+
+            <ul className="home-facts">
+              {petRules.map((r) => (
+                <li key={r.text}>
+                  {/* Ucu de 24: cember konturlu ikonlar ayni kutuda
+                      ev/pati siluetinden buyuk gorunuyor. */}
+                  {r.icon === 'vet' ? <VetIcon size={24} />
+                    : r.icon === 'no' ? <NoIcon size={24} />
+                    : <HomeIcon name={r.icon === 'home' ? 'house' : r.icon} size={26} />}
+                  <span>{r.text}</span>
+                </li>
+              ))}
+            </ul>
           </section>
 
           {/* --- Ev, kurallar, guvenlik --- */}

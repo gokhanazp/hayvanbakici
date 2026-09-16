@@ -63,3 +63,34 @@ export function primaryService<T extends { serviceType: ServiceType }>(
   }
   return offered[0];
 }
+
+/**
+ * HAYVAN BOYUT KADEMELERI.
+ *
+ * NEDEN KADEME: bakici "45 kilodan buyugunu alamam" diye dusunmuyor,
+ * "buyuk kopek alamam" diye dusunuyor. Sahip de kopeginin kilosunu
+ * degil bedenini biliyor. Kademeler kilo araligina BAGLI kaliyor
+ * cunku arama sorgusu (search.ts) kilo uzerinden calisiyor — tek
+ * kaynak: sitter_services.accepted_size_max_kg.
+ *
+ * Sinirlar metrik ve Kanada'da yaygin bolumlemeye yakin:
+ * 7 kg (kucuk irk), 18 kg (orta), 45 kg (buyuk), ustu dev.
+ */
+export const PET_SIZE_STEPS = [
+  { key: 'small', minKg: 0, maxKg: 7 },
+  { key: 'medium', minKg: 7, maxKg: 18 },
+  { key: 'large', minKg: 18, maxKg: 45 },
+  { key: 'giant', minKg: 45, maxKg: 100 },
+] as const;
+
+export type PetSizeKey = (typeof PET_SIZE_STEPS)[number]['key'];
+
+/**
+ * Bir bakicinin kabul ettigi en buyuk kilodan hangi kademelerin
+ * kapsandigini bulur. Bir kademe ANCAK tamamen kapsaniyorsa
+ * isaretlenir: 20 kiloya kadar alan bir bakiciyi "buyuk kopek alir"
+ * diye gostermek (18-45 kademesi) verilmemis bir soz olurdu.
+ */
+export function petSizeStepsFor(maxKg: number): PetSizeKey[] {
+  return PET_SIZE_STEPS.filter((s) => maxKg >= s.maxKg).map((s) => s.key);
+}

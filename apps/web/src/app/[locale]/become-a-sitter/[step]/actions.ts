@@ -150,6 +150,9 @@ export async function saveServicesAction(
       */
       extraPetPriceCents: centsOrZero(str(form, `extraPet.${type}`)),
       holidaySurchargePct: numberOrZero(str(form, `holiday.${type}`)),
+      /* Bos birakilirsa 0 kalir ve dogrulama 'error.required' verir —
+         sutun varsayilani (100 kg) asla sessizce devreye girmemeli. */
+      acceptedSizeMaxKg: Number(str(form, `size.${type}`)) || 0,
     };
   });
 
@@ -180,6 +183,10 @@ export async function saveHomeAction(
     petsOnBed: triState(form, 'petsOnBed'),
     petsOnFurniture: triState(form, 'petsOnFurniture'),
     pottyBreakHours: intOrNull(form, 'pottyBreakHours'),
+    spayedNeuteredOnly: bool(form, 'spayedNeuteredOnly'),
+    noFemalesInHeat: bool(form, 'noFemalesInHeat'),
+    houseTrainedOnly: bool(form, 'houseTrainedOnly'),
+    minPetAgeMonths: intOrNull(form, 'minPetAgeMonths'),
     scheduleText: textOrNull(form, 'scheduleText'),
     typicalDayText: textOrNull(form, 'typicalDayText'),
     safetyText: textOrNull(form, 'safetyText'),

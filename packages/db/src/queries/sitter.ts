@@ -123,6 +123,15 @@ export interface SitterProfile {
   petsOnFurniture: boolean | null;
   pottyBreakHours: number | null;
 
+  /**
+   * KABUL KOSULLARI — "hangi hayvana bakmam".
+   * false = boyle bir sart yok, satir cizilmez.
+   */
+  spayedNeuteredOnly: boolean;
+  noFemalesInHeat: boolean;
+  houseTrainedOnly: boolean;
+  minPetAgeMonths: number | null;
+
   /** Bakicinin kendi cumleleri — DOGRULANMAMIS beyan, oyle etiketleniyor. */
   scheduleText: string | null;
   typicalDayText: string | null;
@@ -151,6 +160,8 @@ export async function getSitterProfile(
         st.max_concurrent_pets, st.activated_at, st.created_at,
         st.has_children, st.pets_on_bed, st.pets_on_furniture, st.potty_break_hours,
         st.schedule_text, st.typical_day_text, st.safety_text, st.owner_prefs_text,
+        st.spayed_neutered_only, st.no_females_in_heat, st.house_trained_only,
+        st.min_pet_age_months,
         p.first_name, p.last_name_initial, p.bio, p.province, p.avatar_url,
         c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
         c.name_en AS city_name_en, c.name_fr AS city_name_fr,
@@ -319,6 +330,12 @@ export async function getSitterProfile(
       petsOnFurniture: (row.pets_on_furniture as boolean | null) ?? null,
       pottyBreakHours: row.potty_break_hours === null || row.potty_break_hours === undefined
         ? null : Number(row.potty_break_hours),
+
+      spayedNeuteredOnly: Boolean(row.spayed_neutered_only),
+      noFemalesInHeat: Boolean(row.no_females_in_heat),
+      houseTrainedOnly: Boolean(row.house_trained_only),
+      minPetAgeMonths: row.min_pet_age_months === null || row.min_pet_age_months === undefined
+        ? null : Number(row.min_pet_age_months),
 
       scheduleText: (row.schedule_text as string | null) ?? null,
       typicalDayText: (row.typical_day_text as string | null) ?? null,

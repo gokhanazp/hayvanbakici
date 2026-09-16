@@ -181,6 +181,56 @@ const GLYPHS: Record<HomeIconName, ReactNode> = {
   ),
 };
 
+/**
+ * KOPEK SILUETI — BOYUT KUTUCUKLARI ICIN.
+ *
+ * Dolgulu, konturlu degil: 20 pikselde konturlu bir kopek lekeye
+ * donuyor, dolgulu siluet kuculdukce okunmaya devam ediyor. Ayni
+ * siluet dort boyutta ciziliyor — kademeler arasindaki fark BOYUTUN
+ * kendisi, dort ayri irk cizmek o farki gizlerdi.
+ *
+ * Ikon dekoratif: yaninda her zaman kilo araligi yaziyor.
+ */
+export function DogSilhouette({ size = 24 }: { size?: number }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24"
+      fill="currentColor" stroke="none" aria-hidden="true"
+    >
+      {/* Govde */}
+      <rect x="4.6" y="10.4" width="11.6" height="6" rx="2.9" />
+      {/* Bas ve burun */}
+      <circle cx="18" cy="9.8" r="3.3" />
+      <rect x="19.4" y="9.4" width="3.4" height="2.5" rx="1.25" />
+      {/* Kulak */}
+      <path d="M16.4 7.2 15.1 3.8l3.3 1.7z" />
+      {/* Bacaklar */}
+      <rect x="5.2" y="14.8" width="2.3" height="5.4" rx="1.15" />
+      <rect x="13.2" y="14.8" width="2.3" height="5.4" rx="1.15" />
+      {/* Kuyruk — tek konturlu parca, govdeden yukari kivriliyor */}
+      <path
+        d="M4.8 11.6c-1.9-.5-2.9-2.1-2.6-3.9"
+        fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** Veteriner arti — "kisirlastirilmis hayvan" satirinin isareti */
+export function VetIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+    >
+      {/* Kisa ve KALIN kollar: ince uzun bir arti 22 pikselde "ekle"
+          dugmesi gibi okunuyordu, kalin kisa olan tibbi isaret. */}
+      <circle cx="12" cy="12" r="8.6" />
+      <path d="M12 8.8v6.4M8.8 12h6.4" strokeWidth="2.6" />
+    </svg>
+  );
+}
+
 export function HomeIcon({
   name, slashed = false, size = 26,
 }: {

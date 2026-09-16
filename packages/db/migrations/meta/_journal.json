@@ -85,6 +85,13 @@
       "when": 1789578503891,
       "tag": "0011_early_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789582819399,
+      "tag": "0012_colossal_stellaris",
+      "breakpoints": true
     }
   ]
 }

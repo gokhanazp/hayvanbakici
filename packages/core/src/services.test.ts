@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { primaryService, servicesForPhase, SERVICES } from './services.js';
+import { primaryService, servicesForPhase, petSizeStepsFor, SERVICES } from './services.js';
 
 /*
   VITRIN HIZMETI.
@@ -40,5 +40,25 @@ describe('primaryService', () => {
 
   it('v1 listesindeki her hizmetin birimi tanimli', () => {
     for (const s of servicesForPhase('v1')) expect(SERVICES[s].unit).toBeTruthy();
+  });
+});
+
+describe('petSizeStepsFor', () => {
+  it('yalnizca TAMAMEN kapsanan kademeyi isaretler', () => {
+    // 20 kiloya kadar alan bakici "buyuk kopek alir" diye gosterilemez:
+    // buyuk kademesi 45 kiloya kadar ve o soz verilmedi.
+    expect(petSizeStepsFor(20)).toEqual(['small', 'medium']);
+    expect(petSizeStepsFor(45)).toEqual(['small', 'medium', 'large']);
+    expect(petSizeStepsFor(100)).toEqual(['small', 'medium', 'large', 'giant']);
+  });
+
+  it('en kucuk kademenin altinda hicbir kademe isaretlenmez', () => {
+    expect(petSizeStepsFor(5)).toEqual([]);
+    expect(petSizeStepsFor(0)).toEqual([]);
+  });
+
+  it('kademe siniri tam esitse o kademe DAHIL', () => {
+    expect(petSizeStepsFor(7)).toEqual(['small']);
+    expect(petSizeStepsFor(18)).toEqual(['small', 'medium']);
   });
 });

@@ -9,6 +9,8 @@
  * Fransizca karsiligi unutulursa katalog testi yakaliyor (Bill 96).
  */
 
+import { PET_SIZE_STEPS } from './services.js';
+
 export const ONBOARDING_STEPS = [
   'about', 'location', 'services', 'home', 'photos', 'screening', 'review',
 ] as const;
@@ -141,6 +143,8 @@ export function validateServices(
     /** Istege bagli — verilmezse 0 (ucretsiz / ek ucret yok) */
     extraPetPriceCents?: number | undefined;
     holidaySurchargePct?: number | undefined;
+    /** Kabul edilen en buyuk kilo — kademe sinirlarindan biri olmali */
+    acceptedSizeMaxKg?: number | undefined;
   }>,
 ): FieldErrors {
   const e: FieldErrors = {};
@@ -154,6 +158,19 @@ export function validateServices(
     }
     if (!s.acceptsDogs && !s.acceptsCats && !s.acceptsOther) {
       e[`accepts.${s.serviceType}`] = 'error.required';
+    }
+
+    /*
+      BOYUT ZORUNLU ve kademe sinirlarindan biri olmali.
+
+      Bos birakilirsa sutun varsayilani (100 kg) devreye girer ve
+      profil "dev kopek alirim" diye ilan eder — bakicinin vermedigi
+      bir soz. Kademe disinda bir sayi ise profildeki kutucuklari
+      yarim birakir.
+    */
+    const size = s.acceptedSizeMaxKg;
+    if (!size || !PET_SIZE_STEPS.some((step) => step.maxKg === size)) {
+      e[`size.${s.serviceType}`] = 'error.required';
     }
 
     /*

@@ -139,6 +139,12 @@ for (const city of SEED_CITIES) {
       petsOnBed: r() < 0.25 ? null : r() > 0.5,
       petsOnFurniture: r() < 0.25 ? null : r() > 0.45,
       pottyBreakHours: r() < 0.3 ? null : 2 + Math.floor(r() * 5),
+      /* Kosullarin cogunda sart YOK — gercek dagilim boyle ve sayfanin
+         "hicbir sart yok" halini de gormemiz gerekiyor. */
+      spayedNeuteredOnly: r() > 0.55,
+      noFemalesInHeat: r() > 0.7,
+      houseTrainedOnly: r() > 0.75,
+      minPetAgeMonths: r() > 0.75 ? pick(r, [6, 12, 24]) : null,
       scheduleText: r() < 0.2 ? null : pick(r, fr ? SCHEDULE_TEXTS_FR : SCHEDULE_TEXTS_EN),
       typicalDayText: r() < 0.25 ? null : pick(r, fr ? TYPICAL_DAY_TEXTS_FR : TYPICAL_DAY_TEXTS_EN),
       safetyText: r() < 0.3 ? null : pick(r, fr ? SAFETY_TEXTS_FR : SAFETY_TEXTS_EN),
@@ -162,7 +168,14 @@ for (const city of SEED_CITIES) {
         holidaySurchargePct: r() > 0.6 ? 20 : 0,
         cancellationPolicy: pick(r, ['flexible', 'moderate', 'strict'] as const),
         acceptedSizeMinKg: 0,
-        acceptedSizeMaxKg: pick(r, [15, 25, 40, 60]),
+        /*
+          KADEME SINIRLARINDAN biri. Once 15/25/40/60 seciliyordu ve
+          profildeki kutucuklar yarim kaliyordu: 25 kiloya kadar alan
+          bakicida "18-45 kg" kademesi cizilmiyor, cunku o kademe
+          tamamen kapsanmiyor (bkz. petSizeStepsFor). Sihirbaz da
+          yalnizca bu dort degeri sunuyor.
+        */
+        acceptedSizeMaxKg: pick(r, [7, 18, 45, 100]),
         acceptsDogs: true,
         acceptsCats: r() > 0.35,
         acceptsOther: r() > 0.85,

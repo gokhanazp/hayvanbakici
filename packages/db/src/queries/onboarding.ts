@@ -47,6 +47,11 @@ export interface OnboardingState {
   petsOnBed: boolean | null;
   petsOnFurniture: boolean | null;
   pottyBreakHours: number | null;
+  /** Kabul kosullari — false = "boyle bir sartim yok" */
+  spayedNeuteredOnly: boolean;
+  noFemalesInHeat: boolean;
+  houseTrainedOnly: boolean;
+  minPetAgeMonths: number | null;
   scheduleText: string | null;
   typicalDayText: string | null;
   safetyText: string | null;
@@ -61,6 +66,8 @@ export interface OnboardingState {
     acceptsOther: boolean;
     extraPetPriceCents: number;
     holidaySurchargePct: number;
+    /** Kabul edilen en buyuk kilo — profildeki boyut kutucuklari bundan */
+    acceptedSizeMaxKg: number;
   }>;
   screening: { status: string; providerRef: string | null } | null;
   /**
@@ -105,6 +112,10 @@ export async function getOnboardingState(
         petsOnBed: sitters.petsOnBed,
         petsOnFurniture: sitters.petsOnFurniture,
         pottyBreakHours: sitters.pottyBreakHours,
+        spayedNeuteredOnly: sitters.spayedNeuteredOnly,
+        noFemalesInHeat: sitters.noFemalesInHeat,
+        houseTrainedOnly: sitters.houseTrainedOnly,
+        minPetAgeMonths: sitters.minPetAgeMonths,
         scheduleText: sitters.scheduleText,
         typicalDayText: sitters.typicalDayText,
         safetyText: sitters.safetyText,
@@ -130,6 +141,7 @@ export async function getOnboardingState(
         acceptsOther: sitterServices.acceptsOther,
         extraPetPriceCents: sitterServices.extraPetPriceCents,
         holidaySurchargePct: sitterServices.holidaySurchargePct,
+        acceptedSizeMaxKg: sitterServices.acceptedSizeMaxKg,
       })
       .from(sitterServices)
       .where(eq(sitterServices.sitterId, userId));
@@ -172,6 +184,10 @@ export async function getOnboardingState(
       petsOnBed: row.petsOnBed ?? null,
       petsOnFurniture: row.petsOnFurniture ?? null,
       pottyBreakHours: row.pottyBreakHours ?? null,
+      spayedNeuteredOnly: row.spayedNeuteredOnly ?? false,
+      noFemalesInHeat: row.noFemalesInHeat ?? false,
+      houseTrainedOnly: row.houseTrainedOnly ?? false,
+      minPetAgeMonths: row.minPetAgeMonths ?? null,
       scheduleText: row.scheduleText ?? null,
       typicalDayText: row.typicalDayText ?? null,
       safetyText: row.safetyText ?? null,
@@ -309,6 +325,10 @@ export interface HomeInput {
   petsOnBed: boolean | null;
   petsOnFurniture: boolean | null;
   pottyBreakHours: number | null;
+  spayedNeuteredOnly: boolean;
+  noFemalesInHeat: boolean;
+  houseTrainedOnly: boolean;
+  minPetAgeMonths: number | null;
   scheduleText: string | null;
   typicalDayText: string | null;
   safetyText: string | null;
@@ -340,6 +360,18 @@ export async function saveHome(db: Database, userId: string, input: HomeInput): 
         pottyBreakHours: input.pottyBreakHours === null
           ? null
           : Math.max(1, Math.min(24, input.pottyBreakHours)),
+        spayedNeuteredOnly: input.spayedNeuteredOnly,
+        noFemalesInHeat: input.noFemalesInHeat,
+        houseTrainedOnly: input.houseTrainedOnly,
+        /*
+          Yas siniri makul aralikta tutuluyor: 0 "sinir yok" demek ve
+          null ile ayni sey, 120 ay (10 yil) bir kopek icin zaten ust
+          sinir. Formdan gelen ucuk bir sayi profilde "3 yasindan
+          buyuk" yerine "300 yasindan buyuk" yazdiramamali.
+        */
+        minPetAgeMonths: input.minPetAgeMonths === null || input.minPetAgeMonths <= 0
+          ? null
+          : Math.min(120, input.minPetAgeMonths),
         scheduleText: textOrNull(input.scheduleText),
         typicalDayText: textOrNull(input.typicalDayText),
         safetyText: textOrNull(input.safetyText),
@@ -361,6 +393,14 @@ export interface ServiceInput {
   extraPetPriceCents: number;
   /** Tatil donemi ek ucret yuzdesi — 0 = yok */
   holidaySurchargePct: number;
+  /**
+   * Kabul edilen en buyuk kilo.
+   *
+   * ARAMA BUNUN UZERINDEN CALISIYOR (queries/search.ts): sahibin
+   * girdigi kilo bu araligin disindaysa bakici sonuclarda cikmiyor.
+   * Profildeki boyut kutucuklari da bundan turetiliyor — tek kaynak.
+   */
+  acceptedSizeMaxKg: number;
 }
 
 export async function saveServices(
@@ -390,6 +430,12 @@ export async function saveServices(
         acceptsOther: s.acceptsOther,
         extraPetPriceCents: s.extraPetPriceCents,
         holidaySurchargePct: s.holidaySurchargePct,
+        /*
+          Alt sinir 0 kalir: "en az kac kilo" diye bir sart yok.
+          Ust sinir kademe sinirlarindan biri (7/18/45/100) — araligin
+          disinda bir sayi gelirse kademe kutucuklari yarim kalirdi.
+        */
+        acceptedSizeMaxKg: Math.max(1, Math.min(100, s.acceptedSizeMaxKg)),
         isActive: true,
       })),
     );
