@@ -1766,7 +1766,44 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (min-width: 700px) { .sitter-ask { padding: var(--space-6); } }
 .sitter-ask p { margin: 0; }
 
-.sitter-head { display: flex; gap: var(--space-5); align-items: center; flex-wrap: wrap; }
+/*
+  BASLIK: SOLDA KIMLIK, SAGDA PUAN DAGILIMI.
+
+  Sagdaki yari bombostu ve dagilim sayfanin epey asagisindaydi.
+  `justify-content: space-between` ile panel sag kenara yasliyor;
+  `flex-wrap` sayesinde dar ekranda kimligin altina geciyor.
+
+  Kimlik blogu `flex: 1 1 20rem` — panel sigmiyorsa once o buyuyor,
+  panel alt satira gecer. Panelin kendisi buzulmuyor (esneme yok),
+  cunku cubuklar kisaldiginda dagilim okunmaz oluyor.
+*/
+.sitter-head {
+  display: flex; gap: var(--space-5) var(--space-8);
+  align-items: center; flex-wrap: wrap; justify-content: space-between;
+}
+.sitter-head > :first-child { flex: 0 0 auto; }
+.sitter-head > :nth-child(2) { flex: 1 1 18rem; min-width: 0; }
+
+/*
+  Panel BEYAZ kutu: banttaki pembe gecisin uzerinde cubuk izleri
+  (surface-sunken) neredeyse gorunmuyordu. Alt taraftaki istatistik
+  seridiyle ayni dil — ikisi de bandin uzerinde duran beyaz kart.
+*/
+.sitter-rating-panel {
+  flex: 0 1 auto;
+  display: grid; gap: var(--space-3);
+  min-width: 15rem;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sticker-sm);
+}
+.sitter-rating-panel .rating-breakdown { margin: 0; max-width: none; width: 16rem; }
+@media (max-width: 559px) {
+  /* Telefonda tam genislik: 16rem sabit kalirsa sagda bosluk oluyor */
+  .sitter-rating-panel { width: 100%; }
+  .sitter-rating-panel .rating-breakdown { width: auto; }
+}
 .sitter-avatar {
   display: grid; place-items: center;
   width: 92px; height: 92px; flex: 0 0 auto;
@@ -3723,21 +3760,6 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .pubcal-sw-booked { background: var(--color-accent-subtle); border-color: var(--color-accent); }
 
 /* --- Puan dagilimi ve yorumdaki hizmet etiketi --- */
-/*
-  Baslik solda, dagilim sagda.
-
-  `align-items: start` — `end` denendi ve basligin ustunde bes cubuk
-  yuksekliginde bos bir alan biraktigi icin baslik sayfada asagi
-  kaymis gibi duruyordu. Ust hizada "Yorumlar" ile bes yildiz satiri
-  ayni cizgide basliyor.
-*/
-.reviews-head {
-  display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-8);
-  align-items: start; justify-content: space-between;
-}
-.reviews-head > div:first-child { flex: 1 1 14rem; min-width: 0; }
-.reviews-head .rating-breakdown { margin: 0; flex: 0 1 22rem; }
-
 .rating-breakdown {
   display: grid; gap: var(--space-2);
   margin: var(--space-5) 0 0; max-width: 22rem;

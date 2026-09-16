@@ -247,6 +247,38 @@ export default async function SitterPage({
                 )}
               </div>
             </div>
+
+            {/*
+              PUAN DAGILIMI BASLIGIN SAGINDA.
+
+              Once yorumlar bolumundeydi, sayfanin epey asagisinda:
+              "4,9" rakamini gorup "peki kim kac vermis" diye soran
+              kisi cevabi bulmak icin uc ekran asagi inmek zorundaydi.
+              Ustelik basligin sag yarisi bombostu.
+
+              Simdi yildizin hemen yaninda: ortalama ve dagilim ayni
+              bakista. Yorum yoksa panel HIC cizilmiyor — bos cubuklar
+              "kimse puan vermemis" yerine "puanlar dusuk" gibi
+              okunuyordu.
+            */}
+            {sitter.reviewCount > 0 && (
+              <div className="sitter-rating-panel">
+                <p className="text-body-sm" style={{ margin: 0, fontWeight: 600 }}>
+                  {m.sitter.ratingBreakdown}
+                </p>
+                <RatingBreakdown
+                  counts={sitter.ratingCounts}
+                  total={sitter.reviewCount}
+                  locale={locale}
+                />
+                <p className="text-body-sm dim tabular" style={{ margin: 0 }}>
+                  {interpolate(m.sitter.reviewCount, {
+                    count: numberFmt(sitter.reviewCount, locale),
+                    rating: sitter.averageRating.toFixed(1),
+                  })}
+                </p>
+              </div>
+            )}
           </header>
 
           {/*
@@ -503,50 +535,25 @@ export default async function SitterPage({
 
           {/* --- Yorumlar --- */}
           <section>
+            <h2 className="text-h2">{m.sitter.reviewsHeading}</h2>
             {sitter.reviews.length === 0 ? (
-              <>
-                <h2 className="text-h2">{m.sitter.reviewsHeading}</h2>
-                <p className="muted" style={{ marginTop: 'var(--space-4)' }}>{m.sitter.noReviews}</p>
-              </>
+              <p className="muted" style={{ marginTop: 'var(--space-4)' }}>{m.sitter.noReviews}</p>
             ) : (
               <>
                 {/*
-                  BASLIK SOLDA, DAGILIM SAGDA — AYNI SATIRDA.
-
-                  Dagilim basligin altinda, sayfanin sol kenarinda
-                  duruyordu: cubuklar ana sutunun ucte birini kapliyor
-                  ve sagindaki bosluk yuzunden "yarim kalmis" gibi
-                  gorunuyordu. Sag kenara alininca hem bosluk kapandi
-                  hem de ortalama ile dagilim goz hizasinda yan yana —
-                  "4,9" ile "11 kisi 5 verdi" birlikte okunuyor.
-
-                  Dar ekranda alt alta dusuyor (flex-wrap); orada
-                  yan yana koymak cubuklari okunmaz ediyordu.
+                  Dagilim ARTIK BURADA DEGIL, sayfanin basinda — yildizin
+                  yaninda duruyor. Burada tekrar cizmek ayni bilgiyi iki
+                  kez gostermek olurdu; kalan satir yalnizca kac yorum ve
+                  ortalama kac.
                 */}
-                <div className="reviews-head">
-                  <div>
-                    <h2 className="text-h2" style={{ margin: 0 }}>{m.sitter.reviewsHeading}</h2>
-                    <p className="muted tabular" style={{ marginTop: 'var(--space-2)' }}>
-                      {interpolate(m.sitter.reviewCount, {
-                        count: numberFmt(sitter.reviewCount, locale),
-                        rating: sitter.averageRating.toFixed(1),
-                      })}
-                    </p>
-                  </div>
+                <p className="muted tabular" style={{ marginTop: 'var(--space-2)' }}>
+                  {interpolate(m.sitter.reviewCount, {
+                    count: numberFmt(sitter.reviewCount, locale),
+                    rating: sitter.averageRating.toFixed(1),
+                  })}
+                </p>
 
-                  {/*
-                    PUAN DAGILIMI. Ortalama tek basina "kac kisi kac verdi"
-                    sorusunu cevaplamiyor: 4.6, "hepsi 4-5 verdi" de olabilir
-                    "cogu 5, biri 1 verdi" de. Ikisi ayni bakici degil.
-                  */}
-                  <RatingBreakdown
-                    counts={sitter.ratingCounts}
-                    total={sitter.reviewCount}
-                    locale={locale}
-                  />
-                </div>
-
-                <div className="grid" style={{ gap: 'var(--space-3)', marginTop: 'var(--space-6)' }}>
+                <div className="grid" style={{ gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
                   {sitter.reviews.map((r) => (
                     <article key={r.id} className="card card-pad">
                       <div className="row" style={{ justifyContent: 'space-between' }}>
