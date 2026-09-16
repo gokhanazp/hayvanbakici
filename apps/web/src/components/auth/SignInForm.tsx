@@ -29,6 +29,17 @@ export function SignInForm({
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /*
+    "E-posta ve sifre eslesmiyor" UCUNCU bir durumu da kapsiyor:
+    hesap VAR, dogrulanmis, ama sifresi YOK — daha once sihirli
+    baglantiyla girilmis. Kullanici dogru sifreyi bildigini sanip
+    donup duruyor (bizzat yasandi).
+
+    Ipucu HERKESE ayni sekilde gosteriliyor, yani hangi adresin kayitli
+    oldugunu ele vermiyor — kimlik sayimina kapi acmadan cikis yolunu
+    soyluyor.
+  */
+  const [noPasswordHint, setNoPasswordHint] = useState(false);
   const [sent, setSent] = useState(false);
 
   async function handleMagic(e: React.FormEvent) {
@@ -45,10 +56,15 @@ export function SignInForm({
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setNoPasswordHint(false);
     setBusy(true);
     const res = await authClient.signIn.email({ email: email.trim(), password, callbackURL });
     setBusy(false);
-    if (res.error) { setError(messageForError(m, res.error.code, res.error.status)); return; }
+    if (res.error) {
+      setError(messageForError(m, res.error.code, res.error.status));
+      setNoPasswordHint((res.error.code ?? '').toUpperCase().includes('INVALID_EMAIL_OR_PASSWORD'));
+      return;
+    }
     window.location.assign(callbackURL);
   }
 
@@ -68,7 +84,17 @@ export function SignInForm({
 
   return (
     <div className="auth-form">
-      {error && <Alert kind="error">{error}</Alert>}
+      {error && (
+        <Alert kind="error">
+          {error}
+          {noPasswordHint && (
+            <>
+              {' '}
+              <span style={{ fontWeight: 400 }}>{m.auth['error.invalidCredentialsHint']}</span>
+            </>
+          )}
+        </Alert>
+      )}
 
       <SocialButtons m={m} google={providers.google} apple={providers.apple}
         onProvider={handleProvider} busy={busy} />
@@ -81,7 +107,7 @@ export function SignInForm({
             {busy ? m.auth.submitting : m.auth.magicLink}
           </button>
           <button type="button" className="btn btn-ghost btn-block"
-            onClick={() => { setMode('password'); setError(null); }}>
+            onClick={() => { setMode('password'); setError(null); setNoPasswordHint(false); }}>
             {m.auth.withPassword}
           </button>
         </form>
@@ -95,7 +121,7 @@ export function SignInForm({
           </button>
           <div className="row" style={{ justifyContent: 'space-between' }}>
             <button type="button" className="btn btn-ghost" style={{ padding: 0 }}
-              onClick={() => { setMode('magic'); setError(null); }}>
+              onClick={() => { setMode('magic'); setError(null); setNoPasswordHint(false); }}>
               {m.auth.magicLink}
             </button>
             <Link href={`/${seg}/account/forgot-password`} className="text-body-sm muted">

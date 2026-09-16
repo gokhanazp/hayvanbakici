@@ -511,6 +511,7 @@ export const frCA = {
     consentEmailNote: 'Facultatif. Vous pouvez vous désabonner de tout courriel. Nous ne vendons jamais vos données.',
     termsNotice: 'En créant un compte, vous acceptez nos Conditions d\u2019utilisation et notre Politique de confidentialité.',
     'error.invalidCredentials': 'Ce courriel et ce mot de passe ne correspondent à aucun compte.',
+    'error.invalidCredentialsHint': 'Si vous vous êtes déjà connecté avec un lien par courriel, votre compte n’a peut-être pas encore de mot de passe — créez-en un avec « Mot de passe oublié? ».',
     'error.emailNotVerified': 'Confirmez d\u2019abord votre courriel : le lien est dans votre boîte de réception.',
     'error.userExists': 'Un compte utilise déjà ce courriel. Essayez de vous connecter.',
     'error.rateLimited': 'Trop de tentatives. Attendez une minute et réessayez.',

@@ -534,7 +534,18 @@ export const enCA = {
     consentEmail: 'Send me tips and offers from Havre by email.',
     consentEmailNote: 'Optional. You can unsubscribe from any email. We never sell your data.',
     termsNotice: 'By creating an account you agree to our Terms of Service and Privacy Policy.',
+    /*
+      CUMLE IKI DURUMU BIRDEN KAPSIYOR ve kapsamasi GEREKIYOR: hesap yok
+      ya da sifre yanlis. "Bu adreste hesap yok" demek, hangi adreslerin
+      kayitli oldugunu deneyerek ogrenmenin yolunu acar.
+
+      Ama UCUNCU bir durum daha var: hesap VAR, dogrulanmis, sadece
+      SIFRESI YOK — sihirli baglantiyla acilmis. Kullanici dogru sifreyi
+      bildigini sanip donup duruyor. Ikinci cumle bunu, kimligi ele
+      vermeden soyluyor: herkese ayni sey yaziliyor.
+    */
     'error.invalidCredentials': 'That email and password do not match an account.',
+    'error.invalidCredentialsHint': 'If you signed in with an email link before, your account may not have a password yet — set one with “Forgot your password?”.',
     'error.emailNotVerified': 'Confirm your email first — check your inbox for the link.',
     'error.userExists': 'An account already uses this email. Try signing in.',
     'error.rateLimited': 'Too many attempts. Wait a minute and try again.',
