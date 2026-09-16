@@ -1151,6 +1151,22 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .alert-ok { background: var(--color-success-subtle); color: var(--color-success-strong); border-color: var(--color-success); }
 .alert-info { background: var(--color-info-subtle); color: var(--color-info-strong); border-color: var(--color-info); }
 
+/*
+  ADIM ICI BOLUM BASLIGI.
+
+  Bakici basvurusunun "ev" adimi ondort alana cikti ve hangisinin
+  zorunlu hangisinin istege bagli oldugu duz bir listede okunmuyordu.
+  Ince bir ust cizgi + baslik: uc bolum, uc soru.
+*/
+.step-group-title {
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-5);
+  border-top: 2px solid var(--color-border);
+}
+/* Ilk baslik formun en ustunde: cizgiye de bosluga da gerek yok */
+.auth-form > .step-group-title:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+.step-group-lead { margin: calc(var(--space-3) * -1) 0 0; }
+
 .checkbox-row { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; }
 .checkbox-row input { width: 20px; height: 20px; margin-top: 2px; }
 
@@ -1658,7 +1674,75 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (min-width: 1000px) {
   .sitter-page { grid-template-columns: minmax(0, 1fr) 22rem; gap: var(--space-12); align-items: start; }
 }
-.sitter-main { display: grid; gap: calc(var(--section-y) * 0.85); min-width: 0; }
+/*
+  BOLUMLER ARTIK KART: aralarindaki bosluk da kucultuldu.
+
+  Cercevesiz bolumler arasinda `section-y` kadar bosluk gerekiyordu —
+  ayirici baska bir sey yoktu. Kartin kendi cercevesi ayirmayi
+  ustlenince ayni bosluk sayfayi kopuk gosteriyor, ozellikle takvim
+  gibi genis bir blogun etrafinda.
+*/
+.sitter-main { display: grid; gap: var(--space-6); min-width: 0; }
+@media (min-width: 700px) { .sitter-main { gap: var(--space-8); } }
+
+/*
+  PROFIL BLOGU.
+
+  Kural: icerigi DUZ YAZI ya da olgu listesi olan bolum kart olur
+  (hakkinda, gunluk duzen, ev, takvim); icerigi ZATEN kart listesi
+  olan bolum (hizmetler, yorumlar) cercevesiz kalir. Ic ice kart,
+  hangisinin hangisine ait oldugunu okunmaz yapiyor.
+*/
+.sitter-block { display: grid; gap: var(--space-4); align-content: start; }
+.sitter-block > h2 { margin: 0; }
+.sitter-block > h3, .sitter-block h3 { margin: 0; }
+@media (min-width: 700px) { .sitter-block { padding: var(--space-6); } }
+
+/*
+  Bakicinin kendi yazdigi metin: satir sonlari KORUNUYOR.
+  Uc maddelik bir gunluk duzen, tek paragrafa yapisinca okunmuyordu.
+*/
+.own-words-body { margin: 0; white-space: pre-line; max-width: 42rem; }
+.own-words-note { margin: 0; }
+.own-words-grid {
+  display: grid; gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+}
+.own-words-grid > div { display: grid; gap: var(--space-2); align-content: start; }
+/* Kartin icindeki alt blok: cukur zemin, kendi basina bir sey degil */
+.own-words-inset {
+  display: grid; gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+}
+.own-words-inset .field-hint { margin: 0; }
+
+/* Ev: solda bizim dogruladigimiz olgular, sagda bakicinin kurallari */
+.sitter-home-grid {
+  display: grid; gap: var(--space-5) var(--space-8);
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  align-items: start;
+}
+.sitter-rules { display: grid; gap: var(--space-3); align-content: start; }
+/* Kural isareti notr: onay isaretinin yesili "iyi" diye okunuyordu */
+.sitter-facts-rules li svg { color: var(--color-ink-muted); }
+
+/*
+  "BAKICININ BILMEK ISTEDIKLERI" — sayfadaki tek eylem kutusu.
+
+  Kart degil bant: cevresindeki kartlardan AYRILMASI isin ta kendisi.
+  Renk tek tasiyici degil, basligi ve dugmesi ne oldugunu soyluyor.
+*/
+.sitter-ask {
+  display: grid; gap: var(--space-3); justify-items: start;
+  padding: var(--space-5);
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+}
+@media (min-width: 700px) { .sitter-ask { padding: var(--space-6); } }
+.sitter-ask p { margin: 0; }
 
 .sitter-head { display: flex; gap: var(--space-5); align-items: center; flex-wrap: wrap; }
 .sitter-avatar {
@@ -3049,7 +3133,8 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .fav-claim p { margin: 0; flex: 1 1 18rem; }
 
 /* ---------- Bakicinin kendi hayvanlari (profil) ---------- */
-.pet-photos { margin-top: var(--space-8); }
+/* Kartin icinde duruyor; ust bosluk kartin kendi izgara boslugundan gelir */
+.pet-photos { display: grid; gap: var(--space-2); }
 /*
   Hayvan fotograflari KARE: yukleme presetinde kare kirpiliyor
   (lib/images.ts) ve 4/3 bir cerceve icine koymak yanlarini kirpardi.
@@ -3057,7 +3142,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   boyutu degil.
 */
 .pet-photo-grid {
-  list-style: none; margin: var(--space-4) 0 0; padding: 0;
+  list-style: none; margin: var(--space-2) 0 0; padding: 0;
   display: grid; gap: var(--space-3);
   grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
   max-width: 34rem;
@@ -3463,21 +3548,6 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   align-items: start;
 }
 
-/* ---------- Bakicinin kendi hayvanlari (profil) ---------- */
-.pet-photos { margin-top: var(--space-8); }
-/*
-  Hayvan fotograflari KARE: yukleme presetinde kare kirpiliyor
-  (lib/images.ts) ve 4/3 bir cerceve icine koymak yanlarini kirpardi.
-*/
-.pet-photo-grid {
-  list-style: none; margin: var(--space-4) 0 0; padding: 0;
-  display: grid; gap: var(--space-3);
-  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-  max-width: 34rem;
-}
-.pet-photo-grid .photo-thumb { aspect-ratio: 1 / 1; }
-.pet-photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
 /* ---------- Bos durumlar (hesap ekranlari) ---------- */
 /*
   Her hesap ekrani kendi bos halini ayri yazmisti ve ucu de ayni soruya
@@ -3563,10 +3633,19 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   hale getiriyor, boylece dar ekranda tek sutuna dusuyor.
 */
 .pubcal-months {
-  display: grid; gap: var(--space-6); margin-top: var(--space-5);
+  display: grid; gap: var(--space-6);
   grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
-  max-width: 34rem;
 }
+/*
+  Basligin yaninda gosterge — genis ekranda ayni satir, darda alt alta.
+  `cal-legend`in kendi ust boslugu burada fazla: satirin parcasi.
+*/
+.pubcal-head-row {
+  display: flex; flex-wrap: wrap; gap: var(--space-4);
+  align-items: flex-start; justify-content: space-between;
+}
+.pubcal-head-row > div:first-child { flex: 1 1 18rem; min-width: 0; }
+.pubcal-legend { margin-top: 0; flex: 0 0 auto; gap: var(--space-3); }
 .pubcal-title { font-weight: 600; margin-bottom: var(--space-3); }
 .pubcal-grid {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
@@ -3578,7 +3657,8 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .pubcal-day {
   display: grid; place-items: center;
   aspect-ratio: 1; border-radius: var(--radius-sm);
-  font-size: 0.8125rem; font-variant-numeric: tabular-nums;
+  /* 13 piksel kucuktu; hucre buyudugu icin yazi da buyuyebiliyor */
+  font-size: 0.875rem; font-variant-numeric: tabular-nums;
   border: 1px solid transparent;
 }
 .pubcal-day.is-open {

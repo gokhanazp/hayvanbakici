@@ -114,6 +114,22 @@ export interface SitterProfile {
   smokeFree: boolean;
   maxConcurrentPets: number;
 
+  /**
+   * EV KURALLARI — null = bakici cevaplamadi, satir CIZILMEZ.
+   * Sessiz kalmak, vermedigi bir sozu ona soyletmekten iyidir.
+   */
+  hasChildren: boolean | null;
+  petsOnBed: boolean | null;
+  petsOnFurniture: boolean | null;
+  pottyBreakHours: number | null;
+
+  /** Bakicinin kendi cumleleri — DOGRULANMAMIS beyan, oyle etiketleniyor. */
+  scheduleText: string | null;
+  typicalDayText: string | null;
+  safetyText: string | null;
+  /** "Bakicinin sizden bilmek istedikleri" */
+  ownerPrefsText: string | null;
+
   services: SitterService[];
   reviews: SitterReview[];
   /** Onumuzdeki 30 gunde musait gun sayisi */
@@ -133,6 +149,8 @@ export async function getSitterProfile(
         st.median_response_minutes, st.acceptance_rate, st.home_type,
         st.has_yard, st.yard_fenced, st.has_own_pets, st.smoke_free,
         st.max_concurrent_pets, st.activated_at, st.created_at,
+        st.has_children, st.pets_on_bed, st.pets_on_furniture, st.potty_break_hours,
+        st.schedule_text, st.typical_day_text, st.safety_text, st.owner_prefs_text,
         p.first_name, p.last_name_initial, p.bio, p.province, p.avatar_url,
         c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
         c.name_en AS city_name_en, c.name_fr AS city_name_fr,
@@ -291,6 +309,21 @@ export async function getSitterProfile(
       showsOwnPets: Boolean(row.has_own_pets) && petPhotos.length > 0,
       smokeFree: Boolean(row.smoke_free),
       maxConcurrentPets: Number(row.max_concurrent_pets ?? 1),
+
+      /*
+        Boolean(null) = false olurdu ve "evde cocuk yok" diye
+        DOGRULANMAMIS bir cumle cizerdik. Uc durum korunuyor.
+      */
+      hasChildren: (row.has_children as boolean | null) ?? null,
+      petsOnBed: (row.pets_on_bed as boolean | null) ?? null,
+      petsOnFurniture: (row.pets_on_furniture as boolean | null) ?? null,
+      pottyBreakHours: row.potty_break_hours === null || row.potty_break_hours === undefined
+        ? null : Number(row.potty_break_hours),
+
+      scheduleText: (row.schedule_text as string | null) ?? null,
+      typicalDayText: (row.typical_day_text as string | null) ?? null,
+      safetyText: (row.safety_text as string | null) ?? null,
+      ownerPrefsText: (row.owner_prefs_text as string | null) ?? null,
 
       services: (svcRows as unknown as Array<Record<string, unknown>>).map((s) => ({
         serviceType: s.service_type as ServiceType,

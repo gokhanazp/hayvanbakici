@@ -13,6 +13,8 @@ import {
   SEED_CITIES, FIRST_NAMES, HOME_TYPES, BASE_PRICE_CENTS,
   REVIEW_BODIES_EN, REVIEW_BODIES_FR, BIOS,
   PERSON_PHOTO_SLOTS, HOME_PHOTO_SLOTS, PET_SEEDS,
+  SCHEDULE_TEXTS_EN, SCHEDULE_TEXTS_FR, TYPICAL_DAY_TEXTS_EN, TYPICAL_DAY_TEXTS_FR,
+  SAFETY_TEXTS_EN, SAFETY_TEXTS_FR, OWNER_PREFS_TEXTS_EN, OWNER_PREFS_TEXTS_FR,
 } from './seed-data.js';
 import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
 import { sitterSlug } from './queries/onboarding.js';
@@ -108,6 +110,8 @@ for (const city of SEED_CITIES) {
     const reviewCount = Math.floor(4 + r() * 190);
     const rating = Math.round((4.55 + r() * 0.45) * 10) / 10;
     const badge = (1 + Math.floor(r() * 4)) as 1 | 2 | 3 | 4;
+    /* Bakicinin serbest metinleri sehrin diliyle: Quebec'te Fransizca. */
+    const fr = city.province === 'QC';
 
     await db.insert(s.sitters).values({
       userId,
@@ -124,6 +128,21 @@ for (const city of SEED_CITIES) {
       homeType: pick(r, HOME_TYPES),
       hasYard: r() > 0.45, yardFenced: r() > 0.5, hasOwnPets: r() > 0.55,
       maxConcurrentPets: 1 + Math.floor(r() * 3),
+      /*
+        UC DURUMLU ALANLAR — bilerek bir kismi null.
+
+        Hepsini doldurursak sayfayi yalnizca "dolu profil" halinde test
+        etmis oluruz; oysa yeni bir bakicinin profili yari bos olacak ve
+        asil kirilan yer orasi. Yaklasik dortte biri cevapsiz kaliyor.
+      */
+      hasChildren: r() < 0.25 ? null : r() > 0.65,
+      petsOnBed: r() < 0.25 ? null : r() > 0.5,
+      petsOnFurniture: r() < 0.25 ? null : r() > 0.45,
+      pottyBreakHours: r() < 0.3 ? null : 2 + Math.floor(r() * 5),
+      scheduleText: r() < 0.2 ? null : pick(r, fr ? SCHEDULE_TEXTS_FR : SCHEDULE_TEXTS_EN),
+      typicalDayText: r() < 0.25 ? null : pick(r, fr ? TYPICAL_DAY_TEXTS_FR : TYPICAL_DAY_TEXTS_EN),
+      safetyText: r() < 0.3 ? null : pick(r, fr ? SAFETY_TEXTS_FR : SAFETY_TEXTS_EN),
+      ownerPrefsText: r() < 0.25 ? null : pick(r, fr ? OWNER_PREFS_TEXTS_FR : OWNER_PREFS_TEXTS_EN),
       referralCode: `${city.slugEn}-${first.toLowerCase()}-${i}`,
       activatedAt: new Date(),
     });

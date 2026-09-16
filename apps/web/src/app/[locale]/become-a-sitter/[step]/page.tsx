@@ -128,6 +128,15 @@ export default async function OnboardingStepPage({
             hasOwnPets: state.hasOwnPets,
             smokeFree: state.smokeFree,
             maxConcurrentPets: state.maxConcurrentPets,
+            /* Uc durumlu alanlar: null = "henuz cevaplanmadi" */
+            hasChildren: state.hasChildren,
+            petsOnBed: state.petsOnBed,
+            petsOnFurniture: state.petsOnFurniture,
+            pottyBreakHours: state.pottyBreakHours,
+            scheduleText: state.scheduleText ?? '',
+            typicalDayText: state.typicalDayText ?? '',
+            safetyText: state.safetyText ?? '',
+            ownerPrefsText: state.ownerPrefsText ?? '',
           }}
         />
       )}

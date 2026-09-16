@@ -102,6 +102,61 @@ export const FIRST_NAMES = [
 
 export const HOME_TYPES = ['house', 'townhouse', 'apartment', 'condo'] as const;
 
+/*
+  BAKICININ KENDI CUMLELERI — TOHUM VERI.
+
+  Hepsi kurgu ve ortalama uzunlukta: tasarimi "ideal" iki satirlik bir
+  metinle test edersek, gercek bakicinin yazdigi sekiz satir sayfayi
+  bozar. Bilerek farkli uzunluklarda, bazilari satir sonlu.
+
+  Tohum bakicilarin BIR KISMINDA bu alanlar BOS birakiliyor (seed.ts):
+  sayfanin alan doldurulmamisken de duzgun gorunmesi gerekiyor ve
+  bunu ancak bos ornek varken gorebiliriz.
+*/
+export const SCHEDULE_TEXTS_EN = [
+  'I work from home Monday to Thursday, so your dog is with someone almost all day. Fridays I am out from about 9 to 2.',
+  'Part-time nurse — I work three twelve-hour shifts a week, and on those days my partner is home with the pets.',
+  'Retired. I am home unless I am out walking, which is four or five times a day anyway.',
+  'I teach evenings, so mornings and afternoons are ours. Never more than three hours alone.',
+];
+export const TYPICAL_DAY_TEXTS_EN = [
+  '7:00 — out for the first walk, about 30 minutes.\n8:00 — breakfast, then a nap while I work.\n12:30 — second walk and some yard time.\n18:00 — dinner, then a long evening walk.\n22:00 — last garden break before bed.',
+  'Morning walk, breakfast, then the dogs settle in my office. Lunchtime is a proper run at the off-leash park. Dinner at six, short walk after, and everyone is asleep by ten.',
+  'We keep whatever routine you already have — I would rather follow your times than teach your dog mine. The only fixed thing here is a long midday walk.',
+];
+export const SAFETY_TEXTS_EN = [
+  'Fully fenced yard, six-foot cedar. Dogs are never off-leash outside it. My vet is Bloor West Animal Hospital, five minutes away, and I have a car at all times.',
+  'I keep a crate if your dog uses one, and a baby gate between floors. First-aid kit for pets in the kitchen. If anything worries me I call you before I call anyone else.',
+  'No off-leash parks unless you tell me your dog is reliable there. I have pet first-aid training from 2024 and the emergency clinic number on the fridge.',
+];
+export const OWNER_PREFS_TEXTS_EN = [
+  'How your dog is with other dogs on leash, whether they can be left alone at all, and the name of your vet.',
+  'Tell me about food — brand, how much, how often — and anything that scares them. Thunder, vacuum, skateboards, anything.',
+  'Two things: is your pet spayed or neutered, and are they comfortable with stairs? My place is on two floors.',
+  'Any medication, the last time they had a walk before drop-off, and a phone number I can actually reach you on.',
+];
+
+export const SCHEDULE_TEXTS_FR = [
+  "Je travaille de la maison du lundi au jeudi, donc votre chien est accompagné presque toute la journée. Le vendredi, je sors de 9 h à 14 h environ.",
+  "Infirmière à temps partiel — trois quarts de douze heures par semaine, et ces jours-là mon conjoint est à la maison avec les animaux.",
+  "À la retraite. Je suis à la maison sauf quand je promène, ce qui arrive quatre ou cinq fois par jour de toute façon.",
+];
+export const TYPICAL_DAY_TEXTS_FR = [
+  "7 h — première promenade, environ 30 minutes.\n8 h — déjeuner, puis sieste pendant que je travaille.\n12 h 30 — deuxième promenade et un peu de cour.\n18 h — souper, puis longue promenade.\n22 h — dernière sortie avant le dodo.",
+  "Promenade du matin, déjeuner, puis les chiens s'installent dans mon bureau. Le midi, vraie course au parc à chiens. Souper à 18 h, courte sortie ensuite, et tout le monde dort à 22 h.",
+  "On garde la routine que vous avez déjà — je préfère suivre vos heures plutôt que d'imposer les miennes. La seule chose fixe ici, c'est la longue promenade du midi.",
+];
+export const SAFETY_TEXTS_FR = [
+  "Cour entièrement clôturée, cèdre de six pieds. Les chiens ne sont jamais sans laisse à l'extérieur. Mon vétérinaire est à cinq minutes et j'ai une voiture en tout temps.",
+  "Je garde une cage si votre chien en utilise une, et une barrière entre les étages. Trousse de premiers soins pour animaux dans la cuisine. Si quelque chose m'inquiète, je vous appelle avant d'appeler qui que ce soit d'autre.",
+  "Pas de parc sans laisse à moins que vous me disiez que votre chien y est fiable. J'ai une formation en premiers soins animaliers depuis 2024.",
+];
+export const OWNER_PREFS_TEXTS_FR = [
+  "Comment votre chien réagit aux autres chiens en laisse, s'il peut rester seul, et le nom de votre vétérinaire.",
+  "Parlez-moi de la nourriture — marque, quantité, fréquence — et de ce qui lui fait peur. Tonnerre, aspirateur, planches à roulettes, n'importe quoi.",
+  "Deux choses : votre animal est-il stérilisé, et est-il à l'aise dans les escaliers? Mon logement est sur deux étages.",
+];
+
 /** Hizmet basina taban fiyat (cent) — Rover'in Toronto verisine yakin */
 export const BASE_PRICE_CENTS: Record<string, number> = {
   boarding: 5000, house_sitting: 6000, drop_in: 2400,

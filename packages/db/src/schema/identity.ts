@@ -146,6 +146,40 @@ export const sitters = pgTable(
     smokeFree: boolean('smoke_free').notNull().default(true),
     maxConcurrentPets: integer('max_concurrent_pets').notNull().default(1),
 
+    /**
+     * EV KURALLARI — UC DURUMLU, IKI DEGIL.
+     *
+     * Bunlar `notNull().default(false)` OLAMAZ. Varsayilan false, kayit
+     * acildigi anda "evde cocuk yok", "hayvanlar yatakta yatmaz" diye
+     * IDDIALAR uretirdi — bakici bu sorulari hic gormemis olsa bile.
+     * null = "sorulmadi / cevaplanmadi" ve profilde satir HIC cizilmiyor.
+     * Rakibin (Rover) ayni alanlari varsayilanla doldurmasi, sahibin
+     * eve gelince surprizle karsilasmasinin baslica sebebi.
+     */
+    hasChildren: boolean('has_children'),
+    petsOnBed: boolean('pets_on_bed'),
+    petsOnFurniture: boolean('pets_on_furniture'),
+    /** Kopegin disari cikarilma araligi (saat). null = belirtilmemis. */
+    pottyBreakHours: integer('potty_break_hours'),
+
+    /**
+     * BAKICININ KENDI CUMLELERI.
+     *
+     * Dort ayri alan, tek bir uzun "hakkimda" degil: sahip her birini
+     * AYRI bir soruyla ariyor ve hepsi tek paragrafta oldugunda
+     * hicbirini bulamiyor. Isimlerine dikkat: bunlar bizim
+     * dogruladigimiz veri DEGIL, bakicinin beyani — profilde de oyle
+     * etiketleniyor.
+     *
+     * ownerPrefsText = "bakicinin sizden bilmek istedikleri". Rezervasyon
+     * oncesi soru-cevap turunu kisaltan tek alan: bakici neyi merak
+     * ettigini bir kez yaziyor, her sahip ayni seyi tekrar sormuyor.
+     */
+    scheduleText: text('schedule_text'),
+    typicalDayText: text('typical_day_text'),
+    safetyText: text('safety_text'),
+    ownerPrefsText: text('owner_prefs_text'),
+
     // --- Mali / uyum ---
     /** CRA Part XX: her bakici icin SIN zorunlu. Sifreli, erisimi kisitli. */
     sinEncrypted: text('sin_encrypted'),

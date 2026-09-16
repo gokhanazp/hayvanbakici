@@ -35,13 +35,25 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
-/** Pazartesi baslangicli 6x7 izgara — CalendarEditor ile ayni kural. */
+/**
+ * Pazartesi baslangicli izgara — CalendarEditor ile ayni hafta kurali.
+ *
+ * SATIR SAYISI SABIT DEGIL (4, 5 ya da 6).
+ *
+ * Once her ay 42 hucreyle ciziliyordu; ayin sigmadigi son satirin
+ * hucreleri `visibility: hidden` ile gizleniyor ama YER KAPLIYORDU.
+ * Sonuc: takvimin altinda bir satir yuksekliginde aciklanamayan bir
+ * bosluk — kartin icini "havada" gosteren seylerden biri. Simdi
+ * yalnizca gereken hafta sayisi uretiliyor.
+ */
 function monthGrid(month: Date): Date[] {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = (first.getDay() + 6) % 7;
   const start = new Date(first);
   start.setDate(first.getDate() - offset);
-  return Array.from({ length: 42 }, (_, i) => {
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const weeks = Math.ceil((offset + daysInMonth) / 7);
+  return Array.from({ length: weeks * 7 }, (_, i) => {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     return d;
@@ -71,11 +83,31 @@ export function AvailabilityCalendar({
   })();
 
   return (
-    <section className="pubcal">
-      <h2 className="text-h2">{m.calendar.publicHeading}</h2>
-      <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
-        {interpolate(m.calendar.publicLead, { name })}
-      </p>
+    /*
+      KART ICINDE. Once cercevesiz bir izgaraydi ve 34rem genisligiyle
+      sol tarafta asili duruyordu: sagindaki bosluk,
+      takvimin bittigi yerin neresi oldugunu belirsiz birakiyordu.
+      Simdi ana sutunun tamamini kaplayan bir kart — hucreler de
+      buyudu, sayilar 13 pikselde okunmuyordu.
+
+      Aciklama BASLIKLA AYNI SATIRDA degil altinda: iki ayri cumle
+      (ne oldugu ve ne zaman okundugu) ust uste binmemeli.
+    */
+    <section className="card card-pad sitter-block pubcal">
+      <div className="pubcal-head-row">
+        <div>
+          <h2 className="text-h2">{m.calendar.publicHeading}</h2>
+          <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+            {interpolate(m.calendar.publicLead, { name })}
+          </p>
+        </div>
+        {/* Gosterge ustte: renkleri OKUMADAN once ogrenmek gerekiyor */}
+        <div className="cal-legend pubcal-legend">
+          <span><i className="cal-swatch pubcal-sw-open" aria-hidden="true" />{m.calendar.open}</span>
+          <span><i className="cal-swatch pubcal-sw-blocked" aria-hidden="true" />{m.calendar.blocked}</span>
+          <span><i className="cal-swatch pubcal-sw-booked" aria-hidden="true" />{m.calendar.booked}</span>
+        </div>
+      </div>
 
       <div className="pubcal-months">
         {monthList.map((month) => (
@@ -115,13 +147,7 @@ export function AvailabilityCalendar({
         ))}
       </div>
 
-      <div className="cal-legend">
-        <span><i className="cal-swatch pubcal-sw-open" aria-hidden="true" />{m.calendar.open}</span>
-        <span><i className="cal-swatch pubcal-sw-blocked" aria-hidden="true" />{m.calendar.blocked}</span>
-        <span><i className="cal-swatch pubcal-sw-booked" aria-hidden="true" />{m.calendar.booked}</span>
-      </div>
-
-      <p className="text-body-sm dim" style={{ marginTop: 'var(--space-4)' }}>
+      <p className="text-body-sm dim" style={{ marginTop: 'var(--space-5)' }}>
         {interpolate(m.calendar.publicAsOf, { date: dayFmt(todayIso, locale) })}
       </p>
     </section>

@@ -43,6 +43,28 @@ function str(form: FormData, key: string): string {
 function bool(form: FormData, key: string): boolean {
   return form.get(key) === 'on' || form.get(key) === 'true';
 }
+/**
+ * UC DURUMLU CEVAP: 'yes' | 'no' | bos.
+ *
+ * Onay kutusu KULLANILMIYOR cunku isaretlenmemis bir kutu "hayir" ile
+ * "hic bakmadim"i ayirt edemez. Bu alanlar profilde cumle olarak
+ * cikiyor ("Evde cocuk yok"); bakicinin gormedigi bir soruyu onun
+ * adina cevaplamak olurdu.
+ */
+function triState(form: FormData, key: string): boolean | null {
+  const v = form.get(key);
+  return v === 'yes' ? true : v === 'no' ? false : null;
+}
+function intOrNull(form: FormData, key: string): number | null {
+  const raw = str(form, key);
+  if (raw === '') return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+function textOrNull(form: FormData, key: string): string | null {
+  const v = str(form, key);
+  return v === '' ? null : v;
+}
 
 export async function saveAboutAction(
   _prev: StepState, form: FormData,
@@ -154,6 +176,14 @@ export async function saveHomeAction(
     hasOwnPets: bool(form, 'hasOwnPets'),
     smokeFree: bool(form, 'smokeFree'),
     maxConcurrentPets: Number(str(form, 'maxConcurrentPets')) || 1,
+    hasChildren: triState(form, 'hasChildren'),
+    petsOnBed: triState(form, 'petsOnBed'),
+    petsOnFurniture: triState(form, 'petsOnFurniture'),
+    pottyBreakHours: intOrNull(form, 'pottyBreakHours'),
+    scheduleText: textOrNull(form, 'scheduleText'),
+    typicalDayText: textOrNull(form, 'typicalDayText'),
+    safetyText: textOrNull(form, 'safetyText'),
+    ownerPrefsText: textOrNull(form, 'ownerPrefsText'),
   });
 
   redirect(`/${locale}/become-a-sitter/${nextStep('home')}/`);

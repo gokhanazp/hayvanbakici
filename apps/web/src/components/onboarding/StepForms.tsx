@@ -626,22 +626,88 @@ export function ServicesForm({
 
 /* -------------------------------------------------------------------- ev */
 
+/**
+ * UC DURUMLU SORU — evet / hayir / cevapsiz.
+ *
+ * Onay kutusu YETMIYOR: isaretlenmemis bir kutu, "hayir" ile "bu soruyu
+ * hic gormedim"i ayirt edemez. Bu cevaplar profilde CUMLE olarak
+ * cikiyor ("Evde cocuk yok"), yani cevapsiz bir soruyu varsayilanla
+ * doldurmak, bakicinin vermedigi bir sozu ona soyletmek olurdu.
+ * Bos birakilirsa profilde o satir HIC cizilmiyor.
+ */
+function TriField({
+  id, label, hint, value, onChange, yes, no, skip,
+}: {
+  id: string; label: string; hint?: string | undefined;
+  value: string; onChange: (v: string) => void;
+  yes: string; no: string; skip: string;
+}) {
+  return (
+    <Field id={id} label={label} hint={hint}>
+      <Select
+        id={id}
+        name={id}
+        value={value}
+        placeholder={skip}
+        onChange={onChange}
+        options={[{ value: 'yes', label: yes }, { value: 'no', label: no }]}
+      />
+    </Field>
+  );
+}
+
 export function HomeForm({
   locale, action, initial,
 }: {
   locale: Locale;
   action: Action;
-  initial: { homeType: string; hasYard: boolean; yardFenced: boolean; hasOwnPets: boolean; smokeFree: boolean; maxConcurrentPets: number };
+  initial: {
+    homeType: string; hasYard: boolean; yardFenced: boolean; hasOwnPets: boolean;
+    smokeFree: boolean; maxConcurrentPets: number;
+    hasChildren: boolean | null; petsOnBed: boolean | null; petsOnFurniture: boolean | null;
+    pottyBreakHours: number | null;
+    scheduleText: string; typicalDayText: string; safetyText: string; ownerPrefsText: string;
+  };
 }) {
   const m = getMessages(locale);
   const [state, formAction, busy] = useActionState(action, EMPTY);
-  const [v, set] = useFields({ ...initial, maxConcurrentPets: String(initial.maxConcurrentPets) });
+  /* Uc durum forma 'yes' | 'no' | '' olarak giriyor; bos deger
+     sunucuda tekrar null'a donuyor (actions.ts -> triState). */
+  const tri = (v: boolean | null) => (v === null ? '' : v ? 'yes' : 'no');
+  const [v, set] = useFields({
+    homeType: initial.homeType,
+    hasYard: initial.hasYard,
+    yardFenced: initial.yardFenced,
+    hasOwnPets: initial.hasOwnPets,
+    smokeFree: initial.smokeFree,
+    maxConcurrentPets: String(initial.maxConcurrentPets),
+    hasChildren: tri(initial.hasChildren),
+    petsOnBed: tri(initial.petsOnBed),
+    petsOnFurniture: tri(initial.petsOnFurniture),
+    pottyBreakHours: initial.pottyBreakHours === null ? '' : String(initial.pottyBreakHours),
+    scheduleText: initial.scheduleText,
+    typicalDayText: initial.typicalDayText,
+    safetyText: initial.safetyText,
+    ownerPrefsText: initial.ownerPrefsText,
+  });
 
   const types = ['house', 'townhouse', 'apartment', 'condo', 'farm'] as const;
+  const yes = m.onboarding['home.yes'];
+  const no = m.onboarding['home.no'];
+  const skip = m.onboarding['home.unanswered'];
 
   return (
     <form action={formAction} className="auth-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
+
+      {/*
+        ADIM UC BOLUME AYRILDI. Once ondort alan alt alta duruyordu ve
+        hangisinin zorunlu hangisinin istege bagli oldugu okunmuyordu:
+        ev (zorunlu), kurallar (istege bagli), kendi cumlelerin (istege
+        bagli). Basliklar h2 DEGIL h3 — sayfanin kendi basligi h1,
+        adimin basligi h2.
+      */}
+      <h3 className="text-h4 step-group-title">{m.onboarding['home.groupPlace']}</h3>
 
       <Field id="homeType" label={m.onboarding['home.type']} error={err(m, state.errors.homeType)}>
         <Select
@@ -686,10 +752,101 @@ export function HomeForm({
         <label htmlFor="smokeFree">{m.onboarding['home.smokeFree']}</label>
       </div>
 
-      <Field id="maxConcurrentPets" label={m.onboarding['home.maxPets']}>
-        <input id="maxConcurrentPets" name="maxConcurrentPets" type="number" min={1} max={10}
-          value={v.maxConcurrentPets} style={{ maxWidth: '7rem' }}
-          onChange={(e) => set('maxConcurrentPets', e.target.value)} />
+      <div className="field-row">
+        <Field id="maxConcurrentPets" label={m.onboarding['home.maxPets']}>
+          <input id="maxConcurrentPets" name="maxConcurrentPets" type="number" min={1} max={10}
+            value={v.maxConcurrentPets}
+            onChange={(e) => set('maxConcurrentPets', e.target.value)} />
+        </Field>
+
+        <TriField
+          id="hasChildren"
+          label={m.onboarding['home.hasChildren']}
+          hint={m.onboarding['home.hasChildrenHint']}
+          value={v.hasChildren}
+          onChange={(next) => set('hasChildren', next)}
+          yes={yes} no={no} skip={skip}
+        />
+      </div>
+
+      <h3 className="text-h4 step-group-title">{m.onboarding['home.groupRules']}</h3>
+      <p className="field-hint step-group-lead">{m.onboarding['home.groupRulesLead']}</p>
+
+      <div className="field-row">
+        <TriField
+          id="petsOnBed"
+          label={m.onboarding['home.petsOnBed']}
+          value={v.petsOnBed}
+          onChange={(next) => set('petsOnBed', next)}
+          yes={yes} no={no} skip={skip}
+        />
+        <TriField
+          id="petsOnFurniture"
+          label={m.onboarding['home.petsOnFurniture']}
+          value={v.petsOnFurniture}
+          onChange={(next) => set('petsOnFurniture', next)}
+          yes={yes} no={no} skip={skip}
+        />
+      </div>
+
+      <Field
+        id="pottyBreakHours"
+        label={m.onboarding['home.pottyBreak']}
+        hint={m.onboarding['home.pottyBreakHint']}
+      >
+        <input id="pottyBreakHours" name="pottyBreakHours" type="number" min={1} max={24}
+          value={v.pottyBreakHours} style={{ maxWidth: '7rem' }}
+          onChange={(e) => set('pottyBreakHours', e.target.value)} />
+      </Field>
+
+      <h3 className="text-h4 step-group-title">{m.onboarding['home.groupWords']}</h3>
+      <p className="field-hint step-group-lead">{m.onboarding['home.groupWordsLead']}</p>
+
+      <Field
+        id="scheduleText"
+        label={m.onboarding['home.schedule']}
+        hint={m.onboarding['home.scheduleHint']}
+      >
+        <textarea id="scheduleText" name="scheduleText" value={v.scheduleText} rows={3}
+          maxLength={1200} className="textarea"
+          onChange={(e) => set('scheduleText', e.target.value)} />
+      </Field>
+
+      <Field
+        id="typicalDayText"
+        label={m.onboarding['home.typicalDay']}
+        hint={m.onboarding['home.typicalDayHint']}
+      >
+        <textarea id="typicalDayText" name="typicalDayText" value={v.typicalDayText} rows={4}
+          maxLength={1200} className="textarea"
+          onChange={(e) => set('typicalDayText', e.target.value)} />
+      </Field>
+
+      <Field
+        id="safetyText"
+        label={m.onboarding['home.safety']}
+        hint={m.onboarding['home.safetyHint']}
+      >
+        <textarea id="safetyText" name="safetyText" value={v.safetyText} rows={3}
+          maxLength={1200} className="textarea"
+          onChange={(e) => set('safetyText', e.target.value)} />
+      </Field>
+
+      {/*
+        "SIZDEN BILMEK ISTEDIKLERIM" — bu adimin en degerli alani.
+
+        Bakici neyi merak ettigini BIR KEZ yaziyor; sahip rezervasyon
+        istegini gonderirken bunu okuyor. Oncesinde her bakici ayni uc
+        soruyu her sahibe ayri ayri mesajla soruyordu.
+      */}
+      <Field
+        id="ownerPrefsText"
+        label={m.onboarding['home.ownerPrefs']}
+        hint={m.onboarding['home.ownerPrefsHint']}
+      >
+        <textarea id="ownerPrefsText" name="ownerPrefsText" value={v.ownerPrefsText} rows={4}
+          maxLength={1200} className="textarea"
+          onChange={(e) => set('ownerPrefsText', e.target.value)} />
       </Field>
 
       <Actions locale={locale} step="home" busy={busy} label={m.onboarding.saveAndContinue} />
@@ -828,9 +985,11 @@ export function ReviewForm({
       label: m.onboarding['step.home'],
       value: summary.homeType
         ? `${m.onboarding[`home.${summary.homeType}` as keyof Messages['onboarding']] as string
-           ?? summary.homeType} · ${interpolate(m.onboarding['review.petCount'], {
-             count: summary.maxConcurrentPets,
-           })}`
+           ?? summary.homeType} · ${summary.maxConcurrentPets === 1
+             ? m.onboarding['review.petCountOne']
+             : interpolate(m.onboarding['review.petCount'], {
+               count: summary.maxConcurrentPets,
+             })}`
         : '—',
     },
     {

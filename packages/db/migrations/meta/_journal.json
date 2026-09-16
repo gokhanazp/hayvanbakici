@@ -78,6 +78,13 @@
       "when": 1789480976203,
       "tag": "0010_amusing_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789578503891,
+      "tag": "0011_early_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

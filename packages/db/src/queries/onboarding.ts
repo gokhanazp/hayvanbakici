@@ -42,6 +42,15 @@ export interface OnboardingState {
   hasOwnPets: boolean;
   smokeFree: boolean;
   maxConcurrentPets: number;
+  /** Uc durumlu: null = bakici bu soruyu cevaplamadi */
+  hasChildren: boolean | null;
+  petsOnBed: boolean | null;
+  petsOnFurniture: boolean | null;
+  pottyBreakHours: number | null;
+  scheduleText: string | null;
+  typicalDayText: string | null;
+  safetyText: string | null;
+  ownerPrefsText: string | null;
   services: Array<{
     serviceType: string;
     priceCents: number;
@@ -92,6 +101,14 @@ export async function getOnboardingState(
         hasOwnPets: sitters.hasOwnPets,
         smokeFree: sitters.smokeFree,
         maxConcurrentPets: sitters.maxConcurrentPets,
+        hasChildren: sitters.hasChildren,
+        petsOnBed: sitters.petsOnBed,
+        petsOnFurniture: sitters.petsOnFurniture,
+        pottyBreakHours: sitters.pottyBreakHours,
+        scheduleText: sitters.scheduleText,
+        typicalDayText: sitters.typicalDayText,
+        safetyText: sitters.safetyText,
+        ownerPrefsText: sitters.ownerPrefsText,
         promoEndsAt: sitters.promoEndsAt,
       })
       .from(users)
@@ -145,6 +162,20 @@ export async function getOnboardingState(
       hasOwnPets: row.hasOwnPets ?? false,
       smokeFree: row.smokeFree ?? true,
       maxConcurrentPets: row.maxConcurrentPets ?? 1,
+      /*
+        `?? null` DEGIL, `?? false` DE DEGIL: uc durum oldugu gibi
+        tasiniyor. false ile null'u burada birlestirirsek formda
+        "hayir" isaretli gorunur ve bakicinin vermedigi bir cevabi
+        ona soyletmis oluruz.
+      */
+      hasChildren: row.hasChildren ?? null,
+      petsOnBed: row.petsOnBed ?? null,
+      petsOnFurniture: row.petsOnFurniture ?? null,
+      pottyBreakHours: row.pottyBreakHours ?? null,
+      scheduleText: row.scheduleText ?? null,
+      typicalDayText: row.typicalDayText ?? null,
+      safetyText: row.safetyText ?? null,
+      ownerPrefsText: row.ownerPrefsText ?? null,
       services: svc,
       screening: check ?? null,
       promoEndsAt: row.promoEndsAt ? row.promoEndsAt.toISOString() : null,
@@ -274,6 +305,20 @@ export interface HomeInput {
   hasOwnPets: boolean;
   smokeFree: boolean;
   maxConcurrentPets: number;
+  hasChildren: boolean | null;
+  petsOnBed: boolean | null;
+  petsOnFurniture: boolean | null;
+  pottyBreakHours: number | null;
+  scheduleText: string | null;
+  typicalDayText: string | null;
+  safetyText: string | null;
+  ownerPrefsText: string | null;
+}
+
+/** Bos metin = alan yok. '' yazmak profilde bos bir baslik cizdirirdi. */
+function textOrNull(v: string | null): string | null {
+  const t = (v ?? '').trim();
+  return t === '' ? null : t.slice(0, 1200);
 }
 
 export async function saveHome(db: Database, userId: string, input: HomeInput): Promise<void> {
@@ -289,6 +334,16 @@ export async function saveHome(db: Database, userId: string, input: HomeInput): 
         hasOwnPets: input.hasOwnPets,
         smokeFree: input.smokeFree,
         maxConcurrentPets: Math.max(1, Math.min(10, input.maxConcurrentPets)),
+        hasChildren: input.hasChildren,
+        petsOnBed: input.petsOnBed,
+        petsOnFurniture: input.petsOnFurniture,
+        pottyBreakHours: input.pottyBreakHours === null
+          ? null
+          : Math.max(1, Math.min(24, input.pottyBreakHours)),
+        scheduleText: textOrNull(input.scheduleText),
+        typicalDayText: textOrNull(input.typicalDayText),
+        safetyText: textOrNull(input.safetyText),
+        ownerPrefsText: textOrNull(input.ownerPrefsText),
       })
       .where(eq(sitters.userId, userId)),
   );

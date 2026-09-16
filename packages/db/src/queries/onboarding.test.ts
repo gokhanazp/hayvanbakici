@@ -184,6 +184,8 @@ describe('bakici onboarding', () => {
     await saveHome(db, userId, {
       homeType: 'apartment', hasYard: false, yardFenced: true,
       hasOwnPets: true, smokeFree: true, maxConcurrentPets: 3,
+      hasChildren: null, petsOnBed: null, petsOnFurniture: null, pottyBreakHours: null,
+      scheduleText: null, typicalDayText: null, safetyText: null, ownerPrefsText: null,
     });
     const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
     expect(s?.hasYard).toBe(false);
@@ -194,9 +196,53 @@ describe('bakici onboarding', () => {
     await saveHome(db, userId, {
       homeType: 'house', hasYard: true, yardFenced: true,
       hasOwnPets: false, smokeFree: true, maxConcurrentPets: 99,
+      hasChildren: null, petsOnBed: null, petsOnFurniture: null, pottyBreakHours: null,
+      scheduleText: null, typicalDayText: null, safetyText: null, ownerPrefsText: null,
     });
     const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
     expect(s?.maxConcurrentPets).toBe(10);
+  });
+
+  /*
+    UC DURUM KORUNUYOR.
+
+    Bu alanlar profilde CUMLE olarak cikiyor ("Evde cocuk yok"). null
+    bir cevabin false'a donmesi, bakicinin hic gormedigi bir soruyu
+    onun agzindan cevaplamak olurdu — ve bunu ancak veritabaninda
+    kontrol edersek yakalayabiliriz.
+  */
+  it('cevaplanmayan ev kurallari null kalir, false olmaz', async () => {
+    await saveHome(db, userId, {
+      homeType: 'house', hasYard: false, yardFenced: false,
+      hasOwnPets: false, smokeFree: true, maxConcurrentPets: 2,
+      hasChildren: null, petsOnBed: false, petsOnFurniture: null, pottyBreakHours: null,
+      scheduleText: null, typicalDayText: null, safetyText: null, ownerPrefsText: null,
+    });
+    const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
+    expect(s?.hasChildren).toBeNull();
+    expect(s?.petsOnFurniture).toBeNull();
+    // Cevaplanan 'hayir' ise false OLMALI — null ile ayni sey degil
+    expect(s?.petsOnBed).toBe(false);
+
+    const state = await getOnboardingState(db, userId);
+    expect(state?.hasChildren).toBeNull();
+    expect(state?.petsOnBed).toBe(false);
+  });
+
+  it('bos serbest metin null olarak kaydedilir ve tuvalet araligi sikistirilir', async () => {
+    await saveHome(db, userId, {
+      homeType: 'house', hasYard: false, yardFenced: false,
+      hasOwnPets: false, smokeFree: true, maxConcurrentPets: 2,
+      hasChildren: null, petsOnBed: null, petsOnFurniture: null, pottyBreakHours: 99,
+      scheduleText: '   ', typicalDayText: 'Sabah yuruyus.', safetyText: null,
+      ownerPrefsText: '',
+    });
+    const [s] = await db.select().from(sitters).where(eq(sitters.userId, userId));
+    // '' ya da bosluk yazmak profilde BOS BIR BASLIK cizdirirdi
+    expect(s?.scheduleText).toBeNull();
+    expect(s?.ownerPrefsText).toBeNull();
+    expect(s?.typicalDayText).toBe('Sabah yuruyus.');
+    expect(s?.pottyBreakHours).toBe(24);
   });
 
   it('adli sicil rizasi dil ve surumle birlikte kaydedilir', async () => {

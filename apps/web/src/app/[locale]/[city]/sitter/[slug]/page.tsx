@@ -149,6 +149,24 @@ export default async function SitterPage({
   const bookHref = (svc?: ServiceType) =>
     `/${seg}/${citySlug}/sitter/${sitter.slug}/book/`
     + (svc ? `?service=${serviceSlug(svc, locale)}` : '');
+  const askUrl = `/${seg}/${citySlug}/sitter/${sitter.slug}/ask/`;
+
+  /*
+    EV KURALLARI — YALNIZCA CEVAPLANANLAR.
+
+    Uc alanin da uc durumu var (evet / hayir / cevapsiz). null olani
+    listeye HIC girmiyor: cevaplanmamis bir soruyu "hayir" diye cizmek,
+    bakicinin vermedigi bir sozu onun agzindan soylemek olurdu. Liste
+    bos kalirsa bolum de cizilmiyor.
+  */
+  const rules: string[] = [
+    sitter.petsOnBed === null ? null
+      : sitter.petsOnBed ? m.sitter['home.petsOnBed'] : m.sitter['home.petsOffBed'],
+    sitter.petsOnFurniture === null ? null
+      : sitter.petsOnFurniture ? m.sitter['home.petsOnFurniture'] : m.sitter['home.petsOffFurniture'],
+    sitter.pottyBreakHours === null ? null
+      : interpolate(m.sitter['home.pottyBreak'], { hours: sitter.pottyBreakHours }),
+  ].filter((x): x is string => x !== null);
 
   return (
     <>
@@ -222,14 +240,51 @@ export default async function SitterPage({
           <SitterGallery locale={locale} photos={sitter.photos} name={sitter.firstName} />
 
           {sitter.bio && (
-            <section>
+            <section className="card card-pad sitter-block">
               <h2 className="text-h2">{interpolate(m.sitter.aboutHeading, { name: sitter.firstName })}</h2>
-              <p className="text-body-lg" style={{ marginTop: 'var(--space-4)', maxWidth: '40rem' }}>
+              <p className="text-body-lg own-words-body" style={{ maxWidth: '40rem' }}>
                 {sitter.bio}
               </p>
-              <p className="field-hint" style={{ marginTop: 'var(--space-4)' }}>
-                {m.sitter.privacyNote}
+              <p className="field-hint">{m.sitter.privacyNote}</p>
+            </section>
+          )}
+
+          {/*
+            GUNLUK DUZEN — BAKICININ KENDI CUMLELERI.
+
+            Sahibin "kopegim gun boyu yalniz mi kalacak" sorusu, bugune
+            kadar mesajla soruluyordu. Rakipte (Rover) bu iki blok
+            profilin en cok okunan yeri; bizde hic yoktu.
+
+            DOGRULANMAMIS oldugu BIR KEZ, blogun basinda yaziyor —
+            her paragrafin altina tekrar koymak uyariyi gorunmez yapar.
+            Blok bos ise HIC cizilmiyor: bos baslik, doldurulmamis bir
+            profili doldurulmus gibi gosterir.
+          */}
+          {(sitter.scheduleText || sitter.typicalDayText) && (
+            <section className="card card-pad sitter-block">
+              <h2 className="text-h2">
+                {interpolate(m.sitter.routineHeading, { name: sitter.firstName })}
+              </h2>
+              <p className="field-hint own-words-note">
+                {interpolate(m.sitter.ownWordsNote, { name: sitter.firstName })}
               </p>
+              <div className="own-words-grid">
+                {sitter.scheduleText && (
+                  <div>
+                    <h3 className="text-h4">{m.sitter.scheduleHeading}</h3>
+                    <p className="own-words-body">{sitter.scheduleText}</p>
+                  </div>
+                )}
+                {sitter.typicalDayText && (
+                  <div>
+                    <h3 className="text-h4">
+                      {interpolate(m.sitter.typicalDayHeading, { name: sitter.firstName })}
+                    </h3>
+                    <p className="own-words-body">{sitter.typicalDayText}</p>
+                  </div>
+                )}
+              </div>
             </section>
           )}
 
@@ -319,28 +374,71 @@ export default async function SitterPage({
             </div>
           </section>
 
-          {/* --- Ev --- */}
-          <section>
-            <h2 className="text-h2" style={{ marginBottom: 'var(--space-5)' }}>{m.sitter.homeHeading}</h2>
-            <ul className="sitter-facts">
-              {sitter.homeType && (
-                <Fact>{m.onboarding[`home.${sitter.homeType}` as keyof Messages['onboarding']] as string}</Fact>
-              )}
-              {sitter.hasYard && <Fact>{sitter.yardFenced ? m.sitter['home.yardFenced'] : m.sitter['home.yard']}</Fact>}
-              {/*
-                EVDEKI HAYVAN — UC DURUM, IKI DEGIL.
+          {/* --- Ev, kurallar, guvenlik --- */}
+          <section className="card card-pad sitter-block">
+            <h2 className="text-h2">{m.sitter.homeHeading}</h2>
 
-                "Hayvanim var" diyip fotograf koymamis bakicida bu satir
-                HIC cikmiyor. "Hayvan yok" demiyoruz (yanlis olur),
-                "hayvan var" da demiyoruz (dogrulanmamis). Sahibin en cok
-                onemsedigi konu bu; bos bir soz vermektense susmak.
-                Fotograflar asagida, kendi bolumunde.
-              */}
-              {!sitter.hasOwnPets && <Fact>{m.sitter['home.noOwnPets']}</Fact>}
-              {sitter.showsOwnPets && <Fact>{m.sitter['home.ownPets']}</Fact>}
-              {sitter.smokeFree && <Fact>{m.sitter['home.smokeFree']}</Fact>}
-              <Fact>{interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets })}</Fact>
-            </ul>
+            {/*
+              IKI SUTUN, IKI FARKLI SEY.
+
+              Solda BIZIM kaydettigimiz gercekler (ev tipi, bahce, kac
+              hayvan), sagda bakicinin koydugu KURALLAR. Once hepsi tek
+              bir listeydi ve "sigara icilmiyor" ile "hayvanlar yatakta
+              yatabilir" ayni agirlikta okunuyordu; oysa biri evin hali,
+              digeri bakicinin tercihi.
+            */}
+            <div className="sitter-home-grid">
+              <ul className="sitter-facts">
+                {sitter.homeType && (
+                  <Fact>{m.onboarding[`home.${sitter.homeType}` as keyof Messages['onboarding']] as string}</Fact>
+                )}
+                {sitter.hasYard && <Fact>{sitter.yardFenced ? m.sitter['home.yardFenced'] : m.sitter['home.yard']}</Fact>}
+                {/*
+                  EVDEKI HAYVAN — UC DURUM, IKI DEGIL.
+
+                  "Hayvanim var" deyip fotograf koymamis bakicida bu satir
+                  HIC cikmiyor. "Hayvan yok" demiyoruz (yanlis olur),
+                  "hayvan var" da demiyoruz (dogrulanmamis). Sahibin en cok
+                  onemsedigi konu bu; bos bir soz vermektense susmak.
+                */}
+                {!sitter.hasOwnPets && <Fact>{m.sitter['home.noOwnPets']}</Fact>}
+                {sitter.showsOwnPets && <Fact>{m.sitter['home.ownPets']}</Fact>}
+                {sitter.smokeFree && <Fact>{m.sitter['home.smokeFree']}</Fact>}
+                <Fact>
+                  {sitter.maxConcurrentPets === 1
+                    ? m.sitter['home.maxPetsOne']
+                    : interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets })}
+                </Fact>
+                {/*
+                  Cocuk sorusu CEVAPLANDIYSA iki yonu de yaziliyor.
+                  null ise satir yok — cevaplanmamis bir soruyu "hayir"
+                  diye cizmek, bakicinin vermedigi bir sozdur.
+                */}
+                {sitter.hasChildren !== null && (
+                  <Fact>{sitter.hasChildren ? m.sitter['home.children'] : m.sitter['home.noChildren']}</Fact>
+                )}
+              </ul>
+
+              {rules.length > 0 && (
+                <div className="sitter-rules">
+                  <h3 className="text-h4">{m.sitter.rulesHeading}</h3>
+                  <ul className="sitter-facts sitter-facts-rules">
+                    {rules.map((r) => <Rule key={r}>{r}</Rule>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Guvenlik — bakicinin kendi cumlesi, oyle etiketli */}
+            {sitter.safetyText && (
+              <div className="own-words-inset">
+                <h3 className="text-h4">{m.sitter.safetyHeading}</h3>
+                <p className="own-words-body">{sitter.safetyText}</p>
+                <p className="field-hint">
+                  {interpolate(m.sitter.ownWordsNote, { name: sitter.firstName })}
+                </p>
+              </div>
+            )}
 
             {/*
               BAKICININ KENDI HAYVANLARI.
@@ -381,6 +479,26 @@ export default async function SitterPage({
             musait, baskalari ne demis.
           */}
           <AvailabilityCalendar locale={locale} name={sitter.firstName} days={calendarDays} />
+
+          {/*
+            "BENIM BILMEK ISTEDIKLERIM" — takvimden hemen sonra, cunku
+            sirada mesaj yazmak var.
+
+            Kart DEGIL, renkli bir kutu: sayfadaki tek dogrudan "simdi
+            sunu yap" isareti. Bakici sorusunu bir kez yaziyor; sahip
+            ilk mesajinda cevapliyor ve iki taraf da uc mesajlik bir
+            tanisma turundan kurtuluyor.
+          */}
+          {sitter.ownerPrefsText && (
+            <section className="sitter-ask">
+              <h2 className="text-h3" style={{ margin: 0 }}>
+                {interpolate(m.sitter.ownerPrefsHeading, { name: sitter.firstName })}
+              </h2>
+              <p className="own-words-body">{sitter.ownerPrefsText}</p>
+              <p className="text-body-sm">{m.sitter.ownerPrefsLead}</p>
+              <Link href={askUrl} className="btn btn-ink btn-sm">{m.sitter.messageCta}</Link>
+            </section>
+          )}
 
           {/* --- Yorumlar --- */}
           <section>
@@ -501,10 +619,7 @@ export default async function SitterPage({
               artiran ana akis: bakiciyi tanimadan uc gecelik bir
               konaklama ayirtmak cogu insan icin buyuk bir adim.
             */}
-            <Link
-              href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/sitter/${sitter.slug}/ask/`}
-              className="btn btn-secondary btn-block"
-            >
+            <Link href={askUrl} className="btn btn-secondary btn-block">
               {m.sitter.messageCta}
             </Link>
 
@@ -595,6 +710,27 @@ function Stat({ value, label }: { value: string; label: string }) {
     <li>
       <span className="text-numeral">{value}</span>
       <span className="text-body-sm muted">{label}</span>
+    </li>
+  );
+}
+
+/**
+ * EV KURALI — onay isareti DEGIL, notr bir isaret.
+ *
+ * "Hayvanlar yatakta yatmaz" cumlesinin yanindaki yesil onay isareti,
+ * bunu bir BASARI gibi okutuyordu. Kural bir tercih; dogru ya da
+ * yanlis degil, sadece bilinmesi gereken bir sey.
+ */
+function Rule({ children }: { children: React.ReactNode }) {
+  return (
+    <li>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+        strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="5.5" />
+        <path d="M8 5.5v3" />
+        <path d="M8 10.6v.1" />
+      </svg>
+      {children}
     </li>
   );
 }
