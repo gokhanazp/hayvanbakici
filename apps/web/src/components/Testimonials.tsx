@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getMessages, segmentFor, type Locale } from '@havre/i18n';
 import type { FeaturedReview } from '@/lib/data';
 import { Avatar } from './Avatar';
+import { SectionDoodles } from '@/components/Doodles';
 
 /**
  * REFERANSLAR — uydurma alinti yok.
@@ -25,7 +26,8 @@ export function Testimonials({
   const seg = segmentFor(locale);
 
   return (
-    <section className="band band-surface band-round-t band-round-b">
+    <section className="band band-surface band-round-t band-round-b has-doodles">
+      <SectionDoodles set="testimonials" />
       <div className="container section">
         <div className="section-head">
           <span className="badge" style={{

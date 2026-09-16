@@ -10,7 +10,7 @@ import { Testimonials } from '@/components/Testimonials';
 import { FeatureCards } from '@/components/FeatureCards';
 import { Photo } from '@/components/Photo';
 import { Avatar } from '@/components/Avatar';
-import { HeroDoodles } from '@/components/Doodles';
+import { HeroDoodles, SectionDoodles } from '@/components/Doodles';
 import { ShieldIcon } from '@/components/VerificationBadge';
 import { cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData } from '@/lib/data';
 import { money, numberFmt } from '@/lib/format';
@@ -166,7 +166,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ---- Hizmetler ---- */}
-      <section className="container section">
+      <section className="container section has-doodles">
+        <SectionDoodles set="services" />
         <div className="section-head">
           <h2 className="text-h2">{fr ? 'De quoi avez-vous besoin?' : 'What do you need?'}</h2>
         </div>
@@ -174,7 +175,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ---- Ne yapiyoruz — adacayi bant ---- */}
-      <section className="band band-sage band-round-t band-round-b">
+      <section className="band band-sage band-round-t band-round-b has-doodles">
+        <SectionDoodles set="features" />
         <FeatureCards locale={locale} />
       </section>
 
@@ -240,7 +242,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       {/* ---- Ucret defteri: uc oran, tek tabloda ---- */}
-      <section className="container section" style={{ paddingTop: 0 }}>
+      <section className="container section has-doodles" style={{ paddingTop: 0 }}>
+        <SectionDoodles set="fees" />
         <div className="section-head">
           <h2 className="text-h2">{fr ? 'Trois taux, publiés.' : 'Three rates, published.'}</h2>
           <p className="muted">

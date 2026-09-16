@@ -5,7 +5,23 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html {
+  -webkit-text-size-adjust: 100%; scroll-behavior: smooth;
+  /*
+    YATAY TASMAYI SAYFA SEVIYESINDE KIRP.
+
+    Dekoratif konturlar konteynerin DISINDAKI bosluklarda yasiyor; o
+    bosluklar hicbir bolumun kutusuna ait degil, dolayisiyla bolume
+    `overflow: clip` vermek konturu GOSTERMEK yerine siliyordu (hizmetler
+    bolumunde tam bunu yaptim: sekiller dogru yerdeydi ama kapsayici
+    onlari kirpiyordu). Kirpma artik sayfanin kendisinde.
+
+    clip, hidden DEGIL: hidden bir kaydirma baglami yaratir ve icerideki
+    position:sticky'yi bozar — baslik ve bakici profilindeki yan sutun
+    buna bagli. clip yaratmiyor ve y ekseni `visible` kalabiliyor.
+  */
+  overflow-x: clip;
+}
 
 body {
   background: var(--color-canvas);
@@ -474,6 +490,39 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   susten, olmayan bir sus iyidir.
 */
 @media (max-width: 1279px) { .hero-doodles { display: none; } }
+
+/*
+  ALT BOLUM KONTURLARI.
+
+  Kahramanla ayni serit mantigi, ama ANIMASYONSUZ: ekranin disindaki bir
+  animasyon pil harciyor ve kimse gormuyor. Sayfadaki surekli animasyon
+  sayisi bu eklemeyle artmadi.
+
+  z-index 0 ve pointer-events yok: konturlar icerigin ALTINDA duruyor,
+  hicbir tiklamayi yakalamiyor. Kapsayici bolume `has-doodles` verilince
+  bolum konumlandirma baglami oluyor ve tasan sekilleri kirpiyor.
+*/
+.section-doodles {
+  position: absolute; inset-block: 0; z-index: 0;
+  pointer-events: none;
+  inset-inline-start: calc(50% - 50vw);
+  width: 100vw;
+}
+@media (max-width: 1279px) { .section-doodles { display: none; } }
+
+/*
+  clip, hidden DEGIL: hidden bir kaydirma baglami yaratir ve icerideki
+  position:sticky'yi bozar (bakici profilinde bizzat yasandi).
+*/
+/*
+  Konteyner bolumlerinde KIRPMA YOK (yukaridaki html kuralina bakin).
+  Bantlar tam genislikte oldugu icin kendi kose kavislerini kirpsin diye
+  clip aliyor — orada konturu silmiyor.
+*/
+.has-doodles { position: relative; }
+.band.has-doodles { overflow: clip; }
+/* Icerik konturlarin ustunde kalsin */
+.has-doodles > *:not(.section-doodles) { position: relative; z-index: 1; }
 
 .hero-art { width: 100%; height: auto; display: block; }
 

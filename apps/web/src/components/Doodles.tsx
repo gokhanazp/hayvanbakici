@@ -239,3 +239,127 @@ export function BannerDoodles() {
     </div>
   );
 }
+
+
+/* ------------------------------------------------ BOLUM KONTURLARI */
+
+/**
+ * ALT BOLUMLER ICIN SERIT — KAHRAMANIN AYNISI, AMA SESSIZ.
+ *
+ * Kahramandaki fikir sayfanin geri kalaninda birakiliyordu: ilk ekrandan
+ * sonra zemin duz krem oluyor ve sayfa "baska bir siteye" gecmis gibi
+ * okunuyordu. Ayni serit mantigi alt bolumlerde de var, uc farkla:
+ *
+ *  1. DAHA SEYREK. Bolum basina iki-uc sekil. Kahraman bir kez
+ *     goruluyor, alt bolumler pes pese geliyor; ayni yogunluk konfetiye
+ *     donuyordu.
+ *  2. DAHA SOLUK. Opaklik kahramanin yaklasik yarisi: burada sekiller
+ *     ICERIGE eslik ediyor, sahne kurmuyor.
+ *  3. ANIMASYON YOK. Kahramandaki suzulme bilincli olarak burada
+ *     tekrarlanmiyor: ekranin disindaki bir animasyon pil harciyor ve
+ *     kimse gormuyor. Sayfadaki surekli animasyon sayisi artmadi.
+ *
+ * Konum kurali kahramandakiyle ayni: konturlar ICERIGIN DISINDA, iki
+ * kenarda. 1280 altinda hic cizilmiyor — o genislikte kenar seridi
+ * kalmiyor ve sekiller metnin altina giriyor.
+ */
+type Shape = 'paw' | 'heart' | 'bone' | 'fish' | 'ball';
+
+interface RailSpec {
+  side: RailSide;
+  top: number;
+  offset: number;
+  size: number;
+  rotate: number;
+  shape: Shape;
+  tone: 'primary' | 'accent';
+  opacity: number;
+}
+
+const VIEWBOX: Record<Shape, string> = {
+  paw: '0 0 54 50',
+  heart: '0 0 40 36',
+  bone: '0 0 48 26',
+  fish: '0 0 42 32',
+  ball: '0 0 34 34',
+};
+
+function shapeOf(shape: Shape, color: string, opacity: number): ReactNode {
+  switch (shape) {
+    case 'paw': return <Paw color={color} opacity={opacity} />;
+    case 'heart': return <Heart color={color} opacity={opacity} width={2.2} />;
+    case 'bone': return <Bone color={color} opacity={opacity} />;
+    case 'fish': return <Fish color={color} opacity={opacity} />;
+    case 'ball': return <Ball color={color} opacity={opacity} />;
+  }
+}
+
+/**
+ * Hazir dizilimler. Her bolum kendi kumesini secmiyor, ISMIYLE
+ * cagiriyor: boylece yogunluk tek yerden gorulebiliyor ve iki bolum
+ * yanlislikla ayni dizilimi almiyor.
+ */
+const SETS = {
+  /*
+    DUZ KREM ZEMINDE DAHA KOYU. Bantlarda ise yarayan opaklik burada
+    kayboluyordu: krem, blush veya adacayindan acik, dolayisiyla ayni
+    deger daha az kontrast veriyor. Deger zemine gore secildi, tek bir
+    "sekil opakligi" diye bir sey yok.
+  */
+  services: [
+    { side: 'left', top: 16, offset: 0.3, size: 46, rotate: -11, shape: 'bone', tone: 'accent', opacity: 0.4 },
+    { side: 'left', top: 62, offset: -0.1, size: 58, rotate: 9, shape: 'paw', tone: 'primary', opacity: 0.22 },
+    { side: 'right', top: 24, offset: -0.18, size: 64, rotate: 12, shape: 'heart', tone: 'primary', opacity: 0.24 },
+    { side: 'right', top: 70, offset: 0.34, size: 38, rotate: -7, shape: 'ball', tone: 'accent', opacity: 0.38 },
+  ],
+  features: [
+    { side: 'left', top: 12, offset: -0.2, size: 70, rotate: 13, shape: 'paw', tone: 'accent', opacity: 0.2 },
+    { side: 'left', top: 46, offset: 0.36, size: 40, rotate: -8, shape: 'fish', tone: 'primary', opacity: 0.14 },
+    { side: 'left', top: 80, offset: 0.04, size: 52, rotate: 6, shape: 'heart', tone: 'accent', opacity: 0.18 },
+    { side: 'right', top: 18, offset: 0.28, size: 44, rotate: -13, shape: 'ball', tone: 'primary', opacity: 0.14 },
+    { side: 'right', top: 52, offset: -0.24, size: 76, rotate: 10, shape: 'bone', tone: 'accent', opacity: 0.2 },
+    { side: 'right', top: 84, offset: 0.16, size: 48, rotate: -6, shape: 'paw', tone: 'primary', opacity: 0.12 },
+  ],
+  /* Referanslar BEYAZ bant uzerinde — en acik zemin, en koyu sekiller. */
+  testimonials: [
+    { side: 'left', top: 22, offset: 0.22, size: 52, rotate: 8, shape: 'heart', tone: 'primary', opacity: 0.26 },
+    { side: 'left', top: 68, offset: -0.16, size: 62, rotate: -10, shape: 'paw', tone: 'accent', opacity: 0.36 },
+    { side: 'right', top: 34, offset: -0.2, size: 56, rotate: -9, shape: 'fish', tone: 'primary', opacity: 0.24 },
+    { side: 'right', top: 78, offset: 0.3, size: 42, rotate: 11, shape: 'bone', tone: 'accent', opacity: 0.38 },
+  ],
+  fees: [
+    { side: 'left', top: 30, offset: -0.14, size: 60, rotate: -7, shape: 'ball', tone: 'accent', opacity: 0.36 },
+    { side: 'right', top: 26, offset: 0.26, size: 50, rotate: 10, shape: 'paw', tone: 'primary', opacity: 0.22 },
+    { side: 'right', top: 74, offset: -0.18, size: 64, rotate: -12, shape: 'heart', tone: 'accent', opacity: 0.34 },
+  ],
+} satisfies Record<string, readonly RailSpec[]>;
+
+export type DoodleSet = keyof typeof SETS;
+
+export function SectionDoodles({ set }: { set: DoodleSet }) {
+  const specs = SETS[set] as readonly RailSpec[];
+  return (
+    <div className="section-doodles" aria-hidden="true">
+      <div className="doodle-rail doodle-rail-left">
+        {specs.filter((d) => d.side === 'left').map((d, i) => (
+          <Rail
+            key={`l${i}`} side="left" top={d.top} offset={d.offset}
+            size={d.size} rotate={d.rotate} viewBox={VIEWBOX[d.shape]}
+          >
+            {shapeOf(d.shape, d.tone === 'primary' ? PRIMARY : ACCENT, d.opacity)}
+          </Rail>
+        ))}
+      </div>
+      <div className="doodle-rail doodle-rail-right">
+        {specs.filter((d) => d.side === 'right').map((d, i) => (
+          <Rail
+            key={`r${i}`} side="right" top={d.top} offset={d.offset}
+            size={d.size} rotate={d.rotate} viewBox={VIEWBOX[d.shape]}
+          >
+            {shapeOf(d.shape, d.tone === 'primary' ? PRIMARY : ACCENT, d.opacity)}
+          </Rail>
+        ))}
+      </div>
+    </div>
+  );
+}
