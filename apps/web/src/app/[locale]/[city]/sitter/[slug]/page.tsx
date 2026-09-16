@@ -16,6 +16,7 @@ import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { RatingBreakdown } from '@/components/RatingBreakdown';
 import { ServiceIcon } from '@/components/ServiceIcon';
+import { HomeIcon, type HomeIconName } from '@/components/HomeIcon';
 import { getCalendar, getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
@@ -152,21 +153,63 @@ export default async function SitterPage({
   const askUrl = `/${seg}/${citySlug}/sitter/${sitter.slug}/ask/`;
 
   /*
-    EV KURALLARI — YALNIZCA CEVAPLANANLAR.
+    EV MADDELERI — TEK LISTE, HER BIRI KENDI IKONUYLA.
 
-    Uc alanin da uc durumu var (evet / hayir / cevapsiz). null olani
-    listeye HIC girmiyor: cevaplanmamis bir soruyu "hayir" diye cizmek,
-    bakicinin vermedigi bir sozu onun agzindan soylemek olurdu. Liste
-    bos kalirsa bolum de cizilmiyor.
+    Once ikiye bolunmustu: solda bizim kaydettigimiz olgular, sagda
+    bakicinin kurallari. Ayirmanin sebebi onay isaretiydi — "hayvanlar
+    yatakta yatmaz" cumlesinin yanindaki yesil tik bunu bir BASARI gibi
+    okutuyordu. Her maddenin kendi resmi olunca o sorun ortadan kalkti
+    ve iki ayri baslik gereksiz hale geldi: liste artik tek blok, iki
+    sutuna AKIYOR (CSS kolonu), yani okuma sirasi bozulmuyor.
+
+    UC DURUMLU ALANLAR: yalnizca CEVAPLANANLAR listeye giriyor.
+    Cevaplanmamis bir soruyu "hayir" diye cizmek, bakicinin vermedigi
+    bir sozu onun agzindan soylemek olurdu.
   */
-  const rules: string[] = [
-    sitter.petsOnBed === null ? null
-      : sitter.petsOnBed ? m.sitter['home.petsOnBed'] : m.sitter['home.petsOffBed'],
-    sitter.petsOnFurniture === null ? null
-      : sitter.petsOnFurniture ? m.sitter['home.petsOnFurniture'] : m.sitter['home.petsOffFurniture'],
-    sitter.pottyBreakHours === null ? null
-      : interpolate(m.sitter['home.pottyBreak'], { hours: sitter.pottyBreakHours }),
-  ].filter((x): x is string => x !== null);
+  type HomeFact = { icon: HomeIconName; slashed?: boolean; text: string };
+  const homeFacts: HomeFact[] = ([
+    sitter.homeType && {
+      icon: sitter.homeType as HomeIconName,
+      text: m.onboarding[`home.${sitter.homeType}` as keyof Messages['onboarding']] as string,
+    },
+    sitter.hasYard && (sitter.yardFenced
+      ? { icon: 'fence' as const, text: m.sitter['home.yardFenced'] }
+      : { icon: 'tree' as const, text: m.sitter['home.yard'] }),
+    /*
+      EVDEKI HAYVAN — UC DURUM, IKI DEGIL.
+      "Hayvanim var" deyip fotograf koymamis bakicida bu satir HIC
+      cikmiyor: "hayvan yok" demiyoruz (yanlis olur), "hayvan var" da
+      demiyoruz (dogrulanmamis).
+    */
+    !sitter.hasOwnPets && { icon: 'paw' as const, slashed: true, text: m.sitter['home.noOwnPets'] },
+    sitter.showsOwnPets && { icon: 'paw' as const, text: m.sitter['home.ownPets'] },
+    sitter.smokeFree && { icon: 'noSmoking' as const, text: m.sitter['home.smokeFree'] },
+    {
+      icon: 'pets' as const,
+      text: sitter.maxConcurrentPets === 1
+        ? m.sitter['home.maxPetsOne']
+        : interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets }),
+    },
+    sitter.hasChildren !== null && {
+      icon: 'person' as const,
+      slashed: !sitter.hasChildren,
+      text: sitter.hasChildren ? m.sitter['home.children'] : m.sitter['home.noChildren'],
+    },
+    sitter.petsOnBed !== null && {
+      icon: 'bed' as const,
+      slashed: !sitter.petsOnBed,
+      text: sitter.petsOnBed ? m.sitter['home.petsOnBed'] : m.sitter['home.petsOffBed'],
+    },
+    sitter.petsOnFurniture !== null && {
+      icon: 'sofa' as const,
+      slashed: !sitter.petsOnFurniture,
+      text: sitter.petsOnFurniture ? m.sitter['home.petsOnFurniture'] : m.sitter['home.petsOffFurniture'],
+    },
+    sitter.pottyBreakHours !== null && {
+      icon: 'clock' as const,
+      text: interpolate(m.sitter['home.pottyBreak'], { hours: sitter.pottyBreakHours }),
+    },
+  ] as Array<HomeFact | false | '' | null>).filter((x): x is HomeFact => Boolean(x));
 
   return (
     <>
@@ -378,56 +421,14 @@ export default async function SitterPage({
           <section className="card card-pad sitter-block">
             <h2 className="text-h2">{m.sitter.homeHeading}</h2>
 
-            {/*
-              IKI SUTUN, IKI FARKLI SEY.
-
-              Solda BIZIM kaydettigimiz gercekler (ev tipi, bahce, kac
-              hayvan), sagda bakicinin koydugu KURALLAR. Once hepsi tek
-              bir listeydi ve "sigara icilmiyor" ile "hayvanlar yatakta
-              yatabilir" ayni agirlikta okunuyordu; oysa biri evin hali,
-              digeri bakicinin tercihi.
-            */}
-            <div className="sitter-home-grid">
-              <ul className="sitter-facts">
-                {sitter.homeType && (
-                  <Fact>{m.onboarding[`home.${sitter.homeType}` as keyof Messages['onboarding']] as string}</Fact>
-                )}
-                {sitter.hasYard && <Fact>{sitter.yardFenced ? m.sitter['home.yardFenced'] : m.sitter['home.yard']}</Fact>}
-                {/*
-                  EVDEKI HAYVAN — UC DURUM, IKI DEGIL.
-
-                  "Hayvanim var" deyip fotograf koymamis bakicida bu satir
-                  HIC cikmiyor. "Hayvan yok" demiyoruz (yanlis olur),
-                  "hayvan var" da demiyoruz (dogrulanmamis). Sahibin en cok
-                  onemsedigi konu bu; bos bir soz vermektense susmak.
-                */}
-                {!sitter.hasOwnPets && <Fact>{m.sitter['home.noOwnPets']}</Fact>}
-                {sitter.showsOwnPets && <Fact>{m.sitter['home.ownPets']}</Fact>}
-                {sitter.smokeFree && <Fact>{m.sitter['home.smokeFree']}</Fact>}
-                <Fact>
-                  {sitter.maxConcurrentPets === 1
-                    ? m.sitter['home.maxPetsOne']
-                    : interpolate(m.sitter['home.maxPets'], { count: sitter.maxConcurrentPets })}
-                </Fact>
-                {/*
-                  Cocuk sorusu CEVAPLANDIYSA iki yonu de yaziliyor.
-                  null ise satir yok — cevaplanmamis bir soruyu "hayir"
-                  diye cizmek, bakicinin vermedigi bir sozdur.
-                */}
-                {sitter.hasChildren !== null && (
-                  <Fact>{sitter.hasChildren ? m.sitter['home.children'] : m.sitter['home.noChildren']}</Fact>
-                )}
-              </ul>
-
-              {rules.length > 0 && (
-                <div className="sitter-rules">
-                  <h3 className="text-h4">{m.sitter.rulesHeading}</h3>
-                  <ul className="sitter-facts sitter-facts-rules">
-                    {rules.map((r) => <Rule key={r}>{r}</Rule>)}
-                  </ul>
-                </div>
-              )}
-            </div>
+            <ul className="home-facts">
+              {homeFacts.map((f) => (
+                <li key={f.text}>
+                  <HomeIcon name={f.icon} slashed={f.slashed ?? false} />
+                  <span>{f.text}</span>
+                </li>
+              ))}
+            </ul>
 
             {/* Guvenlik — bakicinin kendi cumlesi, oyle etiketli */}
             {sitter.safetyText && (
@@ -502,29 +503,50 @@ export default async function SitterPage({
 
           {/* --- Yorumlar --- */}
           <section>
-            <h2 className="text-h2">{m.sitter.reviewsHeading}</h2>
             {sitter.reviews.length === 0 ? (
-              <p className="muted" style={{ marginTop: 'var(--space-4)' }}>{m.sitter.noReviews}</p>
+              <>
+                <h2 className="text-h2">{m.sitter.reviewsHeading}</h2>
+                <p className="muted" style={{ marginTop: 'var(--space-4)' }}>{m.sitter.noReviews}</p>
+              </>
             ) : (
               <>
-                <p className="muted tabular" style={{ marginTop: 'var(--space-2)' }}>
-                  {interpolate(m.sitter.reviewCount, {
-                    count: numberFmt(sitter.reviewCount, locale),
-                    rating: sitter.averageRating.toFixed(1),
-                  })}
-                </p>
-
                 {/*
-                  PUAN DAGILIMI. Ortalama tek basina "kac kisi kac verdi"
-                  sorusunu cevaplamiyor: 4.6, "hepsi 4-5 verdi" de olabilir
-                  "cogu 5, biri 1 verdi" de. Ikisi ayni bakici degil.
+                  BASLIK SOLDA, DAGILIM SAGDA — AYNI SATIRDA.
+
+                  Dagilim basligin altinda, sayfanin sol kenarinda
+                  duruyordu: cubuklar ana sutunun ucte birini kapliyor
+                  ve sagindaki bosluk yuzunden "yarim kalmis" gibi
+                  gorunuyordu. Sag kenara alininca hem bosluk kapandi
+                  hem de ortalama ile dagilim goz hizasinda yan yana —
+                  "4,9" ile "11 kisi 5 verdi" birlikte okunuyor.
+
+                  Dar ekranda alt alta dusuyor (flex-wrap); orada
+                  yan yana koymak cubuklari okunmaz ediyordu.
                 */}
-                <RatingBreakdown
-                  counts={sitter.ratingCounts}
-                  total={sitter.reviewCount}
-                  locale={locale}
-                />
-                <div className="grid" style={{ gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
+                <div className="reviews-head">
+                  <div>
+                    <h2 className="text-h2" style={{ margin: 0 }}>{m.sitter.reviewsHeading}</h2>
+                    <p className="muted tabular" style={{ marginTop: 'var(--space-2)' }}>
+                      {interpolate(m.sitter.reviewCount, {
+                        count: numberFmt(sitter.reviewCount, locale),
+                        rating: sitter.averageRating.toFixed(1),
+                      })}
+                    </p>
+                  </div>
+
+                  {/*
+                    PUAN DAGILIMI. Ortalama tek basina "kac kisi kac verdi"
+                    sorusunu cevaplamiyor: 4.6, "hepsi 4-5 verdi" de olabilir
+                    "cogu 5, biri 1 verdi" de. Ikisi ayni bakici degil.
+                  */}
+                  <RatingBreakdown
+                    counts={sitter.ratingCounts}
+                    total={sitter.reviewCount}
+                    locale={locale}
+                  />
+                </div>
+
+                <div className="grid" style={{ gap: 'var(--space-3)', marginTop: 'var(--space-6)' }}>
                   {sitter.reviews.map((r) => (
                     <article key={r.id} className="card card-pad">
                       <div className="row" style={{ justifyContent: 'space-between' }}>
@@ -710,27 +732,6 @@ function Stat({ value, label }: { value: string; label: string }) {
     <li>
       <span className="text-numeral">{value}</span>
       <span className="text-body-sm muted">{label}</span>
-    </li>
-  );
-}
-
-/**
- * EV KURALI — onay isareti DEGIL, notr bir isaret.
- *
- * "Hayvanlar yatakta yatmaz" cumlesinin yanindaki yesil onay isareti,
- * bunu bir BASARI gibi okutuyordu. Kural bir tercih; dogru ya da
- * yanlis degil, sadece bilinmesi gereken bir sey.
- */
-function Rule({ children }: { children: React.ReactNode }) {
-  return (
-    <li>
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-        strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-        <circle cx="8" cy="8" r="5.5" />
-        <path d="M8 5.5v3" />
-        <path d="M8 10.6v.1" />
-      </svg>
-      {children}
     </li>
   );
 }

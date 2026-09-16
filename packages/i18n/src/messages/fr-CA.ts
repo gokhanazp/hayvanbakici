@@ -815,7 +815,6 @@ export const frCA = {
     ownerPrefsHeading: '{name} aimerait savoir',
     ownerPrefsLead: 'Répondez-y dans votre premier message et vous aurez une réponse plus vite.',
     ownWordsNote: 'Écrit par {name}. Havre ne vérifie pas ces réponses — ce que nous vérifions, ce sont les badges ci-dessus.',
-    rulesHeading: 'Règles de la maison',
     accepts: 'Accepte',
     sizeRange: '{min}\u2013{max}\u00a0kg',
     extraPetLine: '{amount} par animal suppl\u00e9mentaire, par {unit}',

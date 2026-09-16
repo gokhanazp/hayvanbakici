@@ -853,7 +853,6 @@ export const enCA = {
     ownerPrefsHeading: '{name} would like to know',
     ownerPrefsLead: 'Answer this in your first message and you will hear back faster.',
     ownWordsNote: 'Written by {name}. Havre does not check these answers \u2014 the badges above are what we verify.',
-    rulesHeading: 'House rules',
     accepts: 'Accepts',
     sizeRange: '{min}–{max} kg',
     extraPetLine: '{amount} for each extra pet, per {unit}',
