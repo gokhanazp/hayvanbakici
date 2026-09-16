@@ -86,6 +86,16 @@ const entries = Object.entries(PHOTOS);
 await mkdir(outRoot, { recursive: true });
 
 let i = 0;
+/*
+  URETILEN YUVALAR ISARETLENIYOR.
+
+  Yer tutucu, gercek fotografla AYNI dosya adina yaziliyor (kasitli: kod
+  tek bir yol biliyor). Ama `photos:fetch` "dosya zaten var mi" diye
+  bakip atliyordu — yani yer tutucu uretildikten sonra gercek fotograf
+  HIC INMIYORDU ve bu sessizce oluyordu: CREDITS.md yaziliyor, gorseller
+  degismiyor. Bu dosya o iki betigin birbirini gormesini sagliyor.
+*/
+const placeholders: string[] = [];
 for (const [id, spec] of entries) {
   const t = TINTS[spec.tint];
   if (!t) throw new Error(`gecersiz tint: ${id}`);
@@ -96,8 +106,14 @@ for (const [id, spec] of entries) {
   await mkdir(dirname(out), { recursive: true });
   const buf = await sharp(Buffer.from(svg)).jpeg({ quality: 72, mozjpeg: true }).toBuffer();
   await writeFile(out, buf);
+  placeholders.push(id);
   i += 1;
 }
+
+await writeFile(
+  join(outRoot, '.placeholders.json'),
+  `${JSON.stringify(placeholders.sort(), null, 2)}\n`,
+);
 
 await writeFile(
   join(outRoot, 'README.md'),
@@ -106,6 +122,8 @@ await writeFile(
 Bu klasordeki JPEG'ler **yer tutucudur** — \`npm run photos:placeholders\` uretir.
 Gercek fotograflar icin \`UNSPLASH_ACCESS_KEY\` ile \`npm run photos:fetch\`
 calistirin; ayni dosya adlarinin uzerine yazar ve CREDITS.md olusturur.
+Hangi yuvanin hala yer tutucu oldugu \`.placeholders.json\` icinde yazili;
+fetch bu listeye bakarak yer tutucunun uzerine \`--force\` olmadan yaziyor.
 Kendi fotograflarinizi da ayni ad ve orana kaydederek koyabilirsiniz.
 Yuva listesi: \`apps/web/src/lib/photos.ts\`
 `,

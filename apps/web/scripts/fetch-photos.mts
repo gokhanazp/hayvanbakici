@@ -105,6 +105,25 @@ interface UPhoto {
 
 const used = new Set(Object.values(lock).map((e) => e.photoId));
 
+/*
+  YER TUTUCU = DOSYA YOK SAYILIR.
+
+  Yer tutucu uretici, gercek fotografla AYNI dosya adina yaziyor. Asagidaki
+  "zaten var, atla" kontrolu bunu gercek fotograf saniyordu: yer tutucular
+  bir kez uretildikten sonra `photos:fetch` HICBIR SEY indirmiyor, ama
+  CREDITS.md'yi yazdigi icin calismis GIBI gorunuyordu (bu bizzat yasandi —
+  atiflar guncellendi, ekrandaki pembe degradeler kaldi).
+
+  make-photo-placeholders.mts hangi yuvalari urettigini .placeholders.json'a
+  yaziyor; buradaki yuvalar "yok" sayiliyor ve uzerlerine yaziliyor.
+*/
+const placeholderPath = join(outRoot, '.placeholders.json');
+const placeholders = new Set<string>(
+  await readFile(placeholderPath, 'utf8')
+    .then((t) => JSON.parse(t) as string[])
+    .catch(() => []),
+);
+
 let done = 0;
 let skipped = 0;
 
@@ -121,7 +140,8 @@ for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS
   const locked = lock[id];
   const staleQuery = locked !== undefined && locked.query !== spec.query;
 
-  if (!force && locked && !staleQuery && (await exists(out)) && !only) {
+  const isPlaceholder = placeholders.has(id);
+  if (!force && locked && !staleQuery && !isPlaceholder && (await exists(out)) && !only) {
     skipped += 1;
     continue;
   }
@@ -159,6 +179,7 @@ for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS
   if (!bin.ok) throw new Error(`indirme basarisiz ${id}: ${bin.status}`);
   await mkdir(dirname(out), { recursive: true });
   await writeFile(out, Buffer.from(await bin.arrayBuffer()));
+  placeholders.delete(id);
 
   // Kilit HER YUVADAN SONRA yaziliyor: tur ortasinda kota biterse
   // o ana kadarki secimler kaybolmaz.
@@ -168,6 +189,10 @@ for (const [id, spec] of Object.entries(PHOTOS) as Array<[PhotoId, typeof PHOTOS
 }
 
 await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+await writeFile(
+  placeholderPath,
+  `${JSON.stringify([...placeholders].sort(), null, 2)}\n`,
+);
 
 const credits = Object.entries(lock)
   .map(([id, e]) => `- **${id}** — [${e.author}](${e.authorUrl}?utm_source=havre&utm_medium=referral) / [Unsplash](${e.page})`)
@@ -183,3 +208,9 @@ console.log(
   `CREDITS.md ve photos.lock.json guncellendi — ${done} indirildi` +
   (skipped ? `, ${skipped} zaten vardi (yenilemek icin --force)` : '') + '.',
 );
+if (placeholders.size > 0) {
+  console.warn(
+    `UYARI: ${placeholders.size} yuva hala YER TUTUCU: ` +
+    `${[...placeholders].sort().join(', ')}`,
+  );
+}
