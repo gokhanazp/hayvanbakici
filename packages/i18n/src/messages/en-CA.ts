@@ -680,6 +680,18 @@ export const enCA = {
     rights: '© {year} Havre. Built in Canada.',
     notInsurance: 'The Havre Protection programme is a company guarantee, not an insurance product, and it does not replace your own insurance.',
   },
+  header: {
+    /*
+      UST SERIT — sitenin iki sozu, tek satirda. Ikisi de baska
+      sayfalarda AYNI sekilde yaziyor: "arka plan kontrollu bakicilar"
+      ana sayfanin alt basligindan, "her ucret gosterilir" ucret
+      sayfasinin sozu. Serit yeni bir iddia ACMIYOR.
+    */
+    stripNote: 'Background-checked sitters · Every fee shown before you book',
+    /* Dar ekranda tam cumle iki satira boluyor; en ayirt edici yarisi kaliyor. */
+    stripNoteShort: 'Every fee shown before you book',
+    follow: 'Follow Havre',
+  },
   menu: {
     open: 'Menu',
     close: 'Close menu',

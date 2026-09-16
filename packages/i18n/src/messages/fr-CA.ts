@@ -656,6 +656,12 @@ export const frCA = {
     rights: '© {year} Havre. Conçu au Canada.',
     notInsurance: 'Le programme Protection Havre est une garantie de l\u2019entreprise, pas un produit d\u2019assurance, et il ne remplace pas votre propre assurance.',
   },
+  header: {
+    stripNote:
+      'Gardiens dont les antécédents sont vérifiés · Tous les frais affichés avant de réserver',
+    stripNoteShort: 'Tous les frais affichés avant de réserver',
+    follow: 'Suivre Havre',
+  },
   menu: {
     open: 'Menu',
     close: 'Fermer le menu',

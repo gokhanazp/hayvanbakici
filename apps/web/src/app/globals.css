@@ -625,8 +625,24 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 
 /* ---------- Site kabugu ---------- */
+/*
+  IKI KATLI BASLIK: koyu ust serit + beyaz ana cubuk.
+
+  SERIT KAYARAK GIDER, CUBUK KALIR. Baslik `top` degeri seridin
+  yuksekligi kadar EKSI: sayfa kayinca once serit yukari cikar, ana
+  cubuk 0'a gelince yapisir. Boylece sayfanin tepesinde iki kat, geri
+  kalan her yerde tek cubuk var — kalabalik cozuluyor ama ekrandan
+  surekli yer calinmiyor.
+
+  --header-h: yapisan yukseklik. Yan sutunlar (bakici profili, sihirbaz)
+  bu degeri okuyor; sabit 72px yaziliydi ve cubuk buyuyunce ustleri
+  kesiliyordu.
+*/
+:root { --strip-h: 38px; --header-h: 84px; }
+@media (max-width: 999px) { :root { --strip-h: 34px; --header-h: 68px; } }
+
 .site-header {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: calc(var(--strip-h) * -1); z-index: 50;
   /* Beyaz cubuk, krem degil: baslik artik RENKLI bantlarin uzerinde duruyor
      ve krem zemin blush bandin yaninda "yanlis krem" gibi bir dikis
      birakiyordu. Beyaz, bilincli bir cubuk gibi okunuyor. */
@@ -636,7 +652,64 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 .site-header-inner {
   display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-5); min-height: 72px;
+  gap: var(--space-5); min-height: var(--header-h);
+}
+
+/* --- Ust serit --- */
+.site-strip {
+  background: var(--color-panel); color: var(--color-panel-ink-muted);
+  font-size: 0.8125rem;
+}
+.site-strip-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); min-height: var(--strip-h);
+}
+.site-strip-note { margin: 0; }
+.site-strip-end { display: flex; align-items: center; gap: var(--space-3); }
+
+/*
+  DAR EKRANDA CUMLE GIDER, DIL KALIR. 390px'de o cumle iki satira
+  boluniyor ve seridin isi bitiyor; dil secimi ise ana cubukta yer
+  bulamadigi icin burada kalmali.
+*/
+.site-strip-short { display: none; }
+@media (max-width: 767px) {
+  .site-strip-long { display: none; }
+  .site-strip-short { display: inline; }
+}
+/*
+  Cok dar ekranda (kucuk telefonlar) kisa cumle bile dil secimini
+  sikistiriyor; orada serit yalnizca dili tasiyor.
+*/
+@media (max-width: 400px) {
+  .site-strip-note { display: none; }
+  .site-strip-inner { justify-content: flex-end; }
+}
+
+.strip-lang { display: inline-flex; align-items: center; gap: var(--space-2); }
+.strip-lang-item { display: inline-flex; align-items: center; gap: var(--space-2); }
+.strip-lang a {
+  display: inline-flex; align-items: center; min-height: 24px;
+  padding-inline: 2px; color: var(--color-panel-ink-muted);
+}
+.strip-lang a:hover { color: var(--color-panel-ink); }
+.strip-lang-on { color: var(--color-panel-ink); font-weight: 600; }
+.strip-lang-sep { color: color-mix(in srgb, var(--color-panel-ink) 30%, transparent); }
+
+.social-links { display: inline-flex; align-items: center; gap: 2px; }
+.social-link {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: var(--radius-full);
+  color: var(--color-ink-muted);
+  transition: color var(--duration-standard) var(--easing-standard),
+              background-color var(--duration-standard) var(--easing-standard);
+}
+.social-link:hover { color: var(--color-primary); background: var(--color-primary-subtle); }
+/* Koyu serit uzerinde ayni ikonlar */
+.social-links-strip .social-link { width: 26px; height: 26px; color: var(--color-panel-ink-muted); }
+.social-links-strip .social-link:hover {
+  color: var(--color-panel-ink);
+  background: color-mix(in srgb, var(--color-panel-ink) 12%, transparent);
 }
 
 .wordmark-lockup { display: inline-flex; align-items: center; gap: var(--space-2); }
@@ -644,8 +717,16 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
 
 /* --- Ana gezinme --- */
-.site-nav { display: none; align-items: center; gap: var(--space-1); }
-@media (min-width: 1000px) { .site-nav { display: flex; } }
+/*
+  Menu markanin HEMEN yaninda. Onceden uc oge arasi bosluk esit
+  dagitiliyordu ve menu sayfanin ortasinda, hicbir seye bagli olmadan
+  duruyordu; marka ile menu arasindaki bag okunmuyordu. Sagda kalan
+  bosluk kasitli: eylem alanini nefes aldiriyor.
+*/
+.site-nav { display: none; align-items: center; gap: var(--space-2); }
+@media (min-width: 1000px) {
+  .site-nav { display: flex; margin-inline-start: var(--space-8); margin-inline-end: auto; }
+}
 
 .nav-link {
   display: inline-flex; align-items: center; gap: var(--space-1);
@@ -950,7 +1031,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 @media (min-width: 960px) {
   .wizard-body { grid-template-columns: minmax(0, 1fr) 19rem; gap: var(--space-10); }
-  .wizard-aside { position: sticky; top: calc(72px + var(--space-6)); }
+  .wizard-aside { position: sticky; top: calc(var(--header-h) + var(--space-6)); }
 }
 .wizard-card {
   background: var(--color-surface);
@@ -1458,7 +1539,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 
 .sitter-aside { min-width: 0; }
-@media (min-width: 1000px) { .sitter-aside { position: sticky; top: calc(72px + var(--space-6)); } }
+@media (min-width: 1000px) { .sitter-aside { position: sticky; top: calc(var(--header-h) + var(--space-6)); } }
 .sitter-book { display: grid; gap: var(--space-4); }
 
 /*

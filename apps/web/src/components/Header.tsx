@@ -5,6 +5,7 @@ import { Wordmark } from '@/components/Wordmark';
 import { HeaderAccount } from '@/components/auth/HeaderAccount';
 import { SitterCta } from '@/components/auth/SitterCta';
 import { NavDismiss } from '@/components/NavDismiss';
+import { SocialLinks } from '@/components/SocialLinks';
 
 /**
  * SITE BASLIGI.
@@ -18,6 +19,18 @@ import { NavDismiss } from '@/components/NavDismiss';
  * TEK ISTISNA — NavDismiss: <details> disariya tiklandiginda kapanmaz ve
  * menu acik kalirdi. O bilesen yalnizca kapatmayi ekliyor; acma/kapama
  * hala tarayicinin isi ve JS yuklenmeden once de calisiyor.
+ *
+ * IKI KATLI: ust serit + ana cubuk.
+ *
+ * NEDEN: tek sirada yedi ayri is vardi — marka, hizmet menusu, dort
+ * baglanti, dil, giris, ana dugme. Hepsi ayni yukseklikte yarisinca
+ * cubuk dar ve kalabalik okunuyordu. Ikincil olanlar (dil, sosyal
+ * hesaplar, sitenin iki sozu) UST SERIDE tasindi; ana cubukta yalnizca
+ * gezinme ve eylem kaldi.
+ *
+ * SERIT KAYARAK GIDER, CUBUK KALIR: baslik `top: -serit yuksekligi` ile
+ * yapistiriliyor, dolayisiyla serit yalnizca sayfanin tepesinde
+ * goruluyor; asagi kaydirinca ekranda eskisi kadar yer kapliyor.
  *
  * DIL SECIMI: IP tabanli otomatik yonlendirme YOK (yol haritasi §7.2).
  * Googlebot cogunlukla ABD IP'sinden gelir; otomatik yonlendirme fr-CA
@@ -36,6 +49,25 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
   return (
     <header className="site-header">
       <NavDismiss />
+
+      {/*
+        UST SERIT. Sol taraftaki cumle ana sayfanin alt basligiyla ayni
+        seyi soyluyor — yeni bir iddia degil. Sagda sosyal hesaplar
+        (yoksa hic cizilmiyor) ve dil secimi.
+      */}
+      <div className="site-strip">
+        <div className="container site-strip-inner">
+          <p className="site-strip-note">
+            <span className="site-strip-long">{m.header.stripNote}</span>
+            <span className="site-strip-short">{m.header.stripNoteShort}</span>
+          </p>
+          <div className="site-strip-end">
+            <SocialLinks size={15} className="social-links-strip" />
+            <LocaleSwitch locale={locale} />
+          </div>
+        </div>
+      </div>
+
       <div className="container site-header-inner">
         <Link href={`/${seg}`} aria-label={m.brand.name}>
           <Wordmark />
@@ -67,7 +99,7 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
         </nav>
 
         <div className="site-header-actions">
-          <LocaleSwitch locale={locale} />
+          {/* Dil secimi ust seride tasindi — burasi yalnizca hesap ve eylem */}
           {/* Hesap alani dar ekranda cekmeceye tasiniyor (CSS) */}
           <span className="header-account">
             <HeaderAccount locale={locale} />
@@ -115,22 +147,32 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
   );
 }
 
+/**
+ * DIL SECIMI — koyu serit uzerinde.
+ *
+ * Alt bilgideki hap bicimli secici burada calismiyordu: koyu zeminde
+ * acik bir hap, yanindaki sosyal ikonlarla yarisan ikinci bir nesne
+ * olarak okunuyor. Serit uzerinde duz metin: secili olan beyaz ve
+ * kalin, digeri soluk. Renk tek tasiyici degil — aria-current da var.
+ */
 function LocaleSwitch({ locale }: { locale: Locale }) {
   const m = getMessages(locale);
   return (
-    <div className="locale-switch" role="group" aria-label={m.footer.languageLabel}>
-      {LOCALES.map((l) => {
+    <div className="strip-lang" role="group" aria-label={m.footer.languageLabel}>
+      {LOCALES.map((l, i) => {
         const active = l === locale;
         return (
-          <Link
-            key={l}
-            href={`/${segmentFor(l)}`}
-            hrefLang={l}
-            className={active ? 'locale-switch-on' : undefined}
-            aria-current={active ? 'true' : undefined}
-          >
-            {segmentFor(l).toUpperCase()}
-          </Link>
+          <span key={l} className="strip-lang-item">
+            {i > 0 && <span className="strip-lang-sep" aria-hidden="true">/</span>}
+            <Link
+              href={`/${segmentFor(l)}`}
+              hrefLang={l}
+              className={active ? 'strip-lang-on' : undefined}
+              aria-current={active ? 'true' : undefined}
+            >
+              {segmentFor(l).toUpperCase()}
+            </Link>
+          </span>
         );
       })}
     </div>
