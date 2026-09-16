@@ -316,11 +316,24 @@ export interface FeaturedReview {
   authorInitial: string;
   authorAvatarUrl: string | null;
   sitterFirstName: string;
+  sitterInitial: string;
+  /** Yorumun konusu olan kisinin fotografi — kartin guven capasi */
+  sitterAvatarUrl: string | null;
   sitterSlug: string;
   citySlugEn: string;
   citySlugFr: string;
   cityNameEn: string;
   cityNameFr: string;
+  /**
+   * Yorumun geldigi rezervasyonun bilgileri. Hepsi NULL olabilir:
+   * rezervasyona baglanmamis bir yorum kaydi teknik olarak mumkun ve
+   * arayuz o durumda bu satirlari HIC cizmiyor — bos bir rozet
+   * "dogrulanmis" demekten daha kotu.
+   */
+  serviceType: ServiceType | null;
+  petName: string | null;
+  petSpecies: string | null;
+  petPhotoUrl: string | null;
   publishedAt: string;
 }
 
@@ -340,14 +353,32 @@ export async function listFeaturedReviews(
              r.id, r.rating, r.body, r.published_at,
              a.first_name AS author_first, a.last_name_initial AS author_initial,
              a.avatar_url AS author_avatar,
-             sp.first_name AS sitter_first, st.slug AS sitter_slug,
+             sp.first_name AS sitter_first, sp.last_name_initial AS sitter_initial,
+             sp.avatar_url AS sitter_avatar, st.slug AS sitter_slug,
              c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
-             c.name_en AS city_name_en, c.name_fr AS city_name_fr
+             c.name_en AS city_name_en, c.name_fr AS city_name_fr,
+             bk.service_type::text AS service_type,
+             pet.name AS pet_name, pet.species::text AS pet_species,
+             pet.photo_url AS pet_photo
       FROM reviews r
       JOIN sitters st ON st.user_id = r.subject_id AND st.status = 'active'
       JOIN profiles sp ON sp.user_id = st.user_id
       JOIN cities c ON c.id = sp.city_id
       LEFT JOIN profiles a ON a.user_id = r.author_id
+      /*
+        Yorumun geldigi rezervasyon: hangi hizmet ve HANGI HAYVAN icin
+        yazildigi buradan geliyor. LEFT: rezervasyonsuz bir yorum kaydi
+        listeyi dusurmemeli.
+      */
+      LEFT JOIN bookings bk ON bk.id = r.booking_id
+      /*
+        Rezervasyondaki ILK hayvan. pet_ids bir JSONB dizisi; iki
+        hayvanli bir rezervasyonda kartta ikisini birden gostermek
+        yerini doldurmuyor, ilki yeterli.
+      */
+      LEFT JOIN pets pet
+        ON pet.id = NULLIF(bk.pet_ids->>0, '')::uuid
+       AND pet.deleted_at IS NULL
       WHERE r.direction = 'owner_to_sitter'
         AND r.published_at IS NOT NULL
         -- Moderasyonda gizlenen yorum HICBIR genel listede gorunmez
@@ -372,11 +403,17 @@ export async function listFeaturedReviews(
       authorInitial: String(r.author_initial ?? ''),
       authorAvatarUrl: (r.author_avatar as string | null) ?? null,
       sitterFirstName: String(r.sitter_first ?? ''),
+      sitterInitial: String(r.sitter_initial ?? ''),
+      sitterAvatarUrl: (r.sitter_avatar as string | null) ?? null,
       sitterSlug: String(r.sitter_slug ?? ''),
       citySlugEn: String(r.city_slug_en),
       citySlugFr: String(r.city_slug_fr),
       cityNameEn: String(r.city_name_en),
       cityNameFr: String(r.city_name_fr),
+      serviceType: (r.service_type as ServiceType | null) ?? null,
+      petName: (r.pet_name as string | null) ?? null,
+      petSpecies: (r.pet_species as string | null) ?? null,
+      petPhotoUrl: (r.pet_photo as string | null) ?? null,
       publishedAt: new Date(r.published_at as Date).toISOString(),
     }));
   });

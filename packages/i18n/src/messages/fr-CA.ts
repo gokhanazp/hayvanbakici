@@ -690,6 +690,9 @@ export const frCA = {
     subtitle: 'Ce sont des avis laissés sur Havre, pas du texte publicitaire. Chacun renvoie au gardien concerné.',
     about: 'à propos de {sitter}',
     note: 'Seuls les propriétaires ayant terminé une réservation peuvent laisser un avis, et les deux côtés restent masqués jusqu’à la fermeture de la période d’évaluation.',
+    verifiedBooking: 'Réservation vérifiée',
+    forPet: 'pour {pet}',
+    writtenBy: 'Écrit par {name}',
   },
   sitterLanding: {
     eyebrow: 'Pour les gardiens',

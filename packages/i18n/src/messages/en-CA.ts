@@ -720,6 +720,9 @@ export const enCA = {
     subtitle: 'These are review lines left on Havre, not marketing copy. Each one links to the sitter it was written about.',
     about: 'about {sitter}',
     note: 'Only owners who completed a booking can leave a review, and both sides stay hidden until the review window closes.',
+    verifiedBooking: 'Verified booking',
+    forPet: 'for {pet}',
+    writtenBy: 'Written by {name}',
   },
   sitterLanding: {
     eyebrow: 'For sitters',

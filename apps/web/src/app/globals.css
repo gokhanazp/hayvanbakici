@@ -1991,19 +1991,79 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .sitter-strip-item img { transition: none; } }
 
 /* ---------- Referanslar ---------- */
+/*
+  REFERANS KARTI.
+
+  Once: yildizlar, alinti, altta yorumu yazanin adi. Uc kart da ayni
+  gorunuyordu ve kimseyi gostermiyordu — "kimi kiralayacagim" sorusuna
+  cevap vermiyordu. Simdi kart BAKICIYLA basliyor (yuz, hizmet, sehir),
+  altinda hangi hayvan icin yazildigi ve rezervasyonun dogrulanmis
+  oldugu duruyor. Uc bilgi de kayitlardan geliyor; hicbiri elle
+  yazilmadi.
+*/
 .testimonial {
-  display: grid; gap: var(--space-4); align-content: start;
-  padding: var(--space-6);
+  /*
+    `1fr` SATIRI ALINTIDA: uc kartin metni farkli uzunlukta ve alt
+    bolumler farkli yuksekliklerde asili kaliyordu. Bosluk alintiya
+    veriliyor, boylece hayvan satiri ve rozet uc kartta da ayni hizada.
+  */
+  display: grid; grid-template-rows: auto auto 1fr auto;
+  gap: var(--space-4); align-content: stretch;
+  padding: var(--space-5) var(--space-6) var(--space-5);
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sticker-sm);
 }
+
+.testimonial-sitter {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: inherit;
+}
+.testimonial-sitter:hover .testimonial-sitter-name {
+  color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px;
+}
+.testimonial-sitter-text { display: grid; gap: 1px; min-width: 0; }
+.testimonial-sitter-name { font-weight: 600; }
+.testimonial-sitter-meta {
+  display: flex; align-items: center; gap: var(--space-1);
+  font-size: 0.8125rem; color: var(--color-ink-muted);
+}
+.testimonial-sitter-meta svg { color: var(--color-primary); flex: none; }
+
+.testimonial-foot {
+  display: grid; gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.testimonial-pet {
+  display: flex; align-items: center; gap: var(--space-3);
+  font-weight: 600; font-size: 0.875rem;
+}
+.testimonial-pet > span { white-space: nowrap; }
+.testimonial-pet img {
+  width: 36px; height: 36px; border-radius: var(--radius-full);
+  object-fit: cover; flex: none;
+}
+.testimonial-pet-glyph {
+  display: grid; place-items: center; flex: none;
+  width: 36px; height: 36px; border-radius: var(--radius-full);
+  background: var(--color-tile-apricot); color: var(--color-tile-apricot-ink);
+}
+.testimonial-by { display: grid; gap: 2px; font-size: 0.75rem; }
+.testimonial-verified {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-weight: 600; color: var(--color-accent-hover);
+}
 .testimonial-quote {
   font-family: var(--font-display); font-weight: 500;
   font-size: 1.0625rem; line-height: 1.65rem; letter-spacing: -0.01em;
 }
-.testimonial-foot { display: flex; align-items: center; gap: var(--space-3); }
+/* Eski duz satir kurali KALDIRILDI: yenisinden SONRA geldigi icin onu
+   eziyordu — kartin alt bolumu tek satira sikisiyor, hayvan adi iki
+   satira boluniyordu. */
 .stars { color: var(--color-warning); letter-spacing: .12em; font-size: 0.875rem; }
 
 /* ---------- Fotografli banner ----------

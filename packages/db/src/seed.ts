@@ -12,7 +12,7 @@ import * as s from './schema/index.js';
 import {
   SEED_CITIES, FIRST_NAMES, HOME_TYPES, BASE_PRICE_CENTS,
   REVIEW_BODIES_EN, REVIEW_BODIES_FR, BIOS,
-  PERSON_PHOTO_SLOTS, HOME_PHOTO_SLOTS,
+  PERSON_PHOTO_SLOTS, HOME_PHOTO_SLOTS, PET_SEEDS,
 } from './seed-data.js';
 import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
 import { sitterSlug } from './queries/onboarding.js';
@@ -195,6 +195,8 @@ const allServices = await db.select({
   gorunmesi icin isimli, profilli sahipler gerekiyor.
 */
 const ownerIds: string[] = [];
+/** sahip -> hayvan; rezervasyonu dogru hayvana baglamak icin */
+const ownerPetIds = new Map<string, string>();
 for (let i = 0; i < 30; i++) {
   const [u] = await db.insert(s.users).values({
     email: `owner${i}@seed.havre.test`,
@@ -209,6 +211,22 @@ for (let i = 0; i < 30; i++) {
     // ucte biri bilerek fotografsiz birakildi, arayuz o hali de tasimali.
     avatarUrl: i % 3 === 0 ? null : PERSON_PHOTO_SLOTS[(i * 7) % PERSON_PHOTO_SLOTS.length]!,
   });
+  /*
+    HER SAHIBIN BIR HAYVANI VAR. Rezervasyonlar bu hayvana baglaniyor;
+    daha once petIds bos birakiliyordu ve demo ekranlarda "hangi hayvan"
+    satiri hic gorunmuyordu — siteden yapilan gercek bir rezervasyon ise
+    her zaman bir hayvan tasiyor.
+  */
+  const petSeed = PET_SEEDS[i % PET_SEEDS.length]!;
+  const [pet] = await db.insert(s.pets).values({
+    ownerId: u!.id,
+    name: petSeed.name,
+    species: petSeed.species,
+    breed: petSeed.breed,
+    weightKg: petSeed.species === 'cat' ? 4 + (i % 3) : 8 + (i % 22),
+  }).returning({ id: s.pets.id });
+  ownerPetIds.set(u!.id, pet!.id);
+
   ownerIds.push(u!.id);
 }
 
@@ -247,7 +265,8 @@ for (const svcRow of allServices) {
     const [bk] = await db.insert(s.bookings).values({
       ownerId: bookingOwnerId, sitterId: svcRow.sitterId, serviceType: svcRow.serviceType,
       status: 'payout_released',
-      startAt: start, endAt: end, units, petIds: [],
+      startAt: start, endAt: end, units,
+      petIds: [ownerPetIds.get(bookingOwnerId)].filter((x): x is string => Boolean(x)),
       unitPriceCents: svcRow.priceCents, baseCents: subtotal, subtotalCents: subtotal,
       ownerFeeCents: ownerFee, ownerTaxCents: Math.round(ownerFee * 0.13),
       ownerTotalCents: subtotal + ownerFee + Math.round(ownerFee * 0.13),

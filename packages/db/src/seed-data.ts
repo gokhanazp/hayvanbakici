@@ -181,3 +181,26 @@ export const PERSON_PHOTO_SLOTS = [
 ] as const;
 
 export const HOME_PHOTO_SLOTS = ['home-a', 'home-b', 'home-c', 'care-a', 'care-b'] as const;
+
+/**
+ * TOHUM HAYVAN ADLARI.
+ *
+ * Kanada'da yaygin kullanilan adlar; ikisi Fransizca konusan sahipler
+ * icin. Rezervasyonlar bunlara baglaniyor — pet_ids BOS birakiliyordu
+ * ve bu yuzden demo ekranlarda "hangi hayvan" satiri hic gorunmuyordu,
+ * oysa siteden yapilan gercek bir rezervasyon her zaman bir hayvan
+ * tasiyor. Demo verinin gercekten daha yoksul olmasi, tasarimi yanlis
+ * yerden degerlendirmeye yol aciyordu.
+ */
+export const PET_SEEDS = [
+  { name: 'Maple',   species: 'dog' as const, breed: 'Golden retriever' },
+  { name: 'Nour',    species: 'cat' as const, breed: null },
+  { name: 'Biscuit', species: 'dog' as const, breed: 'Beagle' },
+  { name: 'Poutine', species: 'dog' as const, breed: 'Bernese mountain dog' },
+  { name: 'Sable',   species: 'cat' as const, breed: null },
+  { name: 'Moose',   species: 'dog' as const, breed: 'Labrador' },
+  { name: 'Clementine', species: 'cat' as const, breed: null },
+  { name: 'Pistache', species: 'dog' as const, breed: 'Border collie' },
+  { name: 'Juniper', species: 'dog' as const, breed: 'Husky' },
+  { name: 'Câline',  species: 'cat' as const, breed: null },
+];
