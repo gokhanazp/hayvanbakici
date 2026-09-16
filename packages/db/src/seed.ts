@@ -42,14 +42,47 @@ const point = (lon: number, lat: number) =>
 
 const SERVICE_LIST = servicesForPhase('v1_5');
 
+/*
+  TEMIZLIK — SENIN HESABINI SILMEDEN.
+
+  Once `users` tablosu da TRUNCATE ediliyordu ve her `db:seed`
+  cagrisi gelistiricinin kendi hesabini siliyordu: giris denendiginde
+  "e-posta ve sifre eslesmiyor" cikiyor, insan sifresini yanlis
+  hatirladigini saniyordu. Bizzat yasandi.
+
+  Artik yalnizca TOHUM hesaplari siliniyor (@seed.havre.test). Gercek
+  hesaplar, giris bilgileri (accounts), profilleri ve hayvanlari
+  yerinde kaliyor.
+
+  Bakici kayitlari (sitters) yine de temizleniyor: tohum bakicilari
+  ile gercek bir bakici ayni listede duramaz ve zaten sihirbaz bir
+  dakikada yeniden dolduruluyor.
+*/
+const SEED_EMAIL = '%@seed.havre.test';
+
 console.log('tablolar temizleniyor...');
+
+const keepRows = await db.execute(sql`
+  SELECT count(*)::int AS n FROM users WHERE email NOT LIKE ${SEED_EMAIL}
+`);
+const keep = Number((keepRows as unknown as Array<{ n: number }>)[0]?.n ?? 0);
+
 await db.execute(sql`
   TRUNCATE TABLE
     reviews, booking_events, bookings, sitter_availability, sitter_services,
-    verifications, pets, profiles, sitters, users,
+    verifications, sitters,
     landing_pages, neighbourhoods, cities
   RESTART IDENTITY CASCADE
 `);
+
+/* Tohum kullanicilarinin kendi satirlari — CASCADE gerisini hallediyor. */
+await db.execute(sql`DELETE FROM pets WHERE owner_id IN (SELECT id FROM users WHERE email LIKE ${SEED_EMAIL})`);
+await db.execute(sql`DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE ${SEED_EMAIL})`);
+await db.execute(sql`DELETE FROM users WHERE email LIKE ${SEED_EMAIL}`);
+
+if (keep > 0) {
+  console.log(`${keep} gercek hesap korundu (tohum olmayanlar).`);
+}
 
 let sitterTotal = 0;
 let bookingTotal = 0;
@@ -365,4 +398,35 @@ const [check] = (await db.execute(sql`
 `)) as unknown as Array<{ with_reviews: number }>;
 
 console.log(`tohum tamam: ${sitterTotal} bakici, ${bookingTotal} rezervasyon, ${check?.with_reviews ?? 0} bakicinin yorumu var`);
+
+/*
+  KORUNAN HESAPLARIN SEHRINI TAZELE.
+
+  Sehirler her tohumlamada yeniden uretiliyor ve kimlikleri degisiyor;
+  korunan bir profilin city_id'si eski bir sehri gosterir ve hesap
+  sayfasi bos bir sehirle acilir. (profiles.city_id'de yabanci anahtar
+  yok — bu yuzden veritabani bunu kendisi yakalamiyor.)
+*/
+const [firstCity] = (await db.execute(sql`
+  SELECT c.id::text AS city_id,
+         (SELECT n.id::text FROM neighbourhoods n WHERE n.city_id = c.id LIMIT 1) AS hood_id
+  FROM cities c ORDER BY c.tier, c.name_en LIMIT 1
+`)) as unknown as Array<{ city_id: string; hood_id: string | null }>;
+
+if (firstCity) {
+  const fixed = await db.execute(sql`
+    UPDATE profiles SET city_id = ${firstCity.city_id}::uuid,
+                        neighbourhood_id = ${firstCity.hood_id}::uuid
+    WHERE city_id IS NOT NULL
+      AND city_id NOT IN (SELECT id FROM cities)
+    RETURNING user_id
+  `);
+  const n = (fixed as unknown as Array<unknown>).length;
+  if (n > 0) console.log(`${n} korunan profilin sehri tazelendi.`);
+}
+
+if (keep > 0) {
+  console.log('Kendi hesaplarin duruyor — yeniden kayit olman gerekmiyor.');
+}
+
 await client.end();
