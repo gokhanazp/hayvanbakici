@@ -1414,7 +1414,20 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   min-width: 100%; width: max-content; max-width: min(26rem, calc(100vw - var(--space-8)));
   margin: 0; padding: var(--space-2);
   list-style: none;
-  max-height: 19rem; overflow-y: auto;
+  /*
+    KAYDIRMA YOK — TASMIYORSA.
+
+    Sabit 19rem, dort secenegin durdugu bir listede bile kaydirma
+    cubugu cikariyordu: son secenek ("Dog walking") yarim goruluyor,
+    kullanici listenin devami oldugunu sanip kaydiriyordu. Dort
+    seceneklik bir menude kaydirma, hem gereksiz hem de listeyi
+    oldugundan uzun gosteriyor.
+
+    Sinir artik EKRANA gore: liste ancak gercekten pencereye sigmiyorsa
+    kayiyor. Siniri tamamen kaldirmak dogru degil — kucuk bir telefonda
+    ekrandan tasan bir menude alttaki secenege hic ulasilamaz.
+  */
+  max-height: min(70vh, 32rem); overflow-y: auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
