@@ -43,46 +43,70 @@ const point = (lon: number, lat: number) =>
 const SERVICE_LIST = servicesForPhase('v1_5');
 
 /*
-  TEMIZLIK — SENIN HESABINI SILMEDEN.
+  TEMIZLIK — SENIN VERINI SILMEDEN.
 
-  Once `users` tablosu da TRUNCATE ediliyordu ve her `db:seed`
-  cagrisi gelistiricinin kendi hesabini siliyordu: giris denendiginde
-  "e-posta ve sifre eslesmiyor" cikiyor, insan sifresini yanlis
-  hatirladigini saniyordu. Bizzat yasandi.
+  Once neredeyse her sey TRUNCATE ediliyordu: gelistiricinin hesabi,
+  mesajlari, favorileri. Iki kez yasandi — once "sifrem calismiyor"
+  (hesap silinmisti), sonra "mesajlarim gitti".
 
-  Artik yalnizca TOHUM hesaplari siliniyor (@seed.havre.test). Gercek
-  hesaplar, giris bilgileri (accounts), profilleri ve hayvanlari
-  yerinde kaliyor.
+  UC KURAL:
 
-  Bakici kayitlari (sitters) yine de temizleniyor: tohum bakicilari
-  ile gercek bir bakici ayni listede duramaz ve zaten sihirbaz bir
-  dakikada yeniden dolduruluyor.
+  1. TOHUM KIMLIKLERI KALICI. Tohum kullanicilari, profilleri ve
+     bakici kayitlari SILINIP YENIDEN YARATILMIYOR; e-postaya gore
+     guncelleniyor (upsert). Kimlikleri sabit kalinca, o bakicilarla
+     yapilmis konusmalar ve favoriler de ayakta kaliyor.
+
+  2. TRUNCATE ... CASCADE DEGIL, DELETE.
+     TRUNCATE CASCADE, `ON DELETE SET NULL` yazsa bile referans veren
+     TABLOYU KOMPLE bosaltiyor: `TRUNCATE bookings CASCADE` konusmalari
+     da siliyordu. `DELETE FROM bookings` ise kurala uyuyor —
+     conversations.booking_id NULL oluyor, konusma duruyor.
+
+  3. GERCEK HESAPLAR HIC ELLENMIYOR.
+
+  Geriye kalan: rezervasyonlar, yorumlar, musaitlik, fiyatlar ve
+  sehirler her seferinde yeniden uretiliyor. Bunlar zaten uydurma veri.
 */
 const SEED_EMAIL = '%@seed.havre.test';
 
 console.log('tablolar temizleniyor...');
 
-const keepRows = await db.execute(sql`
-  SELECT count(*)::int AS n FROM users WHERE email NOT LIKE ${SEED_EMAIL}
+const beforeRows = await db.execute(sql`
+  SELECT
+    (SELECT count(*)::int FROM users WHERE email NOT LIKE ${SEED_EMAIL}) AS accounts,
+    (SELECT count(*)::int FROM messages) AS messages,
+    (SELECT count(*)::int FROM favourites) AS favourites
 `);
-const keep = Number((keepRows as unknown as Array<{ n: number }>)[0]?.n ?? 0);
+const before = (beforeRows as unknown as Array<{
+  accounts: number; messages: number; favourites: number;
+}>)[0] ?? { accounts: 0, messages: 0, favourites: 0 };
 
-await db.execute(sql`
-  TRUNCATE TABLE
-    reviews, booking_events, bookings, sitter_availability, sitter_services,
-    verifications, sitters,
-    landing_pages, neighbourhoods, cities
-  RESTART IDENTITY CASCADE
-`);
+/*
+  Rezervasyonlara BAGLI olup CASCADE'i olmayanlar once. Tohum bunlari
+  uretmiyor; yine de duruyorlarsa silinen bir rezervasyona bagli
+  kalirlar ve DELETE engellenirdi.
+*/
+await db.execute(sql`DELETE FROM claims`);
+await db.execute(sql`DELETE FROM disputes`);
+await db.execute(sql`DELETE FROM reviews`);
+/* booking_events, meet_and_greets ve reviews CASCADE ile gidiyor;
+   conversations.booking_id NULL'a dusuyor ve KONUSMA KALIYOR. */
+await db.execute(sql`DELETE FROM bookings`);
 
-/* Tohum kullanicilarinin kendi satirlari — CASCADE gerisini hallediyor. */
+/* Tohum bakicilarinin uretilen satirlari — bakici kaydinin KENDISI kaliyor. */
+const seedSitters = sql`
+  SELECT st.user_id FROM sitters st
+  JOIN users u ON u.id = st.user_id
+  WHERE u.email LIKE ${SEED_EMAIL}
+`;
+await db.execute(sql`DELETE FROM sitter_availability WHERE sitter_id IN (${seedSitters})`);
+await db.execute(sql`DELETE FROM sitter_services WHERE sitter_id IN (${seedSitters})`);
+await db.execute(sql`DELETE FROM sitter_photos WHERE sitter_id IN (${seedSitters})`);
+await db.execute(sql`DELETE FROM verifications WHERE sitter_id IN (${seedSitters})`);
 await db.execute(sql`DELETE FROM pets WHERE owner_id IN (SELECT id FROM users WHERE email LIKE ${SEED_EMAIL})`);
-await db.execute(sql`DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE ${SEED_EMAIL})`);
-await db.execute(sql`DELETE FROM users WHERE email LIKE ${SEED_EMAIL}`);
 
-if (keep > 0) {
-  console.log(`${keep} gercek hesap korundu (tohum olmayanlar).`);
-}
+/* Sehirler saf referans verisi; profiles.city_id'de yabanci anahtar yok. */
+await db.execute(sql`TRUNCATE TABLE landing_pages, neighbourhoods, cities RESTART IDENTITY CASCADE`);
 
 let sitterTotal = 0;
 let bookingTotal = 0;
@@ -124,6 +148,17 @@ for (const city of SEED_CITIES) {
       email: `${city.slugEn}.sitter${i}@seed.havre.test`,
       locale: city.province === 'QC' ? 'fr-CA' : 'en-CA',
       role: 'sitter',
+      /*
+        UPSERT — SILIP YENIDEN YARATMIYORUZ.
+
+        Kimlik sabit kalinca, bu bakiciyla yapilmis konusmalar ve
+        favoriler her tohumlamada ayakta kaliyor. Once silinip
+        yeniden yaratiliyordu ve kimlik her seferinde degistigi icin
+        gelistiricinin mesajlari kayboluyordu.
+      */
+    }).onConflictDoUpdate({
+      target: s.users.email,
+      set: { locale: city.province === 'QC' ? 'fr-CA' : 'en-CA', role: 'sitter' },
     }).returning({ id: s.users.id });
     const userId = user!.id;
 
@@ -138,6 +173,14 @@ for (const city of SEED_CITIES) {
       cityId, neighbourhoodId: hoodIds[hoodIdx]!, province: city.province,
       bio: pick(r, BIOS[city.province === 'QC' ? 'fr' : 'en']),
       approxLocation: point(lon, lat) as unknown as string,
+    }).onConflictDoUpdate({
+      target: s.profiles.userId,
+      set: {
+        firstName: first, lastNameInitial: initial,
+        avatarUrl: PERSON_PHOTO_SLOTS[(sitterTotal * 7) % PERSON_PHOTO_SLOTS.length]!,
+        cityId, neighbourhoodId: hoodIds[hoodIdx]!, province: city.province,
+        approxLocation: point(lon, lat) as unknown as string,
+      },
     });
 
     const reviewCount = Math.floor(4 + r() * 190);
@@ -184,6 +227,20 @@ for (const city of SEED_CITIES) {
       ownerPrefsText: r() < 0.25 ? null : pick(r, fr ? OWNER_PREFS_TEXTS_FR : OWNER_PREFS_TEXTS_EN),
       referralCode: `${city.slugEn}-${first.toLowerCase()}-${i}`,
       activatedAt: new Date(),
+      /*
+        Bakici kaydi da UPSERT: satir kalinca ona baglanan konusmalar,
+        favoriler ve profil adresi (slug) de kaliyor. Slug zaten
+        kimlikten turetiliyor, yani kimlik sabitse adres de sabit —
+        acik bir sekme yenilendiginde 404 vermiyor.
+      */
+    }).onConflictDoUpdate({
+      target: s.sitters.userId,
+      set: {
+        status: 'active', badgeLevel: badge,
+        averageRating: rating, reviewCount,
+        homeType: pick(r, HOME_TYPES),
+        activatedAt: new Date(),
+      },
     });
 
     // Hizmetler: her bakici 2-4 tanesini sunar, boarding her zaman var
@@ -244,6 +301,18 @@ for (const city of SEED_CITIES) {
  * yani sayfadaki rakamlar uydurma degil gercekten sorgulanan veri olur.
  */
 console.log('rezervasyonlar uretiliyor...');
+/*
+  YALNIZCA TOHUM BAKICILARI.
+
+  Once butun sitter_services satirlari aliniyordu ve bu, TRUNCATE
+  edildikleri icin fark etmiyordu. Artik gercek bakici kayitlari
+  duruyor — gelistirici sihirbazi yarim biraktiysa profilinde il
+  bilgisi olmayabilir ve rezervasyon uretimi 'province NOT NULL' ile
+  cokuyordu (bizzat yasandi).
+
+  Ustelik dogru olan da bu: gelistiricinin kendi bakici profiline
+  uydurma rezervasyon ve yorum yazmak, test ettigi ekrani bozar.
+*/
 const allServices = await db.select({
   sitterId: s.sitterServices.sitterId,
   serviceType: s.sitterServices.serviceType,
@@ -251,7 +320,9 @@ const allServices = await db.select({
   policy: s.sitterServices.cancellationPolicy,
   province: s.profiles.province,
 }).from(s.sitterServices)
-  .innerJoin(s.profiles, sql`${s.profiles.userId} = ${s.sitterServices.sitterId}`);
+  .innerJoin(s.profiles, sql`${s.profiles.userId} = ${s.sitterServices.sitterId}`)
+  .innerJoin(s.users, sql`${s.users.id} = ${s.sitterServices.sitterId}`)
+  .where(sql`${s.users.email} LIKE ${SEED_EMAIL}`);
 
 /*
   TEK SAHIP YERINE OTUZ SAHIP.
@@ -267,6 +338,9 @@ for (let i = 0; i < 30; i++) {
     email: `owner${i}@seed.havre.test`,
     locale: i % 3 === 0 ? 'fr-CA' : 'en-CA',
     role: 'owner',
+  }).onConflictDoUpdate({
+    target: s.users.email,
+    set: { locale: i % 3 === 0 ? 'fr-CA' : 'en-CA', role: 'owner' },
   }).returning({ id: s.users.id });
   await db.insert(s.profiles).values({
     userId: u!.id,
@@ -275,6 +349,13 @@ for (let i = 0; i < 30; i++) {
     // Yorumlarin yaninda gorunur. Sahiplerin bir kismi fotograf yuklemez;
     // ucte biri bilerek fotografsiz birakildi, arayuz o hali de tasimali.
     avatarUrl: i % 3 === 0 ? null : PERSON_PHOTO_SLOTS[(i * 7) % PERSON_PHOTO_SLOTS.length]!,
+  }).onConflictDoUpdate({
+    target: s.profiles.userId,
+    set: {
+      firstName: FIRST_NAMES[i % FIRST_NAMES.length]!,
+      lastNameInitial: String.fromCharCode(65 + (i * 7) % 26),
+      avatarUrl: i % 3 === 0 ? null : PERSON_PHOTO_SLOTS[(i * 7) % PERSON_PHOTO_SLOTS.length]!,
+    },
   });
   /*
     HER SAHIBIN BIR HAYVANI VAR. Rezervasyonlar bu hayvana baglaniyor;
@@ -297,6 +378,9 @@ for (let i = 0; i < 30; i++) {
 
 const [ownerUser] = await db.insert(s.users).values({
   email: 'owner@seed.havre.test', locale: 'en-CA', role: 'owner',
+}).onConflictDoUpdate({
+  target: s.users.email,
+  set: { locale: 'en-CA', role: 'owner' },
 }).returning({ id: s.users.id });
 const ownerId = ownerUser!.id;
 
@@ -425,8 +509,29 @@ if (firstCity) {
   if (n > 0) console.log(`${n} korunan profilin sehri tazelendi.`);
 }
 
-if (keep > 0) {
-  console.log('Kendi hesaplarin duruyor — yeniden kayit olman gerekmiyor.');
+/*
+  NE KORUNDUGUNU YAZ.
+
+  "Mesajlarim gitti" sorusunun sorulmasindansa, komutun kendisi ne
+  birakip ne aldigini soylesin. Sayilar tohumlamadan ONCE ve SONRA
+  olculuyor: soz verdigimiz sey degil, olan sey yaziliyor.
+*/
+const afterRows = await db.execute(sql`
+  SELECT
+    (SELECT count(*)::int FROM users WHERE email NOT LIKE ${SEED_EMAIL}) AS accounts,
+    (SELECT count(*)::int FROM messages) AS messages,
+    (SELECT count(*)::int FROM favourites) AS favourites
+`);
+const after = (afterRows as unknown as Array<{
+  accounts: number; messages: number; favourites: number;
+}>)[0] ?? { accounts: 0, messages: 0, favourites: 0 };
+
+if (before.accounts > 0 || before.messages > 0 || before.favourites > 0) {
+  console.log(
+    `korundu: ${after.accounts}/${before.accounts} hesap · `
+    + `${after.messages}/${before.messages} mesaj · `
+    + `${after.favourites}/${before.favourites} favori`,
+  );
 }
 
 await client.end();
