@@ -30,6 +30,7 @@ export const frCA = {
     trustStripPrice: 'Prix médian de {price} $/{unit}',
     trustStripBookings: '{count} réservations complétées',
     statSitters: 'gardiens vérifiés',
+    statSittersIn: 'gardiens vérifiés à {city}',
     statPrice: 'prix médian',
     statBookings: 'réservations complétées',
   },

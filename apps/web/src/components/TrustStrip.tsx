@@ -69,25 +69,33 @@ export function TrustStrip({
     );
   }
 
+  /*
+    RAKAM VE ETIKET AYRI — TEK METIN DEGIL.
+
+    Once uc tam cumleydi ("42 verified sitters in Toronto") ve dar
+    ekranda alt alta sol hizali duruyordu: kutu en uzun cumle kadar
+    genisliyor, ortalandigi icin arama kartiyla hizalanmiyor ve
+    sayfanin altina yapistirilmis pembe bir leke gibi duruyordu.
+
+    Parcalanmis hali ayni veriyi IKI DUZENDE gosterebiliyor: genis
+    ekranda tek satirlik hap, dar ekranda uc sutunluk sayi tablosu.
+    Metin ayni kaliyor, yalnizca yerlesim degisiyor — ekranda iki ayri
+    kopya yok (ne arama motoru ne ekran okuyucu ikisini birden gorur).
+  */
   const items = [
-    interpolate(m.home.trustStripSitters, { count: numberFmt(sitterCount, locale), city: cityName }),
-    interpolate(m.home.trustStripPrice, { price, unit: unitText }),
-    interpolate(m.home.trustStripBookings, { count: numberFmt(bookingCount, locale) }),
+    { value: numberFmt(sitterCount, locale), label: interpolate(m.home.statSittersIn, { city: cityName }) },
+    { value: `$${price}`, label: `${m.home.statPrice} / ${unitText}` },
+    { value: numberFmt(bookingCount, locale), label: m.home.statBookings },
   ];
 
-  /*
-    Ayiraci noktalar YALNIZCA genis ekranda. Dar ekranda seritteki uc madde
-    alt alta diziliyor ve nokta her satirin BASINDA kaliyordu — madde
-    isareti gibi gorunuyor ve yanlis okunuyordu.
-  */
   return (
-    <div className="trust-strip">
-      {items.map((text, i) => (
-        <span key={i} className="trust-strip-item">
-          {i > 0 && <span aria-hidden="true" className="trust-strip-sep">·</span>}
-          <span>{text}</span>
-        </span>
+    <dl className="trust-strip">
+      {items.map((it) => (
+        <div key={it.label} className="trust-strip-item">
+          <dd className="trust-strip-value tabular">{it.value}</dd>
+          <dt className="trust-strip-label">{it.label}</dt>
+        </div>
       ))}
-    </div>
+    </dl>
   );
 }

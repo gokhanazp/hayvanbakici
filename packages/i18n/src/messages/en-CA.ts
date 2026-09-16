@@ -23,6 +23,9 @@ export const enCA = {
     trustStripPrice: 'Median ${price}/{unit}',
     trustStripBookings: '{count} completed bookings',
     statSitters: 'verified sitters',
+    /* Sehir etikete dahil: dar ekranda rakamin altinda tek satir olarak
+       okunuyor, cumleyi bolmeden. */
+    statSittersIn: 'verified sitters in {city}',
     statPrice: 'median price',
     statBookings: 'completed bookings',
   },

@@ -5,6 +5,7 @@ import {
   getMessages, interpolate, LOCALES, segmentFor, serviceSlug, type Locale,
 } from '@havre/i18n';
 import { Wordmark } from '@/components/Wordmark';
+import { FooterColumn } from '@/components/FooterColumn';
 import { cityName, citySlug, type CityRecord } from '@/lib/data';
 
 /**
@@ -127,14 +128,5 @@ export function Footer({
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterColumn({ heading, children }: { heading: string; children: React.ReactNode }) {
-  return (
-    <nav className="footer-col" aria-label={heading}>
-      <h2 className="footer-heading">{heading}</h2>
-      {children}
-    </nav>
   );
 }

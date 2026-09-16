@@ -126,32 +126,66 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
           {/* Dugme oturuma gore konusuyor — bakiciya "Bakici ol" demiyor */}
           <SitterCta locale={locale} className="btn btn-ink header-cta" />
 
-          {/* Mobil cekmece */}
+          {/*
+            MOBIL CEKMECE — TAM BOYLU SAYFA KENARI.
+
+            Once basligin altina sarkan 20rem'lik bir kutuydu: dar bir
+            listede yirmi satir, hepsi ayni agirlikta, hicbiri
+            tiklanacak kadar buyuk degil. Simdi ekranin sag kenarindan
+            acilan tam boylu bir yuzey; hizmetler ana sayfadaki
+            kartlarin kucuk hali, altta sabit bir eylem alani.
+
+            HALA JAVASCRIPT YOK: acma/kapama <details>'in isi. Disariya
+            dokunus ve Escape NavDismiss'te (baslikta zaten vardi).
+          */}
           <details className="nav-drawer">
             <summary className="nav-drawer-toggle" aria-label={m.menu.open}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              {/* Iki ikon ust uste: acikken carpi, kapaliyken cizgiler.
+                  Ayni dugme, ayni yer — kapatma dugmesi aramak gerekmiyor. */}
+              <svg className="nav-drawer-bars" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <path d="M4 7h16M4 12h16M4 17h16" />
               </svg>
+              <svg className="nav-drawer-close" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
             </summary>
+
             <div className="nav-drawer-panel">
               <p className="nav-drawer-heading">{m.menu.services}</p>
-              {SERVICES.map((s) => (
-                <Link key={s} href={serviceHref(s)} className="nav-drawer-item">
-                  <span className="nav-drawer-icon" aria-hidden="true">
-                    <ServiceIcon service={s} size={18} />
-                  </span>
-                  {m.service[s]}
-                </Link>
-              ))}
+              {/*
+                HIZMETLER KUTUCUKLU KART — duz liste degil.
+
+                Dort hizmet sitenin sattigi seyin tamami; cekmecede
+                digerleriyle ayni agirlikta bir satir olarak durmalari,
+                menuyu bir baglanti yiginina ceviriyordu. Kutucuk tonu
+                ve ikon ana sayfadaki kartlarla AYNI sirada — menuden
+                karta gecen kisi ayni sekli ayni renkte goruyor.
+              */}
+              <div className="nav-drawer-services">
+                {SERVICES.map((s, i) => (
+                  <Link key={s} href={serviceHref(s)} className="nav-drawer-card">
+                    <span
+                      className="nav-drawer-tile"
+                      style={{
+                        background: `var(--color-${SERVICE_TILE[i % SERVICE_TILE.length]})`,
+                        color: `var(--color-${SERVICE_TILE[i % SERVICE_TILE.length]}-ink)`,
+                      }}
+                      aria-hidden="true"
+                    >
+                      <ServiceIcon service={s} size={22} />
+                    </span>
+                    <span className="nav-drawer-card-title">{m.service[s]}</span>
+                  </Link>
+                ))}
+              </div>
 
               <p className="nav-drawer-heading">{m.menu.forOwners}</p>
               <Link href={`/${seg}/how-it-works/`} className="nav-drawer-item">{m.nav.howItWorks}</Link>
               <Link href={`/${seg}/protection/`} className="nav-drawer-item">{m.nav.protection}</Link>
               <Link href={`/${seg}/pricing/`} className="nav-drawer-item">{m.nav.pricing}</Link>
-
-              <p className="nav-drawer-heading">{m.menu.forSitters}</p>
-              <SitterCta locale={locale} className="nav-drawer-item" />
+              <Link href={`/${seg}/help/`} className="nav-drawer-item">{m.footer.help}</Link>
 
               {/*
                 HESAP ISLEMLERI CEKMECEDE.
@@ -163,6 +197,20 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
               */}
               <p className="nav-drawer-heading">{m.account.title}</p>
               <HeaderAccount locale={locale} variant="drawer" />
+
+              {/*
+                ALTTA SABIT EYLEM ALANI.
+
+                "Bakici ol" listenin en altinda, yirmi baglantinin
+                arkasinda kaliyordu. Yuzeyin dibine yapisiyor: liste ne
+                kadar uzarsa uzasin gorunur kaliyor. Dil secimi de
+                burada — ust serit sayfa kaydirilinca gidiyor ve
+                telefonda dil degistirmenin baska yolu yoktu.
+              */}
+              <div className="nav-drawer-foot">
+                <SitterCta locale={locale} className="btn btn-primary btn-block" />
+                <DrawerLang locale={locale} />
+              </div>
             </div>
           </details>
         </div>
@@ -197,6 +245,36 @@ function LocaleSwitch({ locale }: { locale: Locale }) {
               {segmentFor(l).toUpperCase()}
             </Link>
           </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * CEKMECEDEKI DIL SECIMI.
+ *
+ * Ust seritteki secici sayfa kaydirilinca gidiyor ve telefonda dil
+ * degistirmenin baska yolu kalmiyordu — alt bilgiye inmek gerekiyordu.
+ * Burada hap bicimli: koyu serit uzerinde calismayan bicim beyaz
+ * yuzeyde dogru olan bicim.
+ */
+function DrawerLang({ locale }: { locale: Locale }) {
+  const m = getMessages(locale);
+  return (
+    <div className="drawer-lang" role="group" aria-label={m.footer.languageLabel}>
+      {LOCALES.map((l) => {
+        const active = l === locale;
+        return (
+          <Link
+            key={l}
+            href={`/${segmentFor(l)}`}
+            hrefLang={l}
+            className={active ? 'drawer-lang-on' : undefined}
+            aria-current={active ? 'true' : undefined}
+          >
+            {l === 'fr-CA' ? 'Français' : 'English'}
+          </Link>
         );
       })}
     </div>
