@@ -20,8 +20,11 @@ export const enCA = {
     heroSubtitle: 'Background-checked sitters across Canada, covered by the Havre Protection programme. You see every fee before you book.',
     searchCta: 'Search sitters',
     trustStripSitters: '{count} verified sitters in {city}',
-    trustStripPrice: 'Median ${price}/night',
+    trustStripPrice: 'Median ${price}/{unit}',
     trustStripBookings: '{count} completed bookings',
+    statSitters: 'verified sitters',
+    statPrice: 'median price',
+    statBookings: 'completed bookings',
   },
   search: {
     service: 'Service',

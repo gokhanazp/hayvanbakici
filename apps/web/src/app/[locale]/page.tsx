@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
-import { servicesForPhase, calculateCommission, compareToRover, dollars } from '@havre/core';
+import { servicesForPhase, calculateCommission, compareToRover, dollars, SERVICES } from '@havre/core';
 import { SearchBar } from '@/components/SearchBar';
 import { TrustStrip } from '@/components/TrustStrip';
 import { ServiceTiles } from '@/components/ServiceTiles';
@@ -155,12 +155,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="container hero-search">
         <SearchBar locale={locale} />
         <div className="row" style={{ justifyContent: 'center', marginTop: 'var(--space-5)' }}>
+          {/* Veri konaklama hizmetinden geliyor (yukarida getLandingData) —
+              birim de ondan; sabit "/gece" yazmak baska bir hizmette yalan olur. */}
           <TrustStrip
             locale={locale}
             cityName={cityName(city, locale)}
             sitterCount={data.sitterCount}
             medianPriceCents={data.medianPriceCents}
             bookingCount={data.bookingCount}
+            unit={SERVICES.boarding.unit}
           />
         </div>
       </section>

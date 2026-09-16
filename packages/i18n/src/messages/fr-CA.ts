@@ -27,8 +27,11 @@ export const frCA = {
       'Des gardiens dont les antécédents sont vérifiés, partout au Canada, couverts par le programme Havre Protection. Vous voyez tous les frais avant de réserver.',
     searchCta: 'Chercher un gardien',
     trustStripSitters: '{count} gardiens vérifiés à {city}',
-    trustStripPrice: 'Prix médian de {price} $/nuit',
+    trustStripPrice: 'Prix médian de {price} $/{unit}',
     trustStripBookings: '{count} réservations complétées',
+    statSitters: 'gardiens vérifiés',
+    statPrice: 'prix médian',
+    statBookings: 'réservations complétées',
   },
   search: {
     service: 'Service',

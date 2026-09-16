@@ -2032,10 +2032,75 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 @media (max-width: 640px) { .banner-card { margin: var(--space-3); padding: var(--space-6); } }
 
 /* ---------- Sayfa basligi (ic sayfalar) ---------- */
+/* IC SAYFA BASLIGI */
 .page-head { padding-block: var(--space-12) calc(var(--section-y) * 0.9); }
+/*
+  ALTINA ARAMA KARTI BINEN BASLIK.
+
+  Kart bandin icine ~64 piksel giriyor (.hero-search negatif margin).
+  Bandin alt boslugu bundan KUCUK oldugunda kart, fotografin alt
+  kenariyla kesisiyor ve kesisme kazara olmus gibi duruyor. Fotografi
+  kucultmek ise ise yaramiyor: bandin yuksekligini zaten fotograf
+  belirliyor, o kuculunce bant da kuculuyor ve kesisme aynen kaliyor.
+  Cozum bosluk: alt dolgu kartin girdigi mesafeden buyuk.
+*/
+.page-head-with-search { padding-bottom: calc(var(--space-16) + var(--space-6)); }
 .page-head-grid {
   display: grid; gap: var(--space-8); align-items: center;
   grid-template-columns: minmax(0, 1fr);
+}
+/*
+  Fotograf 3:2 — 4:3 iken alt kenari, bandin altina binen arama kartinin
+  ustune 16 piksel tasiyordu ve kesisme kazara olmus gibi duruyordu.
+  Daha basik oran fotografi kartin ustunde bitiriyor.
+*/
+.page-head-photo { aspect-ratio: 3 / 2; }
+
+/*
+  HIZMET ROZETI — acik zeminde.
+  .eyebrow koyu panel icin yapilmisti (koyu zemin, acik yazi); acik bandin
+  uzerinde okunmuyordu. Bu kendi tonlarini tasiyor.
+*/
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sticker-sm);
+  font-size: 0.8125rem; font-weight: 600;
+}
+.hero-eyebrow svg { color: var(--color-primary); }
+
+/*
+  SAYI BLOKLARI.
+
+  Etiket USTTE, sayi ALTTA: goz once "ne olcuyoruz"u okuyor, sonra
+  degeri. Ters sirada (sayi ustte) uc buyuk rakam once bir dizi olarak
+  okunuyor ve neyin ne oldugu ikinci bakista anlasiliyordu.
+  `dl` cunku bunlar etiket-deger ciftleri; ekran okuyucu da oyle okuyor.
+*/
+.stat-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, max-content));
+  gap: var(--space-4) var(--space-8);
+  margin: 0;
+}
+.stat { display: grid; gap: 2px; }
+.stat-label {
+  font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.stat-value { margin: 0; font-size: 1.75rem; line-height: 2rem; color: var(--color-ink); }
+@media (min-width: 900px) { .stat-value { font-size: 2rem; line-height: 2.25rem; } }
+/*
+  Dar ekranda fotograf sayfayi yiyor: metin, sayilar ve arama kutusu
+  zaten iki ekran. Fotograf burada sahne degil eslik — bant gibi
+  davransin diye yuksekligi kapaniyor.
+*/
+@media (max-width: 899px) {
+  .page-head-photo { aspect-ratio: auto; height: 190px; }
+  .page-head-with-search { padding-bottom: calc(var(--space-16) + var(--space-4)); }
 }
 @media (min-width: 900px) {
   .page-head-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); }

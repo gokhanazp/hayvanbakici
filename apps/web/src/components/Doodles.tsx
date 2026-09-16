@@ -327,6 +327,13 @@ const SETS = {
     { side: 'right', top: 34, offset: -0.2, size: 56, rotate: -9, shape: 'fish', tone: 'primary', opacity: 0.24 },
     { side: 'right', top: 78, offset: 0.3, size: 42, rotate: 11, shape: 'bone', tone: 'accent', opacity: 0.38 },
   ],
+  /* Ic sayfa basligi — bant alcak, iki sekil yetiyor. */
+  pageHead: [
+    { side: 'left', top: 26, offset: -0.12, size: 58, rotate: -9, shape: 'bone', tone: 'accent', opacity: 0.26 },
+    { side: 'left', top: 72, offset: 0.3, size: 40, rotate: 12, shape: 'ball', tone: 'primary', opacity: 0.18 },
+    { side: 'right', top: 18, offset: 0.26, size: 46, rotate: -12, shape: 'paw', tone: 'accent', opacity: 0.28 },
+    { side: 'right', top: 64, offset: -0.18, size: 66, rotate: 9, shape: 'heart', tone: 'primary', opacity: 0.18 },
+  ],
   fees: [
     { side: 'left', top: 30, offset: -0.14, size: 60, rotate: -7, shape: 'ball', tone: 'accent', opacity: 0.36 },
     { side: 'right', top: 26, offset: 0.26, size: 50, rotate: 10, shape: 'paw', tone: 'primary', opacity: 0.22 },

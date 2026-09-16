@@ -14,6 +14,9 @@ import { TrustStrip } from '@/components/TrustStrip';
 import { Photo } from '@/components/Photo';
 import { Faq } from '@/components/Faq';
 import { ServiceTiles } from '@/components/ServiceTiles';
+import { ServiceIcon } from '@/components/ServiceIcon';
+import { SearchBar } from '@/components/SearchBar';
+import { SectionDoodles } from '@/components/Doodles';
 import { PHOTOS, type PhotoId } from '@/lib/photos';
 import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
@@ -180,8 +183,9 @@ export default async function LandingPage(
         basligin YANINDA, altinda degil — metin fotografin uzerine binmedigi
         icin hangi fotograf gelirse gelsin kontrast garantisi bozulmuyor.
       */}
-      <section className="band band-blush band-round-b">
-        <div className="container page-head">
+      <section className="band band-blush band-round-b has-doodles">
+        <SectionDoodles set="pageHead" />
+        <div className="container page-head page-head-with-search">
           <nav aria-label="Breadcrumb" className="text-body-sm" style={{ marginBottom: 'var(--space-5)' }}>
             <ol className="row" style={{ gap: 'var(--space-2)', listStyle: 'none', padding: 0 }}>
               <li><Link href={`/${seg}`} className="muted">{m.brand.name.toLowerCase()}</Link></li>
@@ -194,29 +198,61 @@ export default async function LandingPage(
 
           <div className="page-head-grid">
             <div>
+              {/*
+                HANGI HIZMET — IKONLA. Baslikta hizmetin adi zaten
+                geciyor ama sayfa "Toronto" ile basliyordu; rozet, ana
+                sayfadaki kartla AYNI ikonu kullanarak nereye gelindigini
+                bir bakista soyluyor.
+              */}
+              <p className="hero-eyebrow">
+                <ServiceIcon service={r.service} size={17} />
+                {m.service[r.service]}
+              </p>
+
               <h1 className="text-h1" style={{ marginBottom: 'var(--space-3)' }}>
                 {r.locale === 'fr-CA' ? `${svc} à ${name}` : `${svc} in ${name}`}
               </h1>
               {/* Cevap-once paragrafi: ilk 40-60 kelimede tam cevap (§7.10) */}
-              <p className="text-body-lg muted" style={{ maxWidth: '38rem', marginBottom: 'var(--space-6)' }}>
+              <p className="text-body-lg muted" style={{ maxWidth: '38rem', marginBottom: 'var(--space-7)' }}>
                 {m.serviceDescription[r.service]}
               </p>
 
+              {/*
+                Sayilar HAP degil BLOK. Ayni veri ana sayfada tek satirlik
+                bir hapta duruyor; burada sayfanin tek somut kaniti o uc
+                sayi ve kahramanin yarisi bos kaliyordu.
+              */}
               <TrustStrip
+                variant="stats"
                 locale={r.locale}
                 cityName={name}
                 sitterCount={data.sitterCount}
                 medianPriceCents={data.medianPriceCents}
                 bookingCount={data.bookingCount}
+                unit={SERVICES[r.service].unit}
               />
             </div>
 
-            <div className="photo-frame" style={{ aspectRatio: '4 / 3' }}>
+            <div className="photo-frame page-head-photo">
               <Photo id={cityPhotoId(r.city.slugEn)} locale={r.locale}
-                     sizes="(min-width: 900px) 24rem, 100vw" priority />
+                     sizes="(min-width: 900px) 26rem, 100vw" priority />
             </div>
           </div>
         </div>
+      </section>
+
+      {/*
+        ARAMA KARTI BANDIN ALTINA BINIYOR — ana sayfayla ayni hareket.
+        Bu sayfaya gelen kisi hizmeti ve sehri SECMIS durumda; eksik olan
+        mahalle ve tarih. Kutu o ikisiyle ilgilendigi icin hizmet ve
+        konum onceden dolu geliyor: sifirdan bir arama degil, buradaki
+        aramanin devami.
+      */}
+      <section className="container hero-search">
+        <SearchBar
+          locale={r.locale}
+          defaults={{ service: serviceSlug(r.service, r.locale), location: name }}
+        />
       </section>
 
       <div className="container section">
