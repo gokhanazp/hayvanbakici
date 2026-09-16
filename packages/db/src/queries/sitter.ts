@@ -26,6 +26,13 @@ export interface SitterReview {
   authorFirstName: string;
   authorInitial: string;
   authorAvatarUrl: string | null;
+  /**
+   * Yorumun HANGI HIZMET icin yazildigi. Bes yildizli bir gezdirme
+   * yorumu, konaklama arayan birine ayni seyi soylemiyor; rakip
+   * sayfalarda bu etiket her yorumun ustunde duruyor.
+   * Rezervasyona bagli olmayan bir yorumda null.
+   */
+  serviceType: ServiceType | null;
   publishedAt: string;
   responseBody: string | null;
 }
@@ -80,6 +87,14 @@ export interface SitterProfile {
   repeatClients: number;
   medianResponseMinutes: number;
   acceptanceRate: number;
+  /**
+   * Cevaplanan istek orani (0-1) — hic cevaplanabilir istek yoksa null.
+   * Kabul oranindan FARKLI: burada RET de cevaptir. Sahibin sordugu
+   * "bana doner mi", "beni kabul eder mi" degil.
+   */
+  responseRate: number | null;
+  /** Puan dagilimi — 5'ten 1'e kac yorum */
+  ratingCounts: Record<1 | 2 | 3 | 4 | 5, number>;
   memberSince: string;
 
   homeType: string | null;
@@ -149,8 +164,12 @@ export async function getSitterProfile(
       `),
       db.execute(sql`
         SELECT r.id, r.rating, r.body, r.published_at, r.response_body,
-               p.first_name, p.last_name_initial, p.avatar_url
+               p.first_name, p.last_name_initial, p.avatar_url,
+               bk.service_type::text AS service_type
         FROM reviews r
+        -- Hangi hizmet icin yazildigi rezervasyondan geliyor. LEFT:
+        -- rezervasyonsuz bir kayit yorumu listeden dusurmemeli.
+        LEFT JOIN bookings bk ON bk.id = r.booking_id
         -- LEFT JOIN sart: yazarin profil satiri eksikse yorum DUSMEMELI.
         -- Iç birlestirmeyle 21 yorumun 21'i sessizce kayboluyordu ve sayfa
         -- "henuz yorum yok" diyordu — tarayicida yakalandi. Bir bakicinin
@@ -178,7 +197,42 @@ export async function getSitterProfile(
           (SELECT count(*)::int FROM sitter_availability a
             WHERE a.sitter_id = ${userId}
               AND a.status = 'open'
-              AND a.date BETWEEN CURRENT_DATE AND CURRENT_DATE + 30) AS open_days
+              AND a.date BETWEEN CURRENT_DATE AND CURRENT_DATE + 30) AS open_days,
+          /*
+            YANIT ORANI — cevaplanan istek / gelen istek.
+
+            "Cevap" onay ya da RET olabilir; olcülen sey nezaket degil,
+            insanin cevap alip alamadigi. Cevapsiz kalip suresi dolan
+            istek ('expired') paydada var, payda degil.
+
+            Hala 'requested' durumda BEKLEYEN istekler hicbir yerde
+            sayilmiyor: suresi dolmadan once onlari "cevapsiz" saymak,
+            daha dun gelen bir istek yuzunden bakiciyi cezalandirmak
+            olurdu.
+          */
+          (SELECT count(*)::int FROM bookings b
+            WHERE b.sitter_id = ${userId}
+              AND b.status <> 'requested') AS answerable,
+          (SELECT count(*)::int FROM bookings b
+            WHERE b.sitter_id = ${userId}
+              AND b.status NOT IN ('requested', 'expired')) AS answered,
+          /* Puan dagilimi — 5'ten 1'e. Ortalama tek basina "kac kisi
+             kac verdi" sorusunu cevaplamiyor. */
+          (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
+            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.hidden_at IS NULL AND r.rating = 5) AS r5,
+          (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
+            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.hidden_at IS NULL AND r.rating = 4) AS r4,
+          (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
+            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.hidden_at IS NULL AND r.rating = 3) AS r3,
+          (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
+            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.hidden_at IS NULL AND r.rating = 2) AS r2,
+          (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
+            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.hidden_at IS NULL AND r.rating = 1) AS r1
       `),
       db.execute(sql`
         SELECT url, alt, kind::text FROM sitter_photos
@@ -260,12 +314,28 @@ export async function getSitterProfile(
         authorFirstName: String(r.first_name ?? ''),
         authorInitial: String(r.last_name_initial ?? ''),
         authorAvatarUrl: (r.avatar_url as string | null) ?? null,
+        serviceType: (r.service_type as ServiceType | null) ?? null,
         publishedAt: new Date(r.published_at as Date).toISOString(),
         responseBody: (r.response_body as string | null) ?? null,
       })),
 
       openDays: Number(stats.open_days ?? 0),
       completedBookings: Number(stats.completed ?? 0),
+      /*
+        YANIT ORANI: cevaplanabilir istek yoksa ORAN YOK — null.
+        Sifira bolmemek icin degil, DOGRU OLMADIGI icin: hic istek
+        almamis bir bakicinin yanit orani "%0" degil, "henuz yok".
+      */
+      responseRate: Number(stats.answerable ?? 0) > 0
+        ? Number(stats.answered ?? 0) / Number(stats.answerable ?? 0)
+        : null,
+      ratingCounts: {
+        5: Number(stats.r5 ?? 0),
+        4: Number(stats.r4 ?? 0),
+        3: Number(stats.r3 ?? 0),
+        2: Number(stats.r2 ?? 0),
+        1: Number(stats.r1 ?? 0),
+      },
       dataAsOf: new Date().toISOString(),
     } satisfies SitterProfile;
 

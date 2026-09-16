@@ -3544,3 +3544,88 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   .card-hover:hover { transform: none; }
   .btn:active { transform: none; }
 }
+
+
+/* ------------------------------------------------------------------
+   BAKICI PROFILINDEKI MUSAITLIK TAKVIMI — SALT OKUNUR.
+   Bakicinin kendi duzenleme takvimi (.cal-*) onay kutulariyla calisir;
+   burada tiklanacak bir sey yok, bu yuzden ayri ve cok daha sade bir
+   izgara. Rozet renkleri ikisinde de ayni: ogrenilen bir dil iki
+   ekranda degismemeli.
+   ------------------------------------------------------------------ */
+.pubcal { min-width: 0; }
+/*
+  `minmax(min(15rem, 100%), 1fr)` — duz `minmax(15rem, 1fr)` DEGIL.
+
+  Duz hali 390 pikselde iki sutunu zorluyordu: izgara 504 piksele
+  buyuyup ana sutundan (358) tasiyor ve ikinci ay ekranin disinda
+  kaliyordu. `min(15rem, 100%)` alt siniri kapsayicidan buyuk olamaz
+  hale getiriyor, boylece dar ekranda tek sutuna dusuyor.
+*/
+.pubcal-months {
+  display: grid; gap: var(--space-6); margin-top: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  max-width: 34rem;
+}
+.pubcal-title { font-weight: 600; margin-bottom: var(--space-3); }
+.pubcal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+}
+.pubcal-head {
+  display: grid; place-items: center; height: 1.5rem;
+  font-size: 0.6875rem; font-weight: 600; color: var(--color-ink-muted);
+}
+.pubcal-day {
+  display: grid; place-items: center;
+  aspect-ratio: 1; border-radius: var(--radius-sm);
+  font-size: 0.8125rem; font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+.pubcal-day.is-open {
+  background: var(--color-surface); border-color: var(--color-border-strong);
+  font-weight: 600;
+}
+.pubcal-day.is-blocked {
+  background: var(--color-surface-sunken); color: var(--color-ink-muted);
+  text-decoration: line-through;
+}
+.pubcal-day.is-booked {
+  background: var(--color-accent-subtle); color: var(--color-accent-hover);
+  border-color: var(--color-accent); font-weight: 600;
+}
+/* Gecmis gun ciziliyor ama solgun: ayin ortasinda yarim bos bir izgara
+   "bu bakici hic musait degil" gibi okunuyordu. */
+.pubcal-day.is-past { color: var(--color-ink-muted); opacity: .45; }
+.pubcal-day.is-out { visibility: hidden; }
+
+.pubcal-sw-open { background: var(--color-surface); border-color: var(--color-border-strong); }
+.pubcal-sw-blocked { background: var(--color-surface-sunken); }
+.pubcal-sw-booked { background: var(--color-accent-subtle); border-color: var(--color-accent); }
+
+/* --- Puan dagilimi ve yorumdaki hizmet etiketi --- */
+.rating-breakdown {
+  display: grid; gap: var(--space-2);
+  margin: var(--space-5) 0 0; max-width: 22rem;
+}
+.rating-row {
+  display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.5rem;
+  align-items: center; gap: var(--space-3);
+}
+.rating-star { display: flex; align-items: center; gap: 2px; font-size: 0.8125rem; }
+.rating-star span[aria-hidden] { color: var(--color-warning); }
+.rating-bar {
+  margin: 0; height: 8px; border-radius: 999px;
+  background: var(--color-surface-sunken); overflow: hidden;
+}
+.rating-bar > span {
+  display: block; height: 100%; border-radius: 999px;
+  background: var(--color-warning); min-width: 0;
+}
+.rating-count { margin: 0; font-size: 0.8125rem; text-align: right; }
+
+.review-service {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-secondary);
+}
+.review-service svg { color: var(--color-primary); }

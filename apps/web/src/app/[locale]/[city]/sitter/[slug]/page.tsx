@@ -13,7 +13,10 @@ import {
 import { Avatar } from '@/components/Avatar';
 import { SitterGallery } from '@/components/SitterGallery';
 import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
-import { getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
+import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { RatingBreakdown } from '@/components/RatingBreakdown';
+import { ServiceIcon } from '@/components/ServiceIcon';
+import { getCalendar, getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
 import { resolvePhoto } from '@/lib/photos';
@@ -130,6 +133,17 @@ export default async function SitterPage({
     secim yapiliyor ve fiyatin YANINDA hangi hizmet oldugu yaziyor.
   */
   const primary = primaryService(bookable);
+
+  /*
+    TAKVIM: bugunden itibaren iki ay. Profil ISR ile uretildigi icin bu
+    veri en fazla bir saat eski olabilir — bilincli, ekranda yaziyor ve
+    istek gonderilirken sunucu araligi zaten yeniden dogruluyor.
+  */
+  const calFrom = new Date();
+  const calTo = new Date(calFrom.getFullYear(), calFrom.getMonth() + 2, 0);
+  const isoDay = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const calendarDays = await getCalendar(sitter.userId, isoDay(calFrom), isoDay(calTo));
   const citySlug = locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn;
   /** Rezervasyon adresi — hizmet verildiyse form o hizmetle aciliyor. */
   const bookHref = (svc?: ServiceType) =>
@@ -185,6 +199,19 @@ export default async function SitterPage({
             <Stat value={numberFmt(sitter.repeatClients, locale)} label={m.sitter['stat.repeat']} />
             <Stat value={responseTime(sitter.medianResponseMinutes, locale)} label={m.sitter['stat.responds']} />
             <Stat value={`${Math.round(sitter.acceptanceRate * 100)}%`} label={m.sitter['stat.acceptance']} />
+            {/*
+              YANIT ORANI kabul oranindan AYRI bir sey: burada ret de
+              cevaptir. "Bana doner mi" ile "beni kabul eder mi" iki
+              ayri soru ve ikisi de sahibin sordugu sorular.
+              Hic cevaplanabilir istek yoksa satir HIC cizilmiyor —
+              "%0" yanlis olurdu.
+            */}
+            {sitter.responseRate !== null && (
+              <Stat
+                value={`${Math.round(sitter.responseRate * 100)}%`}
+                label={m.sitter['stat.responseRate']}
+              />
+            )}
           </ul>
         </div>
       </section>
@@ -348,6 +375,13 @@ export default async function SitterPage({
             )}
           </section>
 
+          {/*
+            TAKVIM — ev bolumunden sonra, yorumlardan once.
+            Sira sahibin sorularinin sirasi: kim, nerede, NE ZAMAN
+            musait, baskalari ne demis.
+          */}
+          <AvailabilityCalendar locale={locale} name={sitter.firstName} days={calendarDays} />
+
           {/* --- Yorumlar --- */}
           <section>
             <h2 className="text-h2">{m.sitter.reviewsHeading}</h2>
@@ -361,6 +395,17 @@ export default async function SitterPage({
                     rating: sitter.averageRating.toFixed(1),
                   })}
                 </p>
+
+                {/*
+                  PUAN DAGILIMI. Ortalama tek basina "kac kisi kac verdi"
+                  sorusunu cevaplamiyor: 4.6, "hepsi 4-5 verdi" de olabilir
+                  "cogu 5, biri 1 verdi" de. Ikisi ayni bakici degil.
+                */}
+                <RatingBreakdown
+                  counts={sitter.ratingCounts}
+                  total={sitter.reviewCount}
+                  locale={locale}
+                />
                 <div className="grid" style={{ gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
                   {sitter.reviews.map((r) => (
                     <article key={r.id} className="card card-pad">
@@ -380,6 +425,17 @@ export default async function SitterPage({
                           <span className="dim">{'☆'.repeat(5 - r.rating)}</span>
                         </span>
                       </div>
+                      {/*
+                        HANGI HIZMET ICIN. Bes yildizli bir gezdirme
+                        yorumu, konaklama arayan birine ayni seyi
+                        soylemiyor. Rezervasyona bagli degilse cizilmiyor.
+                      */}
+                      {r.serviceType && (
+                        <p className="review-service">
+                          <ServiceIcon service={r.serviceType} size={15} />
+                          {m.service[r.serviceType]}
+                        </p>
+                      )}
                       {r.body && <p style={{ marginTop: 'var(--space-3)' }}>{r.body}</p>}
                       <p className="dim text-body-sm" style={{ marginTop: 'var(--space-3)' }}>
                         {dateFmt(r.publishedAt, locale)}
