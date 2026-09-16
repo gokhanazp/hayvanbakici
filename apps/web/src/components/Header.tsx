@@ -6,6 +6,7 @@ import { HeaderAccount } from '@/components/auth/HeaderAccount';
 import { SitterCta } from '@/components/auth/SitterCta';
 import { NavDismiss } from '@/components/NavDismiss';
 import { SocialLinks } from '@/components/SocialLinks';
+import { ServiceIcon, SERVICE_TILE } from '@/components/ServiceIcon';
 
 /**
  * SITE BASLIGI.
@@ -83,10 +84,28 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
               </svg>
             </summary>
             <div className="nav-panel">
-              {SERVICES.map((s) => (
+              {/*
+                IKON ANA SAYFADAKI KARTIN AYNISI (components/ServiceIcon) ve
+                kutucuk tonu da ayni sirada. Menuden karta gecen kullanici
+                ayni hizmeti ayni renkte ve ayni sekille goruyor; once menude
+                yalnizca yazi vardi ve iki ekran birbirini tanimiyordu.
+              */}
+              {SERVICES.map((s, i) => (
                 <Link key={s} href={serviceHref(s)} className="nav-panel-item">
-                  <span className="nav-panel-title">{m.service[s]}</span>
-                  <span className="nav-panel-sub">{m.serviceDescription[s]}</span>
+                  <span
+                    className="nav-panel-icon"
+                    style={{
+                      background: `var(--color-${SERVICE_TILE[i % SERVICE_TILE.length]})`,
+                      color: `var(--color-${SERVICE_TILE[i % SERVICE_TILE.length]}-ink)`,
+                    }}
+                    aria-hidden="true"
+                  >
+                    <ServiceIcon service={s} size={20} />
+                  </span>
+                  <span className="nav-panel-text">
+                    <span className="nav-panel-title">{m.service[s]}</span>
+                    <span className="nav-panel-sub">{m.serviceDescription[s]}</span>
+                  </span>
                 </Link>
               ))}
             </div>
@@ -118,7 +137,12 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
             <div className="nav-drawer-panel">
               <p className="nav-drawer-heading">{m.menu.services}</p>
               {SERVICES.map((s) => (
-                <Link key={s} href={serviceHref(s)} className="nav-drawer-item">{m.service[s]}</Link>
+                <Link key={s} href={serviceHref(s)} className="nav-drawer-item">
+                  <span className="nav-drawer-icon" aria-hidden="true">
+                    <ServiceIcon service={s} size={18} />
+                  </span>
+                  {m.service[s]}
+                </Link>
               ))}
 
               <p className="nav-drawer-heading">{m.menu.forOwners}</p>

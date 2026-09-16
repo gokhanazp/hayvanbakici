@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { servicesForPhase } from '@havre/core';
+import { ServiceIcon } from '@/components/ServiceIcon';
 import {
   getMessages, interpolate, LOCALES, segmentFor, serviceSlug, type Locale,
 } from '@havre/i18n';
@@ -63,7 +64,20 @@ export function Footer({
           <FooterColumn heading={m.footer.servicesHeading}>
             {firstCity
               ? services.map((s) => (
-                  <Link key={s} href={`/${seg}/${citySlug(firstCity, locale)}/${serviceSlug(s, locale)}/`}>
+                  <Link
+                    key={s}
+                    href={`/${seg}/${citySlug(firstCity, locale)}/${serviceSlug(s, locale)}/`}
+                    className="footer-service"
+                  >
+                    {/*
+                      Yalnizca HIZMET sutununda ikon var. Sehirlerin de
+                      yanina bir igne konsa liste "ikon listesi"ne donuyor
+                      ve hicbiri ayirt edici olmuyordu; hizmetlerin zaten
+                      kendi sozlugu var (kart, menu, basvuru ekrani).
+                    */}
+                    <span className="footer-service-icon" aria-hidden="true">
+                      <ServiceIcon service={s} size={17} />
+                    </span>
                     {m.service[s]}
                   </Link>
                 ))
