@@ -2,9 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
-import { DEFAULT_COMMISSION } from '@havre/core';
+
 import { ContentPage } from '@/components/ContentPage';
 import { Faq } from '@/components/Faq';
+import { getCommission } from '@/lib/data';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ locale: string }> },
@@ -19,6 +20,8 @@ export async function generateMetadata(
   };
 }
 
+export const revalidate = 300;
+
 export default async function HelpPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: seg } = await params;
   const locale = localeFromSegment(seg);
@@ -26,7 +29,7 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
   const m = getMessages(locale);
   const fr = locale === 'fr-CA';
   const t = (en: string, f: string) => (fr ? f : en);
-  const c = DEFAULT_COMMISSION;
+  const { config: c } = await getCommission();
 
   const owners = [
     [t('How do I know a sitter is who they say they are?', 'Comment savoir qu’un gardien est bien celui qu’il prétend être?'),

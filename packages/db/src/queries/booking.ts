@@ -6,6 +6,7 @@ import {
   REQUEST_EXPIRY_HOURS,
   type ServiceType, type BookingStatus, type Quote,
 } from '@havre/core';
+import { getResolvedCommission } from './settings.js';
 
 /**
  * REZERVASYON — talep, onay, iptal ve musaitlik.
@@ -190,7 +191,21 @@ export async function createBookingRequest(
     });
 
     const promoEndsAt = svc.promo_ends_at ? new Date(svc.promo_ends_at as string) : null;
+
+    /*
+      KOMISYON ORANI ISTEK ANINDA OKUNUYOR ve asagida rezervasyon
+      satirina YAZILIYOR (sitter_commission_pct / _cents).
+
+      Sonradan bir kampanya acilmasi ya da kapanmasi bu satiri
+      degistirmez: hesap burada bir kez yapiliyor. Yoneticinin panelden
+      oran degistirmesi yalnizca BUNDAN SONRAKI istekleri etkiler —
+      ekranda gorulen tutarla odenen tutarin ayrilmasinin tek yolu
+      orani her okuyusta yeniden hesaplamak olurdu.
+    */
+    const { config } = await getResolvedCommission(db);
+
     const quote = calculateQuote({
+      config,
       serviceType: draft.serviceType,
       unitPriceCents: Number(svc.price_cents),
       units,

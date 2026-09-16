@@ -6,6 +6,7 @@ import {
   MAX_EXTRA_PET_CENTS, MAX_HOLIDAY_PCT,
   MAX_PRICE_CENTS, MIN_PRICE_CENTS, MIN_RANGE_SAMPLE, SERVICES, servicesForPhase,
   PET_SIZE_STEPS,
+  type CommissionConfig,
   netPerUnit, previousStep,
   type OnboardingStep, type PriceRange, type ProvinceCode, type ServiceType,
 } from '@havre/core';
@@ -114,13 +115,16 @@ function rangeHint(
  * tablo, yazmaya yeni baslayan birini urkutur.
  */
 function NetEarnings({
-  locale, type, price, province, promoEndsAt,
+  locale, type, price, province, promoEndsAt, commission,
 }: {
   locale: Locale;
   type: ServiceType;
   price: string;
   province: ProvinceCode | null;
   promoEndsAt: string | null;
+  /* O an gecerli oran — kampanya varken bakici indirimli kazancini
+     gormeli, kaydettikten sonra degil. */
+  commission: CommissionConfig;
 }) {
   const m = getMessages(locale);
   if (!province) return null;
@@ -133,6 +137,7 @@ function NetEarnings({
   const promoActive = promoEndsAt !== null && new Date(promoEndsAt).getTime() > Date.now();
   const rows = netPerUnit({
     serviceType: type, unitPriceCents: cents, province, promoActive,
+    config: commission,
   });
 
   const money = (c: number) =>
@@ -358,7 +363,7 @@ interface ServiceDraft {
 }
 
 export function ServicesForm({
-  locale, action, initial, ranges = {}, province = null, promoEndsAt = null,
+  locale, action, initial, ranges = {}, province = null, promoEndsAt = null, commission,
 }: {
   locale: Locale;
   action: Action;
@@ -381,6 +386,8 @@ export function ServicesForm({
    * "cevrenizde su kadar aliniyor" cumlesi kurmak veri degil tahmindir.
    */
   ranges?: Record<string, PriceRange> | undefined;
+  /** O an gecerli komisyon — net kazanc satiri bundan hesaplaniyor */
+  commission: CommissionConfig;
 }) {
   const m = getMessages(locale);
   const [state, formAction, busy] = useActionState(action, EMPTY);
@@ -517,6 +524,7 @@ export function ServicesForm({
                     <NetEarnings
                       locale={locale} type={type as ServiceType} price={d.price}
                       province={province} promoEndsAt={promoEndsAt}
+                      commission={commission}
                     />
                     {state.errors[`price.${type}`] && (
                       <span className="field-error" role="alert">{err(m, state.errors[`price.${type}`])}</span>

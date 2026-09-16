@@ -26,10 +26,21 @@ const base = {
 
 export type IconName =
   | 'dashboard' | 'applications' | 'users' | 'bookings'
-  | 'reviews' | 'reports' | 'audit' | 'collapse' | 'expand' | 'back' | 'signout';
+  | 'reviews' | 'reports' | 'audit' | 'settings'
+  | 'collapse' | 'expand' | 'back' | 'signout';
 
 export function Icon({ name }: { name: IconName }) {
   switch (name) {
+    /* Komisyon ayarlari — disli degil YUZDE: menudeki tek "ayar"
+       burasi ve ne ayari oldugunu soylemesi gerekiyor. */
+    case 'settings':
+      return (
+        <svg {...base}>
+          <circle cx="7.5" cy="7.5" r="3" />
+          <circle cx="16.5" cy="16.5" r="3" />
+          <path d="M18.5 5.5 5.5 18.5" />
+        </svg>
+      );
     case 'dashboard':
       return (
         <svg {...base}>

@@ -15,3 +15,4 @@ export * from './messaging.js';
 export * from './account.js';
 export * from './favourites.js';
 export * from './pets.js';
+export * from './settings.js';

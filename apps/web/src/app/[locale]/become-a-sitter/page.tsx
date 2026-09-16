@@ -3,13 +3,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, interpolate, localeFromSegment, segmentFor } from '@havre/i18n';
 import {
-  DEFAULT_COMMISSION, ONBOARDING_STEPS, calculateCommission, compareToRover, dollars,
+  ONBOARDING_STEPS, calculateCommission, compareToRover, dollars,
 } from '@havre/core';
 import { Photo } from '@/components/Photo';
 import { SitterStartCta } from '@/components/auth/SitterStartCta';
 import { Faq } from '@/components/Faq';
 import { ShieldIcon } from '@/components/VerificationBadge';
-import { money } from '@/lib/format';
+import { money, dayFmt } from '@/lib/format';
+import { getCommission } from '@/lib/data';
 
 /**
  * Bakici davet sayfasi — HERKESE ACIK ve INDEKSLENEBILIR.
@@ -32,6 +33,8 @@ export async function generateMetadata(
   return { title: m.onboarding.title, description: m.sitterLanding.heroBody };
 }
 
+export const revalidate = 300;
+
 export default async function BecomeSitterPage({
   params,
 }: {
@@ -42,7 +45,7 @@ export default async function BecomeSitterPage({
   if (!locale) notFound();
   const m = getMessages(locale);
   const s = m.sitterLanding;
-  const c = DEFAULT_COMMISSION;
+  const { config: c, campaignName, campaignEndsAt } = await getCommission();
   const fr = locale === 'fr-CA';
 
   const sample = dollars(500);
@@ -104,6 +107,22 @@ export default async function BecomeSitterPage({
           <h2 className="text-h1">{s.ratesHeading}</h2>
           <p className="text-body-lg muted">{s.ratesNote}</p>
         </div>
+
+        {/*
+          KAMPANYA BANDI. Bakicinin en cok baktigi rakam bu sayfada;
+          indirimli oldugunu ve NE ZAMAN bittigini soylememek, kampanya
+          bitince orani sessizce artirmak olurdu.
+        */}
+        {campaignName && campaignEndsAt && (
+          <div className="notice notice-accent" style={{ marginBottom: 'var(--space-5)' }}>
+            <p>
+              <strong>{campaignName}</strong>{' — '}
+              {locale === 'fr-CA'
+                ? `commission réduite jusqu’au ${dayFmt(campaignEndsAt, locale)}.`
+                : `lower commission until ${dayFmt(campaignEndsAt, locale)}.`}
+            </p>
+          </div>
+        )}
 
         {/*
           UCRETLER ACIKCA YAZILI.

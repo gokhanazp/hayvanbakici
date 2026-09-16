@@ -2,8 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
-import { DEFAULT_COMMISSION } from '@havre/core';
+
 import { ContentPage, DraftNotice } from '@/components/ContentPage';
+import { getCommissionSettings } from '@/lib/data';
 
 /**
  * BAKICI SOZLESMESI — TASLAK.
@@ -28,6 +29,8 @@ export async function generateMetadata(
   };
 }
 
+export const revalidate = 300;
+
 export default async function SitterAgreementPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: seg } = await params;
   const locale = localeFromSegment(seg);
@@ -35,7 +38,15 @@ export default async function SitterAgreementPage({ params }: { params: Promise<
   const m = getMessages(locale);
   const fr = locale === 'fr-CA';
   const t = (en: string, f: string) => (fr ? f : en);
-  const c = DEFAULT_COMMISSION;
+  /*
+    SOZLESMEDE TABAN ORANLAR YAZIYOR — kampanyali oran DEGIL.
+
+    Kampanya gecici bir INDIRIM ve her an bitebilir; sozlesme metnine
+    yazilsaydi, kampanya bittiginde sozlesme kendiliginden degismis
+    gorunurdu. Bakicinin imzaladigi sey taban oran; kampanya onun
+    lehine gecici bir sapma ve asagidaki satirda oyle anlatiliyor.
+  */
+  const c = await getCommissionSettings();
 
   return (
     <ContentPage
@@ -65,8 +76,8 @@ export default async function SitterAgreementPage({ params }: { params: Promise<
                `${c.sitterPct.platform} % sur un client que nous vous avons présenté.`)}</li>
       </ul>
       <p>
-        {t('A rate change applies only to bookings made after it. Full detail is on our ',
-           'Un changement de taux ne s’applique qu’aux réservations faites après. Le détail complet est sur notre page ')}
+        {t('A rate change applies only to bookings made after it — a booking you already have keeps the rate it was made at. From time to time we run a campaign that lowers these rates for a period; a campaign never raises them. Full detail is on our ',
+           'Un changement de taux ne s’applique qu’aux réservations faites après — une réservation déjà en cours conserve le taux en vigueur au moment où elle a été faite. Il nous arrive de mener une campagne qui abaisse ces taux pour une période; une campagne ne les augmente jamais. Le détail complet est sur notre page ')}
         <Link href={`/${seg}/pricing/`}>{m.nav.pricing.toLowerCase()}</Link>.
       </p>
 

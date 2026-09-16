@@ -7,7 +7,10 @@ import {
   isAdmin, decideApplication, setSuspension, setRole, addNote,
   setReviewHidden, resolveReport, createReport, adminSetBookingStatus,
   getRawMessage, getReport, recordAudit,
+  saveCommissionSettings, getCommissionSettings, createCampaign, endCampaign,
 } from '@/lib/data';
+import { validateCommissionSettings, validateCampaign } from '@havre/core';
+import type { SettingsState } from '@/components/admin/CommissionForms';
 import type { ActionState } from '@/components/admin/ReasonAction';
 
 /**
@@ -260,4 +263,139 @@ export async function revealMessageAction(
       createdAt: raw.createdAt,
     },
   };
+}
+
+/* ------------------------------------------------------- komisyon ayarlari */
+
+/**
+ * ORAN DEGISIKLIGI — PANELIN PARAYA DOKUNAN TEK YERI.
+ *
+ * UC SEY BURADA GARANTI ALTINA ALINIYOR:
+ *
+ *  1. Yetki her eylemde yeniden kontrol ediliyor (guard).
+ *  2. Dogrulama packages/core icinde, yani ayni kural hem ekranda hem
+ *     burada. Ekrandaki kontrol kolaylik; BAGLAYICI OLAN BURASI.
+ *  3. Her degisiklik denetim kaydina oncesi/sonrasi ile yaziliyor
+ *     (saveCommissionSettings icinde).
+ *
+ * GECMISE DONUK DEGIL: rezervasyonun komisyonu istek aninda hesaplanip
+ * satirina yaziliyor. Buradaki degisiklik yalnizca BUNDAN SONRAKI
+ * istekleri etkiler.
+ *
+ * `revalidatePath` yayinlanan sayfalar icin: ucret sayfasi, bakici
+ * davet sayfasi, yardim ve sozlesme oranlari veritabanindan okuyor ve
+ * ISR ile onbellekte. Tazelenmezse site bir sure ESKI orani yayinlar —
+ * ve o sayfalar "her ucret burada yaziyor" diyor.
+ */
+export async function saveCommissionAction(
+  _prev: SettingsState, form: FormData,
+): Promise<SettingsState> {
+  const admin = await guard();
+  if (!admin) return { errors: { form: 'not_allowed' } };
+
+  const num = (name: string) => Number(String(form.get(name) ?? '').replace(',', '.'));
+
+  const input = {
+    sitterPct: {
+      platform: num('platform'),
+      repeat: num('repeat'),
+      sitter_referral: num('referral'),
+    },
+    ownerPct: num('ownerPct'),
+    /* Ekranda DOLAR, veritabaninda cent. Yuvarlama burada bir kez. */
+    ownerFeeCapCents: Math.round(num('ownerFeeCap') * 100),
+    launchPromoMonths: Math.round(num('launchPromoMonths')),
+  };
+
+  const errors = validateCommissionSettings(input);
+  if (Object.keys(errors).length) return { errors };
+
+  const ip = await clientIp();
+  await saveCommissionSettings({ adminId: admin.id, ...input, ...(ip ? { ip } : {}) });
+
+  revalidateRates();
+  return { saved: true };
+}
+
+export async function createCampaignAction(
+  _prev: SettingsState, form: FormData,
+): Promise<SettingsState> {
+  const admin = await guard();
+  if (!admin) return { errors: { form: 'not_allowed' } };
+
+  const optionalPct = (name: string): number | undefined => {
+    const raw = String(form.get(name) ?? '').trim();
+    /* BOS = "bu atif icin indirim yok". Sifir ile ayni sey degil:
+       sifir "komisyon almiyoruz" demek ve kasitli bir karar. */
+    if (raw === '') return undefined;
+    return Number(raw.replace(',', '.'));
+  };
+
+  /*
+    Tarih alani GUN veriyor, saat vermiyor. Baslangic gunun basi,
+    bitis gunun basi: "1 Aralik'ta basla, 1 Subat'ta bit" dendiginde
+    Ocak'in son gunu dahil, Subat'in ilki degil. Ekranda da boyle
+    yaziyor.
+  */
+  const day = (name: string) => {
+    const raw = String(form.get(name) ?? '').trim();
+    return raw === '' ? '' : `${raw}T00:00:00.000Z`;
+  };
+
+  const input = {
+    name: String(form.get('name') ?? ''),
+    sitterPct: {
+      ...(optionalPct('cPlatform') === undefined ? {} : { platform: optionalPct('cPlatform')! }),
+      ...(optionalPct('cRepeat') === undefined ? {} : { repeat: optionalPct('cRepeat')! }),
+      ...(optionalPct('cReferral') === undefined ? {} : { sitter_referral: optionalPct('cReferral')! }),
+    },
+    startsAt: day('startsAt'),
+    endsAt: day('endsAt'),
+  };
+
+  const base = await getCommissionSettings();
+  const errors = validateCampaign(input, {
+    sitterPct: base.sitterPct,
+    ownerPct: base.ownerPct,
+    ownerFeeCapCents: base.ownerFeeCapCents,
+    launchPromoMonths: base.launchPromoMonths,
+  });
+  if (Object.keys(errors).length) return { errors };
+
+  const ip = await clientIp();
+  const res = await createCampaign({ adminId: admin.id, ...input, ...(ip ? { ip } : {}) });
+  if (!res.ok) return { errors: { form: 'error.overlap' } };
+
+  revalidateRates();
+  return { saved: true };
+}
+
+/** Kampanyayi erken bitirir. Kayit SILINMIYOR, yalnizca isaretleniyor. */
+export async function endCampaignAction(form: FormData): Promise<void> {
+  const admin = await guard();
+  if (!admin) return;
+  const campaignId = field(form, 'campaignId');
+  if (!campaignId) return;
+
+  const ip = await clientIp();
+  await endCampaign({ adminId: admin.id, campaignId, ...(ip ? { ip } : {}) });
+  revalidateRates();
+}
+
+/**
+ * Oranlari YAYINLAYAN her sayfa.
+ *
+ * Listeyi tek yerde tutmak sart: yeni bir sayfa oran yazdiginda buraya
+ * eklenmezse, o sayfa eski orani yayinlamaya devam eder ve kimse fark
+ * etmez. Sayfalarin kendi `revalidate` suresi de var — bu liste
+ * unutulursa site en fazla bes dakika eski kalir, sonsuza kadar degil.
+ */
+function revalidateRates(): void {
+  revalidatePath('/admin/settings');
+  for (const seg of ['en', 'fr']) {
+    revalidatePath(`/${seg}/pricing`);
+    revalidatePath(`/${seg}/become-a-sitter`);
+    revalidatePath(`/${seg}/help`);
+    revalidatePath(`/${seg}/legal/sitter-agreement`);
+  }
 }

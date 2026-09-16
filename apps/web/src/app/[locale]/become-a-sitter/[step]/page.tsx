@@ -11,6 +11,7 @@ import {
   servicePriceRanges, MAX_SITTER_PHOTOS, MAX_PET_PHOTOS,
 } from '@havre/db';
 import { getSession } from '@/lib/auth';
+import { getCommission } from '@/lib/data';
 import { Progress } from '@/components/onboarding/Progress';
 import {
   AboutForm, HomeForm, LocationForm, ReviewForm, ScreeningForm, ServicesForm,
@@ -114,6 +115,7 @@ export default async function OnboardingStepPage({
           /* Net kazanc satiri: vergi ile bagli, promosyon varsa komisyon sifir */
           province={(state.province as ProvinceCode | null) ?? null}
           promoEndsAt={state.promoEndsAt}
+          commission={(await getCommission()).config}
         />
       )}
 

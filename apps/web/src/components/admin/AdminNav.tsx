@@ -53,6 +53,16 @@ const GROUPS: ReadonlyArray<{
       { href: '/admin/audit/', label: 'Audit log', icon: 'audit' },
     ],
   },
+  /*
+    AYARLAR EN ALTTA VE KENDI BOLUMUNDE.
+
+    Gunluk isin arasinda degil: burasi panelin PARAYA dokunan tek
+    yeri ve yanlislikla tiklanacak bir yerde durmamali.
+  */
+  {
+    label: 'Platform',
+    items: [{ href: '/admin/settings/', label: 'Commission', icon: 'settings' }],
+  },
 ];
 
 const STORE_KEY = 'havre.admin.nav';

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
-  completedSteps, DEFAULT_COMMISSION, ONBOARDING_STEPS, type OnboardingStep,
+  completedSteps, ONBOARDING_STEPS, type OnboardingStep,
 } from '@havre/core';
 import {
   getMessages, interpolate, localeFromSegment, type Locale, type Messages,
@@ -10,6 +10,7 @@ import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import {
   getAccountSummary, isAdmin, listOwnerPets, listOwnerBookings, listConversations,
+  getCommission,
   type OwnerPet, type BookingSummary, type ConversationSummary,
 } from '@/lib/data';
 import { ActivityList, ActivityRow, ActivityIcon } from '@/components/ActivityList';
@@ -53,12 +54,15 @@ export default async function AccountOverviewPage({
     yolluyordu; kiminle, ne zaman ve ondan ne beklendigi orada
     kaliyordu. Iki sorgu daha, ama ozetin isini gercekten yapmasi icin.
   */
-  const [me, admin, pets, bookings, conversations] = await Promise.all([
+  const [me, admin, pets, bookings, conversations, commission] = await Promise.all([
     getAccountSummary(session.user.id),
     isAdmin(session.user.id),
     listOwnerPets(session.user.id),
     listOwnerBookings(session.user.id),
     listConversations(session.user.id),
+    /* Davet kutusundaki "%18" o an gecerli oran olmali: kampanya
+       varken eski rakami gostermek bakiciyi yanlis bilgilendirir. */
+    getCommission(),
   ]);
   if (!me) notFound();
 
@@ -125,7 +129,7 @@ export default async function AccountOverviewPage({
           {me.sitter ? (
             <SitterStatusCard locale={locale} seg={seg} sitter={me.sitter} />
           ) : (
-            <SitterInvite locale={locale} seg={seg} />
+            <SitterInvite locale={locale} seg={seg} platformPct={commission.config.sitterPct.platform} />
           )}
         </div>
       </div>
@@ -216,14 +220,18 @@ function IdentityCard({
  * demekti — ve bu, ucret seffafligi iddiasiyla celisirdi. "Rakiplerden
  * az" gibi karsilastirmali bir iddia YOK: baskasinin oranini olcmedik.
  */
-function SitterInvite({ locale, seg }: { locale: Locale; seg: string }) {
+function SitterInvite({ locale, seg, platformPct }: {
+  locale: Locale; seg: string;
+  /** O an gecerli platform komisyonu — kampanya varsa kampanyali oran */
+  platformPct: number;
+}) {
   const m = getMessages(locale);
   return (
     <section className="panel invite-card">
       <h2 className="text-h4">{m.account.becomeSitterHeading}</h2>
 
       <p className="invite-rate">
-        <span className="invite-pct tabular">{DEFAULT_COMMISSION.sitterPct.platform}%</span>
+        <span className="invite-pct tabular">{platformPct}%</span>
         <span>{m.account.inviteRate}</span>
       </p>
 

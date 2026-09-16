@@ -42,6 +42,14 @@ import {
   favouriteIds as dbFavouriteIds, favouriteIdsOrdered as dbFavouriteIdsOrdered,
   favouriteSitters as dbFavouriteSitters, claimFavourites as dbClaimFavourites,
   existingSitterIds as dbExistingSitterIds,
+  getCommissionSettings as dbGetCommissionSettings,
+  saveCommissionSettings as dbSaveCommissionSettings,
+  getResolvedCommission as dbGetResolvedCommission,
+  getActiveCampaign as dbGetActiveCampaign, listCampaigns as dbListCampaigns,
+  createCampaign as dbCreateCampaign, endCampaign as dbEndCampaign,
+  listCommissionAudit as dbListCommissionAudit,
+  type CommissionSettingsRow, type CampaignRow,
+  type SaveSettingsInput, type CreateCampaignInput,
   getLandingData as dbGetLandingData, searchSitters as dbSearchSitters,
   countSitters as dbCountSitters, isSearchSort, SEARCH_SORTS,
   cityName, citySlug,
@@ -274,3 +282,30 @@ export const setPetPhoto = (petId: string, ownerId: string, url: string | null) 
   dbSetPetPhoto(db(), petId, ownerId, url);
 export const deleteOwnerPet = (petId: string, ownerId: string) =>
   dbDeleteOwnerPet(db(), petId, ownerId);
+
+
+/* --------------------------------------------------- komisyon ayarlari */
+/**
+ * O AN GECERLI KOMISYON — taban oranlar + varsa yururlukteki kampanya.
+ *
+ * `cache()` ILE SARILI: ayni istek icinde onlarca yerden okunuyor
+ * (ucret sayfasi, rezervasyon ekrani, sihirbazdaki net kazanc satiri)
+ * ve hepsinin AYNI rakami gormesi sart. Sarmalanmasaydi, bir kampanya
+ * tam sayfa cizilirken baslarsa ayni sayfanin ust yarisi %18, alt
+ * yarisi %10 yazabilirdi.
+ *
+ * Istekler arasi onbellek YOK: kampanya acildiginda site en gec bir
+ * sonraki istekte dogru rakami gosteriyor.
+ */
+export const getCommission = cache(() => dbGetResolvedCommission(db()));
+
+export const getCommissionSettings = () => dbGetCommissionSettings(db());
+export const saveCommissionSettings = (input: SaveSettingsInput) =>
+  dbSaveCommissionSettings(db(), input);
+export const getActiveCampaign = () => dbGetActiveCampaign(db());
+export const listCampaigns = (limit?: number) => dbListCampaigns(db(), limit);
+export const createCampaign = (input: CreateCampaignInput) => dbCreateCampaign(db(), input);
+export const endCampaign = (input: { adminId: string; campaignId: string; ip?: string | undefined }) =>
+  dbEndCampaign(db(), input);
+export const listCommissionAudit = (limit?: number) => dbListCommissionAudit(db(), limit);
+export type { CommissionSettingsRow, CampaignRow };

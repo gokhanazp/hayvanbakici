@@ -127,3 +127,183 @@ export function compareToRover(
     ownerSavesCents: roverOwnerFee - ours.ownerFeeCents,
   };
 }
+
+/* ------------------------------------------------------------------
+   KAMPANYA — DONEMSEL KOMISYON INDIRIMI.
+
+   TABAN ORANLAR ile KAMPANYA neden ayri iki sey:
+
+   Taban oran kalici bir fiyat karari ve bakici sozlesmesinde yaziyor.
+   Kampanya gecici bir indirim ve bir bitis tarihi var. Ikisini tek bir
+   alanda tutup "sonra geri alirim" demek, geri almayi unutmanin ya da
+   sozlesmede yazan orani sessizce degistirmenin kestirme yoluydu.
+
+   KAMPANYA YALNIZCA BAKICI KOMISYONUNU indirir. Musteri hizmet bedeli
+   (%7) ve ust siniri kapsam disi: musterinin gordugu rakam sabit
+   kaldigi surece yayinlanan vaat sarsilmiyor, bir kampanyayi bitirmek
+   de kimsenin odedigi bedeli ARTIRMIYOR.
+
+   INDIRIM SADECE ASAGI DOGRU. `resolveCommissionConfig` kampanya orani
+   tabandan buyukse tabani kullaniyor: "kampanya" adi altinda komisyon
+   artirmak, bakiciya duyurulan seyin tersi olurdu.
+
+   GECMISE DONUK DEGIL. Bir rezervasyonun komisyonu istegin
+   OLUSTURULDUGU anda hesaplanip satira yaziliyor
+   (bookings.sitter_commission_pct / _cents). Bu dosya yalnizca YENI
+   hesaplar icin okunuyor; kampanya acmak ya da kapatmak gecmisteki
+   hicbir rezervasyonu, hicbir odemeyi degistirmez.
+   ------------------------------------------------------------------ */
+
+export interface CommissionCampaign {
+  readonly name: string;
+  /** Kampanya oranlari — verilmeyen attribution tabanda kalir */
+  readonly sitterPct: Partial<Readonly<Record<Attribution, number>>>;
+  /** ISO tarih-saat */
+  readonly startsAt: string;
+  readonly endsAt: string;
+}
+
+export interface ResolvedCommission {
+  readonly config: CommissionConfig;
+  /** Su anda uygulanan kampanya — yoksa null */
+  readonly campaignName: string | null;
+  readonly campaignEndsAt: string | null;
+}
+
+/** Kampanya penceresi su ani kapsiyor mu (baslangic dahil, bitis haric). */
+export function campaignActiveAt(c: CommissionCampaign, now: Date): boolean {
+  const start = Date.parse(c.startsAt);
+  const end = Date.parse(c.endsAt);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return false;
+  const t = now.getTime();
+  return t >= start && t < end;
+}
+
+/**
+ * Taban + (varsa) kampanya -> o an gecerli yapilandirma.
+ *
+ * SAF FONKSIYON: saati disaridan aliyor. Kampanyanin acilis ve kapanis
+ * aninin testi ancak boyle yazilabilir ve "bugun calisiyor, yarin
+ * bozuluyor" turu hatalar boyle yakalanir.
+ */
+export function resolveCommissionConfig(
+  base: CommissionConfig,
+  campaign: CommissionCampaign | null,
+  now: Date = new Date(),
+): ResolvedCommission {
+  if (!campaign || !campaignActiveAt(campaign, now)) {
+    return { config: base, campaignName: null, campaignEndsAt: null };
+  }
+
+  const sitterPct = { ...base.sitterPct };
+  let touched = false;
+  for (const key of Object.keys(sitterPct) as Attribution[]) {
+    const wanted = campaign.sitterPct[key];
+    if (wanted === undefined) continue;
+    /* Yalnizca ASAGI. Kampanya adi altinda komisyon artirilamaz. */
+    if (wanted < sitterPct[key]) {
+      sitterPct[key] = wanted;
+      touched = true;
+    }
+  }
+
+  /*
+    Hicbir oran gercekten dusmediyse kampanya UYGULANMIS SAYILMAZ:
+    ekranda "kampanya var" yazip hicbir sey degistirmemek, bakiciya
+    tutulmayan bir soz vermektir.
+  */
+  if (!touched) return { config: base, campaignName: null, campaignEndsAt: null };
+
+  return {
+    config: { ...base, sitterPct },
+    campaignName: campaign.name,
+    campaignEndsAt: campaign.endsAt,
+  };
+}
+
+/* ---------------------------------------------------- dogrulama */
+
+/** Bakici komisyonu icin izin verilen ust sinir (%). */
+export const MAX_SITTER_PCT = 40;
+/** Musteri hizmet bedeli icin izin verilen ust sinir (%). */
+export const MAX_OWNER_PCT = 20;
+/** Musteri hizmet bedeli ust siniri icin izin verilen en buyuk tutar. */
+export const MAX_OWNER_FEE_CAP_CENTS = dollars(200);
+
+export type CommissionFieldErrors = Record<string, string>;
+
+/**
+ * Yonetici panelinden gelen taban oranlarin dogrulamasi.
+ *
+ * SINIRLAR KEYFI DEGIL: yayinlanan sayfalarda "Rover %20 aliyor, biz
+ * %18" yaziyor. Paneldeki bir yazim hatasiyla (%180) hem o sayfa
+ * saçmalar hem de o anda rezervasyon yapan bakicinin kazancindan
+ * gercekten o kadar kesilir. Ust sinirlar bu iki seyi birden engelliyor.
+ *
+ * Hata KODU donduruluyor, metin degil — panel Ingilizce ama kural
+ * projenin geri kalaniyla ayni.
+ */
+export function validateCommissionSettings(input: {
+  sitterPct: Record<Attribution, number>;
+  ownerPct: number;
+  ownerFeeCapCents: number;
+  launchPromoMonths: number;
+}): CommissionFieldErrors {
+  const e: CommissionFieldErrors = {};
+  const pct = (v: number) => Number.isFinite(v) && v >= 0;
+
+  for (const key of ['platform', 'repeat', 'sitter_referral'] as const) {
+    const v = input.sitterPct[key];
+    if (!pct(v) || v > MAX_SITTER_PCT) e[`sitterPct.${key}`] = 'error.pctRange';
+  }
+  if (!pct(input.ownerPct) || input.ownerPct > MAX_OWNER_PCT) e.ownerPct = 'error.pctRange';
+  if (!Number.isInteger(input.ownerFeeCapCents)
+    || input.ownerFeeCapCents < 0
+    || input.ownerFeeCapCents > MAX_OWNER_FEE_CAP_CENTS) {
+    e.ownerFeeCapCents = 'error.capRange';
+  }
+  if (!Number.isInteger(input.launchPromoMonths)
+    || input.launchPromoMonths < 0 || input.launchPromoMonths > 36) {
+    e.launchPromoMonths = 'error.promoRange';
+  }
+  return e;
+}
+
+/**
+ * Kampanya dogrulamasi. Taban oranlar da veriliyor cunku "indirim"
+ * olmayan bir kampanyayi kaydetmenin anlami yok — yonetici bunu
+ * KAYDETMEDEN once ogrenmeli, kampanya sessizce etkisiz kalmamali.
+ */
+export function validateCampaign(input: {
+  name: string;
+  sitterPct: Partial<Record<Attribution, number>>;
+  startsAt: string;
+  endsAt: string;
+}, base: CommissionConfig): CommissionFieldErrors {
+  const e: CommissionFieldErrors = {};
+
+  if (input.name.trim().length < 2) e.name = 'error.required';
+
+  const start = Date.parse(input.startsAt);
+  const end = Date.parse(input.endsAt);
+  if (!Number.isFinite(start)) e.startsAt = 'error.required';
+  if (!Number.isFinite(end)) e.endsAt = 'error.required';
+  if (Number.isFinite(start) && Number.isFinite(end) && end <= start) {
+    e.endsAt = 'error.endBeforeStart';
+  }
+
+  let lowersSomething = false;
+  for (const key of ['platform', 'repeat', 'sitter_referral'] as const) {
+    const v = input.sitterPct[key];
+    if (v === undefined) continue;
+    if (!Number.isFinite(v) || v < 0 || v > MAX_SITTER_PCT) {
+      e[`campaignPct.${key}`] = 'error.pctRange';
+      continue;
+    }
+    if (v < base.sitterPct[key]) lowersSomething = true;
+    else e[`campaignPct.${key}`] = 'error.notLower';
+  }
+  if (!lowersSomething && !e.name) e.sitterPct = 'error.noDiscount';
+
+  return e;
+}

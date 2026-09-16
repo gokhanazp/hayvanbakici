@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth';
 import { BookingForm, type BookableService } from '@/components/BookingForm';
 import { Avatar } from '@/components/Avatar';
 import { VerificationBadge } from '@/components/VerificationBadge';
-import { getSitterProfile, listPets } from '@/lib/data';
+import { getSitterProfile, listPets, getCommission } from '@/lib/data';
 import { requestBookingAction } from './actions';
 
 /** Kisiye ozel ve her istekte taze — indekslenmez. */
@@ -50,7 +50,11 @@ export default async function BookPage({
   }
 
   const m = getMessages(locale);
-  const pets = await listPets(session.user.id);
+  const [pets, commission] = await Promise.all([
+    listPets(session.user.id),
+    /* Ekran ve sunucu AYNI orani kullansin diye tek kaynak. */
+    getCommission(),
+  ]);
 
   const services: BookableService[] = sitter.services
     .filter((s) => V1.has(s.serviceType))
@@ -107,6 +111,7 @@ export default async function BookPage({
             initialService={initialService}
             pets={pets}
             province={sitter.province}
+            commission={commission.config}
             action={requestBookingAction}
           />
         </div>

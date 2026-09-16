@@ -2611,6 +2611,17 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 .notice-warning p { color: var(--color-tile-apricot-ink); font-size: 0.875rem; line-height: 1.35rem; }
 
+/*
+  KAMPANYA BANDI. Uyari degil IYI HABER: uyari sarisi yerine yesil
+  kenar. Ayni bicimde iki farkli duyguyu tasimak, ikisini de okunmaz
+  yapiyor.
+*/
+.notice-accent {
+  border-left-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.notice-accent p { margin: 0; color: var(--color-ink); }
+
 /* ---------- SSS listesi ----------
    Tek cerceve, aralarinda ayirici. Havada duran ayri kutular yerine
    "bir alan" gibi okunuyor. */

@@ -2,22 +2,30 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
-import { DEFAULT_COMMISSION, calculateCommission, compareToRover, dollars } from '@havre/core';
+import { calculateCommission, compareToRover, dollars } from '@havre/core';
 import { ContentPage } from '@/components/ContentPage';
 import { NoIcon } from '@/components/InfoIcons';
-import { money } from '@/lib/format';
+import { money, dayFmt } from '@/lib/format';
+import { getCommission } from '@/lib/data';
 
 /**
  * UCRET SAYFASI.
  *
- * Tum rakamlar DEFAULT_COMMISSION ve calculateCommission'dan geliyor.
- * Bir oran degistiginde bu sayfa kendiliginden degisir; elle yazilmis
- * bir yuzde, degisiklikten sonra sessizce yalana donerdi.
+ * Tum rakamlar O AN GECERLI yapilandirmadan geliyor (getCommission:
+ * taban oranlar + varsa yururlukteki kampanya). Elle yazilmis bir
+ * yuzde, ilk degisiklikten sonra sessizce yalana donerdi.
+ *
+ * SAYFA ISR: oran veritabanindan okundugu icin statik uretilemez, ama
+ * her istekte sorgu da gerekmiyor. Yonetici oran degistirdiginde
+ * eylem `revalidatePath` cagiriyor — yani degisiklik ANINDA yansiyor,
+ * bes dakikalik tazeleme yalnizca emniyet kemeri.
  *
  * COMPETITION ACT (yol haritasi §8.6): "gizli ucret yok" iddiasinin
  * dayanagi bu sayfadir — sayfada listelenmeyen hicbir kalem tahsil
  * edilmiyor ve rakip karsilastirmasi ISPATLANABILIR bir orana dayaniyor.
  */
+export const revalidate = 300;
+
 export async function generateMetadata(
   { params }: { params: Promise<{ locale: string }> },
 ): Promise<Metadata> {
@@ -40,10 +48,10 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   const m = getMessages(locale);
   const fr = locale === 'fr-CA';
   const t = (en: string, f: string) => (fr ? f : en);
-  const c = DEFAULT_COMMISSION;
+  const { config: c, campaignName, campaignEndsAt } = await getCommission();
 
   const sample = dollars(500);
-  const ours = calculateCommission({ subtotalCents: sample, attribution: 'platform' });
+  const ours = calculateCommission({ subtotalCents: sample, attribution: 'platform', config: c });
   const vs = compareToRover(sample, ours, 'standard');
 
   return (
@@ -81,6 +89,27 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         </>
       }
     >
+      {/*
+        KAMPANYA BANDI — RAKAMIN NEDEN FARKLI OLDUGUNU SOYLUYOR.
+
+        Kampanya varken kartlardaki oran indirimli olur. Bandi
+        koymasaydik, sayfaya bakan bir bakici "%10" gorup kalicı
+        sanir ve kampanya bitince orani biz sessizce artirmis
+        olurduk. Bitis TARIHI yaziyor: bir indirimin ne zaman
+        bittigini soylememek, indirim yapmamaktan kotudur.
+      */}
+      {campaignName && campaignEndsAt && (
+        <div className="notice notice-accent">
+          <p>
+            <strong>{campaignName}</strong>{' — '}
+            {t(
+              `Sitter commission is lower until ${dayFmt(campaignEndsAt, locale)}. The owner service fee is not affected.`,
+              `La commission des gardiens est réduite jusqu’au ${dayFmt(campaignEndsAt, locale)}. Les frais de service du propriétaire ne changent pas.`,
+            )}
+          </p>
+        </div>
+      )}
+
       {/*
         UC ORAN, UC KART.
 

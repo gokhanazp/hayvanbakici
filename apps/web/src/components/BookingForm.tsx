@@ -3,7 +3,8 @@
 import { useActionState, useState } from 'react';
 import { getMessages, interpolate, segmentFor, unitLabel, type Locale, type Messages } from '@havre/i18n';
 import {
-  SERVICES, calculateQuote, holidayUnitsBetween, type ProvinceCode, type ServiceType,
+  SERVICES, calculateQuote, holidayUnitsBetween,
+  type CommissionConfig, type ProvinceCode, type ServiceType,
 } from '@havre/core';
 import { petLabel } from './PetLine';
 import { Select } from '@/components/ui/Select';
@@ -120,6 +121,7 @@ function QuoteTable({
  */
 export function BookingForm({
   locale, sitterId, sitterFirstName, services, initialService, pets, province, action,
+  commission,
 }: {
   locale: Locale;
   sitterId: string;
@@ -135,6 +137,15 @@ export function BookingForm({
   initialService?: ServiceType | undefined;
   pets: Array<{ id: string; name: string; species: string; weightKg: number | null }>;
   province: string;
+  /**
+   * O AN GECERLI komisyon yapilandirmasi — sunucudan geliyor.
+   *
+   * Once koddaki sabit kullaniliyordu. Yonetici musteri hizmet bedelini
+   * panelden degistirdiginde bu ekran eski rakami gosterip sunucu
+   * yenisini kaydederdi: kullanici bir tutar gorup baskasini
+   * onaylamis olurdu. Iki taraf artik ayni kaynaktan okuyor.
+   */
+  commission: CommissionConfig;
   action: (prev: RequestState, form: FormData) => Promise<RequestState>;
 }) {
   const m = getMessages(locale);
@@ -166,6 +177,7 @@ export function BookingForm({
   const priceFor = (n: number) =>
     svc
       ? calculateQuote({
+          config: commission,
           serviceType,
           unitPriceCents: svc.priceCents,
           units: n,
