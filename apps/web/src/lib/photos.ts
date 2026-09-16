@@ -86,7 +86,7 @@ export const PHOTOS = {
     'Someone walking a dog along a city street',
     'Une personne promenant un chien dans une rue de la ville'),
 
-  'auth-panel': scene('scene/auth-panel', 900, 1200, 3,
+  'auth-panel': scene('scene/auth-panel', 900, 1200, 2,
     'person reading on couch with dog resting beside them',
     'Someone on a couch with a dog resting beside them',
     'Une personne sur un canapé avec un chien qui se repose à côté'),

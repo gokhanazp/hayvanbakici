@@ -27,19 +27,36 @@ export const space = {
  * keskin kose soguk duruyor. Rozet, cip ve birincil CTA hap bicimli.
  */
 export const radius = {
-  sm: '12px',    // kucuk kontrol
-  md: '16px',    // buton, input
-  lg: '24px',    // kart
-  xl: '32px',    // hero, banner, modal
+  sm: '14px',    // kucuk kontrol
+  md: '20px',    // buton, input
+  lg: '28px',    // kart
+  xl: '36px',    // hero, banner, modal
   full: '999px', // avatar, rozet, filtre cipi, birincil CTA
 } as const;
 
-/** Golgeler siyah degil, sicak tonlu */
+/**
+ * GOLGELER — IKI AILE.
+ *
+ * YUMUSAK aile (sm–xl) eskisi gibi: acilir menu, cekmece, kip pencere
+ * gibi sayfanin USTUNDE YUZEN seyler icin. Onlar gercekten havada
+ * duruyor; yumusak golge dogru okuyor.
+ *
+ * CIKARTMA ailesi (stickerSm/stickerMd) YENI ve bu tasarimin imzasi:
+ * dagilmayan, kaymis, tek renk bir golge. Kart sayfanin uzerine
+ * YAPISTIRILMIS gibi duruyor — cocuk kitabi ve cikartma dilinden
+ * geliyor, kategoriye sicaklik katan sey de bu.
+ *
+ * RENK SABIT DEGIL: `color-mix` ile murekkep tokenindan turetiliyor,
+ * boylece koyu tema geldigin gun golge de kendiliginden dogru tona
+ * geciyor. Sabit rgba yazilsaydi koyu zeminde gorunmez olurdu.
+ */
 export const shadow = {
-  sm: '0 1px 2px rgba(26,23,20,.05)',
-  md: '0 4px 12px rgba(26,23,20,.07)',
-  lg: '0 12px 32px rgba(26,23,20,.10)',
-  xl: '0 24px 64px rgba(26,23,20,.12)',
+  sm: '0 1px 2px rgba(46,32,18,.05)',
+  md: '0 4px 12px rgba(46,32,18,.07)',
+  lg: '0 12px 32px rgba(46,32,18,.10)',
+  xl: '0 24px 64px rgba(46,32,18,.12)',
+  stickerSm: '3px 3px 0 color-mix(in srgb, var(--color-ink) 10%, transparent)',
+  stickerMd: '5px 6px 0 color-mix(in srgb, var(--color-ink) 12%, transparent)',
 } as const;
 
 export const motion = {

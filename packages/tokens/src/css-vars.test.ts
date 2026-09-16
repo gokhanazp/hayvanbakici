@@ -30,7 +30,9 @@ const KNOWN = new Set<string>([
   ...Object.keys(lightTheme).map((k) => `color-${k}`),
   ...Object.keys(space).map((k) => `space-${k.replace('.', '_')}`),
   ...Object.keys(radius).map((k) => `radius-${k}`),
-  ...Object.keys(shadow).map((k) => `shadow-${k}`),
+  ...Object.keys(shadow).map(
+    (k) => `shadow-${k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())}`,
+  ),
   ...Object.keys(motion.duration).map((k) => `duration-${k}`),
   ...Object.keys(motion.easing).map((k) => `easing-${k}`),
   ...Object.keys(fontFamily).map((k) => `font-${k}`),

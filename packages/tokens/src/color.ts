@@ -1,15 +1,25 @@
 /**
- * Renk paleti — "Bogurtlen & Adacayi".
+ * Renk paleti — "Cizgi Film".
  *
- * NEDEN BU PALET: rakiplerden ayrismak bir zevk meselesi degil, stratejik
- * varlik. Rover mavi-yesil, Hipaw turuncu-yesil kullaniyor; onceki
- * paletimiz (ladin yesili + kehribar) ikisine de tehlikeli derecede
- * yakindi. Bogurtlen + adacayi ikilisi kategoride kimsede yok.
+ * NEDEN BU PALET: onceki palet (bogurtlen + adacayi, erik moru murekkep)
+ * dogru secilmisti ama SOGUK okunuyordu. Bu kategoride site, insanin
+ * evine ve hayvanina bakacak birini secmeye calisirken guven kadar
+ * SICAKLIK da satiyor; erik moru bir murekkep ve pembe-gri krem, bir
+ * butik magaza gibi duruyordu.
  *
- * ROL DAGILIMI: bogurtlen EYLEM rengidir (ara, rezerve et, bakici ol),
- * adacayi DESTEK (basari, onay, sakinlik). Guven rozetleri (kimlik,
+ * DEGISEN: murekkep sicak kahveye (#2E2012), zemin sicak kreme
+ * (#FFF7E8), koyu panel siyaha yakin yerine sicak kahveye dondu. Marka
+ * rengi hala gul ailesinde ama bir tik koyu: bantlarin uzerinde AA'yi
+ * gecmesi gerekiyordu (olculdu, #C63F63 4.04'te kaliyordu).
+ *
+ * ROL DAGILIMI degismedi: gul EYLEM rengi (ara, rezerve et, bakici ol),
+ * yesil DESTEK (basari, onay, sakinlik). Guven rozetleri (kimlik,
  * sicil, sigorta, pro) marka renginden AYRI kalmaya devam ediyor —
  * bilincli: rozet marka degil, bagimsiz bir iddia.
+ *
+ * RAKIPLERDEN AYRISMA: Rover mavi-yesil, Hipaw turuncu-yesil. Sicak
+ * krem zemin + gul eylem rengi ikisinde de yok; bal/kayisi yalnizca
+ * yardimci ton olarak kullaniliyor, ana renk degil.
  *
  * Tum metin/zemin ciftleri WCAG 2.2 AA hedefler ve
  * packages/tokens/src/contrast.test.ts icinde OLCULUR.
@@ -17,38 +27,38 @@
 
 export const palette = {
   // Sicak notr omurga — hafif gul altili krem
-  canvas:        '#FDF6F3',
+  canvas:        '#FFF7E8',
   surface:       '#FFFFFF',
-  surfaceSunken: '#F8EAE4',
-  border:        '#EFDDD8',
-  borderStrong:  '#E0C7BF',
+  surfaceSunken: '#FCEEDA',
+  border:        '#EFDFC4',
+  borderStrong:  '#D9BE94',
 
   // Murekkep (metin) — patlican
-  ink:          '#2A1C26',
-  inkSecondary: '#6B5A64',
+  ink:          '#2E2012',
+  inkSecondary: '#63503B',
   /*
     5.46:1 krem zeminde. Daha acik bir gri (#9C8D95) 2.95'te kaliyordu.
     #7C6B78 krem zeminde 4.64 ile geciyordu ama RENKLI BANTLAR eklenince
     (blush 4.27, sage 4.44) AA'nin altina dustu: ayni token artik dort ayri
     zemin uzerinde yasiyor, dolayisiyla en KOYU banda gore secildi.
   */
-  inkMuted:     '#71606E',
+  inkMuted:     '#6E5A42',
 
   // Birincil — "Bogurtlen". EYLEM rengi.
-  primary50:  '#FADDE6',
+  primary50:  '#FBDEE6',
   primary100: '#F3C3D4',
   primary300: '#D07C9F',
-  primary500: '#B33C6E',
-  primary600: '#96305B',
-  primary700: '#8E2C56',
+  primary500: '#AF3453',
+  primary600: '#962C47',
+  primary700: '#8E2942',
   primary900: '#4E152E',
 
   // Aksan — "Adacayi". DESTEK rengi.
-  accent100: '#DEEBE0',
-  accent500: '#6F9E7F',
+  accent100: '#D8EDE2',
+  accent500: '#2F7D5E',
   /* Rozet metni pastel adacayi zeminde yasiyor: #4B7A5C orada 4.03'te
      kaliyordu (11px yari kalin = kucuk metin, 4.5 gerekir). */
-  accent600: '#456F54',
+  accent600: '#25664C',
 
   /*
     BOLUM BANTLARI — sayfa artik tek bir krem zemin degil.
@@ -57,9 +67,9 @@ export const palette = {
     ustlerinde ink/ink-secondary/ink-muted/primary hepsi AA'yi gecmek zorunda
     (contrast.test.ts'te dordu de olculuyor), bu da tonu sinirliyor.
   */
-  bandBlush:   '#F8E5EC',
-  bandApricot: '#FBEBDE',
-  bandSage:    '#E9F2EC',
+  bandBlush:   '#FDE3E8',
+  bandApricot: '#FDECCF',
+  bandSage:    '#DFF0E4',
 
   // Durum
   /*
@@ -93,24 +103,24 @@ export const palette = {
 
   // Panel — koyu patlican. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
   // (tasarim karari: koyu arayuz uzun bakici listelerinde yoruyor).
-  panel:          '#211621',
-  panelRaised:    '#2E1F2C',
-  panelInk:       '#F9F2F4',
-  panelInkMuted:  '#D8C9D0',
+  panel:          '#2B2114',
+  panelRaised:    '#3C2E1C',
+  panelInk:       '#FFF7E8',
+  panelInkMuted:  '#DDC9AC',
   panelPrimary:   '#F0A0C0',
   panelAccent:    '#9CC4A8',
 
   // PASTEL KUTUCUKLAR — hizmet kartlarindaki ikon zeminleri.
   // Dort ayri ton bilincli: tek marka rengiyle boyanmis dort kart,
   // "dort ayri hizmet" hissini vermiyor.
-  tileRose:   '#FADDE6',
-  tileSage:   '#DEEBE0',
-  tileApricot:'#FBE6D2',
-  tilePeri:   '#E2E2F4',
-  tileRoseInk:    '#8E2C56',
-  tileSageInk:    '#3F6B4E',
+  tileRose:   '#FBDEE6',
+  tileSage:   '#D8EDE2',
+  tileApricot:'#FBE3BE',
+  tilePeri:   '#DFE3F7',
+  tileRoseInk:    '#8E2942',
+  tileSageInk:    '#25664C',
   tileApricotInk: '#92541C',
-  tilePeriInk:    '#4A4590',
+  tilePeriInk:    '#3F4A8F',
 
   // Guven rozetleri — bilincli olarak marka renginden ayri
   verifyId:      '#2C5F8A',

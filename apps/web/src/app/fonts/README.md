@@ -14,24 +14,36 @@ Québec Law 25 açısından gereksiz bir PIA yükü yaratır.
 
 ## Kaynak ve sürüm
 
-| Dosya | Paket | Sürüm |
-|---|---|---|
-| `bricolage-grotesque-latin-wght-normal.woff2` | `@fontsource-variable/bricolage-grotesque` | 5.3.0 |
-| `schibsted-grotesk-latin-wght-normal.woff2` | `@fontsource-variable/schibsted-grotesk` | 5.3.0 |
-| `inter-latin-wght-normal.woff2` | `@fontsource-variable/inter` | 5.3.0 |
+| Dosya | Paket | Sürüm | Nerede |
+|---|---|---|---|
+| `fredoka-latin-wght-normal.woff2` | `@fontsource-variable/fredoka` | 5.3.0 | site — başlıklar |
+| `schibsted-grotesk-latin-wght-normal.woff2` | `@fontsource-variable/schibsted-grotesk` | 5.3.0 | site — gövde metni |
+| `inter-latin-wght-normal.woff2` | `@fontsource-variable/inter` | 5.3.0 | yalnızca `/admin` |
 
-Ilk ikisi SITENIN yazi tipleri. **Inter yalnizca `/admin` altinda** kullaniliyor:
-marka yazi tipleri bir pazarlama sayfasinda karakter katiyor, ama gunde
-saatlerce bakilacak bir tablo ekraninda karakter degil NOTRLUK isteniyor —
-rakamlarin ayni genislikte hizalanmasi, kucuk puntoda kirilmamasi. Panelde
-Bricolage hic kullanilmiyor.
+**Başlık yazı tipi neden Fredoka:** önceki başlık fontu (Bricolage Grotesque)
+iyi bir fonttu ama SOĞUK okunuyordu — sıkı tracking ve keskin uçlar editoryal
+bir dergi hissi veriyordu. Hayvan bakımı kategorisinde başlık "ciddi" değil
+"gülümseyen" olmalı. **Ağırlık ekseni 300–700'dür, 800 YOKTUR**: 800 istenirse
+tarayıcı sahte kalın çizer, o yüzden display/h1 700'e çekildi
+(`packages/tokens/src/typography.ts`).
 
-İkisi de **SIL Open Font License 1.1** — lisans metinleri bu klasörde.
+**Gövde metni değişmedi:** uzun metinde okunurluk süslü bir fonttan önemli.
+
+**Inter yalnızca `/admin` altında:** marka yazı tipleri bir pazarlama sayfasında
+karakter katıyor, ama günde saatlerce bakılacak bir tablo ekranında karakter
+değil NÖTRLÜK isteniyor — rakamların aynı genişlikte hizalanması, küçük puntoda
+kırılmaması. Panelde Fredoka bilinçli olarak kullanılmıyor.
+
+Üçü de **SIL Open Font License 1.1** — lisans metinleri bu klasörde.
+
+> `bricolage-grotesque-latin-wght-normal.woff2` ve lisansı artık
+> **KULLANILMIYOR**; paketten de çıkarıldı. Dosyalar silinmeyi bekliyor:
+> `git rm apps/web/src/app/fonts/bricolage-grotesque-*`
 
 ## Güncelleme
 
 ```bash
-npm install -D -w @havre/web @fontsource-variable/bricolage-grotesque@latest \
+npm install -D -w @havre/web @fontsource-variable/fredoka@latest \
                              @fontsource-variable/schibsted-grotesk@latest \
                              @fontsource-variable/inter@latest
 npm run fonts:sync -w @havre/web

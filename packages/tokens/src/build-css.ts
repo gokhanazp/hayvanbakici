@@ -25,9 +25,12 @@ import { space, radius, shadow, motion, breakpoint, minTouchTarget } from './lay
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, '..', 'dist');
 
+/* Anahtar adlari CSS'te kebab yazilir: stickerSm -> sticker-sm */
+const kebab = (k: string) => k.replace(/\./g, '_').replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
+
 const vars = (obj: Record<string, string | number>, prefix: string) =>
   Object.entries(obj)
-    .map(([k, v]) => `  --${prefix}-${k.replace(/\./g, '_')}: ${v};`)
+    .map(([k, v]) => `  --${prefix}-${kebab(k)}: ${v};`)
     .join('\n');
 
 const textStyleBlocks = Object.entries(textStyles)

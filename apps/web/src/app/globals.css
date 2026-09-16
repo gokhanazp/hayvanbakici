@@ -53,7 +53,9 @@ input[type='number'], input[type='date'] {
   min-height: var(--min-touch-target);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
+  /* 2 piksel: ince kenar yeni yuvarlak koselerin yaninda cizik gibi
+     duruyordu; kalin kenar kutuyu bir nesne yapiyor. */
+  border: 2px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font: inherit;
   color: var(--color-ink);
@@ -179,19 +181,26 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 
 /* ---------- Tipografi ---------- */
-.text-display { font-family: var(--font-display); font-size: 3.125rem; line-height: 3.25rem; letter-spacing: -0.038em; font-weight: 800; }
-.text-h1 { font-family: var(--font-display); font-size: 2.25rem; line-height: 2.5rem; letter-spacing: -0.035em; font-weight: 800; }
-.text-h2 { font-family: var(--font-display); font-size: 1.75rem; line-height: 2.125rem; letter-spacing: -0.03em; font-weight: 600; }
-.text-h3 { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.875rem; letter-spacing: -0.03em; font-weight: 600; }
-.text-h4 { font-size: 1.0625rem; line-height: 1.5rem; font-weight: 600; }
-.text-body-lg { font-size: 1.0625rem; line-height: 1.7rem; }
-.text-body-sm { font-size: 0.8125rem; line-height: 1.25rem; }
-.text-numeral { font-family: var(--font-display); font-size: 2.125rem; line-height: 1; letter-spacing: -0.03em; font-weight: 600; font-variant-numeric: tabular-nums; }
+/*
+  .text-* SINIFLARI BURADA TANIMLI DEGIL — tokens.css uretiyor
+  (packages/tokens/src/typography.ts).
+
+  Onceden ayni siniflar burada BIR KEZ DAHA yaziliydi ve tokens.css'ten
+  sonra geldigi icin ONU EZIYORDU: token dosyasindaki bir olcuyu
+  degistirmek ekranda hicbir sey degistirmiyordu. Tipografiyi Fredoka'ya
+  gecirirken tam olarak bu oldu. Tek kaynak kalsin diye kopyalar
+  silindi; tabular rakam gibi tokenda karsiligi olmayan yardimcilar
+  burada kaldi.
+*/
+.text-numeral { font-variant-numeric: tabular-nums; }
 
 .muted { color: var(--color-ink-secondary); }
 .dim { color: var(--color-ink-muted); }
 .tabular { font-variant-numeric: tabular-nums; }
-.wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1.4375rem; letter-spacing: -0.035em; }
+.wordmark {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 1.4375rem; letter-spacing: -0.005em;
+}
 
 /* ---------- Buton ---------- */
 .btn {
@@ -206,9 +215,19 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   text-align: center; white-space: normal;
   transition: background-color var(--duration-standard) var(--easing-standard),
               border-color var(--duration-standard) var(--easing-standard),
+              box-shadow var(--duration-micro) var(--easing-standard),
               transform var(--duration-micro) var(--easing-standard);
 }
-.btn:active { transform: translateY(1px); }
+/*
+  BASILMA HAREKETI. Dolu butonlarin altinda sert bir golge var; basinca
+  dugme o golgenin uzerine INIYOR ve golge kayboluyor. Hareket 2 piksel
+  ve 90 ms — dokunmatikte "bir sey oldu" hissi, farede sadece hos.
+  Ceper butonlarda (ghost) golge yok: onlar zaten bir yuzey degil.
+*/
+.btn-primary, .btn-ink, .btn-secondary { box-shadow: var(--shadow-sticker-sm); }
+.btn:active { transform: translateY(2px); }
+.btn-primary:active, .btn-ink:active, .btn-secondary:active { box-shadow: none; }
+.btn:disabled { box-shadow: none; }
 /*
   DEVRE DISI BUTON DEVRE DISI GORUNMELI.
 
@@ -224,7 +243,9 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .btn-primary:hover { background: var(--color-primary-hover); }
 
 .btn-ink { background: var(--color-ink); color: var(--color-canvas); }
-.btn-ink:hover { background: #2C2722; }
+/* Sabit bir hex yaziliydi (#2C2722) ve murekkep rengi degisince
+   yanlis tona dustu; artik murekkepten turetiliyor. */
+.btn-ink:hover { background: color-mix(in srgb, var(--color-ink) 88%, #FFFFFF); }
 
 .btn-secondary { background: var(--color-surface); color: var(--color-ink); border-color: var(--color-border-strong); }
 .btn-secondary:hover { background: var(--color-surface-sunken); }
@@ -242,15 +263,34 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .btn-sm { padding: var(--space-2) var(--space-4); font-size: 0.875rem; }
 
 /* ---------- Yuzeyler ---------- */
+/*
+  CIKARTMA KARTI — bu tasarimin imzasi.
+
+  Kalin kenar + dagilmayan, kaymis tek renk golge. Kart sayfanin
+  uzerinde yuzmuyor, sayfaya YAPISTIRILMIS gibi duruyor. Yumusak golge
+  "kurumsal arayuz", sert golge "cikartma" okunuyor; hayvan bakimi
+  kategorisinde istedigimiz ikincisi.
+
+  YUZEN KATMANLAR BUNUN DISINDA: acilir menu, cekmece, tarih secici ve
+  sohbet penceresi gercekten sayfanin USTUNDE duruyor — onlarda yumusak
+  golge (shadow-lg/xl) kaliyor, cunku sert golge oralarda "yapisik"
+  degil "bozuk" gorunuyor.
+*/
 .card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sticker-sm);
   transition: box-shadow var(--duration-standard) var(--easing-standard),
-              border-color var(--duration-standard) var(--easing-standard);
+              border-color var(--duration-standard) var(--easing-standard),
+              transform var(--duration-standard) var(--easing-standard);
 }
-.card-hover:hover { box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
+.card-hover:hover {
+  box-shadow: var(--shadow-sticker-md);
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
+}
 /*
   Ornek/ikincil kart — gercek bir tutarla karistirilmasin diye
   cukurlastirilmis zemin ve kesik cerceve. Renk kontrasti govde
@@ -486,7 +526,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .upload-chosen {
   display: flex; gap: var(--space-4); align-items: center;
   padding: var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
@@ -578,7 +618,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
 .searchbar {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   padding: var(--space-5) var(--space-6);
@@ -931,9 +971,10 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   width: 100%;
   max-width: 27rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: var(--space-8) var(--space-6);
+  box-shadow: var(--shadow-sticker-md);
 }
 @media (min-width: 480px) { .auth-card { padding: var(--space-10) var(--space-8); } }
 
@@ -986,7 +1027,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   font-size: 0.875rem; line-height: 1.35rem;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
 }
 /*
   KUTUNUN RENGI, METNIN SOYLEDIGI SEYLE AYNI YONE BAKMALI.
@@ -1035,9 +1076,10 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 .wizard-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
+  box-shadow: var(--shadow-sticker-md);
 }
 @media (min-width: 600px) { .wizard-card { padding: var(--space-8); } }
 .wizard-aside { display: grid; gap: var(--space-4); }
@@ -1117,10 +1159,11 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
 /* Hizmet secim karti — kutu isaretlenince icerigi acilir */
 .service-card {
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sticker-sm);
 }
 /*
   SECILI KART: VURGU, BOYA DEGIL.
@@ -1447,7 +1490,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .feature-card-lead p { color: var(--color-panel-ink-muted); }
 .feature-card-quiet {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
 }
 .feature-card-quiet p { color: var(--color-ink-secondary); }
 .feature-card-accent {
@@ -1686,7 +1729,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sticker-md);
   max-width: 15rem;
 }
 @media (max-width: 899px) {
@@ -1842,8 +1885,9 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   display: grid; gap: var(--space-4); align-content: start;
   padding: var(--space-6);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sticker-sm);
 }
 .testimonial-quote {
   font-family: var(--font-display); font-weight: 500;
@@ -1873,7 +1917,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   max-width: 29rem;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sticker-md);
 }
 @media (max-width: 640px) { .banner-card { margin: var(--space-3); padding: var(--space-6); } }
 
@@ -1912,7 +1956,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
 /* Istatistik seridi renkli bandin uzerindeyken beyaz kart olur:
    cokuk krem zemin, blush bandin uzerinde kaybolyordu. */
-.sitter-stats-on-band { background: var(--color-surface); box-shadow: var(--shadow-sm); }
+.sitter-stats-on-band { background: var(--color-surface); box-shadow: var(--shadow-sticker-sm); }
 
 /* ---------- Bakici davet sayfasi ---------- */
 .rate-compare {
@@ -1974,7 +2018,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
    Tek cerceve, aralarinda ayirici. Havada duran ayri kutular yerine
    "bir alan" gibi okunuyor. */
 .faq {
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   overflow: hidden;
@@ -2034,7 +2078,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .filters {
   padding: var(--space-5);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
 }
 .filters-body {
@@ -2152,7 +2196,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   display: grid; gap: var(--space-4); align-items: center;
   grid-template-columns: auto minmax(0, 1fr);
   padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sticker-sm);
 }
 .booking-card-body { display: grid; gap: 2px; min-width: 0; }
 /* Tarih kartin kahramani: sahip listeye "ne zamandi" diye bakiyor */
@@ -2530,7 +2574,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .inbox:has(.is-placeholder) .inbox-list { max-height: 34rem; }
 
 .inbox-list {
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   overflow-y: auto;
@@ -2580,7 +2624,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   display: grid;
   grid-template-rows: auto 1fr auto;
   min-height: 0;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   overflow: hidden;
@@ -2818,17 +2862,17 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--space-4); align-items: center;
   padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sticker-sm);
   color: inherit; text-decoration: none;
   transition: box-shadow var(--duration-standard) var(--easing-standard),
               border-color var(--duration-standard) var(--easing-standard),
               transform var(--duration-standard) var(--easing-standard);
 }
 .activity-row:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sticker-md);
   border-color: var(--color-border-strong);
   transform: translateY(-1px);
 }
@@ -2907,7 +2951,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
     bir bosluk kaliyordu.
   */
   grid-template-rows: auto auto auto 1fr auto;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sticker-sm);
 }
 .identity-head { display: flex; gap: var(--space-4); align-items: center; }
 .identity-name {
@@ -2939,7 +2983,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .invite-card {
   padding: var(--space-6);
   display: grid; gap: var(--space-4); align-content: start;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sticker-md);
 }
 .invite-card h2 { margin: 0; }
 .invite-rate {
@@ -2964,7 +3008,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .invite-card .btn { justify-self: start; }
 
 /* ---------- Bakici durum karti ---------- */
-.status-card { display: grid; gap: var(--space-2); align-content: start; padding: var(--space-6); box-shadow: var(--shadow-sm); }
+.status-card { display: grid; gap: var(--space-2); align-content: start; padding: var(--space-6); box-shadow: var(--shadow-sticker-sm); }
 .status-head {
   display: flex; flex-wrap: wrap; gap: var(--space-3);
   align-items: center; justify-content: space-between;
@@ -3011,14 +3055,14 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .pet-chip {
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-3) var(--space-5) var(--space-3) var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-full);
   background: var(--color-surface);
   color: inherit; text-decoration: none;
   transition: border-color var(--duration-micro) var(--easing-standard),
               box-shadow var(--duration-micro) var(--easing-standard);
 }
-.pet-chip:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); }
+.pet-chip:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sticker-sm); }
 .pet-chip-body { display: grid; gap: 1px; min-width: 0; }
 .pet-chip-name { font-weight: 600; font-size: 0.9375rem; }
 .pet-chip-meta { font-size: 0.8125rem; color: var(--color-ink-secondary); }
@@ -3031,15 +3075,15 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 .pet-card {
   display: flex; flex-direction: column;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sticker-sm);
   overflow: hidden;
   transition: box-shadow var(--duration-standard) var(--easing-standard),
               transform var(--duration-standard) var(--easing-standard);
 }
-.pet-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.pet-card:hover { box-shadow: var(--shadow-sticker-md); transform: translateY(-2px); }
 
 /*
   FOTOGRAF KARTIN KENDISI, kosede kucuk bir daire degil. Ilk surumde 72
@@ -3152,7 +3196,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   .pet-row .pet-photo-tile { flex: none; width: 15rem; aspect-ratio: 1 / 1; }
   .pet-row .pet-body { flex: 1; min-width: 0; }
 }
-.pet-row .pet-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+.pet-row .pet-card:hover { transform: none; box-shadow: var(--shadow-sticker-sm); }
 
 /*
   Fotograf islemleri TEK SATIRDA. Ilk surumde "Fotografi kaldir",
@@ -3199,7 +3243,7 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 /* Izgara icinde duranlar kendi cercevesini cizer */
 .empty-state-card {
-  border: 1px dashed var(--color-border-strong);
+  border: 2px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   padding: var(--space-10) var(--space-6);
@@ -3242,46 +3286,13 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 /* Fotograf ORTADA ve buyuk: kucuk bir daire, yuklemeye deger gibi durmuyordu */
 .profile-avatar { justify-self: center; margin: var(--space-2) 0; }
 
-/* ------------------------------------------------------------------
-   GECICI — tasarim yonu deneme dugmesi (components/dev/ThemeLab).
-   Yon secilince bu blok ve o klasor silinecek.
-   ------------------------------------------------------------------ */
-.theme-lab {
-  position: fixed; z-index: 90; left: var(--space-4); bottom: var(--space-4);
-  display: grid; gap: var(--space-2); justify-items: start;
-  font-family: var(--font-ui);
+
+/*
+  CIKARTMA DILI — HAREKET KISITLI KULLANICI.
+  Golge ve kenar kaliyor (bilgi tasiyorlar), yalnizca yer degistirme
+  kapaniyor.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .card-hover:hover { transform: none; }
+  .btn:active { transform: none; }
 }
-.theme-lab-toggle {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-4); min-height: 40px;
-  border: 1px solid var(--color-border-strong); border-radius: 999px;
-  background: var(--color-surface); color: var(--color-ink);
-  font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer;
-  box-shadow: var(--shadow-md);
-}
-.theme-lab-body {
-  display: grid; gap: 2px; width: 17rem; padding: var(--space-2);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
-  order: -1;
-}
-.theme-lab-item {
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border: 0; border-radius: var(--radius-md);
-  background: none; color: inherit; font: inherit; text-align: left;
-  cursor: pointer;
-}
-.theme-lab-item:hover { background: var(--color-surface-sunken); }
-.theme-lab-item.is-on { background: var(--color-primary-subtle); }
-.theme-lab-text { display: grid; }
-.theme-lab-text b { font-size: 0.875rem; }
-.theme-lab-text small { font-size: 0.75rem; color: var(--color-ink-muted); }
-.theme-lab-dots { display: inline-flex; flex: none; }
-.theme-lab-dots i {
-  width: 14px; height: 14px; border-radius: 999px;
-  border: 1.5px solid var(--color-surface); margin-inline-start: -5px;
-}
-.theme-lab-dots i:first-child { margin-inline-start: 0; }

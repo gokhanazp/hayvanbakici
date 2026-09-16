@@ -20,12 +20,20 @@ import { PHOTOS } from '../src/lib/photos.js';
 const here = dirname(fileURLToPath(import.meta.url));
 const outRoot = join(here, '..', 'public', 'photos');
 
-/** Dort pastel aile — hizmet kutucuklariyla ayni tonlar. */
+/**
+ * Dort pastel aile — hizmet kutucuklariyla ayni tonlar.
+ *
+ * Palet "Cizgi Film"e gecince bu degerler ESKI palette kalmisti ve yer
+ * tutucu gorseller sayfanin geri kalaniyla ayri bir dunyada duruyordu
+ * (giris sayfasinin yan paneli sicak krem zeminin yaninda lila
+ * goruniyordu). Gercek fotograflar gelene kadar yer tutucu da markanin
+ * icinde durmali.
+ */
 const TINTS = [
-  { a: '#FADDE6', b: '#F1BACE', ink: '#B33C6E' },
-  { a: '#DEEBE0', b: '#BFD8C6', ink: '#456F54' },
-  { a: '#FBE6D2', b: '#F4CFAC', ink: '#92541C' },
-  { a: '#E2E2F4', b: '#C9C9E8', ink: '#4A4590' },
+  { a: '#FBDEE6', b: '#F3BACC', ink: '#AF3453' },
+  { a: '#D8EDE2', b: '#B3D9C6', ink: '#25664C' },
+  { a: '#FBE3BE', b: '#F2CD98', ink: '#7A5210' },
+  { a: '#DFE3F7', b: '#C2C9EC', ink: '#3F4A8F' },
 ] as const;
 
 function sceneSvg(w: number, h: number, t: typeof TINTS[number], seed: number): string {

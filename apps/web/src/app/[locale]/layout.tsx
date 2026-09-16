@@ -6,17 +6,7 @@ import localFont from 'next/font/local';
 import { getMessages, localeFromSegment, LOCALES, segmentFor } from '@havre/i18n';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import dynamic from 'next/dynamic';
 import { ChatDock } from '@/components/chat/ChatDock';
-/*
-  GECICI tasarim deneme dugmesi. `dynamic` + sabit kosul: uretim
-  derlemesinde kosul sabit olarak eleniyor ve import() hic ulasilamaz
-  hale geliyor, dolayisiyla bilesen uretim paketine GIRMIYOR. Duz
-  import kullanildiginda paketin icine giriyordu (olculdu).
-*/
-const ThemeLab = process.env.NODE_ENV === 'production'
-  ? () => null
-  : dynamic(() => import('@/components/dev/ThemeLab').then((m) => m.ThemeLab));
 import { citySlug, getDefaultCity, getLinkableCities } from '@/lib/data';
 import { organizationJsonLd, SITE_URL } from '@/lib/seo';
 
@@ -39,10 +29,11 @@ import { organizationJsonLd, SITE_URL } from '@/lib/seo';
  * Turkce icin (Faz 7) 'latin-ext' dosyasi ayrica eklenecek.
  */
 const display = localFont({
-  src: '../fonts/bricolage-grotesque-latin-wght-normal.woff2',
+  src: '../fonts/fredoka-latin-wght-normal.woff2',
   variable: '--font-display-src',
   display: 'swap',
-  weight: '200 800',
+  /* Fredoka'nin ekseni 300-700; 800 istenirse tarayici sahte kalin cizer. */
+  weight: '300 700',
 });
 
 const ui = localFont({
@@ -100,8 +91,6 @@ export default async function LocaleLayout({
           Oturum yoksa hicbir sey cizmiyor.
         */}
         <ChatDock locale={locale} />
-        {/* GECICI: tasarim yonu deneme dugmesi — yalnizca gelistirmede */}
-        <ThemeLab />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
