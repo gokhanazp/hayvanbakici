@@ -13,7 +13,7 @@ import type { PhotoId } from '@/lib/photos';
  * olarak 120 karakterlik satirla yayina girerdi.
  */
 export function ContentPage({
-  locale, title, lead, photo, updated, children, aside,
+  locale, title, lead, photo, updated, children, aside, wide = false,
 }: {
   locale: Locale;
   title: string;
@@ -23,6 +23,17 @@ export function ContentPage({
   updated?: string | undefined;
   children: ReactNode;
   aside?: ReactNode | undefined;
+  /**
+   * ANLATIM SAYFASI (nasil calisir, koruma, ucretler) — hukuki metin degil.
+   *
+   * `.prose` 42rem'lik bir OKUMA sutunu ve dogru yeri sozlesme
+   * metinleri. Adimlardan, oranlardan ve rozetlerden olusan bir
+   * sayfa oraya sikistirildiginda hem sagi bos kaliyor hem de alti
+   * bolum ayni gri metin blogu gibi okunuyor. `wide` bu sayfalarda
+   * icerigi izgaraya aciyor; olcu artik paragrafin kendisinde
+   * (`.content-flow p { max-width }`).
+   */
+  wide?: boolean;
 }) {
   return (
     <>
@@ -48,7 +59,7 @@ export function ContentPage({
 
       <div className="container section">
         <div className={aside ? 'content-grid' : undefined}>
-          <div className="prose">{children}</div>
+          <div className={wide ? 'content-flow' : 'prose'}>{children}</div>
           {aside && <aside className="content-aside">{aside}</aside>}
         </div>
 

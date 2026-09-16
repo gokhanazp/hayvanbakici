@@ -28,7 +28,8 @@ export interface BookableService {
  * bicimden de goruyor (drip pricing yasagi, Competition Act).
  */
 function QuoteTable({
-  locale, quote, units, petCount, unitPriceCents, unit, heading, note, muted = false,
+  locale, quote, units, petCount, unitPriceCents, unit, heading, note,
+  muted = false, bare = false,
 }: {
   locale: Locale;
   quote: ReturnType<typeof calculateQuote>;
@@ -40,13 +41,18 @@ function QuoteTable({
   note: string;
   /** Ornek hesap: gercek tutarla karistirilmasin diye daha soluk */
   muted?: boolean;
+  /**
+   * Cercevesiz hal — zaten bir kartin icinde ciziliyorsa.
+   * Ic ice iki kart, hangisinin hangisine ait oldugunu okunmaz yapiyor.
+   */
+  bare?: boolean;
 }) {
   const m = getMessages(locale);
   const line = (key: string) => quote.lines.find((l) => l.key === key)?.amountCents ?? 0;
 
   return (
-    <div className={`card card-pad${muted ? ' card-muted' : ''}`}>
-      <h2 className="text-h4">{heading}</h2>
+    <div className={bare ? `quote-bare${muted ? ' quote-sample' : ''}` : `card card-pad${muted ? ' card-muted' : ''}`}>
+      <h2 className="text-h4" style={{ margin: 0 }}>{heading}</h2>
       <table style={{ width: '100%', marginTop: 'var(--space-4)', fontSize: '0.875rem' }}>
         <tbody>
           <tr>
@@ -197,12 +203,27 @@ export function BookingForm({
     : undefined;
 
   return (
-    <form action={formAction} className="auth-form">
+    /*
+      IKI SUTUN: solda form, SAGDA fiyat ve gonder dugmesi.
+
+      Once her sey 38rem'lik tek bir sutunda alt alta duruyordu ve
+      1280 pikselde sayfanin sag YARISI bostu. Daha kotusu, fiyat
+      dokumu formun en altindaydi: tarihi degistirip tutarin ne
+      olduguna bakmak icin asagi kaydirmak gerekiyordu.
+
+      Sag sutun YAPISKAN ve `<form>`un ICINDE — gonder dugmesi
+      formun disina cikarsa calismaz. Izgara dogrudan form
+      elemaninin uzerinde.
+    */
+    <form action={formAction} className="book-layout">
       <input type="hidden" name="sitterId" value={sitterId} />
       <input type="hidden" name="locale" value={segmentFor(locale)} />
       <input type="hidden" name="service" value={serviceType} />
 
+      <div className="wizard-card book-fields">
       {errorText && <p className="alert alert-error" role="alert">{errorText}</p>}
+
+      <h2 className="text-h4 step-group-title">{m.booking.groupStay}</h2>
 
       {services.length > 1 && (
         <div className="field-block">
@@ -227,9 +248,7 @@ export function BookingForm({
       </div>
 
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-        <legend className="field-label-static" style={{ marginBottom: 'var(--space-2)' }}>
-          {m.booking.pets}
-        </legend>
+        <legend className="text-h4 step-group-title">{m.booking.pets}</legend>
         <div className="stack">
           {pets.map((p) => (
             <label key={p.id} className="checkbox-row">
@@ -276,48 +295,59 @@ export function BookingForm({
       </fieldset>
 
       <div className="field-block">
-        <label htmlFor="notes">{m.booking.notes}</label>
+        <label htmlFor="notes" className="text-h4 step-group-title">{m.booking.notes}</label>
         <textarea id="notes" name="notes" rows={4} className="textarea" />
         <span className="field-hint">{m.booking.notesHint}</span>
       </div>
-
-      {/* --- Fiyat: gonder dugmesinin USTUNDE --- */}
-      {quote && (
-        <QuoteTable
-          locale={locale} quote={quote} units={units} petCount={petCount}
-          unitPriceCents={svc!.priceCents} unit={unit}
-          heading={m.booking.priceHeading} note={m.booking.priceNote}
-        />
-      )}
-      {sample && (
-        <QuoteTable
-          locale={locale} quote={sample} units={sampleUnits} petCount={petCount}
-          unitPriceCents={svc!.priceCents} unit={unit}
-          heading={interpolate(m.booking.sampleHeading, {
-            units: sampleUnits, unit: unitLabel(locale, unit, sampleUnits),
-          })}
-          note={m.booking.sampleNote}
-          muted
-        />
-      )}
-
-      <div className="notice notice-warning">
-        <p>{m.booking.noPayment}</p>
       </div>
 
-      <button type="submit" className="btn btn-primary btn-block" disabled={busy || units === 0}>
-        {busy ? m.booking.submitting : m.booking.submit}
-      </button>
-      {/*
-        DEVRE DISI DUGME NEDENINI SOYLUYOR. Eskiden tarih secilmeden
-        dugme sessizce tiklanamiyordu; kullanici neyin eksik oldugunu
-        bilmiyordu.
-      */}
-      {units === 0 && <p className="field-hint">{m.booking.needDates}</p>}
-      <p className="field-hint">
-        {sitterFirstName} · {m.booking.policy}:{' '}
-        {m.onboarding[`cancellation.${svc?.cancellationPolicy ?? 'moderate'}` as keyof Messages['onboarding']] as string}
-      </p>
+      {/* --- Sag sutun: fiyat, uyari, gonder --- */}
+      <aside className="book-aside">
+        <div className="card card-pad book-summary">
+          {quote && (
+            <QuoteTable
+              locale={locale} quote={quote} units={units} petCount={petCount}
+              unitPriceCents={svc!.priceCents} unit={unit}
+              heading={m.booking.priceHeading} note={m.booking.priceNote}
+              bare
+            />
+          )}
+          {sample && (
+            <QuoteTable
+              locale={locale} quote={sample} units={sampleUnits} petCount={petCount}
+              unitPriceCents={svc!.priceCents} unit={unit}
+              heading={interpolate(m.booking.sampleHeading, {
+                units: sampleUnits, unit: unitLabel(locale, unit, sampleUnits),
+              })}
+              note={m.booking.sampleNote}
+              muted bare
+            />
+          )}
+
+          <button type="submit" className="btn btn-primary btn-block" disabled={busy || units === 0}>
+            {busy ? m.booking.submitting : m.booking.submit}
+          </button>
+          {/*
+            DEVRE DISI DUGME NEDENINI SOYLUYOR. Eskiden tarih secilmeden
+            dugme sessizce tiklanamiyordu; kullanici neyin eksik oldugunu
+            bilmiyordu.
+          */}
+          {units === 0 && <p className="field-hint" style={{ margin: 0 }}>{m.booking.needDates}</p>}
+          <p className="field-hint" style={{ margin: 0 }}>
+            {sitterFirstName} · {m.booking.policy}:{' '}
+            {m.onboarding[`cancellation.${svc?.cancellationPolicy ?? 'moderate'}` as keyof Messages['onboarding']] as string}
+          </p>
+        </div>
+
+        {/*
+          ODEME UYARISI kartin DISINDA: tutarin hemen altinda durursa
+          "bu tutar alinmayacak" diye degil "bu tutar yanlis" diye
+          okunuyordu. Ayri bir kutu, ayri bir cumle.
+        */}
+        <div className="notice notice-warning">
+          <p>{m.booking.noPayment}</p>
+        </div>
+      </aside>
     </form>
   );
 }

@@ -296,6 +296,7 @@ export const frCA = {
     upcoming: '\u00c0 venir',
     past: 'Pass\u00e9es',
     requestTitle: 'Demander une réservation avec {name}',
+    groupStay: 'Le séjour',
     dates: 'Dates',
     pets: 'Quel animal?',
     addPet: 'Ajouter un animal',

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { DEFAULT_COMMISSION, calculateCommission, compareToRover, dollars } from '@havre/core';
 import { ContentPage } from '@/components/ContentPage';
+import { NoIcon } from '@/components/InfoIcons';
 import { money } from '@/lib/format';
 
 /**
@@ -54,6 +55,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         'Trois taux de commission pour les gardiens, un frais de service pour les propriétaires, et rien d’autre. Cette page, c’est tout.',
       )}
       photo="care-a"
+      wide
       aside={
         <>
           <div className="card card-pad">
@@ -79,119 +81,146 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         </>
       }
     >
-      <h2>{t('What the sitter pays', 'Ce que paie le gardien')}</h2>
-      <p>
-        {t(
-          'The rate depends on where the booking came from — not on how long the sitter has been here, and not on how many clients they have.',
-          'Le taux dépend de l’origine de la réservation — pas de l’ancienneté du gardien ni du nombre de ses clients.',
-        )}
-      </p>
+      {/*
+        UC ORAN, UC KART.
 
-      <table>
-        <thead>
-          <tr>
-            <th>{t('Where the booking came from', 'Origine de la réservation')}</th>
-            <th>{t('Our commission', 'Notre commission')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{t('A client the sitter brought themselves', 'Un client amené par le gardien')}</td>
-            <td className="tabular">{c.sitterPct.sitter_referral}%</td>
-          </tr>
-          <tr>
-            <td>{t('A repeat booking with the same owner', 'Une réservation répétée avec le même propriétaire')}</td>
-            <td className="tabular">{c.sitterPct.repeat}%</td>
-          </tr>
-          <tr>
-            <td>{t('A client who found the sitter through Havre', 'Un client qui a trouvé le gardien via Havre')}</td>
-            <td className="tabular">{c.sitterPct.platform}%</td>
-          </tr>
-        </tbody>
-      </table>
+        Tablo satiriydi ve sayfanin ASIL IDDIASI — sifir komisyon —
+        ucuncu sutunda kucuk bir "%0" olarak duruyordu. Rakam artik
+        kartin kendisi; kendi musterisini getiren bakicinin karti
+        ayrica vurgulu.
+      */}
+      <section className="card card-pad">
+        <h2 className="text-h2">{t('What the sitter pays', 'Ce que paie le gardien')}</h2>
+        <p className="text-body-sm muted">
+          {t(
+            'The rate depends on where the booking came from — not on how long the sitter has been here, and not on how many clients they have.',
+            'Le taux dépend de l’origine de la réservation — pas de l’ancienneté du gardien ni du nombre de ses clients.',
+          )}
+        </p>
 
-      <p>
-        {t(
-          'The 0% is permanent, not an introductory offer. If a sitter invites a client with their own referral code, that client stays at 0% for every booking they ever make with that sitter.',
-          'Le 0 % est permanent, ce n’est pas une offre de lancement. Si un gardien invite un client avec son propre code de parrainage, ce client reste à 0 % pour toutes ses réservations futures avec ce gardien.',
-        )}
-      </p>
+        <div className="info-grid rate-grid">
+          <div className="rate-card rate-card-lead">
+            <span className="rate-value">{c.sitterPct.sitter_referral}%</span>
+            <p className="text-body-sm">
+              {t('A client the sitter brought themselves', 'Un client amené par le gardien')}
+            </p>
+          </div>
+          <div className="rate-card">
+            <span className="rate-value">{c.sitterPct.repeat}%</span>
+            <p className="text-body-sm">
+              {t('A repeat booking with the same owner', 'Une réservation répétée avec le même propriétaire')}
+            </p>
+          </div>
+          <div className="rate-card">
+            <span className="rate-value">{c.sitterPct.platform}%</span>
+            <p className="text-body-sm">
+              {t('A client who found the sitter through Havre', 'Un client qui a trouvé le gardien via Havre')}
+            </p>
+          </div>
+        </div>
 
-      <h2>{t('What the owner pays', 'Ce que paie le propriétaire')}</h2>
-      <p>
-        {t(
-          `A service fee of ${c.ownerPct}% of the sitter’s rate, capped at ${money(c.ownerFeeCapCents, locale)} per booking. It covers payment processing, the background checks behind the badges on every profile, and support if something goes wrong during a stay.`,
-          `Des frais de service de ${c.ownerPct} % du tarif du gardien, plafonnés à ${money(c.ownerFeeCapCents, locale)} par réservation. Ils couvrent le traitement des paiements, les vérifications d’antécédents derrière les badges de chaque profil, et le soutien en cas de problème pendant un séjour.`,
-        )}
-      </p>
-      <p>
-        {t(
-          'Applicable taxes (GST/HST, and QST in Québec) are added and shown as their own line. The total you see before confirming is the total you are charged.',
-          'Les taxes applicables (TPS/TVH, et TVQ au Québec) s’ajoutent et apparaissent sur leur propre ligne. Le total affiché avant la confirmation est le total facturé.',
-        )}
-      </p>
+        <p className="text-body-sm">
+          {t(
+            'The 0% is permanent, not an introductory offer. If a sitter invites a client with their own referral code, that client stays at 0% for every booking they ever make with that sitter.',
+            'Le 0 % est permanent, ce n’est pas une offre de lancement. Si un gardien invite un client avec son propre code de parrainage, ce client reste à 0 % pour toutes ses réservations futures avec ce gardien.',
+          )}
+        </p>
+      </section>
 
-      <h2>{t('A worked example', 'Un exemple chiffré')}</h2>
-      <p>
-        {t(
-          `On a ${money(sample, locale)} booking from an owner who found the sitter through Havre:`,
-          `Sur une réservation de ${money(sample, locale)} d’un propriétaire ayant trouvé le gardien via Havre :`,
-        )}
-      </p>
-      <table>
-        <tbody>
-          <tr>
-            <td>{t('Sitter’s rate', 'Tarif du gardien')}</td>
-            <td className="tabular">{money(sample, locale)}</td>
-          </tr>
-          <tr>
-            <td>{t(`Our commission (${ours.sitterPct}%)`, `Notre commission (${ours.sitterPct} %)`)}</td>
-            <td className="tabular">−{money(ours.sitterCommissionCents, locale)}</td>
-          </tr>
-          <tr>
-            <td><strong>{t('The sitter receives', 'Le gardien reçoit')}</strong></td>
-            <td className="tabular"><strong>{money(sample - ours.sitterCommissionCents, locale)}</strong></td>
-          </tr>
-          <tr>
-            <td>{t(`Owner service fee (${ours.ownerPct}%${ours.ownerFeeCapped ? ', capped' : ''})`,
-                   `Frais de service du propriétaire (${ours.ownerPct} %${ours.ownerFeeCapped ? ', plafonnés' : ''})`)}</td>
-            <td className="tabular">+{money(ours.ownerFeeCents, locale)}</td>
-          </tr>
-          <tr>
-            <td><strong>{t('The owner pays, before tax', 'Le propriétaire paie, avant taxes')}</strong></td>
-            <td className="tabular"><strong>{money(sample + ours.ownerFeeCents, locale)}</strong></td>
-          </tr>
-        </tbody>
-      </table>
-      <p className="text-body-sm dim">
-        {t(
-          `The same booking on the largest competitor at its 20% standard rate leaves the sitter ${money(vs.sitterSavesCents, locale)} less and costs the owner ${money(vs.ownerSavesCents, locale)} more.`,
-          `La même réservation chez le plus grand concurrent, à son taux standard de 20 %, laisse au gardien ${money(vs.sitterSavesCents, locale)} de moins et coûte ${money(vs.ownerSavesCents, locale)} de plus au propriétaire.`,
-        )}
-      </p>
+      <section className="card card-pad">
+        <h2 className="text-h2">{t('What the owner pays', 'Ce que paie le propriétaire')}</h2>
+        <p>
+          {t(
+            `A service fee of ${c.ownerPct}% of the sitter’s rate, capped at ${money(c.ownerFeeCapCents, locale)} per booking. It covers payment processing, the background checks behind the badges on every profile, and support if something goes wrong during a stay.`,
+            `Des frais de service de ${c.ownerPct} % du tarif du gardien, plafonnés à ${money(c.ownerFeeCapCents, locale)} par réservation. Ils couvrent le traitement des paiements, les vérifications d’antécédents derrière les badges de chaque profil, et le soutien en cas de problème pendant un séjour.`,
+          )}
+        </p>
+        <p className="text-body-sm muted">
+          {t(
+            'Applicable taxes (GST/HST, and QST in Québec) are added and shown as their own line. The total you see before confirming is the total you are charged.',
+            'Les taxes applicables (TPS/TVH, et TVQ au Québec) s’ajoutent et apparaissent sur leur propre ligne. Le total affiché avant la confirmation est le total facturé.',
+          )}
+        </p>
+      </section>
 
-      <h2>{t('What we do not charge for', 'Ce que nous ne facturons pas')}</h2>
-      <ul>
-        <li>{t('Creating a profile or keeping it listed', 'La création d’un profil ou son maintien en ligne')}</li>
-        <li>{t('Messaging an owner or a sitter', 'L’envoi de messages à un propriétaire ou à un gardien')}</li>
-        <li>{t('Subscriptions, boosts, or paid placement in search results',
-               'Les abonnements, les mises en avant ou le placement payant dans les résultats')}</li>
-        <li>{t('Cancelling before a sitter accepts', 'L’annulation avant l’acceptation du gardien')}</li>
-      </ul>
-      <p>
-        {t(
-          'Search ranking cannot be bought. The inputs are published on every sitter profile: rating, response time, acceptance rate, cancellation rate, profile completeness, verification level and distance.',
-          'Le classement dans la recherche ne s’achète pas. Les critères sont publiés sur chaque profil : évaluation, délai de réponse, taux d’acceptation, taux d’annulation, exhaustivité du profil, niveau de vérification et distance.',
-        )}
-      </p>
+      <section className="card card-pad">
+        <h2 className="text-h2">{t('A worked example', 'Un exemple chiffré')}</h2>
+        <p className="text-body-sm muted">
+          {t(
+            `On a ${money(sample, locale)} booking from an owner who found the sitter through Havre:`,
+            `Sur une réservation de ${money(sample, locale)} d’un propriétaire ayant trouvé le gardien via Havre :`,
+          )}
+        </p>
+        <table className="info-table">
+          <tbody>
+            <tr>
+              <td>{t('Sitter’s rate', 'Tarif du gardien')}</td>
+              <td className="tabular">{money(sample, locale)}</td>
+            </tr>
+            <tr>
+              <td>{t(`Our commission (${ours.sitterPct}%)`, `Notre commission (${ours.sitterPct} %)`)}</td>
+              <td className="tabular">−{money(ours.sitterCommissionCents, locale)}</td>
+            </tr>
+            <tr>
+              <td><strong>{t('The sitter receives', 'Le gardien reçoit')}</strong></td>
+              <td className="tabular"><strong>{money(sample - ours.sitterCommissionCents, locale)}</strong></td>
+            </tr>
+            <tr>
+              <td>{t(`Owner service fee (${ours.ownerPct}%${ours.ownerFeeCapped ? ', capped' : ''})`,
+                     `Frais de service du propriétaire (${ours.ownerPct} %${ours.ownerFeeCapped ? ', plafonnés' : ''})`)}</td>
+              <td className="tabular">+{money(ours.ownerFeeCents, locale)}</td>
+            </tr>
+            <tr>
+              <td><strong>{t('The owner pays, before tax', 'Le propriétaire paie, avant taxes')}</strong></td>
+              <td className="tabular"><strong>{money(sample + ours.ownerFeeCents, locale)}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="text-body-sm dim">
+          {t(
+            `The same booking on the largest competitor at its 20% standard rate leaves the sitter ${money(vs.sitterSavesCents, locale)} less and costs the owner ${money(vs.ownerSavesCents, locale)} more.`,
+            `La même réservation chez le plus grand concurrent, à son taux standard de 20 %, laisse au gardien ${money(vs.sitterSavesCents, locale)} de moins et coûte ${money(vs.ownerSavesCents, locale)} de plus au propriétaire.`,
+          )}
+        </p>
+      </section>
 
-      <h2>{t('Cancellations', 'Annulations')}</h2>
-      <p>
-        {t(
-          'Each sitter chooses one of three published cancellation policies — flexible, moderate or strict — and it is shown on their profile next to the service, before you book.',
-          'Chaque gardien choisit l’une des trois politiques d’annulation publiées — flexible, modérée ou stricte — et elle figure sur son profil à côté du service, avant la réservation.',
-        )}
-      </p>
+      {/*
+        "NEYI UCRETLENDIRMIYORUZ" KOYU PANELDE.
+
+        Bir kart daha olsaydi yukaridaki ucretlerin devami gibi
+        okunurdu; oysa bunlar sitenin kendini SINIRLADIGI cumleler.
+        Sayfada koyu panel bir tane: en cok okunmasini istedigimiz yer.
+      */}
+      <section className="info-panel">
+        <h2 className="text-h2">{t('What we do not charge for', 'Ce que nous ne facturons pas')}</h2>
+        <ul className="info-list info-list-no">
+          {[
+            t('Creating a profile or keeping it listed', 'La création d’un profil ou son maintien en ligne'),
+            t('Messaging an owner or a sitter', 'L’envoi de messages à un propriétaire ou à un gardien'),
+            t('Subscriptions, boosts, or paid placement in search results',
+              'Les abonnements, les mises en avant ou le placement payant dans les résultats'),
+            t('Cancelling before a sitter accepts', 'L’annulation avant l’acceptation du gardien'),
+          ].map((line) => (
+            <li key={line}><NoIcon />{line}</li>
+          ))}
+        </ul>
+        <p>
+          {t(
+            'Search ranking cannot be bought. The inputs are published on every sitter profile: rating, response time, acceptance rate, cancellation rate, profile completeness, verification level and distance.',
+            'Le classement dans la recherche ne s’achète pas. Les critères sont publiés sur chaque profil : évaluation, délai de réponse, taux d’acceptation, taux d’annulation, exhaustivité du profil, niveau de vérification et distance.',
+          )}
+        </p>
+      </section>
+
+      <section className="card card-pad">
+        <h2 className="text-h2">{t('Cancellations', 'Annulations')}</h2>
+        <p>
+          {t(
+            'Each sitter chooses one of three published cancellation policies — flexible, moderate or strict — and it is shown on their profile next to the service, before you book.',
+            'Chaque gardien choisit l’une des trois politiques d’annulation publiées — flexible, modérée ou stricte — et elle figure sur son profil à côté du service, avant la réservation.',
+          )}
+        </p>
+      </section>
     </ContentPage>
   );
 }

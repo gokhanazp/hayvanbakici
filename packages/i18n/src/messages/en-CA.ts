@@ -310,6 +310,7 @@ export const enCA = {
     upcoming: 'Coming up',
     past: 'Past',
     requestTitle: 'Request a booking with {name}',
+    groupStay: 'The stay',
     dates: 'Dates',
     pets: 'Which pet?',
     addPet: 'Add a pet',

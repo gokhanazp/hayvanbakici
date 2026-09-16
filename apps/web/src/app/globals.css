@@ -1164,7 +1164,16 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   border-top: 2px solid var(--color-border);
 }
 /* Ilk baslik formun en ustunde: cizgiye de bosluga da gerek yok */
-.auth-form > .step-group-title:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+.auth-form > .step-group-title:first-of-type,
+.book-fields > .step-group-title:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+/*
+  Rezervasyon formunda ilk baslik hata kutusundan SONRA gelebiliyor,
+  yani `:first-of-type` tutmuyor. Hatanin hemen ardindaki baslik da
+  ust cizgisiz.
+*/
+.book-fields > .alert + .step-group-title { margin-top: 0; padding-top: 0; border-top: 0; }
+/* Fieldset icindeki legend baslik gibi davransin (tarayici varsayilani bozuyor) */
+.book-fields legend.step-group-title { width: 100%; padding-inline: 0; }
 .step-group-lead { margin: calc(var(--space-3) * -1) 0 0; }
 
 .checkbox-row { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; }
@@ -1209,6 +1218,41 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 }
 @media (min-width: 600px) { .wizard-card { padding: var(--space-8); } }
 .wizard-aside { display: grid; gap: var(--space-4); }
+
+/* ---------- Rezervasyon istegi sayfasi ---------- */
+/*
+  SIHIRBAZLA AYNI ISKELET: solda kart icinde form, sagda yapiskan
+  yardimci sutun. Once form 38rem'lik tek sutundu ve 1280 pikselde
+  sayfanin sag yarisi bostu.
+
+  Sag sutun 21rem: fiyat dokumundeki "3 gece × 45,00 $" satiri
+  19rem'de sariyordu.
+*/
+.book-page { padding-block: calc(var(--section-y) * 0.6) var(--section-y); }
+.book-layout {
+  display: grid; gap: var(--space-8);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+@media (min-width: 1000px) {
+  .book-layout { grid-template-columns: minmax(0, 1fr) 21rem; gap: var(--space-10); }
+  .book-aside { position: sticky; top: calc(var(--header-h) + var(--space-6)); }
+}
+.book-fields { display: grid; gap: var(--space-4); align-content: start; }
+.book-aside { display: grid; gap: var(--space-4); min-width: 0; }
+.book-summary { display: grid; gap: var(--space-4); }
+/*
+  Kart icindeki dokum kendi cercevesini CIZMIYOR. Ornek hesap yine de
+  gercek tutardan ayrilmali: cukur zemin + kesik cizgi, `card-muted`
+  ile ayni dil ama kart degil.
+*/
+.quote-bare { display: grid; gap: var(--space-2); }
+.quote-sample {
+  padding: var(--space-4);
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
 
 /* --- Ilerleme cizgisi --- */
 .wizard-progress { display: grid; gap: var(--space-3); margin-top: var(--space-6); }
@@ -2393,7 +2437,151 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 /* ---------- Icerik sayfalari ---------- */
 .content-grid { display: grid; gap: var(--space-10); grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 1000px) { .content-grid { grid-template-columns: minmax(0, 1fr) 20rem; gap: var(--space-12); } }
-.content-aside { display: grid; gap: var(--space-4); }
+.content-aside { display: grid; gap: var(--space-4); align-content: start; }
+/*
+  YARDIMCI SUTUN YAPISKAN.
+
+  Kart sayfanin en ustunde duruyordu ve altindaki iki bin piksel
+  bombostu: "Bakici olun" dugmesi metni okuyup ikna olan kisinin
+  gozunden uc ekran once kaybolmus oluyordu. Simdi okurla birlikte
+  iniyor.
+*/
+@media (min-width: 1000px) {
+  .content-aside { position: sticky; top: calc(var(--header-h) + var(--space-6)); }
+}
+
+/* ------------------------------------------------------------------
+   BILGI SAYFALARI — nasil calisir, koruma, ucretler.
+
+   NEDEN `.prose` DEGIL: `.prose` 42rem'lik bir OKUMA sutunu ve dogru
+   yeri hukuki metinler. Bu uc sayfa anlatim sayfasi: adimlar, oranlar,
+   rozetler. Duz yaziya sikistirildiklarinda 1280 pikselde sayfanin
+   sag yarisi bos kaliyor ve alti bolum ayni gri metin blogu gibi
+   okunuyordu.
+
+   Yerine: her bolum bir kart, icindekiler izgaraya aciliyor.
+   ------------------------------------------------------------------ */
+.content-flow { display: grid; gap: var(--space-5); }
+@media (min-width: 700px) { .content-flow { gap: var(--space-6); } }
+.content-flow > section { display: grid; gap: var(--space-4); align-content: start; }
+.content-flow h2 { margin: 0; }
+.content-flow h3 { margin: 0; }
+.content-flow p { margin: 0; max-width: 46rem; line-height: 1.65rem; }
+
+/* Kart icindeki izgara: adim kartlari, rozet kartlari, oran kartlari */
+.info-grid {
+  display: grid; gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+}
+.info-item { display: grid; gap: var(--space-2); align-content: start; }
+/*
+  Oran kartlari UC SUTUN: `info-grid`in 17rem alt siniri 700 piksellik
+  bir sutunda ikiye dusuruyor ve ucuncu oran tek basina alta kaliyordu.
+  Uc oran birlikte okunmali — asil bilgi aralarindaki FARK.
+*/
+.rate-grid { grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); }
+
+/*
+  ADIM KARTI — numara kartin ICINDE, basligin ustunde.
+
+  Numara basligin basina "1." diye yazilmisti; alti basligin hepsi
+  ayni agirlikta oldugu icin sira ancak okuyunca anlasiliyordu.
+  Iri ve renkli bir numara, taramayi bir bakisa indiriyor.
+*/
+.info-step { display: grid; gap: var(--space-2); align-content: start; }
+.info-step-num {
+  display: grid; place-items: center;
+  width: 2.25rem; height: 2.25rem; border-radius: var(--radius-full);
+  background: var(--color-primary-subtle); color: var(--color-primary-active);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  ORAN KARTI — ucret sayfasindaki uc komisyon.
+  Tablo satiri "%0 / %10 / %18" farkini goz hizasinda tasimiyordu.
+*/
+.rate-card {
+  display: grid; gap: var(--space-2); align-content: start;
+  padding: var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
+}
+.rate-card .rate-value {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 2.25rem; line-height: 1; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+/* Sifir komisyon vurgulu: sayfanin asil iddiasi o */
+.rate-card-lead {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+}
+.rate-card-lead .rate-value { color: var(--color-accent-hover); }
+
+/*
+  DURUSU FARKLI OLAN BOLUM — "bu ne DEGILDIR", "neyi ucretlendirmiyoruz".
+
+  Koyu panel: sayfadaki en fazla bir iki yerde. Bunlar sitenin
+  kendini SINIRLADIGI cumleler ve bir kart daha olarak gecistirilmemeli.
+*/
+.info-panel {
+  display: grid; gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--color-panel); color: var(--color-panel-ink);
+}
+.info-panel h2, .info-panel h3 { color: var(--color-panel-ink); margin: 0; }
+.info-panel p { color: var(--color-panel-ink-muted); margin: 0; }
+.info-panel a { color: var(--color-panel-ink); text-decoration: underline; }
+
+/* Isaretli liste — "sunlari ucretlendirmiyoruz", "sunlar gizli kalir" */
+.info-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.info-list li {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  line-height: 1.5rem;
+}
+.info-list li svg { flex: 0 0 auto; margin-top: 3px; }
+.info-list-no li svg { color: var(--color-ink-muted); }
+.info-list-yes li svg { color: var(--color-accent); }
+.info-panel .info-list li { color: var(--color-panel-ink); }
+.info-panel .info-list li svg { color: var(--color-panel-ink-muted); }
+
+/* Rozet seridi — dordu yan yana, dar ekranda sariyor */
+.badge-row {
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  margin: 0; padding: 0; list-style: none;
+}
+.link-underline {
+  color: var(--color-primary-hover);
+  text-decoration: underline; text-underline-offset: 2px;
+}
+
+/* Rozet aciklamalari: solda rozet, sagda ne kapsadigi */
+.badge-explain { display: grid; gap: var(--space-4); }
+.badge-explain > div {
+  display: grid; gap: var(--space-2); align-content: start;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+@media (min-width: 640px) {
+  .badge-explain { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Hesap tablosu kart icinde: kendi cizgileri kartin kenarina dayanmasin */
+.info-table { width: 100%; border-collapse: collapse; }
+.info-table th, .info-table td {
+  text-align: start; padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.info-table tr:last-child th, .info-table tr:last-child td { border-bottom: 0; }
+.info-table td:last-child, .info-table th:last-child { text-align: end; }
+.info-table thead th {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--color-ink-muted); font-weight: 600;
+}
 
 /* Okuma sutunu ~68 karakter; hukuki metin bunun disinda okunmuyor */
 .prose { max-width: 42rem; }

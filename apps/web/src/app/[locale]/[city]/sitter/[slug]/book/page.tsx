@@ -97,8 +97,8 @@ export default async function BookPage({
         </div>
       </section>
 
-      <div className="container" style={{ paddingBlock: 'var(--space-8) var(--section-y)' }}>
-        <div style={{ maxWidth: '38rem' }}>
+      <div className="container book-page">
+        <div>
           <BookingForm
             locale={locale}
             sitterId={sitter.userId}
