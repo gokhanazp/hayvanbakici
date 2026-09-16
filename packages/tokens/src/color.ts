@@ -73,7 +73,17 @@ export const palette = {
   success100: '#E3F1E8',
   success500: '#2E7D4F',
   success700: '#1F5B39',
+  /*
+    UYARI — kutu ve METIN icin ayri iki ton.
+
+    Ortada yalnizca warning500 vardi ve o bir KUTU rengi: beyaz uzerinde
+    3,4:1 ile govde metni icin yeterli degil. "20 Eyl'e kadar cevap
+    bekleniyor" gibi bir satiri o tonla yazmak, okunmasini istedigimiz
+    seyi okunmaz yapardi. 900 tonu metin icin, 100 tonu zemin icin.
+  */
+  warning100: '#FAEEDA',
   warning500: '#C8860D',
+  warning900: '#6B4405',
   danger100:  '#FBEAE6',
   danger500:  '#B23A2E',
   danger700:  '#8A2A20',
@@ -145,6 +155,8 @@ export const lightTheme = {
   'danger-strong':   palette.danger700,
   'success-subtle':  palette.success100,
   'success-strong':  palette.success700,
+  'warning-subtle':  palette.warning100,
+  'warning-strong':  palette.warning900,
   'info':            palette.info500,
   'info-subtle':     palette.info100,
   'info-strong':     palette.info700,
@@ -199,6 +211,8 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'success-subtle':  '#16281D',
   'success-strong':  '#9ED3B0',
   'warning':         '#D9A43A',
+  'warning-subtle':  '#2B2008',
+  'warning-strong':  '#E8C275',
   'danger':          '#E0776A',
   'danger-subtle':   '#2E1613',
   'danger-strong':   '#F3B4AA',

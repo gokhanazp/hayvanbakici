@@ -8,8 +8,16 @@ import {
 } from '@havre/i18n';
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
-import { getAccountSummary, isAdmin, listOwnerPets, type OwnerPet } from '@/lib/data';
-import { PetCard } from '@/components/PetCard';
+import {
+  getAccountSummary, isAdmin, listOwnerPets, listOwnerBookings, listConversations,
+  type OwnerPet, type BookingSummary, type ConversationSummary,
+} from '@/lib/data';
+import { ActivityList, ActivityRow, ActivityIcon } from '@/components/ActivityList';
+import { StatusBadge } from '@/components/BookingCard';
+import { dateRangeFmt, relativeDay, dayFmt, chatStamp } from '@/lib/format';
+import { SERVICES } from '@havre/core';
+import { unitLabel } from '@havre/i18n';
+import { petAge } from '@/components/PetCard';
 import { Avatar } from '@/components/Avatar';
 import { EmptyState, PawArt } from '@/components/EmptyState';
 
@@ -38,12 +46,30 @@ export default async function AccountOverviewPage({
   const session = await getSession();
   if (!session) redirect(`/${seg}/account/sign-in/?next=/${seg}/account/`);
 
-  const [me, admin, pets] = await Promise.all([
+  /*
+    BEKLEYEN ISLERIN KENDISI CEKILIYOR, sayisi degil.
+
+    Ozet ekrani "2 rezervasyon" deyip kullaniciyi baska sayfaya
+    yolluyordu; kiminle, ne zaman ve ondan ne beklendigi orada
+    kaliyordu. Iki sorgu daha, ama ozetin isini gercekten yapmasi icin.
+  */
+  const [me, admin, pets, bookings, conversations] = await Promise.all([
     getAccountSummary(session.user.id),
     isAdmin(session.user.id),
     listOwnerPets(session.user.id),
+    listOwnerBookings(session.user.id),
+    listConversations(session.user.id),
   ]);
   if (!me) notFound();
+
+  const today = new Date().toISOString().slice(0, 10);
+  /* Yaklasanlar, EN YAKIN once: ozet "siradaki ne" sorusuna cevap veriyor. */
+  const upcoming = bookings
+    .filter((b) => b.endAt.slice(0, 10) >= today
+      && (b.status === 'requested' || b.status === 'confirmed'))
+    .sort((a, b) => a.startAt.localeCompare(b.startAt))
+    .slice(0, 3);
+  const unread = conversations.filter((c) => c.unread > 0).slice(0, 3);
 
   const m = getMessages(locale);
   const name = me.firstName ?? session.user.name?.split(' ')[0] ?? '';
@@ -84,7 +110,10 @@ export default async function AccountOverviewPage({
           </div>
         )}
 
-        <Glance locale={locale} seg={seg} me={me} />
+        <Activity
+          locale={locale} seg={seg} me={me}
+          upcoming={upcoming} unread={unread}
+        />
 
         <PetsSection locale={locale} seg={seg} pets={pets} />
 
@@ -311,60 +340,141 @@ function SitterStatusCard({
 
 /* ------------------------------------------------------------- sayilar */
 
-function Glance({
-  locale, seg, me,
+/**
+ * BEKLEYENLER — sayfanin en ustu.
+ *
+ * Bu bolum bir SAYAC degil, bir is listesi. Her satir gercek bir seye
+ * gidiyor ve o seyin ne oldugunu SOYLUYOR: hangi bakici, hangi
+ * tarihler, ne bekleniyor.
+ *
+ * SIRA ONEME GORE: once cevap bekleyen talepler (kullanicinin
+ * yapabilecegi bir sey yok ama beklemesi gerektigini bilmeli), sonra
+ * okunmamis mesajlar (asil ONUN yapmasi gereken sey), sonra onaylanmis
+ * yaklasan rezervasyonlar (bilgi).
+ *
+ * HICBIR SEY YOKSA BOLUM CIZILMIYOR. "Bekleyen bir sey yok" diyen bir
+ * kutu, ekranin en degerli yerini kaplayan bir sessizlikti.
+ */
+function Activity({
+  locale, seg, me, upcoming, unread,
 }: {
   locale: Locale;
   seg: string;
   me: NonNullable<Awaited<ReturnType<typeof getAccountSummary>>>;
+  upcoming: BookingSummary[];
+  unread: ConversationSummary[];
 }) {
   const m = getMessages(locale);
 
-  /*
-    SIFIR OLANI GOSTERMIYORUZ. "0 bekleyen talep" bir bilgi degil, bos bir
-    satir; ekranin tamami sifirsa tek cumleyle soyluyoruz.
-  */
-  const rows = [
-    me.counts.pendingRequests > 0 && {
-      href: `/${seg}/account/sitter/`,
-      label: m.account.quickRequests, n: me.counts.pendingRequests,
-    },
-    me.counts.unreadMessages > 0 && {
-      href: `/${seg}/account/messages/`,
-      label: m.account.quickUnread, n: me.counts.unreadMessages,
-    },
-    me.counts.upcomingBookings > 0 && {
-      href: `/${seg}/account/bookings/`,
-      label: m.account.quickBookings, n: me.counts.upcomingBookings,
-    },
-  ].filter(Boolean) as Array<{ href: string; label: string; n: number }>;
+  const waiting = upcoming.filter((b) => b.status === 'requested');
+  const confirmed = upcoming.filter((b) => b.status === 'confirmed');
+  const sitterRequests = me.counts.pendingRequests;
 
-  /*
-    HICBIR SEY BEKLEMIYORSA BOLUM HIC CIZILMIYOR.
-
-    Eskiden burada "Bekleyen bir sey yok" yazan bir kart duruyordu:
-    bilgi tasimayan, ama ekranin en degerli yerini kaplayan bir
-    kutu. Bos bir bolumu gizlemek, bos oldugunu ilan etmekten iyi.
-  */
-  if (rows.length === 0) return null;
+  if (waiting.length + confirmed.length + unread.length + sitterRequests === 0) return null;
 
   return (
     <section aria-label={m.account.atAGlance}>
-      <ul className="glance-row-list">
-        {rows.map((r) => (
-          <li key={r.href}>
-            <Link href={r.href} className="glance-tile">
-              <span className="glance-n tabular">{r.n}</span>
-              <span className="glance-label">{r.label}</span>
-            </Link>
-          </li>
+      <h2 className="text-h3 section-row">{m.account.atAGlance}</h2>
+
+      <ActivityList>
+        {/*
+          BAKICI TARAFI EN USTTE: karsi tarafta bekleyen biri var ve
+          sure isliyor. Sahip tarafindaki hicbir sey bundan acil degil.
+        */}
+        {sitterRequests > 0 && (
+          <ActivityRow
+            href={`/${seg}/account/sitter/`}
+            tone="wait"
+            icon={
+              <ActivityIcon>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 7v5l3 2" /><circle cx="12" cy="12" r="8" />
+                </svg>
+              </ActivityIcon>
+            }
+            title={interpolate(
+              sitterRequests === 1 ? m.account.requestWaitingOne : m.account.requestWaiting,
+              { count: String(sitterRequests) },
+            )}
+            meta={m.account.requestWaitingMeta}
+          />
+        )}
+
+        {unread.map((c) => (
+          <ActivityRow
+            key={c.id}
+            href={`/${seg}/account/messages/${c.id}/`}
+            avatar={c.counterpartAvatarUrl}
+            initials={`${c.counterpartFirstName.slice(0, 1)}${c.counterpartInitial}`}
+            title={`${c.counterpartFirstName} ${c.counterpartInitial}.`}
+            /*
+              Mesajin ILK SATIRI gosteriliyor — gelen kutusunda da boyle.
+              Kendi gelen kutusu; gizlilik acisindan yeni bir sey
+              acilmiyor.
+            */
+            {...(c.lastMessage ? { meta: c.lastMessage } : {})}
+            {...(c.lastMessageAt ? { when: chatStamp(c.lastMessageAt, locale) } : {})}
+            badge={
+              /*
+                Rozet yalnizca bir SAYI cizer; ekran okuyucuya ne oldugunu
+                soyleyen metin aria-label'da — gelen kutusundaki satirin
+                aynisi.
+              */
+              <span
+                className="activity-count tabular"
+                aria-label={c.unread === 1
+                  ? m.messages.unreadOne
+                  : interpolate(m.messages.unreadMany, { count: String(c.unread) })}
+              >
+                {c.unread}
+              </span>
+            }
+          />
         ))}
-      </ul>
+
+        {[...waiting, ...confirmed].map((b) => {
+          const unit = SERVICES[b.serviceType].unit;
+          const near = relativeDay(b.startAt, locale);
+          const expires = b.status === 'requested' && b.expiresAt
+            ? interpolate(m.account.respondBy, { date: dayFmt(b.expiresAt, locale) })
+            : null;
+          return (
+            <ActivityRow
+              key={b.id}
+              href={`/${seg}/account/bookings/${b.id}/`}
+              tone={b.status === 'requested' ? 'wait' : 'plain'}
+              avatar={b.counterpartAvatarUrl}
+              initials={`${b.counterpartFirstName.slice(0, 1)}${b.counterpartInitial}`}
+              title={interpolate(m.booking.withSitter, {
+                name: `${b.counterpartFirstName} ${b.counterpartInitial}.`,
+              })}
+              meta={[
+                dateRangeFmt(b.startAt, b.endAt, locale),
+                `${b.units} ${unitLabel(locale, unit, b.units)}`,
+                near,
+              ].filter(Boolean).join(' · ')}
+              {...(expires ? { note: expires } : {})}
+              badge={<StatusBadge status={b.status} locale={locale} />}
+            />
+          );
+        })}
+      </ActivityList>
     </section>
   );
 }
 
 /* ------------------------------------------------------- hayvanlarim */
+
+/** Kucuk kartin tek satirlik tarifi: "Kopek · 4 yasinda · 18,5 kg". */
+function petSummary(pet: OwnerPet, locale: Locale): string {
+  const m = getMessages(locale);
+  const species = (m.species[pet.species as keyof Messages['species']] as string | undefined)
+    ?? pet.species;
+  /* Yalnizca BILINEN seyler — bos alan icin "—" yazmiyoruz. */
+  return [species, petAge(pet.birthDate, locale), pet.weightKg ? `${pet.weightKg} kg` : null]
+    .filter(Boolean).join(' · ');
+}
 
 /**
  * HAYVANLARIM — hesap sayfasinin asil isi.
@@ -418,14 +528,39 @@ function PetsSection({
           }
         />
       ) : (
-        <div className="pet-grid">
-          {pets.map((pet) => <PetCard key={pet.id} pet={pet} locale={locale} />)}
-          {/* Izgaranin sonundaki bosluğu bir ISLE dolduruyor. */}
-          <Link href={`/${seg}/account/pets/`} className="pet-add">
-            <span className="pet-add-plus" aria-hidden="true">+</span>
-            <span>{m.pets.add}</span>
-          </Link>
-        </div>
+        /*
+          OZETTE KUCUK KARTLAR.
+
+          Fotografli buyuk kart hayvanlar sayfasinda dogru — orasi
+          hayvanin kendi ekrani. Ozette ayni kart, iki hayvani olan
+          kullanicida ekranin yarisini kapliyordu ve altindaki her seyi
+          katlamanin asagisina itiyordu. Burada soru "hayvanim kayitli
+          mi ve dogru mu" — ona kucuk bir satir cevap veriyor; detay bir
+          tik otede.
+        */
+        <ul className="pet-strip">
+          {pets.map((pet) => (
+            <li key={pet.id}>
+              <Link href={`/${seg}/account/pets/`} className="pet-chip">
+                <Avatar
+                  src={pet.photoUrl}
+                  initials={(pet.name.slice(0, 1) || '?').toUpperCase()}
+                  size={40}
+                />
+                <span className="pet-chip-body">
+                  <span className="pet-chip-name">{pet.name}</span>
+                  <span className="pet-chip-meta">{petSummary(pet, locale)}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link href={`/${seg}/account/pets/`} className="pet-chip pet-chip-add">
+              <span className="pet-add-plus" aria-hidden="true">+</span>
+              <span className="pet-chip-name">{m.pets.add}</span>
+            </Link>
+          </li>
+        </ul>
       )}
     </section>
   );

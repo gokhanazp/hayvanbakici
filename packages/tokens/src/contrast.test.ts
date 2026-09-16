@@ -51,6 +51,12 @@ const PAIRS: Array<[keyof Theme, keyof Theme, number, string]> = [
   ['danger-strong', 'danger-subtle', 4.5, 'hata kutusu'],
   ['success-strong', 'success-subtle', 4.5, 'basari kutusu'],
   ['info-strong', 'info-subtle', 4.5, 'bilgi kutusu'],
+  ['warning-strong', 'warning-subtle', 4.5, 'uyari kutusu'],
+  /*
+    Beyaz yuzey uzerinde de okunmali: "cevap bekleniyor" satiri kartin
+    kendi zemininde duruyor, uyari kutusunda degil.
+  */
+  ['warning-strong', 'surface', 4.5, 'beyaz kart uzerinde uyari metni'],
   ['tile-rose-ink', 'tile-rose', 4.5, 'pastel kutucuk — gul'],
   ['tile-sage-ink', 'tile-sage', 4.5, 'pastel kutucuk — adacayi'],
   ['tile-apricot-ink', 'tile-apricot', 4.5, 'pastel kutucuk — kayisi'],

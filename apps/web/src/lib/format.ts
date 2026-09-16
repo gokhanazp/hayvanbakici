@@ -51,6 +51,42 @@ export function dateRangeFmt(startIso: string, endIso: string, locale: Locale): 
     : `${fmt.format(a)} – ${fmt.format(b)}`;
 }
 
+/**
+ * "12 gun sonra" / "yarin" / "bugun".
+ *
+ * Hesap ozetinde bir tarihin KENDISI yeterli bilgi degil: "12-15 Eki"
+ * yazan bir satira bakan kisi once bugunun kacinci oldugunu
+ * hatirlamaya calisiyor. Yakinlik, tarihin yaninda duran ikinci bir
+ * bilgi.
+ *
+ * GUN FARKI, saat farki DEGIL: iki tarih arasinda 20 saat varsa bu
+ * "0 gun" degil, duruma gore "bugun" ya da "yarin". Ikisi de UTC gun
+ * basina yuvarlaniyor — sunucu saat dilimi sonucu kaydirmasin.
+ *
+ * GECMIS icin null doner: "3 gun once" bir uyari degil, ve bu yardimci
+ * yalnizca yaklasan seyler icin kullaniliyor.
+ */
+export function daysUntil(iso: string, now: Date = new Date()): number | null {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return null;
+  const day = (d: number) => Math.floor(d / 86_400_000);
+  return day(t) - day(now.getTime());
+}
+
+export function relativeDay(iso: string, locale: Locale, now: Date = new Date()): string | null {
+  const d = daysUntil(iso, now);
+  if (d === null || d < 0) return null;
+  const m = locale === 'fr-CA';
+  if (d === 0) return m ? 'aujourd\u2019hui' : 'today';
+  if (d === 1) return m ? 'demain' : 'tomorrow';
+  /*
+    Intl.RelativeTimeFormat: "in 12 days" / "dans 12 jours" — cevirisi
+    tarayicidan geliyor, bizim ceviri dosyamizda cogul kurallarini elle
+    yazmamiza gerek kalmiyor.
+  */
+  return new Intl.RelativeTimeFormat(locale, { numeric: 'always' }).format(d, 'day');
+}
+
 /** Gun hassasiyeti — yonetici listelerinde "Eylul 2026" yeterli degil. */
 export function dayFmt(iso: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale, {

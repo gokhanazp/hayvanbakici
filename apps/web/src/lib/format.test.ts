@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dateRangeFmt } from './format';
+import { dateRangeFmt, daysUntil, relativeDay } from './format';
 
 /**
  * REZERVASYON TARIHI.
@@ -56,5 +56,35 @@ describe('tarih araligi', () => {
   it('bozuk tarih bos dize doner, patlamaz', () => {
     expect(dateRangeFmt('', '2026-08-01', 'en-CA')).toBe('');
     expect(dateRangeFmt('elma', 'armut', 'en-CA')).toBe('');
+  });
+});
+
+describe('yakinlik', () => {
+  const now = new Date('2026-09-16T10:00:00Z');
+
+  it('bugun / yarin kelimeyle', () => {
+    expect(relativeDay('2026-09-16T22:00:00Z', 'en-CA', now)).toBe('today');
+    expect(relativeDay('2026-09-17T02:00:00Z', 'en-CA', now)).toBe('tomorrow');
+    expect(relativeDay('2026-09-17T02:00:00Z', 'fr-CA', now)).toBe('demain');
+  });
+
+  it('SAAT farki degil GUN farki', () => {
+    /* Yirmi saat sonrasi "0 gun" degil: gece yarisini gectiyse yarin. */
+    expect(daysUntil('2026-09-17T06:00:00Z', now)).toBe(1);
+    expect(daysUntil('2026-09-16T23:59:00Z', now)).toBe(0);
+  });
+
+  it('uzak tarih sayiyla', () => {
+    expect(relativeDay('2026-09-28T15:00:00Z', 'en-CA', now)).toContain('12');
+  });
+
+  it('GECMIS null — bu yardimci yalnizca yaklasan seyler icin', () => {
+    expect(relativeDay('2026-09-15T15:00:00Z', 'en-CA', now)).toBeNull();
+    expect(daysUntil('2026-09-14T15:00:00Z', now)).toBe(-2);
+  });
+
+  it('bozuk tarih null', () => {
+    expect(daysUntil('elma', now)).toBeNull();
+    expect(relativeDay('', 'en-CA', now)).toBeNull();
   });
 });
