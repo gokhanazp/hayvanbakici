@@ -15,18 +15,25 @@ export function SocialLinks({ size = 16, className }: { size?: number; className
   if (SOCIAL.length === 0) return null;
   return (
     <span className={className ? `social-links ${className}` : 'social-links'}>
-      {SOCIAL.map((a) => (
-        <a
-          key={a.network}
-          href={a.url}
-          className="social-link"
-          target="_blank"
-          rel="me noreferrer"
-          aria-label={SOCIAL_LABEL[a.network]}
-        >
-          <Icon network={a.network} size={size} />
-        </a>
-      ))}
+      {SOCIAL.map((a) => {
+        /*
+          YER TUTUCU ADRES yeni sekmede ACILMAZ: bos bir sekme acmak,
+          tiklayan kisiye bir sey bozulmus gibi gelir. Gercek adres
+          konunca baglanti kendiliginden yeni sekmeye gecer.
+        */
+        const placeholder = a.url === '#';
+        return (
+          <a
+            key={a.network}
+            href={a.url}
+            className="social-link"
+            {...(placeholder ? {} : { target: '_blank', rel: 'me noreferrer' })}
+            aria-label={SOCIAL_LABEL[a.network]}
+          >
+            <Icon network={a.network} size={size} />
+          </a>
+        );
+      })}
     </span>
   );
 }

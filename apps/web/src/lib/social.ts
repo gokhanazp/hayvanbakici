@@ -1,15 +1,15 @@
 /**
  * SOSYAL HESAPLAR — TEK KAYNAK.
  *
- * LISTE BILINCLI OLARAK BOS. Havre'nin henuz acilmis bir sosyal hesabi
- * yok; olmayan bir hesaba giden ikon ekranda DOGRU OLMAYAN bir sey
- * soyler ve tiklayan kisiyi bos bir sayfaya gonderir. Hesap acildiginda
- * buraya bir satir eklemek yeterli:
+ * !!! SU ANKI ADRESLER YER TUTUCU ('#') — YAYINA CIKMADAN ONCE
+ * !!! DEGISTIRILMESI GEREKIYOR. Hesaplar henuz acilmadi; ikonlar
+ * !!! tasarim gorunsun diye duruyor ve hicbir yere gitmiyor.
+ * !!! Ayrica claude/02-eksikler.md icindeki yayin oncesi listede.
  *
- *   { network: 'instagram', url: 'https://instagram.com/havre.ca' },
- *
- * Baslik seridi ve alt bilgi ayni listeyi okuyor; liste bosken o bolum
- * HIC CIZILMIYOR, dolayisiyla tasarim iki durumda da calisiyor.
+ * Hesap acildiginda yapilacak tek is, asagidaki `url` alanini gercek
+ * adresle degistirmek. Liste bosaltilirsa ikonlar HIC cizilmiyor;
+ * baslik seridi de alt bilgi de ayni listeyi okuyor, dolayisiyla
+ * tasarim iki durumda da calisiyor.
  */
 export const SOCIAL_NETWORKS = ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin'] as const;
 export type SocialNetwork = (typeof SOCIAL_NETWORKS)[number];
@@ -29,4 +29,11 @@ export const SOCIAL_LABEL: Record<SocialNetwork, string> = {
   linkedin: 'LinkedIn',
 };
 
-export const SOCIAL: readonly SocialAccount[] = [];
+export const SOCIAL: readonly SocialAccount[] = [
+  { network: 'instagram', url: '#' },
+  { network: 'facebook', url: '#' },
+  { network: 'tiktok', url: '#' },
+];
+
+/** Adres hala yer tutucu mu — arayuz ve kontrol listesi icin. */
+export const SOCIAL_IS_PLACEHOLDER = SOCIAL.some((a) => a.url === '#');
