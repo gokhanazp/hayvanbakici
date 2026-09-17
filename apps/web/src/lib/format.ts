@@ -87,11 +87,25 @@ export function relativeDay(iso: string, locale: Locale, now: Date = new Date())
   return new Intl.RelativeTimeFormat(locale, { numeric: 'always' }).format(d, 'day');
 }
 
-/** Gun hassasiyeti — yonetici listelerinde "Eylul 2026" yeterli degil. */
+/**
+ * GUN HASSASIYETI — "Eylul 2026" yeterli olmadigi her yerde.
+ *
+ * `dateFmt` yalnizca AY VE YIL veriyor. Bir son tarih icin bu ise
+ * yaramaz: "yorumu Ekim 2026'ya kadar yazabilirsiniz" cumlesi ayin
+ * 1'ini mi 31'ini mi kastediyor belli degil.
+ *
+ * UTC SABIT: bu tarihler gun olarak anlamli (rezervasyon gunleri,
+ * yorum penceresinin kapanisi) ve sayfa sunucuda ciziliyor — sunucunun
+ * saat dilimi gostergeyi bir gun kaydirabilirdi. dateRangeFmt zaten
+ * ayni sebeple UTC kullaniyor; ikisinin AYNI gunu farkli yazmasi
+ * olmamali.
+ */
 export function dayFmt(iso: string, locale: Locale): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
   return new Intl.DateTimeFormat(locale, {
-    day: 'numeric', month: 'short', year: 'numeric',
-  }).format(new Date(iso));
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  }).format(d);
 }
 
 /**

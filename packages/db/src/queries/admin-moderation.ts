@@ -58,7 +58,7 @@ function reviewSearch(term: string) {
 }
 
 function reviewWhere(filter: ReviewFilter) {
-  return filter === 'published' ? sql`AND r.published_at IS NOT NULL AND r.hidden_at IS NULL`
+  return filter === 'published' ? sql`AND r.published_at <= now() AND r.hidden_at IS NULL`
     : filter === 'hidden' ? sql`AND r.hidden_at IS NOT NULL`
     : filter === 'low' ? sql`AND r.rating <= 2`
     : filter === 'reported' ? sql`AND EXISTS (
@@ -138,7 +138,7 @@ async function recomputeRating(db: Database, subjectId: string): Promise<void> {
       FROM reviews
       WHERE subject_id = ${subjectId}
         AND direction = 'owner_to_sitter'
-        AND published_at IS NOT NULL
+        AND published_at <= now()
         AND hidden_at IS NULL
     ) agg
     WHERE st.user_id = ${subjectId}

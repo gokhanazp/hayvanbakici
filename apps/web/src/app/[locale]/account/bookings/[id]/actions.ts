@@ -2,7 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
-import { respondToRequest, cancelBooking, getBooking, openConversation } from '@/lib/data';
+import {
+  respondToRequest, cancelBooking, getBooking, openConversation,
+  submitReview, respondToReview,
+} from '@/lib/data';
 import { notifyRequestAnswered, notifyCancelled } from '@/lib/notify';
 
 /**
@@ -90,4 +93,69 @@ export async function openBookingConversationAction(
 
   revalidatePath(`/${seg}/account/messages/`);
   return { redirectTo: `/${seg}/account/messages/${conv.value}/` };
+}
+
+/* ------------------------------------------------------------ yorumlar */
+
+export type ReviewFormState = { error?: string | undefined; done?: boolean | undefined };
+
+/**
+ * YORUM YAZ.
+ *
+ * Kurallarin kendisi burada DEGIL — `@havre/core/reviews.ts` icinde ve
+ * test ediliyor; veritabani katmani onlari uyguluyor. Bu dosya yalnizca
+ * formu cozuyor ve oturumu veriyor.
+ *
+ * `bookingId` forma yaziliyor ama guvenilmiyor: `submitReview` yazari
+ * rezervasyonun taraflarindan biri olarak dogruluyor, degilse
+ * `not_a_party` donuyor. Yani baskasinin rezervasyonuna yorum
+ * yazilamiyor.
+ *
+ * BAKICININ HERKESE ACIK SAYFASI burada yenilenmiyor: yorum cogu zaman
+ * GELECEK bir anda yayinlaniyor (karsilikli korleme), yani "simdi
+ * yenile" demek zaten ise yaramazdi. O sayfa saatlik ISR ile
+ * kendiliginden tazeleniyor ve yayin ani veriye gomulu oldugu icin
+ * (`published_at <= now()`) dogru anda gorunuyor.
+ */
+export async function writeReviewAction(
+  _prev: ReviewFormState, formData: FormData,
+): Promise<ReviewFormState> {
+  const session = await getSession();
+  if (!session) return { error: 'not_a_party' };
+
+  const id = String(formData.get('id') ?? '');
+  const rating = Number(formData.get('rating') ?? NaN);
+  const body = String(formData.get('body') ?? '');
+
+  const res = await submitReview({ bookingId: id, authorId: session.user.id, rating, body });
+  if (!res.ok) return { error: res.error };
+
+  revalidatePath(`/${String(formData.get('locale') ?? 'en')}/account/bookings/${id}/`);
+  return { done: true };
+}
+
+/**
+ * YORUMA YANIT — yalnizca hakkinda yazilan kisi, yalnizca bir kez.
+ *
+ * Yanit yorumu DEGISTIRMIYOR, yanina ekleniyor. Kotu bir yorum alan
+ * tarafin tek hakki budur; yorumu sildirmek ya da duzelttirmek degil.
+ * Yetki sorgunun WHERE'inde: `subject_id` oturumdaki kisi degilse ve
+ * yanit zaten yazilmissa hicbir satir guncellenmiyor.
+ */
+export async function respondReviewAction(
+  _prev: ReviewFormState, formData: FormData,
+): Promise<ReviewFormState> {
+  const session = await getSession();
+  if (!session) return { error: 'not_a_party' };
+
+  const reviewId = String(formData.get('reviewId') ?? '');
+  const body = String(formData.get('body') ?? '');
+
+  const res = await respondToReview({ reviewId, subjectId: session.user.id, body });
+  if (!res.ok) return { error: res.error };
+
+  revalidatePath(
+    `/${String(formData.get('locale') ?? 'en')}/account/bookings/${String(formData.get('id') ?? '')}/`,
+  );
+  return { done: true };
 }

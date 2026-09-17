@@ -17,3 +17,4 @@ export * from './favourites.js';
 export * from './pets.js';
 export * from './settings.js';
 export * from './waitlist.js';
+export * from './reviews.js';

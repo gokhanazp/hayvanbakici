@@ -38,6 +38,8 @@ import {
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
   currentSlugFor as dbCurrentSlugFor, joinWaitlist as dbJoinWaitlist,
+  getReviewContext as dbGetReviewContext, submitReview as dbSubmitReview,
+  respondToReview as dbRespondToReview, type ReviewContext,
   listOwnerPets as dbListOwnerPets, getOwnerPet as dbGetOwnerPet,
   createOwnerPet as dbCreateOwnerPet, updateOwnerPet as dbUpdateOwnerPet,
   setPetPhoto as dbSetPetPhoto, deleteOwnerPet as dbDeleteOwnerPet,
@@ -265,6 +267,23 @@ export const updateProfile = (input: Parameters<typeof dbUpdateProfile>[1]) =>
 /** Bekleme listesi kaydi — oturum gerekmiyor, kayit e-postaya bagli. */
 export const joinWaitlist = (input: Parameters<typeof dbJoinWaitlist>[1]) =>
   dbJoinWaitlist(db(), input);
+
+/* ------------------------------------------------------------ yorumlar */
+/**
+ * Bir rezervasyonun yorum durumu — iki taraf icin de ayni fonksiyon.
+ *
+ * Yayin ani veriye gomulu (`published_at <= now()`), bu yuzden burada
+ * hicbir zamanlayici yok: korlemenin acilma ani sorgu aninda belli
+ * oluyor. Arka plan isi calismasa bile yorumlar sonsuza kadar gizli
+ * kalmiyor.
+ */
+export const getReviewContext = (bookingId: string, viewerId: string) =>
+  dbGetReviewContext(db(), bookingId, viewerId);
+export const submitReview = (input: Parameters<typeof dbSubmitReview>[1]) =>
+  dbSubmitReview(db(), input);
+export const respondToReview = (input: Parameters<typeof dbRespondToReview>[1]) =>
+  dbRespondToReview(db(), input);
+export type { ReviewContext };
 
 /** Eski profil adresi -> bugunku adres (bakici adini degistirdiginde). */
 export const currentSlugFor = cache(

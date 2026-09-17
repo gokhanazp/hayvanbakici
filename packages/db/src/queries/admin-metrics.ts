@@ -126,7 +126,7 @@ export async function getMetrics(db: Database, daysInput = 30): Promise<AdminMet
           (SELECT count(*)::int FROM sitters WHERE status = 'active') AS active,
           (SELECT count(DISTINCT sitter_id)::int FROM bookings) AS with_booking,
           (SELECT count(DISTINCT subject_id)::int FROM reviews
-            WHERE direction = 'owner_to_sitter' AND published_at IS NOT NULL
+            WHERE direction = 'owner_to_sitter' AND published_at <= now()
               AND hidden_at IS NULL) AS with_review
       `),
       db.execute(sql`

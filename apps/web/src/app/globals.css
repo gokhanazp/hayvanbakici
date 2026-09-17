@@ -4323,3 +4323,46 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-secondary);
 }
 .review-service svg { color: var(--color-primary); }
+
+/* ---------- Yorum paneli ----------
+   Rezervasyon sayfasindaki tek yorum alani. Icindeki bloklar (karsi
+   tarafin yorumu, kendi yorumum, yazma formu) ARALARINDA cizgiyle
+   ayriliyor: hepsi ayni kartta durdugu icin, cizgi olmadan kimin ne
+   yazdigi tek bir metin gibi okunuyordu. */
+.review-panel > * + * { margin-top: var(--space-5); }
+.review-block, .review-form {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+/* Panelin ilk ogesi basligin hemen altinda — orada cizgi fazla. */
+.review-panel > h2 + .review-block,
+.review-panel > h2 + .review-form { border-top: 0; padding-top: 0; }
+
+/*
+  YILDIZ SECIMI BIR RADYO GRUBU.
+
+  Gorunen yildizlar birer <label>, altlarinda gercek radyo dugmeleri
+  var: JS calismasa bile puan gonderiliyor, klavyeyle ok tuslariyla
+  seciliyor ve ekran okuyucu "3 yildiz — fena degildi" diye okuyor.
+  Yildiz sayisini tiklama koordinatindan cikaran bir bilesen bunlarin
+  hicbirini yapmaz.
+
+  Radyo dugmesi `opacity: 0` ile GIZLI ama YERINDE duruyor: display:
+  none olsaydi klavye odagi alamazdi ve odak halkasi cizilemezdi.
+*/
+.review-stars { display: flex; gap: var(--space-2); border: 0; padding: 0; margin: var(--space-5) 0 0; }
+.review-stars legend { margin-bottom: var(--space-2); }
+.review-star { position: relative; cursor: pointer; line-height: 1; }
+.review-star input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; margin: 0; cursor: pointer;
+}
+.review-star > span[aria-hidden] {
+  display: block; font-size: 1.75rem; color: var(--color-border-strong);
+  transition: color var(--duration-micro) var(--easing-standard);
+}
+.review-star[data-on] > span[aria-hidden] { color: var(--color-warning); }
+.review-star:hover > span[aria-hidden] { color: var(--color-warning); }
+.review-star:has(input:focus-visible) > span[aria-hidden] {
+  outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-sm);
+}

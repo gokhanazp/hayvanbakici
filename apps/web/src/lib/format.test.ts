@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dateRangeFmt, daysUntil, relativeDay } from './format';
+import { dateRangeFmt, dayFmt, daysUntil, relativeDay } from './format';
 
 /**
  * REZERVASYON TARIHI.
@@ -86,5 +86,36 @@ describe('yakinlik', () => {
   it('bozuk tarih null', () => {
     expect(daysUntil('elma', now)).toBeNull();
     expect(relativeDay('', 'en-CA', now)).toBeNull();
+  });
+});
+
+/**
+ * TEK GUN.
+ *
+ * `dayFmt` bir son tarih yaziyor ("yorumu {tarih} tarihine kadar
+ * yazabilirsiniz"). Sunucunun saat dilimi bu gunu kaydirmamali ve
+ * bozuk bir girdi ekrana "Invalid Date" basmamali.
+ */
+describe('tek gun', () => {
+  it('GUN gosteriyor, ay/yil degil', () => {
+    expect(dayFmt('2026-10-01T12:00:00Z', 'en-CA')).toBe('Oct 1, 2026');
+  });
+
+  it('UTC sabit — gec saat bir onceki/sonraki gune kaymiyor', () => {
+    /* Yerel saat dilimi ne olursa olsun ayni gun yazilmali. */
+    expect(dayFmt('2026-10-01T23:30:00Z', 'en-CA')).toBe('Oct 1, 2026');
+    expect(dayFmt('2026-10-01T00:30:00Z', 'en-CA')).toBe('Oct 1, 2026');
+  });
+
+  it('araliktaki gunle AYNI gunu yaziyor', () => {
+    /* dateRangeFmt de UTC; ikisi ayni tarihi farkli yazarsa sayfa
+       kendi kendisiyle celisir. */
+    expect(dateRangeFmt('2026-10-01T23:30:00Z', '2026-10-01T23:30:00Z', 'en-CA'))
+      .toBe(dayFmt('2026-10-01T23:30:00Z', 'en-CA'));
+  });
+
+  it('bozuk tarih bos metin — ekranda "Invalid Date" yok', () => {
+    expect(dayFmt('elma', 'en-CA')).toBe('');
+    expect(dayFmt('', 'fr-CA')).toBe('');
   });
 });

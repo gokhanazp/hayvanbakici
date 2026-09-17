@@ -141,7 +141,7 @@ export async function getOverview(db: Database): Promise<AdminOverview> {
         (SELECT count(DISTINCT p.city_id)::int
            FROM sitters s JOIN profiles p ON p.user_id = s.user_id
           WHERE s.status = 'active') AS cities_with_supply,
-        (SELECT count(*)::int FROM reviews WHERE published_at IS NOT NULL) AS reviews_published
+        (SELECT count(*)::int FROM reviews WHERE published_at <= now()) AS reviews_published
     `);
     const r = (rows as unknown as Array<Record<string, unknown>>)[0] ?? {};
 

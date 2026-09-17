@@ -403,6 +403,58 @@ export const enCA = {
     'error.invalid': 'That is no longer possible — the booking has moved on.',
     'error.not_found': 'Booking not found.',
   },
+
+  /*
+    YORUM YAZMA.
+
+    Yorumlar okunuyordu ama yazilamiyordu. Kurallar ekranda YAZILI
+    duruyor cunku sirri olan bir sistem adil sayilmaz: kimin, ne zamana
+    kadar, kac kez yazabilecegi ve karsi tarafin yorumunun ne zaman
+    acilacagi form gorulur gorulmez okunuyor.
+  */
+  review: {
+    heading: 'Reviews',
+    writeHeading: 'Write your review',
+    promptSitter: 'How was {name} as a sitter?',
+    promptOwner: 'How was {name} as a client?',
+    rating: 'Your rating',
+    ratingHint: 'One star to five.',
+    'star.1': '1 star — it went badly',
+    'star.2': '2 stars — below what I expected',
+    'star.3': '3 stars — it was fine',
+    'star.4': '4 stars — good',
+    'star.5': '5 stars — excellent',
+    body: 'What should other people know?',
+    bodyHint: 'Optional. Write what you would want to read before booking. {max} characters at most.',
+    submit: 'Publish my review',
+    submitting: 'Sending…',
+    // Kurallar ONCEDEN yaziyor — sonradan surpriz olmuyor.
+    rules: 'You can write one review for this booking, and you have until {date}. Once it is published it cannot be edited or deleted.',
+    blind: 'Neither review is shown until you have both written, or until {date} — so nobody can answer a review by writing one.',
+    waiting: 'Your review is saved. It appears on {date}, or as soon as {name} writes theirs.',
+    waitingCounterpart: '{name} has already written one. Yours opens both at once.',
+    mine: 'Your review',
+    theirs: 'What {name} wrote',
+    theirsPending: '{name} has written a review. It opens when you write yours, or on {date}.',
+    published: 'Published {date}.',
+    publishesOn: 'Publishes {date}.',
+    windowClosed: 'The window for reviewing this booking closed on {date}.',
+    notCompleted: 'You can write a review once the booking is completed.',
+    none: 'Nothing was written on either side.',
+    respondHeading: 'Reply',
+    respondHint: 'Your reply appears under the review, once, and cannot be edited afterwards. The review itself does not change.',
+    respondBody: 'Your reply',
+    respondSubmit: 'Post my reply',
+    response: 'Reply from {name}',
+    'error.not_completed': 'This booking is not completed yet.',
+    'error.window_closed': 'The review window for this booking has closed.',
+    'error.already_written': 'You have already reviewed this booking.',
+    'error.not_a_party': 'You cannot do that.',
+    'error.not_found': 'Not found.',
+    'error.empty': 'Write something first.',
+    'error.too_long': 'That is too long.',
+    'error.bad_rating': 'Pick a rating from one to five.',
+  },
   calendar: {
     title: 'Your calendar',
     publicHeading: 'Calendar and availability',

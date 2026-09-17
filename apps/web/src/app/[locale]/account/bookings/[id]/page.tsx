@@ -8,9 +8,13 @@ import { StatusBadge } from '@/components/BookingCard';
 import { RespondButtons, CancelButton, MessageCounterpartButton } from '@/components/BookingActions';
 import { Avatar } from '@/components/Avatar';
 import { petLabel } from '@/components/PetLine';
-import { getBooking, getSitterStatus, isAdmin, unreadCount } from '@/lib/data';
-import { money, dateFmt } from '@/lib/format';
-import { respondAction, cancelAction, openBookingConversationAction } from './actions';
+import { getBooking, getSitterStatus, isAdmin, unreadCount, getReviewContext } from '@/lib/data';
+import { money, dayFmt, dateRangeFmt } from '@/lib/format';
+import { ReviewPanel } from '@/components/ReviewPanel';
+import {
+  respondAction, cancelAction, openBookingConversationAction,
+  writeReviewAction, respondReviewAction,
+} from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +36,9 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const m = getMessages(locale);
-  const [sitterStatus, adminPanel, unread] = await Promise.all([
+  const [sitterStatus, adminPanel, unread, review] = await Promise.all([
     getSitterStatus(session.user.id), isAdmin(session.user.id), unreadCount(session.user.id),
+    getReviewContext(id, session.user.id),
   ]);
   const unit = SERVICES[booking.serviceType].unit;
   const name = `${booking.counterpartFirstName} ${booking.counterpartInitial}.`;
@@ -75,8 +80,14 @@ export default async function BookingDetailPage({
             <dl className="rate-compare" style={{ marginTop: 'var(--space-6)' }}>
               <div>
                 <dt className="dim text-body-sm">{m.booking.dates}</dt>
+                {/*
+                  GUN HASSASIYETI. Burasi `dateFmt` kullaniyordu ve o
+                  yalnizca AY VE YIL veriyor: alti gecelik bir konaklama
+                  "September 2026 – September 2026" diye yaziliyordu.
+                  Bu satira bakmanin tek sebebi "hangi gunler" sorusu.
+                */}
                 <dd className="tabular" style={{ fontWeight: 600 }}>
-                  {dateFmt(booking.startAt, locale)} – {dateFmt(booking.endAt, locale)}
+                  {dateRangeFmt(booking.startAt, booking.endAt, locale)}
                 </dd>
               </div>
               <div>
@@ -117,12 +128,42 @@ export default async function BookingDetailPage({
               <ul className="booking-timeline">
                 {booking.timeline.map((e, i) => (
                   <li key={`${e.at}-${i}`}>
-                    <time dateTime={e.at}>{dateFmt(e.at, locale)}</time>
+                    <time dateTime={e.at}>{dayFmt(e.at, locale)}</time>
                     <span>{(m.booking[`status.${e.to}` as keyof typeof m.booking] as string) ?? e.to}</span>
                   </li>
                 ))}
               </ul>
             </section>
+          )}
+
+          {/*
+            YORUMLAR.
+
+            Tarihler BURADA, sunucuda bicimlendiriliyor ve panele hazir
+            metin olarak iniyor. Istemcide bicimlendirilseydi sunucu ile
+            tarayici ayni tarihi farkli yazabilir ve React hydration
+            hatasi verirdi.
+          */}
+          {review && (
+            <ReviewPanel
+              locale={locale}
+              ctx={review}
+              name={booking.counterpartFirstName}
+              dates={{
+                closes: dayFmt(review.windowClosesAt, locale),
+                minePublishes: review.mine?.publishAt
+                  ? dayFmt(review.mine.publishAt, locale) : null,
+                theirsPublished: review.theirs
+                  ? dayFmt(review.theirs.publishedAt, locale) : null,
+              }}
+              minePublished={
+                review.mine?.publishAt
+                  ? Date.parse(review.mine.publishAt) <= Date.now()
+                  : false
+              }
+              writeAction={writeReviewAction}
+              respondAction={respondReviewAction}
+            />
           )}
         </div>
 
@@ -185,7 +226,7 @@ export default async function BookingDetailPage({
             <div className="card card-pad">
               {booking.expiresAt && (
                 <p className="text-body-sm dim" style={{ marginBottom: 'var(--space-4)' }}>
-                  {interpolate(m.account.respondBy, { date: dateFmt(booking.expiresAt, locale) })}
+                  {interpolate(m.account.respondBy, { date: dayFmt(booking.expiresAt, locale) })}
                 </p>
               )}
               <RespondButtons locale={locale} bookingId={booking.id} action={respondAction} />

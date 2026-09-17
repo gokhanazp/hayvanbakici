@@ -472,7 +472,7 @@ await db.execute(sql`
            count(*)::int AS n,
            round(avg(rating)::numeric, 1)::float8 AS avg
     FROM reviews
-    WHERE direction = 'owner_to_sitter' AND published_at IS NOT NULL
+    WHERE direction = 'owner_to_sitter' AND published_at <= now()
     GROUP BY subject_id
   ) agg
   WHERE st.user_id = agg.subject_id
@@ -481,7 +481,7 @@ await db.execute(sql`
   UPDATE sitters SET review_count = 0, average_rating = 0
   WHERE user_id NOT IN (
     SELECT subject_id FROM reviews
-    WHERE direction = 'owner_to_sitter' AND published_at IS NOT NULL
+    WHERE direction = 'owner_to_sitter' AND published_at <= now()
   )
 `);
 

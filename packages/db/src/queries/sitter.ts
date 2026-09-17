@@ -154,7 +154,29 @@ export async function getSitterProfile(
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
       SELECT
-        st.user_id, st.slug, st.badge_level, st.average_rating, st.review_count,
+        st.user_id, st.slug, st.badge_level,
+        /*
+          PUAN OZETI SAYFANIN KENDISINDE HESAPLANIYOR, sitters tablosundaki
+          onbellek sutunlarindan OKUNMUYOR.
+
+          NOT: bu bir SQL yorumu ve bir sablon dizesinin ICINDE — ters tirnak
+          KULLANILAMAZ, yoksa dizeyi kapatir. (Ilk halinde kullandim ve sorgu
+          "sitters is not defined" diye patladi.)
+
+          published_at "yayinda mi" degil "ne zaman yayinlanir" demek: bir
+          yorum, karsilikli korleme penceresi kapandiginda KIMSE bir sey
+          yapmadan gorunur hale gelebiliyor. O an onbellek sutununu
+          guncelleyecek bir cagri yok — profilde "5 yorum" yazarken altinda
+          6 yorum listeleniyordu. Baslikta yazan sayi ile ekranda sayilan
+          yorum birbirini tutmak zorunda.
+
+          Tek bakici icin tek bir toplama; reviews_subject_idx
+          (subject_id, published_at) zaten var. Arama sayfasi siralama icin
+          onbellek sutununu kullanmaya devam ediyor (bir sorguda yuzlerce
+          bakici var), orada en fazla pencere suresi kadar gecikiyor.
+        */
+        COALESCE(agg.n, 0) AS review_count,
+        COALESCE(agg.avg, 0) AS average_rating,
         st.median_response_minutes, st.acceptance_rate, st.home_type,
         st.has_yard, st.yard_fenced, st.has_own_pets, st.smoke_free,
         st.max_concurrent_pets, st.activated_at, st.created_at,
@@ -170,6 +192,13 @@ export async function getSitterProfile(
       JOIN profiles p ON p.user_id = st.user_id
       JOIN cities c ON c.id = p.city_id
       LEFT JOIN neighbourhoods n ON n.id = p.neighbourhood_id
+      LEFT JOIN LATERAL (
+        SELECT count(*)::int AS n, avg(rating)::real AS avg
+        FROM reviews r
+        WHERE r.subject_id = st.user_id
+          AND r.published_at <= now()
+          AND r.hidden_at IS NULL
+      ) agg ON true
       WHERE st.slug = ${slug}
         -- Yalnizca AKTIF bakicilar. Taslak, beklemede ya da cikarilmis bir
         -- bakicinin sayfasi olmamali: indekslenir ve sonra 404'e doner.
@@ -209,7 +238,7 @@ export async function getSitterProfile(
           AND r.direction = 'owner_to_sitter'
           -- Yayimlanmamis yorum gosterilmez; yorum penceresi kapanmadan
           -- tek tarafli yayin, karsilikli korleme kuralini bozar.
-          AND r.published_at IS NOT NULL
+          AND r.published_at <= now()
         -- Moderasyonda gizlenen yorum HICBIR genel listede gorunmez
         AND r.hidden_at IS NULL
         ORDER BY r.published_at DESC
@@ -248,19 +277,19 @@ export async function getSitterProfile(
           /* Puan dagilimi — 5'ten 1'e. Ortalama tek basina "kac kisi
              kac verdi" sorusunu cevaplamiyor. */
           (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
-            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.direction = 'owner_to_sitter' AND r.published_at <= now()
             AND r.hidden_at IS NULL AND r.rating = 5) AS r5,
           (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
-            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.direction = 'owner_to_sitter' AND r.published_at <= now()
             AND r.hidden_at IS NULL AND r.rating = 4) AS r4,
           (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
-            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.direction = 'owner_to_sitter' AND r.published_at <= now()
             AND r.hidden_at IS NULL AND r.rating = 3) AS r3,
           (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
-            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.direction = 'owner_to_sitter' AND r.published_at <= now()
             AND r.hidden_at IS NULL AND r.rating = 2) AS r2,
           (SELECT count(*)::int FROM reviews r WHERE r.subject_id = ${userId}
-            AND r.direction = 'owner_to_sitter' AND r.published_at IS NOT NULL
+            AND r.direction = 'owner_to_sitter' AND r.published_at <= now()
             AND r.hidden_at IS NULL AND r.rating = 1) AS r1
       `),
       db.execute(sql`
@@ -500,7 +529,7 @@ export async function listFeaturedReviews(
         ON pet.id = NULLIF(bk.pet_ids->>0, '')::uuid
        AND pet.deleted_at IS NULL
       WHERE r.direction = 'owner_to_sitter'
-        AND r.published_at IS NOT NULL
+        AND r.published_at <= now()
         -- Moderasyonda gizlenen yorum HICBIR genel listede gorunmez
         AND r.hidden_at IS NULL
         AND r.rating = 5
