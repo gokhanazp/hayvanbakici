@@ -3352,6 +3352,19 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 /* Yazisma gorunumunde arama kutusu yok: uc satir kaliyor. */
 .chat-panel:has(.chat-composer) { grid-template-rows: auto 1fr auto; }
 
+/*
+  ILK SORU EKRANI KISA DURUYOR.
+
+  Profildeki "Soru sor" dugmesi paneli aciyor ve panel sabit yukseklikte
+  oldugu icin iki satirlik bir aciklamanin altinda yarim ekran bos
+  beyaz kaliyordu — ustelik o bosluk sagdaki rezervasyon kartinin
+  fiyatini ve "Rezervasyon iste" dugmesini ortuyordu. Kullanici soruyu
+  yazarken fiyati gormeye devam edebilmeli. Icerik kadar yer kapliyor;
+  yazisma acilinca panel normal yuksekligine donuyor.
+*/
+.chat-panel[data-view='ask'] { height: auto; }
+.chat-panel[data-view='ask'] .chat-scroll { overflow: visible; }
+
 .chat-panel-head {
   display: flex; align-items: center; gap: var(--space-2);
   padding: var(--space-3) var(--space-3);

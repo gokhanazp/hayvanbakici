@@ -21,6 +21,7 @@ import { RatingBreakdown } from '@/components/RatingBreakdown';
 import { ServiceIcon } from '@/components/ServiceIcon';
 import { HomeIcon, DogSilhouette, VetIcon, type HomeIconName } from '@/components/HomeIcon';
 import { NoIcon } from '@/components/InfoIcons';
+import { AskInChat } from '@/components/chat/AskInChat';
 import { getCalendar, getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
@@ -155,6 +156,18 @@ export default async function SitterPage({
     `/${seg}/${citySlug}/sitter/${sitter.slug}/book/`
     + (svc ? `?service=${serviceSlug(svc, locale)}` : '');
   const askUrl = `/${seg}/${citySlug}/sitter/${sitter.slug}/ask/`;
+  /*
+    SAYFA STATIK KALIYOR. Bu nesne oturumla ilgili hicbir sey
+    icermiyor — yalnizca zaten ekranda olan genel profil bilgisi.
+    Kimin giris yaptigina paneldeki istemci bileseni bakiyor; sunucuda
+    oturum okumak bu sayfayi dinamik yapar ve ISR biterdi.
+  */
+  const askDetail = {
+    sitterId: sitter.userId,
+    firstName: sitter.firstName,
+    initials: sitter.photoInitials,
+    avatarUrl: sitter.avatarUrl,
+  };
 
   /*
     KABUL EDILEN BOYUT — HIZMETLERIN BIRLESIMI.
@@ -645,7 +658,9 @@ export default async function SitterPage({
               </h2>
               <p className="own-words-body">{sitter.ownerPrefsText}</p>
               <p className="text-body-sm">{m.sitter.ownerPrefsLead}</p>
-              <Link href={askUrl} className="btn btn-ink btn-sm">{m.sitter.messageCta}</Link>
+              <AskInChat href={askUrl} className="btn btn-ink btn-sm" detail={askDetail}>
+                {m.sitter.messageCta}
+              </AskInChat>
             </section>
           )}
 
@@ -764,9 +779,9 @@ export default async function SitterPage({
               artiran ana akis: bakiciyi tanimadan uc gecelik bir
               konaklama ayirtmak cogu insan icin buyuk bir adim.
             */}
-            <Link href={askUrl} className="btn btn-secondary btn-block">
+            <AskInChat href={askUrl} className="btn btn-secondary btn-block" detail={askDetail}>
               {m.sitter.messageCta}
-            </Link>
+            </AskInChat>
 
             <ul className="sitter-facts" style={{ marginTop: 'var(--space-2)' }}>
               <Fact>{interpolate(m.sitter.openDays, { count: sitter.openDays })}</Fact>

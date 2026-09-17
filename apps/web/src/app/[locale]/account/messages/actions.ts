@@ -59,7 +59,7 @@ export async function sendMessageAction(
  */
 export async function askSitterAction(
   _prev: MessageState, form: FormData,
-): Promise<MessageState & { redirectTo?: string }> {
+): Promise<MessageState & { redirectTo?: string; conversationId?: string }> {
   const session = await getSession();
   if (!session) return { error: 'not_allowed' };
 
@@ -82,7 +82,18 @@ export async function askSitterAction(
 
   const seg = segmentFor(locale);
   revalidatePath(`/${seg}/account/messages/`);
-  return { redirectTo: `/${seg}/account/messages/${conv.value}/` };
+  /*
+    IKI CIKTI, IKI CAGIRAN.
+
+    `redirectTo` — /ask/ sayfasi icin: form gonderildikten sonra
+    kullanici gelen kutusundaki yazismaya gidiyor.
+
+    `conversationId` — sag alttaki sohbet paneli icin: panel hicbir yere
+    gitmeden dogrudan o yazismaya geciyor. Adresi paneldeki koddan
+    kurmak, yonlendirme bicimini iki yere kopyalamak olurdu; kimligi
+    donduruyoruz, adresi degil.
+  */
+  return { redirectTo: `/${seg}/account/messages/${conv.value}/`, conversationId: conv.value };
 }
 
 export type ReportState = { error?: string | undefined; done?: boolean | undefined };

@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { authClient } from '@havre/auth/client';
-import { getMessages, segmentFor, type Locale } from '@havre/i18n';
+import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
 import { Avatar } from '@/components/Avatar';
 import { chatStamp } from '@/lib/format';
-import { sendMessageAction } from '@/app/[locale]/account/messages/actions';
+import { askSitterAction, sendMessageAction } from '@/app/[locale]/account/messages/actions';
+import { ASK_EVENT, type AskDetail } from '@/components/chat/AskInChat';
 import type { ConversationRow } from '@/components/ConversationList';
 
 /**
@@ -80,6 +81,10 @@ export function ChatDock({ locale }: { locale: Locale }) {
   const [query, setQuery] = useState('');
   const [sending, setSending] = useState(false);
   const [body, setBody] = useState('');
+  /* Yazisma HENUZ YOK: profilden gelen ilk soru. Konusma ancak mesaj
+     gonderilince aciliyor (bos konusma kaydi birakmiyoruz). */
+  const [ask, setAsk] = useState<AskDetail | null>(null);
+  const [askError, setAskError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastSeen = useRef<string | null>(null);
@@ -223,14 +228,82 @@ export function ChatDock({ locale }: { locale: Locale }) {
     }
   }, [convId, body, sending, seg, loadThread, loadList]);
 
+  const submitAsk = useCallback(async () => {
+    if (!ask || body.trim().length === 0 || sending) return;
+    setSending(true);
+    setAskError(null);
+    const form = new FormData();
+    form.set('sitterId', ask.sitterId);
+    form.set('body', body);
+    /* Eylem TAM yerel kodu bekliyor ('en-CA'), segmenti degil. */
+    form.set('locale', locale);
+    try {
+      const res = await askSitterAction({}, form);
+      if (res.error) { setAskError(res.error); return; }
+      setBody('');
+      setAsk(null);
+      /* Sunucu konusma kimligini donduruyor: panel hicbir yere gitmeden
+         dogrudan yeni yazismaya geciyor. */
+      if (res.conversationId) pickConversation(res.conversationId);
+      void loadList();
+    } finally {
+      setSending(false);
+    }
+  }, [ask, body, sending, locale, pickConversation, loadList]);
+
+  /*
+    PROFILDEKI "SORU SOR" DUGMESINI DINLE.
+
+    Dinleyici, bilesen ekrana HIC cizilmese de kuruluyor (kancalar
+    erken donusten once calisiyor) — ama isi yalnizca panel gercekten
+    calisabilecek durumdaysa ustleniyor. Ustlenmezse `preventDefault`
+    cagrilmiyor ve baglanti eski /ask/ sayfasina gidiyor: giris
+    yapmamis ziyaretci oradan giris ekranina, kendi profiline bakan
+    bakici da oradan profiline donuyor.
+  */
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      const detail = (e as CustomEvent<AskDetail>).detail;
+      if (!session || hidden) return;
+      if (session.user.id === detail.sitterId) return;
+      e.preventDefault();
+      setAsk(detail);
+      setAskError(null);
+      setBody('');
+      pickConversation(null);
+      toggleOpen(true);
+    };
+    window.addEventListener(ASK_EVENT, onAsk);
+    return () => window.removeEventListener(ASK_EVENT, onAsk);
+  }, [session, hidden, pickConversation, toggleOpen]);
+
+  const askErrorText = askError
+    ? (m.messages[`error.${askError}` as keyof typeof m.messages] as string | undefined)
+    : undefined;
+
   if (!session || hidden) return null;
 
   return (
     <div className="chat-dock" data-open={open ? 'true' : 'false'}>
       {open && (
-        <section className="chat-panel" aria-label={m.messages.dockTitle}>
+        <section className="chat-panel" data-view={ask ? 'ask' : thread ? 'thread' : 'list'}
+                 aria-label={m.messages.dockTitle}>
           <header className="chat-panel-head">
-            {thread ? (
+            {ask ? (
+              <>
+                <button type="button" className="chat-icon-btn" aria-label={m.messages.dockBack}
+                        onClick={() => { setAsk(null); setAskError(null); }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+                <Avatar src={ask.avatarUrl} size={28} initials={ask.initials} />
+                <span className="chat-title">
+                  {interpolate(m.messages.askTitle, { name: ask.firstName })}
+                </span>
+              </>
+            ) : thread ? (
               <>
                 <button type="button" className="chat-icon-btn" aria-label={m.messages.dockBack}
                         onClick={() => pickConversation(null)}>
@@ -259,7 +332,35 @@ export function ChatDock({ locale }: { locale: Locale }) {
             </button>
           </header>
 
-          {thread ? (
+          {ask ? (
+            <>
+              <div className="chat-scroll">
+                {askErrorText && <p className="alert alert-error" role="alert">{askErrorText}</p>}
+                <p className="field-hint">{m.messages.askLead}</p>
+              </div>
+              <form
+                className="chat-composer"
+                onSubmit={(e) => { e.preventDefault(); void submitAsk(); }}
+              >
+                <textarea
+                  value={body} onChange={(e) => setBody(e.target.value)}
+                  placeholder={m.messages.askPlaceholder} rows={1} maxLength={2000}
+                  aria-label={m.messages.askPlaceholder}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      void submitAsk();
+                    }
+                  }}
+                />
+                <button type="submit" className="btn btn-primary"
+                        disabled={sending || body.trim().length === 0}>
+                  {sending ? m.messages.sending : m.messages.send}
+                </button>
+              </form>
+            </>
+          ) : thread ? (
             <>
               <div className="chat-scroll" ref={scrollRef}>
                 {thread.counterpartSuspended && (
