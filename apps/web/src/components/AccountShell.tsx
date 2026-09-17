@@ -14,7 +14,7 @@ export function AccountShell({
   locale: Locale;
   title: string;
   lead?: string | undefined;
-  active: 'overview' | 'profile' | 'pets' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar' | 'prices';
+  active: 'overview' | 'profile' | 'pets' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar' | 'prices' | 'reviews';
   isSitter: boolean;
   /**
    * Bakici kaydinin durumu — ROZET icin. `isSitter` yalnizca "kayit var mi"
@@ -51,6 +51,16 @@ export function AccountShell({
        rezervasyon ise ondan sonra gelen bir is. */
     { key: 'pets' as const, href: `/${seg}/account/pets/`, label: m.pets.tab },
     { key: 'bookings' as const, href: `/${seg}/account/bookings/`, label: m.account.myBookings },
+    /*
+      YORUMLAR KENDI SEKMESINDE.
+
+      Yoruma yanit verme yolu VARDI ama yalnizca ilgili rezervasyonun
+      detay sayfasindaydi: yanit vermek icin once yorumun HANGI
+      rezervasyondan geldigini bilmek gerekiyordu ve hicbir ekran
+      "hakkinizda yeni bir yorum var" demiyordu. Sekme iki rol icin de
+      var — yorum iki yonlu.
+    */
+    { key: 'reviews' as const, href: `/${seg}/account/reviews/`, label: m.review.nav },
     /*
       FAVORILER /account ALTINDA DEGIL (giris yapmamis ziyaretci de
       goruyor) ama hesabin bir parcasi gibi davraniyor: sekme burada,

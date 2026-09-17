@@ -11,7 +11,7 @@ import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { BookingCard } from '@/components/BookingCard';
 import {
-  listSitterBookings, getSitterDashboard, isAdmin,
+  listSitterBookings, getSitterDashboard, isAdmin, countReviewsAwaitingReply,
   type SitterDashboard, type BookingSummary,
 } from '@/lib/data';
 import { money } from '@/lib/format';
@@ -181,9 +181,11 @@ function StrengthCard({
 }
 
 function NextStepsCard({
-  locale, seg, dash,
+  locale, seg, dash, awaitingReplies,
 }: {
   locale: Locale; seg: string; dash: SitterDashboard;
+  /** Hakkinda yazilmis ve henuz yanitlanmamis yorum sayisi. */
+  awaitingReplies: number;
 }) {
   const m = getMessages(locale);
   const key = (k: string) => m.account[k as keyof Messages['account']] as string;
@@ -211,6 +213,23 @@ function NextStepsCard({
     items.push({
       id: 'calendar', text: key('next.calendar'), cta: key('next.calendarCta'),
       href: `/${seg}/account/sitter/calendar/`,
+    });
+  }
+  /*
+    YANIT BEKLEYEN YORUM.
+
+    Yanit verme yolu vardi ama yalnizca ilgili rezervasyonun detay
+    sayfasindaydi ve hicbir ekran "hakkinizda yeni bir yorum var"
+    demiyordu. Panonun isi tam olarak bunu soylemek.
+  */
+  if (awaitingReplies > 0) {
+    items.push({
+      id: 'reviews',
+      text: awaitingReplies === 1
+        ? m.review.awaitingOne
+        : interpolate(m.review.awaitingMany, { count: awaitingReplies }),
+      cta: m.review.nav,
+      href: `/${seg}/account/reviews/`,
     });
   }
   if (dash.servicesWithoutExtraPet > 0) {
@@ -284,8 +303,9 @@ export default async function SitterDashboardPage({
   const session = await getSession();
   if (!session) redirect(`/${seg}/account/sign-in/?next=/${seg}/account/sitter/`);
 
-  const [dash, admin] = await Promise.all([
+  const [dash, admin, awaitingReplies] = await Promise.all([
     getSitterDashboard(session.user.id), isAdmin(session.user.id),
+    countReviewsAwaitingReply(session.user.id),
   ]);
   // Bakici olmayan biri bu adrese gelirse basvuru sayfasina gonderilir:
   // bos bir "gelen talep yok" ekrani, ne yapmasi gerektigini soylemiyor.
@@ -325,7 +345,7 @@ export default async function SitterDashboardPage({
         <StatusCard locale={locale} seg={segment} dash={dash} />
         <MoneyCard locale={locale} dash={dash} />
         <StrengthCard locale={locale} seg={segment} dash={dash} />
-        <NextStepsCard locale={locale} seg={segment} dash={dash} />
+        <NextStepsCard locale={locale} seg={segment} dash={dash} awaitingReplies={awaitingReplies} />
       </div>
 
       {/*

@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
-  MAX_REVIEW, MAX_REVIEW_RESPONSE, canWriteReview, reviewPublishAt,
+  MAX_REVIEW, MAX_REVIEW_RESPONSE, REVIEW_WINDOW_DAYS, canWriteReview, reviewPublishAt,
   type ReviewBlock, type ReviewDirection,
 } from '@havre/core';
 import { withDbErrors, type Database } from '../client.js';
@@ -240,4 +240,203 @@ async function recomputeSubjectRating(db: Database, subjectId: string): Promise<
     ) agg
     WHERE st.user_id = ${subjectId}
   `);
+}
+
+/* ------------------------------------------------- hesaptaki yorum listesi */
+
+/**
+ * BIR KISININ YORUM SAYFASI.
+ *
+ * Yanit verme yolu VARDI ama BULUNAMIYORDU: dugme yalnizca ilgili
+ * rezervasyonun detay sayfasinda, yorum panelinin icinde ciziliyordu.
+ * Yani yanit vermek icin once yorumun HANGI rezervasyondan geldigini
+ * bilip o sayfayi acmak gerekiyordu ve hicbir ekran "hakkinizda yeni
+ * bir yorum var" demiyordu. Bir hak, kullanilabilir oldugu kadar hak.
+ *
+ * Uc kova birden donuyor cunku ucu de ayni soruya cevap: "yorumlarim ne
+ * durumda".
+ */
+export interface ReviewAbout {
+  reviewId: string;
+  bookingId: string;
+  rating: number;
+  body: string | null;
+  publishedAt: string;
+  serviceType: string;
+  /** Yazan kisi — ad ve bas harf, herkese acik profildeki gibi. */
+  authorFirstName: string | null;
+  authorInitial: string | null;
+  authorAvatarUrl: string | null;
+  responseBody: string | null;
+  responseAt: string | null;
+}
+
+export interface ReviewMine {
+  reviewId: string;
+  bookingId: string;
+  rating: number;
+  body: string | null;
+  /** Yayin ani — GELECEKTE olabilir (karsilikli korleme). */
+  publishAt: string | null;
+  published: boolean;
+  serviceType: string;
+  subjectFirstName: string | null;
+  subjectInitial: string | null;
+  /** Karsi taraf da yazdi mi — "ikinizi de bekliyor" demek icin. */
+  counterpartWrote: boolean;
+}
+
+/** Henuz yazilabilecek ama yazilmamis yorumlar — sayfanin ust satiri. */
+export interface ReviewTodo {
+  bookingId: string;
+  serviceType: string;
+  endAt: string;
+  windowClosesAt: string;
+  counterpartFirstName: string | null;
+  counterpartInitial: string | null;
+}
+
+export interface ReviewInbox {
+  about: ReviewAbout[];
+  mine: ReviewMine[];
+  todo: ReviewTodo[];
+  /** Yanit bekleyen yorum sayisi — panoda rozet olarak kullaniliyor. */
+  awaitingResponse: number;
+}
+
+export async function getReviewInbox(db: Database, userId: string): Promise<ReviewInbox> {
+  return withDbErrors(async () => {
+    /* HAKKIMDA yazilanlar: yalnizca YAYINDA olanlar. Yayinlanmamis bir
+       yorumu konusuna gostermek, karsilikli korlemeyi delerdi. */
+    const aboutRows = await db.execute(sql`
+      SELECT r.id::text AS review_id, r.booking_id::text, r.rating, r.body,
+             r.published_at, r.response_body, r.response_at,
+             b.service_type::text AS service_type,
+             p.first_name, p.last_name_initial, p.avatar_url
+      FROM reviews r
+      JOIN bookings b ON b.id = r.booking_id
+      LEFT JOIN profiles p ON p.user_id = r.author_id
+      WHERE r.subject_id = ${userId}
+        AND r.published_at <= now()
+        AND r.hidden_at IS NULL
+      ORDER BY r.published_at DESC
+      LIMIT 100
+    `) as unknown as Array<Record<string, unknown>>;
+
+    /* BENIM yazdiklarim: yayinlanmamis olanlar da burada, cunku bu
+       kisi onlarin YAZARI — kendi yazdigini gormesi korlemeyi delmez. */
+    const mineRows = await db.execute(sql`
+      SELECT r.id::text AS review_id, r.booking_id::text, r.rating, r.body,
+             r.published_at, (r.published_at <= now()) AS published,
+             b.service_type::text AS service_type,
+             p.first_name, p.last_name_initial,
+             EXISTS (
+               SELECT 1 FROM reviews o
+               WHERE o.booking_id = r.booking_id AND o.id <> r.id
+             ) AS counterpart_wrote
+      FROM reviews r
+      JOIN bookings b ON b.id = r.booking_id
+      LEFT JOIN profiles p ON p.user_id = r.subject_id
+      WHERE r.author_id = ${userId}
+      ORDER BY r.published_at DESC
+      LIMIT 100
+    `) as unknown as Array<Record<string, unknown>>;
+
+    /*
+      YAZILABILIR AMA YAZILMAMIS olanlar.
+
+      Kurallar `@havre/core/reviews.ts` icinde ve test ediliyor; burada
+      ayni kosullar SQL'e cevriliyor: tamamlanmis rezervasyon, pencere
+      hala acik, bu taraftan henuz yorum yok. Ikisi ayrildiginda sessizce
+      birbirinden sapabilir — bu yuzden sabitler tek yerden geliyor
+      (REVIEW_WINDOW_DAYS asagida interval olarak veriliyor).
+    */
+    const todoRows = await db.execute(sql`
+      SELECT b.id::text AS booking_id, b.service_type::text AS service_type, b.end_at,
+             (b.end_at + ${`${REVIEW_WINDOW_DAYS} days`}::interval) AS closes_at,
+             p.first_name, p.last_name_initial
+      FROM bookings b
+      LEFT JOIN profiles p
+        ON p.user_id = CASE WHEN b.owner_id = ${userId} THEN b.sitter_id ELSE b.owner_id END
+      WHERE (b.owner_id = ${userId} OR b.sitter_id = ${userId})
+        AND b.status IN ('completed', 'payout_released')
+        AND b.end_at + ${`${REVIEW_WINDOW_DAYS} days`}::interval > now()
+        AND NOT EXISTS (
+          SELECT 1 FROM reviews r
+          WHERE r.booking_id = b.id
+            -- direction bir enum DEGIL, text sutunu. Ilk halinde
+            -- ::review_direction diye cast ettim ve sorgu "type
+            -- review_direction does not exist" ile patladi. Sonra bu
+            -- yorumda ters tirnak kullandim ve SABLON DIZESI orada
+            -- kapandi ("direction is not defined") -- ayni tuzaga iki
+            -- kez dustum. SQL yorumunda ters tirnak YOK.
+            AND r.direction = CASE WHEN b.owner_id = ${userId}
+                                   THEN 'owner_to_sitter'
+                                   ELSE 'sitter_to_owner' END
+        )
+      ORDER BY b.end_at DESC
+      LIMIT 50
+    `) as unknown as Array<Record<string, unknown>>;
+
+    const about: ReviewAbout[] = aboutRows.map((r) => ({
+      reviewId: String(r.review_id),
+      bookingId: String(r.booking_id),
+      rating: Number(r.rating),
+      body: (r.body as string | null) ?? null,
+      publishedAt: new Date(r.published_at as Date).toISOString(),
+      serviceType: String(r.service_type),
+      authorFirstName: (r.first_name as string | null) ?? null,
+      authorInitial: (r.last_name_initial as string | null) ?? null,
+      authorAvatarUrl: (r.avatar_url as string | null) ?? null,
+      responseBody: (r.response_body as string | null) ?? null,
+      responseAt: r.response_at ? new Date(r.response_at as Date).toISOString() : null,
+    }));
+
+    return {
+      about,
+      mine: mineRows.map((r) => ({
+        reviewId: String(r.review_id),
+        bookingId: String(r.booking_id),
+        rating: Number(r.rating),
+        body: (r.body as string | null) ?? null,
+        publishAt: r.published_at ? new Date(r.published_at as Date).toISOString() : null,
+        published: Boolean(r.published),
+        serviceType: String(r.service_type),
+        subjectFirstName: (r.first_name as string | null) ?? null,
+        subjectInitial: (r.last_name_initial as string | null) ?? null,
+        counterpartWrote: Boolean(r.counterpart_wrote),
+      })),
+      todo: todoRows.map((r) => ({
+        bookingId: String(r.booking_id),
+        serviceType: String(r.service_type),
+        endAt: new Date(r.end_at as Date).toISOString(),
+        windowClosesAt: new Date(r.closes_at as Date).toISOString(),
+        counterpartFirstName: (r.first_name as string | null) ?? null,
+        counterpartInitial: (r.last_name_initial as string | null) ?? null,
+      })),
+      awaitingResponse: about.filter((a) => a.responseBody === null).length,
+    };
+  });
+}
+
+/**
+ * YANIT BEKLEYEN YORUM SAYISI — panodaki "siradaki is" satiri icin.
+ *
+ * getReviewInbox de bu sayiyi donduruyor ama o uc liste birden cekiyor;
+ * pano yalnizca RAKAMI istiyor ve her acilista yuz satir okumak icin bir
+ * sebep yok.
+ */
+export async function countReviewsAwaitingReply(
+  db: Database, userId: string,
+): Promise<number> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT count(*)::int AS n FROM reviews
+      WHERE subject_id = ${userId}
+        AND published_at <= now()
+        AND hidden_at IS NULL
+        AND response_body IS NULL
+    `) as unknown as Array<{ n: number }>;
+    return Number(rows[0]?.n ?? 0);
+  });
 }

@@ -472,6 +472,33 @@ export const enCA = {
     'error.empty': 'Write something first.',
     'error.too_long': 'That is too long.',
     'error.bad_rating': 'Pick a rating from one to five.',
+
+    /*
+      YORUM SAYFASI.
+
+      Yanit verme yolu VARDI ama BULUNAMIYORDU: dugme yalnizca ilgili
+      rezervasyonun detay sayfasinda, yorum panelinin icindeydi. Yani
+      once yorumun HANGI rezervasyondan geldigini bilip o sayfayi acmak
+      gerekiyordu, ve hicbir ekran "hakkinizda yeni bir yorum var"
+      demiyordu. Bir hak, kullanilabilir oldugu kadar hak.
+    */
+    nav: 'Reviews',
+    pageTitle: 'Reviews',
+    pageLead: 'What people wrote about you, what you wrote about them, and what is still open to write.',
+    aboutHeading: 'About you',
+    aboutNone: 'Nobody has reviewed you yet.',
+    mineHeading: 'What you wrote',
+    mineNone: 'You have not written a review yet.',
+    todoHeading: 'Still open to write',
+    todoNone: 'Nothing to write right now.',
+    todoLine: 'For {name} · {service}',
+    todoCloses: 'Open until {date}',
+    todoCta: 'Write it',
+    openBooking: 'Open the booking',
+    awaitingOne: '1 review is waiting for your reply.',
+    awaitingMany: '{count} reviews are waiting for your reply.',
+    repliedOn: 'You replied {date}.',
+    forService: 'For {service}',
   },
   calendar: {
     title: 'Your calendar',

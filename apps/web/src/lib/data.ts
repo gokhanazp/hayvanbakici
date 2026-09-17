@@ -41,6 +41,8 @@ import {
   getOnboardingState as dbGetOnboardingState, servicePriceRanges as dbServicePriceRanges,
   updateSitterPricing as dbUpdateSitterPricing,
   getReviewContext as dbGetReviewContext, submitReview as dbSubmitReview,
+  getReviewInbox as dbGetReviewInbox, countReviewsAwaitingReply as dbCountReviewsAwaitingReply,
+  type ReviewAbout,
   respondToReview as dbRespondToReview, type ReviewContext,
   listOwnerPets as dbListOwnerPets, getOwnerPet as dbGetOwnerPet,
   createOwnerPet as dbCreateOwnerPet, updateOwnerPet as dbUpdateOwnerPet,
@@ -302,7 +304,15 @@ export const submitReview = (input: Parameters<typeof dbSubmitReview>[1]) =>
   dbSubmitReview(db(), input);
 export const respondToReview = (input: Parameters<typeof dbRespondToReview>[1]) =>
   dbRespondToReview(db(), input);
-export type { ReviewContext };
+/**
+ * Hesaptaki yorum sayfasinin uc kovasi: hakkimda yazilanlar, benim
+ * yazdiklarim, hala yazilabilecekler.
+ */
+export const getReviewInbox = (userId: string) => dbGetReviewInbox(db(), userId);
+/** Yalnizca rakam — pano uc listeyi cekmesin diye ayri. */
+export const countReviewsAwaitingReply = (userId: string) =>
+  dbCountReviewsAwaitingReply(db(), userId);
+export type { ReviewContext, ReviewAbout };
 
 /** Eski profil adresi -> bugunku adres (bakici adini degistirdiginde). */
 export const currentSlugFor = cache(

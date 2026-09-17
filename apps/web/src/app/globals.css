@@ -4436,3 +4436,8 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   background: var(--color-surface-sunken);
   font-size: 0.8125rem; font-weight: 600;
 }
+
+/* ---------- Hesaptaki yorum sayfasi ----------
+   Uc bolum (yazilacaklar / hakkimda / yazdiklarim) arasinda net bosluk;
+   basliklar pano kuyruklariyla ayni bicimde (.queue-head). */
+.review-inbox { display: grid; gap: var(--space-8); }
