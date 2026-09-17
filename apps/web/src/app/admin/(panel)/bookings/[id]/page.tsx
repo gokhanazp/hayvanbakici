@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { requireAdmin, auditView, money, day, stamp } from '@/lib/admin';
+import { requireAdmin, auditView, isUuid, money, day, stamp } from '@/lib/admin';
 import { getBookingAdmin, listNotes } from '@/lib/data';
 import { Page, Card, Badge, Empty, ShortId } from '@/components/admin/ui';
 import { ReasonAction } from '@/components/admin/ReasonAction';
@@ -35,6 +35,8 @@ export default async function AdminBookingDetail({
 }) {
   const session = await requireAdmin();
   const { id } = await params;
+  /* Bozuk bicimli kimlik 500 degil 404 — bkz. lib/admin.ts */
+  if (!isUuid(id)) notFound();
 
   const b = await getBookingAdmin(id);
   if (!b) notFound();
@@ -92,6 +94,17 @@ export default async function AdminBookingDetail({
             ekibi de "toplam neden bu" sorusuna bakmadan cevap verememeli.
           */}
           <Card title="What was quoted" hint="Frozen at request time — later price changes do not move it">
+            {/*
+              SARMALAYICI ZORUNLU — DUZELTILEN HATA.
+
+              Paneldeki tek sarmalayicisiz tablo buydu. Dar ekranda
+              tablonun en kucuk genisligi izgara sutununu disari itiyor ve
+              SAYFANIN TAMAMI yatay kayiyordu (390px'de belge 405px).
+              `.a-tablewrap` tasmayi tablonun kendi icine hapsediyor:
+              gerekiyorsa tablo kendi icinde kayiyor, sayfa yerinde
+              kaliyor. `tabindex` klavyeyle de kaydirilabilsin diye.
+            */}
+            <div className="a-tablewrap" tabIndex={0}>
             <table className="a-table" style={{ border: 0 }}>
               <tbody>
                 <tr>
@@ -123,6 +136,7 @@ export default async function AdminBookingDetail({
                 </tr>
               </tbody>
             </table>
+            </div>
           </Card>
 
           <Card title="Timeline" hint="Every status change, with who made it">

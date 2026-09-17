@@ -70,7 +70,7 @@ export interface AuditRow {
  *   varsayilan liste degil, ayri bir gorunum olarak sunuluyor.
  */
 export async function listAudit(
-  db: Database, limit = 100, kind: 'all' | 'decisions' = 'all',
+  db: Database, limit = 100, kind: 'all' | 'decisions' = 'all', offset = 0,
 ): Promise<AuditRow[]> {
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
@@ -82,7 +82,7 @@ export async function listAudit(
       LEFT JOIN profiles p ON p.user_id = a.actor_id
       ${kind === 'decisions' ? sql`WHERE a.action <> 'admin.view'` : sql``}
       ORDER BY a.created_at DESC
-      LIMIT ${limit}
+      LIMIT ${limit} OFFSET ${offset}
     `);
     return (rows as unknown as Array<Record<string, unknown>>).map((r) => ({
       id: String(r.id),
@@ -93,6 +93,28 @@ export async function listAudit(
       reason: (r.reason as string | null) ?? null,
       at: new Date(r.created_at as Date).toISOString(),
     }));
+  });
+}
+
+/**
+ * DENETIM KAYDINDA KAC SATIR VAR.
+ *
+ * NEDEN GEREKTI: sayfa en yeni 250 satiri gosteriyordu ve kesildigini
+ * soylemiyordu. Kayit buyudukce eski satirlara ULASILAMAZ hale geliyordu
+ * — nitekim ozel bir mesajin acildigini gosteren bes kayit (panelin
+ * verdigi en hassas yetki) kesme noktasinin gerisinde kalmisti. Tutmak
+ * icin var oldugu kaydi kaybeden bir denetim kaydi, denetim kaydi
+ * degildir.
+ */
+export async function countAudit(
+  db: Database, kind: 'all' | 'decisions' = 'all',
+): Promise<number> {
+  return withDbErrors(async () => {
+    const rows = await db.execute<{ n: number }>(sql`
+      SELECT count(*)::int AS n FROM audit_log
+      ${kind === 'decisions' ? sql`WHERE action <> 'admin.view'` : sql``}
+    `) as unknown as Array<{ n: number }>;
+    return rows[0]?.n ?? 0;
   });
 }
 

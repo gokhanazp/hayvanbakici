@@ -247,16 +247,26 @@
 .a-card h2 { font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.012em; }
 
 .a-grid { display: grid; gap: var(--space-4); }
-.a-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.a-grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+/*
+  minmax(min(Npx, 100%), 1fr) — DUZ minmax(Npx, 1fr) DEGIL.
+
+  DUZELTILEN HATA: rezervasyon detayi 390px'de yatay kayiyordu (belge
+  405px). Sucu once tablodaydi sanildi; degildi. `minmax(360px, 1fr)`
+  ekran o kadar genis OLMASA da sutunu 360px'e zorluyor — 390px'lik bir
+  telefonda kenar bosluklarindan sonra 358px kaliyor ve sutun disari
+  tasiyor. `min(360px, 100%)` alt siniri kapsayicinin genisligiyle
+  siniliyor: genis ekranda eskisi gibi, dar ekranda tasmiyor.
+*/
+.a-grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+.a-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
 /* 150px: telefonda IKI sutun sigsin. 186px'te tek sutuna dusuyordu ve
    sekiz sayi icin sekiz ekran boyu kaydirmak gerekiyordu. */
-.a-grid-4 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.a-grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); }
 /* Genis ekranda tam DORT sutun: auto-fit besinci bir kutu sigdirip
    ikinci sirada iki bos hucre birakiyordu. */
 @media (min-width: 1180px) { .a-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 /* Icinde form olan kartlar: dar sutun formu okunmaz yapiyor */
-.a-grid-cards { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+.a-grid-cards { grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); }
 .a-split { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 1120px) { .a-split { grid-template-columns: minmax(0, 1fr) 340px; } }
 
@@ -348,6 +358,13 @@
   transition: border-color var(--duration-micro) var(--easing-standard);
 }
 .a-chip:hover { border-color: var(--color-primary); color: var(--color-ink); text-decoration: none; }
+
+/* Sayfalama satiri: solda kacinci araliktayiz, sagda ileri/geri. */
+.a-pager {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin-top: var(--space-4);
+}
+.a-pager-links { display: flex; gap: var(--space-2); }
 .a-chip.is-on {
   background: var(--color-primary); border-color: var(--color-primary);
   color: var(--color-primary-on); font-weight: 600;
@@ -451,12 +468,24 @@
 
 /* ------------------------------------------------------------ liste */
 
-.a-def { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-4); }
+/*
+  IZGARA COCUKLARI SUTUNU GENISLETEMESIN.
+
+  Izgara ogesinin varsayilan `min-width` degeri `auto`, yani ICERIGININ
+  en kucuk genisligi. Kartin icinde bolunemeyen uzun bir deger varsa
+  (bir tarih-saat damgasi, bir kimlik) kart kendi sutununu disari
+  itiyor ve SAYFANIN TAMAMI yatay kayiyor — rezervasyon detayinda
+  390px'de belge 405px oluyordu. `min-width: 0` bu zinciri kesiyor;
+  tasan sey artik kendi kutusunun icinde kaliyor.
+*/
+.a-grid > *, .a-split > * { min-width: 0; }
+
+.a-def { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: var(--space-4); }
 .a-def dt {
   font-size: 0.6875rem; font-weight: 600; letter-spacing: .06em;
   text-transform: uppercase; color: var(--color-ink-muted);
 }
-.a-def dd { font-weight: 600; margin-top: var(--space-1); }
+.a-def dd { font-weight: 600; margin-top: var(--space-1); overflow-wrap: anywhere; }
 
 .a-timeline { display: grid; gap: var(--space-3); font-size: 0.8125rem; }
 .a-timeline li { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: var(--space-3); }

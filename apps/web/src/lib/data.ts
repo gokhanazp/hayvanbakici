@@ -17,7 +17,7 @@ import {
   respondToRequest as dbRespond, cancelBooking as dbCancel, isSitter as dbIsSitter,
   isAdmin as dbIsAdmin, getOverview as dbGetOverview, listApplications as dbListApplications,
   getApplication as dbGetApplication, decideApplication as dbDecideApplication,
-  listAudit as dbListAudit, listAllBookings as dbListAllBookings, recordAudit as dbRecordAudit,
+  listAudit as dbListAudit, countAudit as dbCountAudit, listAllBookings as dbListAllBookings, recordAudit as dbRecordAudit,
   getCounts as dbGetCounts,
   listUsers as dbListUsers, getUser as dbGetUser, setSuspension as dbSetSuspension,
   setRole as dbSetRole, listNotes as dbListNotes, addNote as dbAddNote,
@@ -191,8 +191,9 @@ export const listApplications = (filter?: 'pending' | 'all') => dbListApplicatio
 export const getApplication = (userId: string) => dbGetApplication(db(), userId);
 export const decideApplication = (input: Parameters<typeof dbDecideApplication>[1]) =>
   dbDecideApplication(db(), input);
-export const listAudit = (limit?: number, kind?: 'all' | 'decisions') =>
-  dbListAudit(db(), limit, kind);
+export const listAudit = (limit?: number, kind?: 'all' | 'decisions', offset?: number) =>
+  dbListAudit(db(), limit, kind, offset);
+export const countAudit = (kind?: 'all' | 'decisions') => dbCountAudit(db(), kind);
 export const listAllBookings = (status?: string) => dbListAllBookings(db(), status);
 export const recordAudit = (entry: AuditEntry) => dbRecordAudit(db(), entry);
 export const getAdminCounts = () => dbGetCounts(db());

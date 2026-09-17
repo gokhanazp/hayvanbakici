@@ -3,6 +3,26 @@ export const enCA = {
     name: 'Havre',
     tagline: 'Pet care from here. More for sitters, better for you.',
   },
+  oops: {
+    /*
+      404 VE HATA SAYFALARI — ONCEDEN HIC YOKTU.
+
+      Uygulamada `not-found.tsx` ya da `error.tsx` yoktu; Next'in ciplak
+      varsayilani ciziliyordu: baslik yok, gezinme yok, alt bilgi yok ve
+      /fr/ altindaki bir 404 bile INGILIZCE "This page could not be
+      found." diyordu. Yani hatanin oldugu anda marka tamamen kayboluyor
+      ve Fransizca konusana kendi dilinde tek kelime kalmiyordu.
+    */
+    notFoundTitle: 'That page is not here',
+    notFoundBody: 'The link may be old, or we may have moved the page. Nothing is broken on your side.',
+    notFoundSitters: 'Find a sitter',
+    notFoundHome: 'Go to the home page',
+    errorTitle: 'Something went wrong on our side',
+    errorBody: 'This is our fault, not yours. Try again; if it keeps happening, the page will stay broken until we fix it.',
+    errorRetry: 'Try again',
+    /* Dil bilinmeyen kok 404'unde iki dil birden gosteriliyor. */
+    pickLanguage: 'Choose a language',
+  },
   nav: {
     search: 'Find a sitter',
     becomeSitter: 'Become a sitter',

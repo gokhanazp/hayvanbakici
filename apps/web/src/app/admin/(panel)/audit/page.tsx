@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { requireAdmin, auditView, one, stamp } from '@/lib/admin';
-import { listAudit } from '@/lib/data';
+import { countAudit, listAudit } from '@/lib/data';
 import { Page, Empty, ShortId } from '@/components/admin/ui';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,27 @@ const LABEL: Record<string, string> = {
   'report.resolve': 'Closed a report',
   'booking.override': 'Changed a booking',
   'admin.view': 'Opened a list or record',
+  /*
+    EKSIK ETIKETLER — DUZELTILEN HATA.
+
+    Bu dortu tabloda yoktu ve `LABEL[r.action] ?? r.action` ham kodu
+    ekrana yaziyordu: sayfada 81 kez duz "settings.commission" goruluyordu.
+    Hangi ikisi eksikti? PARA ve OZEL MESAJ — yani kaydin en cok okunmasi
+    gereken iki olayi.
+  */
+  'settings.commission': 'Changed the commission rates',
+  'settings.campaignCreated': 'Started a commission campaign',
+  'settings.campaignEnded': 'Ended a commission campaign',
+  'admin.reveal': 'Opened a private message',
 };
+
+/** Tanimadigimiz bir kod gelirse bari okunur duruyor: "user.foo" -> "user foo". */
+function label(action: string): string {
+  return LABEL[action] ?? action.replace(/[._]/g, ' ');
+}
+
+/** Bir sayfada kac satir. */
+const PER_PAGE = 100;
 
 const HREF: Record<string, (id: string) => string> = {
   user: (id) => `/admin/users/${id}/`,
@@ -39,13 +59,26 @@ const HREF: Record<string, (id: string) => string> = {
 export default async function AuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ only?: string | string[] }>;
+  searchParams: Promise<{ only?: string | string[]; page?: string | string[] }>;
 }) {
   const session = await requireAdmin();
-  const decisionsOnly = one((await searchParams).only) === 'decisions';
+  const sp = await searchParams;
+  const decisionsOnly = one(sp.only) === 'decisions';
+  const kind = decisionsOnly ? 'decisions' : 'all';
 
-  const rows = await listAudit(250, decisionsOnly ? 'decisions' : 'all');
+  const total = await countAudit(kind);
+  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+  /* Sayfa numarasi kullanicidan geliyor: sinirlara CEKILIYOR, guvenilmiyor. */
+  const page = Math.min(pages, Math.max(1, Number.parseInt(one(sp.page) ?? '1', 10) || 1));
+
+  const rows = await listAudit(PER_PAGE, kind, (page - 1) * PER_PAGE);
   await auditView(session.user.id, 'audit_log');
+
+  const qs = (n: number) => {
+    const parts = [decisionsOnly ? 'only=decisions' : '', n > 1 ? `page=${n}` : '']
+      .filter(Boolean);
+    return parts.length > 0 ? `?${parts.join('&')}` : '?';
+  };
 
   return (
     <Page
@@ -83,7 +116,7 @@ export default async function AuditPage({
                       </td>
                       <td>{r.actorName ?? <span className="a-dim">system</span>}</td>
                       <td className="wrap">
-                        {LABEL[r.action] ?? r.action}
+                        {label(r.action)}
                         {r.reason && (
                           <span className="a-dim" style={{ display: 'block' }}>
                             Reason given: {r.reason}
@@ -104,9 +137,22 @@ export default async function AuditPage({
               </tbody>
             </table>
           </div>
+          {/*
+            SAYFALAMA. Onceden yalnizca en yeni 250 satir vardi ve ekran
+            kesildigini soylemiyordu; eski kayitlara hicbir yerden
+            ulasilamiyordu.
+          */}
+          <div className="a-pager">
+            <span className="a-hint">
+              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} of {total}
+            </span>
+            <span className="a-pager-links">
+              {page > 1 && <Link href={qs(page - 1)} className="a-chip">Newer</Link>}
+              {page < pages && <Link href={qs(page + 1)} className="a-chip">Older</Link>}
+            </span>
+          </div>
           <p className="a-hint" style={{ marginTop: 10 }}>
-            The 250 most recent entries. Identifiers are shortened on screen; the full record stays
-            in the database.
+            Identifiers are shortened on screen; the full record stays in the database.
           </p>
         </>
       )}

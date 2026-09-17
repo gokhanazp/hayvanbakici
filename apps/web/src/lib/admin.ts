@@ -117,3 +117,22 @@ export function ago(iso: string): string {
   if (hours < 48) return `${hours} h ago`;
   return `${Math.floor(hours / 24)} d ago`;
 }
+
+/**
+ * ADRESTEKI KIMLIK GERCEKTEN BIR UUID MI?
+ *
+ * DUZELTILEN HATA: /admin/users/nope/ HTTP 500 veriyordu, 404 degil.
+ * Kimlik hicbir bicim kontrolunden gecmeden sorguya giriyordu ve
+ * Postgres `22P02 invalid input syntax for type uuid` atiyordu — yani
+ * yanlis yazilmis bir adres, sunucu hatasi gibi gorunuyordu. Hem
+ * operatore yanlis bilgi veriyor hem de veritabani hata metnini
+ * yanitta disari siziyordu.
+ *
+ * Olmayan ama GECERLI bicimli bir kimlik zaten dogru sekilde 404
+ * veriyordu; tek eksik bicim kontroluydu.
+ */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string): boolean {
+  return UUID.test(value);
+}

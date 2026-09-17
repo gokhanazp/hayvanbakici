@@ -9,6 +9,16 @@ export const frCA = {
     name: 'Havre',
     tagline: "La garde d'animaux d'ici. Plus pour les gardiens, mieux pour vous.",
   },
+  oops: {
+    notFoundTitle: 'Cette page n’est pas ici',
+    notFoundBody: 'Le lien est peut-être ancien, ou nous avons déplacé la page. Rien n’est brisé de votre côté.',
+    notFoundSitters: 'Trouver un gardien',
+    notFoundHome: 'Aller à l’accueil',
+    errorTitle: 'Quelque chose a mal tourné de notre côté',
+    errorBody: 'C’est notre faute, pas la vôtre. Réessayez ; si cela persiste, la page restera ainsi jusqu’à ce que nous la réparions.',
+    errorRetry: 'Réessayer',
+    pickLanguage: 'Choisissez une langue',
+  },
   nav: {
     search: 'Trouver un gardien',
     becomeSitter: 'Devenir gardien',

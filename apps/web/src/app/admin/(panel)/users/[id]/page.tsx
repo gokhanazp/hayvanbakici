@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { requireAdmin, auditView, money, day, stamp } from '@/lib/admin';
+import { requireAdmin, auditView, money, day, stamp, isUuid } from '@/lib/admin';
 import { getAdminUser, listNotes } from '@/lib/data';
 import { Page, Card, Badge, Empty } from '@/components/admin/ui';
 import { ReasonAction } from '@/components/admin/ReasonAction';
@@ -15,6 +15,8 @@ export default async function UserDetail({
 }) {
   const session = await requireAdmin();
   const { id } = await params;
+  /* Bozuk bicimli kimlik 500 degil 404 — bkz. lib/admin.ts */
+  if (!isUuid(id)) notFound();
 
   const user = await getAdminUser(id);
   if (!user) notFound();
