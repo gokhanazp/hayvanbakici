@@ -4,6 +4,7 @@ import {
 } from '@/lib/data';
 import { Page, Card, Empty } from '@/components/admin/ui';
 import { BaseRatesForm, CampaignForm } from '@/components/admin/CommissionForms';
+import { ConfirmButton } from '@/components/admin/AdminForm';
 import { saveCommissionAction, createCampaignAction, endCampaignAction } from '@/app/admin/actions';
 
 /**
@@ -123,10 +124,15 @@ export default async function SettingsPage() {
               rezervasyonlarin neden indirimli oldugunu aciklayan
               satir duruyor.
             */}
-            <form action={endCampaignAction} style={{ marginTop: 10 }}>
-              <input type="hidden" name="campaignId" value={active.id} />
-              <button className="a-btn a-btn-ghost" type="submit">End it now</button>
-            </form>
+            <div style={{ marginTop: 10 }}>
+              <ConfirmButton
+                action={endCampaignAction}
+                hidden={{ campaignId: active.id }}
+                label="End it now"
+                question="End this campaign now? The published rates go back to normal immediately. The campaign record is kept."
+                confirmLabel="Yes, end it"
+              />
+            </div>
           </div>
         ) : (
           <p className="a-dim" style={{ marginBottom: 16 }}>
@@ -137,13 +143,20 @@ export default async function SettingsPage() {
         {upcoming.length > 0 && (
           <div className="a-note" style={{ marginBottom: 16 }}>
             {upcoming.map((c) => (
-              <p key={c.id}>
-                <strong>{c.name}</strong> — {pctList(c)}, {dayFmt(c.startsAt)} to {dayFmt(c.endsAt)}.
-                <form action={endCampaignAction} style={{ display: 'inline', marginLeft: 8 }}>
-                  <input type="hidden" name="campaignId" value={c.id} />
-                  <button className="a-btn a-btn-ghost" type="submit">Cancel</button>
-                </form>
-              </p>
+              <div key={c.id}>
+                <p>
+                  <strong>{c.name}</strong> — {pctList(c)}, {dayFmt(c.startsAt)} to {dayFmt(c.endsAt)}.
+                </p>
+                {/* Baslamamis kampanya da iki adimda iptal ediliyor. */}
+                <ConfirmButton
+                  action={endCampaignAction}
+                  hidden={{ campaignId: c.id }}
+                  label="Cancel"
+                  question={`Cancel “${c.name}” before it starts? The record is kept.`}
+                  confirmLabel="Yes, cancel it"
+                  cancelLabel="Keep it"
+                />
+              </div>
             ))}
           </div>
         )}

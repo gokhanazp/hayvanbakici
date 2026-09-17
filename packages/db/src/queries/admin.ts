@@ -393,9 +393,27 @@ export interface AdminBookingRow {
   createdAt: string;
 }
 
+/**
+ * ARAMA VE SAYFALAMA — DUZELTILEN EKSIK.
+ *
+ * Veritabaninda 1770 rezervasyon vardi, ekranda 100'u goruluyordu ve
+ * baska hicbir yol yoktu: ne arama, ne sayfalama. Destek "400.
+ * rezervasyona bakar misin" dendiginde bulamiyordu. Tek alternatif
+ * kullanici sayfasiydi, o da o kisinin en yeni 20 kaydini gosteriyor.
+ *
+ * ARAMA UC SEYI KAPSIYOR: kimligin basi (operator listeden kopyaliyor),
+ * taraflarin adi ve e-postasi (telefonda soylenen sey bu). Girdi HER
+ * ZAMAN bagli parametre — ham SQL'e hicbir sey gomulmuyor.
+ */
 export async function listAllBookings(
-  db: Database, status?: string | undefined,
+  db: Database,
+  status?: string | undefined,
+  q?: string | undefined,
+  limit = 50,
+  offset = 0,
 ): Promise<AdminBookingRow[]> {
+  const term = (q ?? '').trim();
+  const like = `%${term.toLowerCase()}%`;
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
       SELECT b.id::text, b.status::text, b.service_type::text, b.start_at,
@@ -405,9 +423,19 @@ export async function listAllBookings(
       FROM bookings b
       LEFT JOIN profiles op ON op.user_id = b.owner_id
       LEFT JOIN profiles sp ON sp.user_id = b.sitter_id
-      ${status ? sql`WHERE b.status = ${status}::booking_status` : sql``}
+      LEFT JOIN users ou ON ou.id = b.owner_id
+      LEFT JOIN users su ON su.id = b.sitter_id
+      WHERE TRUE
+      ${status ? sql`AND b.status = ${status}::booking_status` : sql``}
+      ${term ? sql`AND (
+        b.id::text LIKE ${term.toLowerCase() + '%'}
+        OR lower(COALESCE(op.first_name, '')) LIKE ${like}
+        OR lower(COALESCE(sp.first_name, '')) LIKE ${like}
+        OR lower(COALESCE(ou.email, '')) LIKE ${like}
+        OR lower(COALESCE(su.email, '')) LIKE ${like}
+      )` : sql``}
       ORDER BY b.created_at DESC
-      LIMIT 100
+      LIMIT ${limit} OFFSET ${offset}
     `);
     return (rows as unknown as Array<Record<string, unknown>>).map((r) => ({
       id: String(r.id),
@@ -419,6 +447,34 @@ export async function listAllBookings(
       ownerTotalCents: Number(r.owner_total_cents),
       createdAt: new Date(r.created_at as Date).toISOString(),
     }));
+  });
+}
+
+/** Aramaya/filtreye uyan toplam rezervasyon — sayfalama icin. */
+export async function countAllBookings(
+  db: Database, status?: string | undefined, q?: string | undefined,
+): Promise<number> {
+  const term = (q ?? '').trim();
+  const like = `%${term.toLowerCase()}%`;
+  return withDbErrors(async () => {
+    const rows = await db.execute<{ n: number }>(sql`
+      SELECT count(*)::int AS n
+      FROM bookings b
+      LEFT JOIN profiles op ON op.user_id = b.owner_id
+      LEFT JOIN profiles sp ON sp.user_id = b.sitter_id
+      LEFT JOIN users ou ON ou.id = b.owner_id
+      LEFT JOIN users su ON su.id = b.sitter_id
+      WHERE TRUE
+      ${status ? sql`AND b.status = ${status}::booking_status` : sql``}
+      ${term ? sql`AND (
+        b.id::text LIKE ${term.toLowerCase() + '%'}
+        OR lower(COALESCE(op.first_name, '')) LIKE ${like}
+        OR lower(COALESCE(sp.first_name, '')) LIKE ${like}
+        OR lower(COALESCE(ou.email, '')) LIKE ${like}
+        OR lower(COALESCE(su.email, '')) LIKE ${like}
+      )` : sql``}
+    `) as unknown as Array<{ n: number }>;
+    return rows[0]?.n ?? 0;
   });
 }
 

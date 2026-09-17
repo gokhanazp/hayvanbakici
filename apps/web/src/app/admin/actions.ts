@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
-import { clientIp } from '@/lib/admin';
+import { clientIp, isUuid } from '@/lib/admin';
 import {
   isAdmin, decideApplication, setSuspension, setRole, addNote,
   setReviewHidden, resolveReport, createReport, adminSetBookingStatus,
@@ -101,19 +101,27 @@ export async function roleAction(_prev: ActionState, form: FormData): Promise<Ac
 }
 
 /**
- * IC NOT. Tek dugmeli duz form — gerekce kutusu degil, notun kendisi.
- * Basarisizlikta sessiz kalmiyor: bos not eklenmiyor ve sayfa yenileniyor.
+ * IC NOT.
+ *
+ * DUZELTILEN HATA: eylem `Promise<void>` donduruyordu ve kisa bir notta
+ * sessizce `return` ediyordu. Operator dugmeye basiyor, hicbir sey
+ * olmuyordu — hata yok, onay yok. Not eklenmedigini ancak listeye
+ * bakip fark ediyordu. Artik her yol bir DURUM donduruyor ve ekranda
+ * yaziyor.
  */
-export async function addNoteAction(form: FormData): Promise<void> {
+export async function addNoteAction(
+  _prev: ActionState, form: FormData,
+): Promise<ActionState> {
   const admin = await guard();
-  if (!admin) return;
+  if (!admin) return { error: 'not_allowed' };
   const entityType = field(form, 'entityType');
   const entityId = field(form, 'entityId');
   const body = field(form, 'body');
-  if (body.trim().length < 3) return;
+  if (body.trim().length < 3) return { error: 'too_short' };
 
   await addNote({ entityType, entityId, authorId: admin.id, body });
   revalidatePath(`/admin/${entityType === 'booking' ? 'bookings' : 'users'}/${entityId}`);
+  return { done: 'Note added.' };
 }
 
 /* ---------------------------------------------------------- moderasyon */
@@ -158,15 +166,26 @@ export async function reportAction(_prev: ActionState, form: FormData): Promise<
   return { done: decision };
 }
 
-/** Telefonla/e-postayla gelen sikayeti kayda gecirmek icin. */
-export async function newReportAction(form: FormData): Promise<void> {
+/**
+ * Telefonla/e-postayla gelen sikayeti kayda gecirmek icin.
+ *
+ * DUZELTILEN HATA: bu da sessizdi. Operator elle bir kimlik yaziyor;
+ * bir karakteri eksikse form hicbir sey soylemeden kapaniyor ve
+ * sikayet ACILMIYORDU. Telefonda bekleyen birine "kaydettim" demis
+ * olmak, kaydetmemekten kotu.
+ */
+export async function newReportAction(
+  _prev: ActionState, form: FormData,
+): Promise<ActionState> {
   const admin = await guard();
-  if (!admin) return;
+  if (!admin) return { error: 'not_allowed' };
   const allowed = ['user', 'review', 'message', 'booking'] as const;
   const subjectType = allowed.find((t) => t === field(form, 'subjectType'));
   const subjectId = field(form, 'subjectId');
   const reason = field(form, 'reason');
-  if (!subjectType || subjectId.length < 10 || reason.trim().length < 3) return;
+  if (!subjectType) return { error: 'invalid_subject' };
+  if (!isUuid(subjectId)) return { error: 'invalid_id' };
+  if (reason.trim().length < 3) return { error: 'too_short' };
 
   await createReport({
     reporterId: admin.id,
@@ -177,6 +196,7 @@ export async function newReportAction(form: FormData): Promise<void> {
     details: field(form, 'details') || undefined,
   });
   revalidatePath('/admin/reports');
+  return { done: 'Report filed.' };
 }
 
 /* --------------------------------------------------------- rezervasyon */
@@ -239,6 +259,25 @@ export async function revealMessageAction(
   const report = await getReport(reportId);
   if (!report || report.subjectType !== 'message' || report.subjectId !== messageId) {
     return { error: 'not_allowed' };
+  }
+
+  /*
+    KURAL KENDI KENDINI YETKILENDIREMEZ.
+
+    Verdigimiz soz su: "hicbir mesaj bir sikayet olmadan acilamaz". Ama
+    ayni yonetici `/admin/reports/` icindeki "File a report" formundan
+    gerekli sikayeti KENDISI olusturup hemen ardindan mesaji
+    acabiliyordu. Iki adim da denetim kaydina yaziliyor, yani izi vardi
+    — ama izi olmak ile engellenmis olmak ayni sey degil. Boyle bir
+    guvence tek kisiye bagliysa, guvence degildir.
+
+    Artik yoneticinin kendi actigi sikayet o mesaji ACAMIYOR. Gercek
+    sikayetler zaten kullanicilardan geliyor; telefonla gelen bir
+    sikayeti kayda geciren yonetici de mesaji baska birinin acmasini
+    isteyecek. Iki kisi kurali, en ucuz haliyle.
+  */
+  if (report.reporterId && report.reporterId === admin.id) {
+    return { error: 'own_report' };
   }
 
   const raw = await getRawMessage(messageId);
@@ -370,16 +409,27 @@ export async function createCampaignAction(
   return { saved: true };
 }
 
-/** Kampanyayi erken bitirir. Kayit SILINMIYOR, yalnizca isaretleniyor. */
-export async function endCampaignAction(form: FormData): Promise<void> {
+/**
+ * Kampanyayi erken bitirir. Kayit SILINMIYOR, yalnizca isaretleniyor.
+ *
+ * DUZELTILEN HATA: bu, panelin PARAYA DOKUNAN TEK dugmesiydi ve tek
+ * tikla, onaysiz, geri bildirimsiz calisiyordu. Yanlislikla degen biri
+ * yurumekte olan bir kampanyayi bitiriyor ve haberi olmuyordu; oran da
+ * aninda eski haline donuyordu. Artik iki adim (bkz. ConfirmButton) ve
+ * sonucunu soyluyor.
+ */
+export async function endCampaignAction(
+  _prev: ActionState, form: FormData,
+): Promise<ActionState> {
   const admin = await guard();
-  if (!admin) return;
+  if (!admin) return { error: 'not_allowed' };
   const campaignId = field(form, 'campaignId');
-  if (!campaignId) return;
+  if (!isUuid(campaignId)) return { error: 'invalid_id' };
 
   const ip = await clientIp();
   await endCampaign({ adminId: admin.id, campaignId, ...(ip ? { ip } : {}) });
   revalidateRates();
+  return { done: 'Campaign ended. The published rates are back to normal.' };
 }
 
 /**

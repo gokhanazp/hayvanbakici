@@ -4,6 +4,7 @@ import { listReports } from '@/lib/data';
 import { Page, Card, Badge, Empty, ShortId } from '@/components/admin/ui';
 import { ReasonAction } from '@/components/admin/ReasonAction';
 import { MessageReveal } from '@/components/admin/MessageReveal';
+import { AdminForm } from '@/components/admin/AdminForm';
 import { reportAction, newReportAction, revealMessageAction } from '@/app/admin/actions';
 
 export const dynamic = 'force-dynamic';
@@ -111,7 +112,7 @@ export default async function ReportsPage({
           kalan sikayet, sikayet degildir.
         */}
         <Card title="File a report" hint="For a complaint that arrived by phone or email.">
-          <form action={newReportAction}>
+          <AdminForm action={newReportAction} submitLabel="File report" busyLabel="Filing…">
             <label className="a-field">
               <span>About</span>
               <select name="subjectType" className="a-select" defaultValue="user">
@@ -134,8 +135,7 @@ export default async function ReportsPage({
               <textarea className="a-textarea" name="details" rows={3}
                         placeholder="What the caller said, in their words." />
             </label>
-            <button type="submit" className="a-btn a-btn-ghost">File report</button>
-          </form>
+          </AdminForm>
         </Card>
       </div>
     </Page>

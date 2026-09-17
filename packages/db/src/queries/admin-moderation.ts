@@ -34,20 +34,64 @@ export interface ModerationReview {
 
 export type ReviewFilter = 'all' | 'published' | 'hidden' | 'reported' | 'low';
 
+/**
+ * ARAMA VE SAYFALAMA — DUZELTILEN EKSIK.
+ *
+ * 1136 yorum vardi, ekranda 60'i goruluyordu ve **kesildigi bile
+ * yazmiyordu** (rezervasyon listesi en azindan "en yeni 100" diyordu).
+ * Bir yorumu bulmanin baska yolu yoktu.
+ *
+ * Arama yorumun METNINDE ve taraflarin adinda/e-postasinda; "bize
+ * soyle bir yorum sikayet edildi" denildiginde aranan sey bu.
+ */
+function reviewSearch(term: string) {
+  if (!term) return sql``;
+  const like = `%${term.toLowerCase()}%`;
+  return sql`AND (
+    r.id::text LIKE ${term.toLowerCase() + '%'}
+    OR lower(COALESCE(r.body, '')) LIKE ${like}
+    OR lower(COALESCE(ap.first_name, '')) LIKE ${like}
+    OR lower(COALESCE(sp.first_name, '')) LIKE ${like}
+    OR lower(COALESCE(au.email, '')) LIKE ${like}
+    OR lower(COALESCE(su.email, '')) LIKE ${like}
+  )`;
+}
+
+function reviewWhere(filter: ReviewFilter) {
+  return filter === 'published' ? sql`AND r.published_at IS NOT NULL AND r.hidden_at IS NULL`
+    : filter === 'hidden' ? sql`AND r.hidden_at IS NOT NULL`
+    : filter === 'low' ? sql`AND r.rating <= 2`
+    : filter === 'reported' ? sql`AND EXISTS (
+        SELECT 1 FROM reports rp
+        WHERE rp.subject_type = 'review' AND rp.subject_id = r.id AND rp.status <> 'dismissed')`
+    : sql``;
+}
+
+/** Aramaya/filtreye uyan toplam yorum — sayfalama icin. */
+export async function countReviews(
+  db: Database, filter: ReviewFilter = 'all', q?: string | undefined,
+): Promise<number> {
+  const term = (q ?? '').trim();
+  return withDbErrors(async () => {
+    const rows = await db.execute<{ n: number }>(sql`
+      SELECT count(*)::int AS n
+      FROM reviews r
+      LEFT JOIN users au ON au.id = r.author_id
+      LEFT JOIN profiles ap ON ap.user_id = r.author_id
+      LEFT JOIN users su ON su.id = r.subject_id
+      LEFT JOIN profiles sp ON sp.user_id = r.subject_id
+      WHERE TRUE ${reviewWhere(filter)} ${reviewSearch(term)}
+    `) as unknown as Array<{ n: number }>;
+    return rows[0]?.n ?? 0;
+  });
+}
+
 export async function listReviews(
   db: Database, filter: ReviewFilter = 'all', limit = 100,
+  q?: string | undefined, offset = 0,
 ): Promise<ModerationReview[]> {
+  const term = (q ?? '').trim();
   return withDbErrors(async () => {
-    const where =
-      filter === 'published' ? sql`WHERE r.published_at IS NOT NULL AND r.hidden_at IS NULL`
-      : filter === 'hidden' ? sql`WHERE r.hidden_at IS NOT NULL`
-      // Dusuk puanli yorumlar: sikayet gelmeden once bakilmasi gereken yer
-      : filter === 'low' ? sql`WHERE r.rating <= 2`
-      : filter === 'reported' ? sql`WHERE EXISTS (
-          SELECT 1 FROM reports rp
-          WHERE rp.subject_type = 'review' AND rp.subject_id = r.id AND rp.status <> 'dismissed')`
-      : sql``;
-
     const rows = await db.execute(sql`
       SELECT r.id::text, r.rating, r.body, r.direction, r.booking_id::text, r.subject_id::text,
              r.published_at, r.hidden_at, r.hidden_reason, r.created_at,
@@ -60,9 +104,9 @@ export async function listReviews(
       LEFT JOIN profiles ap ON ap.user_id = r.author_id
       LEFT JOIN users su ON su.id = r.subject_id
       LEFT JOIN profiles sp ON sp.user_id = r.subject_id
-      ${where}
+      WHERE TRUE ${reviewWhere(filter)} ${reviewSearch(term)}
       ORDER BY r.created_at DESC
-      LIMIT ${limit}
+      LIMIT ${limit} OFFSET ${offset}
     `);
 
     return (rows as unknown as Array<Record<string, unknown>>).map((r) => ({
@@ -156,6 +200,8 @@ export interface ReportRow {
   subjectUserName: string | null;
   subjectUserId: string | null;
   reporterName: string | null;
+  /** Sikayeti KIM acti — mesaj acma kuralinin dayanagi. */
+  reporterId: string | null;
   reason: string;
   details: string | null;
   status: string;
@@ -171,6 +217,7 @@ export async function listReports(
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
       SELECT r.id::text, r.subject_type::text, r.subject_id::text, r.subject_user_id::text,
+             r.reporter_id::text,
              r.reason, r.details, r.status::text, r.resolution, r.handled_at, r.created_at,
              COALESCE(rp.first_name, ru.email) AS reporter_name,
              COALESCE(sp.first_name, su.email) AS subject_user_name,
@@ -194,6 +241,7 @@ export async function listReports(
       subjectUserId: (r.subject_user_id as string | null) ?? null,
       subjectUserName: (r.subject_user_name as string | null) ?? null,
       reporterName: (r.reporter_name as string | null) ?? null,
+      reporterId: (r.reporter_id as string | null) ?? null,
       reason: String(r.reason),
       details: (r.details as string | null) ?? null,
       status: String(r.status),
@@ -216,6 +264,7 @@ export async function getReport(db: Database, reportId: string): Promise<ReportR
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
       SELECT r.id::text, r.subject_type::text, r.subject_id::text, r.subject_user_id::text,
+             r.reporter_id::text,
              r.reason, r.details, r.status::text, r.resolution, r.handled_at, r.created_at,
              COALESCE(rp.first_name, ru.email) AS reporter_name,
              COALESCE(sp.first_name, su.email) AS subject_user_name,
@@ -239,6 +288,7 @@ export async function getReport(db: Database, reportId: string): Promise<ReportR
       subjectUserId: (r.subject_user_id as string | null) ?? null,
       subjectUserName: (r.subject_user_name as string | null) ?? null,
       reporterName: (r.reporter_name as string | null) ?? null,
+      reporterId: (r.reporter_id as string | null) ?? null,
       reason: String(r.reason),
       details: (r.details as string | null) ?? null,
       status: String(r.status),

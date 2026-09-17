@@ -17,7 +17,8 @@ import {
   respondToRequest as dbRespond, cancelBooking as dbCancel, isSitter as dbIsSitter,
   isAdmin as dbIsAdmin, getOverview as dbGetOverview, listApplications as dbListApplications,
   getApplication as dbGetApplication, decideApplication as dbDecideApplication,
-  listAudit as dbListAudit, countAudit as dbCountAudit, listAllBookings as dbListAllBookings, recordAudit as dbRecordAudit,
+  listAudit as dbListAudit, countAudit as dbCountAudit, listAllBookings as dbListAllBookings,
+  countAllBookings as dbCountAllBookings, countReviews as dbCountReviews, recordAudit as dbRecordAudit,
   getCounts as dbGetCounts,
   listUsers as dbListUsers, getUser as dbGetUser, setSuspension as dbSetSuspension,
   setRole as dbSetRole, listNotes as dbListNotes, addNote as dbAddNote,
@@ -194,7 +195,11 @@ export const decideApplication = (input: Parameters<typeof dbDecideApplication>[
 export const listAudit = (limit?: number, kind?: 'all' | 'decisions', offset?: number) =>
   dbListAudit(db(), limit, kind, offset);
 export const countAudit = (kind?: 'all' | 'decisions') => dbCountAudit(db(), kind);
-export const listAllBookings = (status?: string) => dbListAllBookings(db(), status);
+export const listAllBookings = (
+  status?: string, q?: string, limit?: number, offset?: number,
+) => dbListAllBookings(db(), status, q, limit, offset);
+export const countAllBookings = (status?: string, q?: string) =>
+  dbCountAllBookings(db(), status, q);
 export const recordAudit = (entry: AuditEntry) => dbRecordAudit(db(), entry);
 export const getAdminCounts = () => dbGetCounts(db());
 
@@ -207,8 +212,11 @@ export const listNotes = (entityType: string, entityId: string) =>
   dbListNotes(db(), entityType, entityId);
 export const addNote = (input: Parameters<typeof dbAddNote>[1]) => dbAddNote(db(), input);
 
-export const listReviews = (filter?: ReviewFilter, limit?: number) =>
-  dbListReviews(db(), filter, limit);
+export const listReviews = (
+  filter?: ReviewFilter, limit?: number, q?: string, offset?: number,
+) => dbListReviews(db(), filter, limit, q, offset);
+export const countReviews = (filter?: ReviewFilter, q?: string) =>
+  dbCountReviews(db(), filter, q);
 export const setReviewHidden = (input: Parameters<typeof dbSetReviewHidden>[1]) =>
   dbSetReviewHidden(db(), input);
 export const listReports = (status?: 'open' | 'all') => dbListReports(db(), status);

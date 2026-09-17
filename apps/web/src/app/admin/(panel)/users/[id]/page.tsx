@@ -4,6 +4,7 @@ import { requireAdmin, auditView, money, day, stamp, isUuid } from '@/lib/admin'
 import { getAdminUser, listNotes } from '@/lib/data';
 import { Page, Card, Badge, Empty } from '@/components/admin/ui';
 import { ReasonAction } from '@/components/admin/ReasonAction';
+import { AdminForm } from '@/components/admin/AdminForm';
 import { suspensionAction, roleAction, addNoteAction } from '@/app/admin/actions';
 
 export const dynamic = 'force-dynamic';
@@ -159,16 +160,18 @@ export default async function UserDetail({
           </Card>
 
           <Card title="Internal notes" hint="The person never sees these. Notes cannot be edited or deleted.">
-            <form action={addNoteAction}>
-              <input type="hidden" name="entityType" value="user" />
-              <input type="hidden" name="entityId" value={user.id} />
+            <AdminForm
+              action={addNoteAction}
+              hidden={{ entityType: 'user', entityId: user.id }}
+              submitLabel="Add note"
+              busyLabel="Adding…"
+            >
               <label className="a-field">
                 <span>Note</span>
                 <textarea className="a-textarea" name="body" rows={2}
                           placeholder="Called about the document, will re-upload." />
               </label>
-              <button type="submit" className="a-btn a-btn-ghost">Add note</button>
-            </form>
+            </AdminForm>
 
             {notes.length > 0 && (
               <ul style={{ marginTop: 14, display: 'grid', gap: 10 }}>

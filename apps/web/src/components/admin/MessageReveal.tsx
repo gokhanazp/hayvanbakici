@@ -51,10 +51,17 @@ export function MessageReveal({
       <input type="hidden" name="reportId" value={reportId} />
       <input type="hidden" name="messageId" value={messageId} />
       {state.error && (
-        <p className="a-alert" role="alert">
+        <p className="a-alert is-bad" role="alert">
           {state.error === 'not_found'
             ? 'That message no longer exists.'
-            : 'You cannot open this message from this report.'}
+            /*
+              KENDI ACTIGIN SIKAYETLE ACAMAZSIN. Sebebi ekranda yaziyor:
+              operator neyin engellendigini bilmeli ki ne yapacagini
+              bilsin — mesaji baska bir yonetici acacak.
+            */
+            : state.error === 'own_report'
+              ? 'You filed this report yourself, so you cannot open the message from it. Another admin has to.'
+              : 'You cannot open this message from this report.'}
         </p>
       )}
       <button type="submit" className="a-btn a-btn-ghost" disabled={busy}>
