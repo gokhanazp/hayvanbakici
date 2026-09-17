@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import {
   SERVICES, primaryService, servicesForPhase, petSizeStepsFor, PET_SIZE_STEPS,
   type ServiceType,
@@ -22,7 +22,9 @@ import { ServiceIcon } from '@/components/ServiceIcon';
 import { HomeIcon, DogSilhouette, VetIcon, type HomeIconName } from '@/components/HomeIcon';
 import { NoIcon } from '@/components/InfoIcons';
 import { AskInChat } from '@/components/chat/AskInChat';
-import { getCalendar, getSitterProfile, getSitterSlugsForBuild, type SitterProfile } from '@/lib/data';
+import {
+  currentSlugFor, getCalendar, getSitterProfile, getSitterSlugsForBuild, type SitterProfile,
+} from '@/lib/data';
 import { sitterJsonLd, urlFor } from '@/lib/seo';
 import { money, responseTime, dateFmt, numberFmt } from '@/lib/format';
 import { resolvePhoto } from '@/lib/photos';
@@ -58,7 +60,18 @@ async function resolve(params: Promise<{ locale: string; city: string; slug: str
   const locale = localeFromSegment(seg);
   if (!locale) return null;
   const sitter = await getSitterProfile(slug, locale);
-  if (!sitter) return null;
+  if (!sitter) {
+    /*
+      ESKI ADRES MI? Bakici adini duzelttiginde profil adresi yenileniyor
+      ve eskisi `sitter_slug_history` tablosuna yaziliyor. Paylasilmis
+      baglantiyi 404'e dusurmek yerine kalici olarak yenisine
+      gonderiyoruz — hem ziyaretci kaybolmuyor hem arama motoru sayfayi
+      yeni adresle esliyor. `permanentRedirect` 308 donduruyor.
+    */
+    const moved = await currentSlugFor(slug);
+    if (moved) permanentRedirect(`/${seg}/${city}/sitter/${moved}/`);
+    return null;
+  }
 
   /*
     SEHIR SEGMENTI DOGRULANIYOR.

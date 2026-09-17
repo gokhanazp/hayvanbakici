@@ -35,6 +35,7 @@ import {
   getSitterDashboard as dbGetSitterDashboard,
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
+  currentSlugFor as dbCurrentSlugFor, joinWaitlist as dbJoinWaitlist,
   listOwnerPets as dbListOwnerPets, getOwnerPet as dbGetOwnerPet,
   createOwnerPet as dbCreateOwnerPet, updateOwnerPet as dbUpdateOwnerPet,
   setPetPhoto as dbSetPetPhoto, deleteOwnerPet as dbDeleteOwnerPet,
@@ -250,6 +251,14 @@ export const deleteSitterPhoto = (photoId: string, sitterId: string) =>
   dbDeleteSitterPhoto(db(), photoId, sitterId);
 export const updateProfile = (input: Parameters<typeof dbUpdateProfile>[1]) =>
   dbUpdateProfile(db(), input);
+/** Bekleme listesi kaydi — oturum gerekmiyor, kayit e-postaya bagli. */
+export const joinWaitlist = (input: Parameters<typeof dbJoinWaitlist>[1]) =>
+  dbJoinWaitlist(db(), input);
+
+/** Eski profil adresi -> bugunku adres (bakici adini degistirdiginde). */
+export const currentSlugFor = cache(
+  async (oldSlug: string): Promise<string | null> => dbCurrentSlugFor(db(), oldSlug),
+);
 export const conversationPing = (viewerId: string, conversationId?: string) =>
   dbConversationPing(db(), viewerId, conversationId);
 export const reportableMessage = (messageId: string, viewerId: string) =>

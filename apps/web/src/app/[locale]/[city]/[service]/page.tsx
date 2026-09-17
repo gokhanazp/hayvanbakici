@@ -16,10 +16,12 @@ import { Faq } from '@/components/Faq';
 import { ServiceTiles } from '@/components/ServiceTiles';
 import { ServiceIcon } from '@/components/ServiceIcon';
 import { SearchBar } from '@/components/SearchBar';
+import { WaitlistForm } from '@/components/WaitlistForm';
 import { SectionDoodles } from '@/components/Doodles';
 import { PHOTOS, type PhotoId } from '@/lib/photos';
 import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
+import { joinWaitlistAction } from './actions';
 import { money, numberFmt, dateFmt, responseTime } from '@/lib/format';
 
 /** ISR — fiyat/bakici sayisi taze olmali (yol haritasi §7.3) */
@@ -264,10 +266,29 @@ export default async function LandingPage(
             style={{ marginTop: 'var(--space-6)', background: 'var(--color-accent-subtle)', borderColor: 'transparent' }}
           >
             <h2 className="text-h4" style={{ marginBottom: 'var(--space-2)' }}>{m.seo[rule.reasonKey.split('.')[1] as keyof typeof m.seo]}</h2>
+            {/*
+              AZ BAKICI, HIC BAKICI DEGIL — DUZELTILEN CELISKI.
+
+              Burada `m.search.noResults` yaziyordu: ekranda "No sitters
+              here yet" ve HEMEN ALTINDA "2 sitters available" ile iki
+              bakici karti. Sayfa kendi kendisiyle celisiyordu. Bu kutu
+              zaten yalnizca 1-2 bakici varken ciziliyor (sifirda sayfa
+              404); yani o metin burada HICBIR ZAMAN dogru degildi.
+            */}
             <p className="muted text-body-sm" style={{ marginBottom: 'var(--space-4)' }}>
-              {m.search.noResults}
+              {interpolate(m.search.thinBody, { city: name })}
             </p>
-            <button className="btn btn-primary" type="button">{m.search.joinWaitlist}</button>
+            {/*
+              Dugme artik gercekten kaydediyor. Onceden sunucu bileseninde
+              olay isleyicisi olmayan bos bir `<button>`'di.
+            */}
+            <WaitlistForm
+              locale={r.locale}
+              citySlug={citySlug(r.city, r.locale)}
+              cityName={name}
+              serviceType={r.service}
+              action={joinWaitlistAction}
+            />
           </div>
         )}
 

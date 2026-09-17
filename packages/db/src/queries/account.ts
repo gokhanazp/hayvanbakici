@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { withDbErrors, type Database } from '../client.js';
+import { sitterSlug } from './onboarding.js';
 
 /**
  * HESAP OZETI — "ben neyim" sorusunun tek cevabi.
@@ -314,5 +315,63 @@ export async function updateProfile(
     await db.execute(sql`
       UPDATE users SET locale = ${input.locale}::locale WHERE id = ${input.userId}
     `);
+
+    /*
+      AD DEGISTIYSE PROFIL ADRESI DE DEGISIYOR.
+
+      Adres bakicinin ADINI iceriyor ve onceden BIR KEZ yaziliyordu:
+      "adresi degistirmek paylasilmis baglantilari kirar" diye. Dogru bir
+      kaygiydi ama yazilmamis bir bedeli vardi — bakici adini duzelttiginde
+      (evlilik, yazim hatasi, ya da Law 25 md. 28 kapsaminda bir DUZELTME
+      TALEBI) eski ad herkese acik adreste kaliyordu. "Adresi
+      degistirmiyoruz" demek, "istemedigin ad internette kalsin" demek
+      olamaz.
+
+      Simdi ikisi birden: adres yenileniyor, eskisi gecmise yaziliyor ve
+      profil sayfasi eski adresi kalici yonlendirmeyle yenisine
+      gonderiyor. Hicbir baglanti kirilmiyor, hicbir eski ad kalmiyor.
+
+      Bakici olmayan kullanicida hicbir sey olmuyor: `sitters` satiri yok,
+      guncelleme sifir satir donduruyor.
+    */
+    const [row] = await db.execute<{ slug: string | null }>(sql`
+      SELECT slug FROM sitters WHERE user_id = ${input.userId} LIMIT 1
+    `) as unknown as Array<{ slug: string | null }>;
+    const current = row?.slug ?? null;
+    if (!current) return;
+
+    const next = sitterSlug(input.userId, input.firstName, input.lastNameInitial);
+    if (next === current) return;
+
+    /* Once gecmise yaz, sonra degistir: arada bir hata olursa eski adres
+       yine calisiyor olsun. `DO NOTHING` — ayni adrese geri donulebilir. */
+    await db.execute(sql`
+      INSERT INTO sitter_slug_history (slug, sitter_id)
+      VALUES (${current}, ${input.userId})
+      ON CONFLICT (slug) DO NOTHING
+    `);
+    /* Yeni adres gecmiste duruyorsa (eski bir ada geri donus) oradan
+       kaldiriliyor, yoksa adres hem canli hem "eski" olurdu. */
+    await db.execute(sql`DELETE FROM sitter_slug_history WHERE slug = ${next}`);
+    await db.execute(sql`
+      UPDATE sitters SET slug = ${next} WHERE user_id = ${input.userId}
+    `);
+  });
+}
+
+/**
+ * Eski bir profil adresi bugun hangi adrese karsilik geliyor?
+ * Bulunamazsa null — cagiran taraf 404 veriyor.
+ */
+export async function currentSlugFor(db: Database, oldSlug: string): Promise<string | null> {
+  return withDbErrors(async () => {
+    const rows = await db.execute<{ slug: string }>(sql`
+      SELECT s.slug
+      FROM sitter_slug_history h
+      JOIN sitters s ON s.user_id = h.sitter_id
+      WHERE h.slug = ${oldSlug}
+      LIMIT 1
+    `) as unknown as Array<{ slug: string }>;
+    return rows[0]?.slug ?? null;
   });
 }

@@ -250,6 +250,31 @@ export const sitters = pgTable(
  * degil. Fotografin kendisi adresi ele verebilir (kapi numarasi, sokak
  * tabelasi) — bakiciya yukleme ekraninda bu uyari gosterilir.
  */
+
+/**
+ * ESKI PROFIL ADRESLERI.
+ *
+ * `sitters.slug` bakicinin ADINI iceriyor. Adres bir kez yaziliyor ve
+ * DEGISMIYOR — bu bilincli bir karardi: adresi degistirmek paylasilmis
+ * baglantilari ve arama motorundaki sayfa gecmisini kirar.
+ *
+ * AMA YAZILMAMIS BIR BEDELI VARDI. Bakici adini duzelttiginde (evlilik,
+ * yazim hatasi ya da Law 25 md. 28 kapsaminda bir DUZELTME TALEBI) eski
+ * ad herkese acik adreste kaliyordu. "Adresi degistirmiyoruz" demek,
+ * "istemedigin adin internette kalsin" demek olamaz.
+ *
+ * Cozum ikisini birden veriyor: ad degisince adres yenileniyor, eski
+ * adres bu tabloya yaziliyor ve KALICI YONLENDIRME ile yenisine
+ * gidiyor. Hicbir baglanti kirilmiyor, hicbir eski ad kalmiyor.
+ */
+export const sitterSlugHistory = pgTable('sitter_slug_history', {
+  slug: text('slug').primaryKey(),
+  sitterId: uuid('sitter_id')
+    .notNull()
+    .references(() => sitters.userId, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const sitterPhotos = pgTable(
   'sitter_photos',
   {

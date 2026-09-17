@@ -40,6 +40,19 @@ export const enCA = {
     seeAll: 'See all {count} sitters',
     noResults: 'No sitters here yet',
     joinWaitlist: 'Join the waitlist',
+    /*
+      AZ BAKICI, HIC BAKICI DEGIL. Bekleme listesi kutusu bu metin yerine
+      `noResults` kullaniyordu: ekranda "No sitters here yet" yaziyor,
+      hemen altinda "2 sitters available" ve iki bakici karti duruyordu.
+      Sayfa kendi kendisiyle celisiyordu.
+    */
+    thinBody: 'There are a couple of sitters here, but not many yet. Leave your email and we will write when there are more in {city}.',
+    waitlistEmail: 'Your email',
+    waitlistPrivacy: 'Only used to tell you when more sitters join. Nothing else, and you can ask us to delete it at any time.',
+    waitlistDone: 'Noted. We will write when there are more sitters in {city}.',
+    'waitlist.invalid_email': 'That email address does not look right.',
+    'waitlist.unknown_city': 'We could not find that city.',
+    'waitlist.rate_limited': 'Too many sign-ups right now. Please try again later.',
   },
   searchPage: {
     title: 'Sitters near {place}',
@@ -529,6 +542,15 @@ export const enCA = {
     verifySent: 'We sent a confirmation link to {email}. Open it to finish setting up your account.',
     verifyDone: 'Your email is confirmed.',
     verifyInvalid: 'This confirmation link has expired or has already been used.',
+    /*
+      UCUNCU DURUM. Once yalnizca iki hal vardi: "onaylandi" ve "gecersiz".
+      Sayfa jetonu kendisi dogrulamadigi icin "hata parametresi yoksa
+      onaylanmistir" varsayiliyordu — yani sayfayi jetonsuz acan herkese
+      "e-postaniz onaylandi" diyordu. Oturum yoksa (baglanti baska bir
+      tarayicida acilmis olabilir) ne oldugunu BILMIYORUZ; bilmedigimizi
+      soylemek, uydurmaktan iyidir.
+    */
+    verifyUnknown: 'Open the confirmation link from your email, then sign in. If you already did, just sign in.',
     resend: 'Send it again',
     passwordHint: 'At least {min} characters. Length matters more than symbols.',
     showPassword: 'Show password',

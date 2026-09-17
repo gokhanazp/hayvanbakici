@@ -8,6 +8,7 @@ export * from './payments.js';
 export * from './geo.js';
 export * from './compliance.js';
 export * from './moderation.js';
+export * from './waitlist.js';
 export * from './auth.js';
 export * from './favourites.js';
 export * from './settings.js';

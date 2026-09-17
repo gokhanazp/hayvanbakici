@@ -228,14 +228,22 @@ for (const city of SEED_CITIES) {
       referralCode: `${city.slugEn}-${first.toLowerCase()}-${i}`,
       activatedAt: new Date(),
       /*
-        Bakici kaydi da UPSERT: satir kalinca ona baglanan konusmalar,
-        favoriler ve profil adresi (slug) de kaliyor. Slug zaten
-        kimlikten turetiliyor, yani kimlik sabitse adres de sabit —
-        acik bir sekme yenilendiginde 404 vermiyor.
+        Bakici kaydi da UPSERT: satir kalinca ona baglanan konusmalar ve
+        favoriler de kaliyor.
+
+        SLUG DA GUNCELLENIYOR — DUZELTILEN HATA. Onceden `set` blogunda
+        slug yoktu. Tohum her calistiginda ayni satira BASKA BIR ISIM
+        yaziyordu ama adres eski isimle kaliyordu; sonuc olarak
+        /en/toronto/sitter/raj-e-fc9e/ acildiginda ekranda "Simone F."
+        yaziyordu. 198 bakicinin 133'u bu haldeydi ve o adresler
+        sitemap.xml icinde yayinlaniyordu. Uretimde bir satirin kimligi
+        hic degismedigi icin bu yalnizca tohuma ozgu bir hataydi, ama
+        ekranda yalan soyluyordu.
       */
     }).onConflictDoUpdate({
       target: s.sitters.userId,
       set: {
+        slug: sitterSlug(userId, first, initial),
         status: 'active', badgeLevel: badge,
         averageRating: rating, reviewCount,
         homeType: pick(r, HOME_TYPES),

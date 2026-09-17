@@ -1227,6 +1227,29 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .door-cta { margin-top: var(--space-2); font-weight: 600; color: var(--color-primary); }
 .door:hover .door-cta { text-decoration: underline; text-underline-offset: 3px; }
 
+/*
+  BEKLEME LISTESI FORMU.
+
+  Genis ekranda e-posta alani ile dugme yan yana; dar ekranda alt alta.
+  Sarmalanma `flex-wrap` ile: 320px'de de dugme tam genislikte oluyor ve
+  e-posta alani sikismiyor.
+*/
+.waitlist-form { display: grid; gap: 0; }
+.waitlist-row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.waitlist-row input {
+  flex: 1 1 14rem; min-width: 0;
+  font: inherit;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+}
+.waitlist-row input:focus-visible {
+  outline: 2px solid var(--color-primary); outline-offset: 2px;
+}
+.waitlist-row .btn { flex: 0 0 auto; }
+@media (max-width: 460px) { .waitlist-row .btn { flex: 1 1 100%; } }
+
 /* --- Alt bilgi --- */
 .site-footer {
   margin-top: var(--space-20);

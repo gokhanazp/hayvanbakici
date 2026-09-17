@@ -24,20 +24,43 @@ export default async function VerifyEmailPage({
   const { error } = await searchParams;
   const session = await getSession();
 
-  const ok = !error;
+  /*
+    UC DURUM — IKI DEGIL. DUZELTILEN HATA.
+
+    Once `const ok = !error` yaziyordu: "hata parametresi yoksa
+    onaylanmistir". Sayfayi jetonsuz acan HERKES yesil kutuda "Your email
+    is confirmed." goruyordu — hesap gercekte dogrulanmamisken. Kullanici
+    neden giris yapamadigini anlayamazdi.
+
+    Sayfa jetonu kendisi dogrulamiyor (/api/auth/verify-email doguruyor ve
+    buraya yonlendiriyor), o yuzden basariyi TAHMIN etmek yerine
+    OLCUYORUZ: oturumdaki kullanicinin `emailVerified` alani. Baglanti
+    baska bir tarayicida acildiysa burada oturum olmaz; o durumda
+    bilmedigimizi soyluyoruz.
+  */
+  const state: 'ok' | 'invalid' | 'unknown' = error
+    ? 'invalid'
+    : session?.user?.emailVerified ? 'ok' : 'unknown';
+
+  const text = state === 'ok' ? m.auth.verifyDone
+    : state === 'invalid' ? m.auth.verifyInvalid
+    : m.auth.verifyUnknown;
 
   return (
     <>
       <h1 className="text-h2" style={{ marginBottom: 'var(--space-4)' }}>{m.auth.verifyTitle}</h1>
-      <p className={`alert ${ok ? 'alert-ok' : 'alert-error'}`} role="status">
-        {ok ? m.auth.verifyDone : m.auth.verifyInvalid}
+      <p
+        className={`alert ${state === 'ok' ? 'alert-ok' : state === 'invalid' ? 'alert-error' : 'alert-info'}`}
+        role="status"
+      >
+        {text}
       </p>
       <div style={{ marginTop: 'var(--space-6)' }}>
         <Link
-          href={session ? `/${segmentFor(locale)}` : `/${segmentFor(locale)}/account/sign-in`}
+          href={state === 'ok' ? `/${segmentFor(locale)}` : `/${segmentFor(locale)}/account/sign-in`}
           className="btn btn-primary btn-block"
         >
-          {session ? m.nav.search : m.auth.signIn}
+          {state === 'ok' ? m.nav.search : m.auth.signIn}
         </Link>
       </div>
     </>
