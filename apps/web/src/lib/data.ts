@@ -38,6 +38,8 @@ import {
   listSitterPhotos as dbListSitterPhotos, addSitterPhoto as dbAddSitterPhoto,
   deleteSitterPhoto as dbDeleteSitterPhoto, updateProfile as dbUpdateProfile,
   currentSlugFor as dbCurrentSlugFor, joinWaitlist as dbJoinWaitlist,
+  getOnboardingState as dbGetOnboardingState, servicePriceRanges as dbServicePriceRanges,
+  updateSitterPricing as dbUpdateSitterPricing,
   getReviewContext as dbGetReviewContext, submitReview as dbSubmitReview,
   respondToReview as dbRespondToReview, type ReviewContext,
   listOwnerPets as dbListOwnerPets, getOwnerPet as dbGetOwnerPet,
@@ -267,6 +269,23 @@ export const updateProfile = (input: Parameters<typeof dbUpdateProfile>[1]) =>
 /** Bekleme listesi kaydi — oturum gerekmiyor, kayit e-postaya bagli. */
 export const joinWaitlist = (input: Parameters<typeof dbJoinWaitlist>[1]) =>
   dbJoinWaitlist(db(), input);
+
+/* -------------------------------------------------------------- ucretler */
+/**
+ * Bakicinin kendi hizmet satirlari — fiyat, ek ucret, tatil farki,
+ * iptal politikasi, il ve eyalet.
+ *
+ * AYRI BIR "ucretleri oku" SORGUSU YOK: bir tane yazmistim, sonra bunun
+ * ayni satirlari ikinci bir yoldan okumak oldugunu fark ettim. Iki okuma
+ * yolu, iki ekranin ayni bakiciya farkli rakam gosterebilmesi demek.
+ */
+export const getOnboardingState = (userId: string) => dbGetOnboardingState(db(), userId);
+/** Bakicinin KENDI sehrindeki fiyat dagilimi — oneri icin. */
+export const servicePriceRanges = (cityId: string) => dbServicePriceRanges(db(), cityId);
+/** Yalnizca fiyat alanlarini gunceller; hizmet acip kapatmaz. */
+export const updateSitterPricing = (
+  userId: string, input: Parameters<typeof dbUpdateSitterPricing>[2],
+) => dbUpdateSitterPricing(db(), userId, input);
 
 /* ------------------------------------------------------------ yorumlar */
 /**

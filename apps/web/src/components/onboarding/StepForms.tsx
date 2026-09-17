@@ -89,7 +89,12 @@ function suggestion(r: { count: number; medianCents: number } | undefined): stri
 }
 
 /** "Yakinindaki bakicilar 45-65 $ aliyor · medyan 53 $" — yoksa zorunluluk notu. */
-function rangeHint(
+/*
+  DISARI ACILDI. Bakicinin ucret sayfasi (account/sitter/prices) AYNI
+  yardimciyi kullaniyor: piyasa araligini iki yerde iki ayri sekilde
+  hesaplamak, iki ekranin ayni bakiciya farkli rakam gostermesi demekti.
+*/
+export function rangeHint(
   m: Messages, locale: Locale,
   r: { count: number; p25Cents: number; medianCents: number; p75Cents: number } | undefined,
 ): string {
@@ -114,7 +119,7 @@ function rangeHint(
  * Bos ya da gecersiz fiyatta hicbir sey cizilmiyor: sifirlarla dolu bir
  * tablo, yazmaya yeni baslayan birini urkutur.
  */
-function NetEarnings({
+export function NetEarnings({
   locale, type, price, province, promoEndsAt, commission,
 }: {
   locale: Locale;

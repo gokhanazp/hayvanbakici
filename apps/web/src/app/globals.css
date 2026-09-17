@@ -2263,6 +2263,18 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   body:has(.book-bar) .chat-dock:not([data-open='true']) {
     bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
+
+  /*
+    Ucret sayfasinin yapiskan "Kaydet" cubugu da ayni sekilde: balon
+    ustune binmesin. Tiklama sorunu yukarida (pointer-events) kokunden
+    cozuldu; bu yalnizca gorunum.
+  */
+  body:has(.price-save) .chat-dock:not([data-open='true']) {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  .price-save {
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ============================================================
@@ -3340,7 +3352,24 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   position: fixed; right: var(--space-5); bottom: var(--space-5);
   z-index: 200; display: flex; flex-direction: column; align-items: flex-end;
   gap: var(--space-3);
+  /*
+    KAPSAYICI TIKLAMA YUTMUYOR.
+
+    Telefonda bu kutu tam genislige aciliyor (asagidaki 599px kurali) ve
+    z-index 200'de, gorunmez, 68 piksel yuksekliginde bir serit olarak
+    sayfanin altinda duruyor. Gorunmedigi icin fark edilmiyordu ama
+    ALTINDA KALAN HER SEYIN TIKLAMASINI YUTUYORDU: ucret sayfasinin
+    yapiskan "Kaydet" dugmesi telefonda hic basilamiyordu
+    (elementFromPoint ile yakalandi — dugme yerine .chat-dock donuyordu).
+
+    Rezervasyon cubugu bunu daha once baska yoldan cozmustu: balonu
+    yukari itiyordu. Ama bu, cubugu OLAN sayfalari kurtarir, digerlerini
+    degil. Asil kural burada: kapsayici tiklama almiyor, yalnizca gercek
+    parcalari aliyor.
+  */
+  pointer-events: none;
 }
+.chat-dock > * { pointer-events: auto; }
 
 .chat-launcher {
   position: relative;
@@ -4365,4 +4394,45 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .review-star:hover > span[aria-hidden] { color: var(--color-warning); }
 .review-star:has(input:focus-visible) > span[aria-hidden] {
   outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-sm);
+}
+
+/* ---------- Ucret duzenleme ----------
+   Karta "secili" gorunumu (.service-card-on) VERILMIYOR: sihirbazda o
+   kenarlik "bu hizmeti seciyorum" demek, burada ise butun kartlar hep
+   acik. Dordunu birden vurgulamak, vurgunun anlamini siliyor. */
+.price-card { border-color: var(--color-border); }
+
+/*
+  KAYDET DUGMESI YAPISKAN. Dort hizmeti olan bir bakicide form iki ekran
+  boyu suruyor; dugme en altta kalinca ilk karttaki fiyati degistiren
+  kisi kaydetmek icin sayfayi sonuna kadar kaydirmak zorundaydi.
+
+  `position: sticky` + `bottom`: kart yiginin icinde akiyor ama ekranin
+  altina yapisiyor. Zemin OPAK, cunku altindan gecen kart kenarliklari
+  dugmenin okunurlugunu bozuyordu.
+*/
+.price-save {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: var(--space-5);
+  padding: var(--space-4) 0;
+  background: var(--color-canvas);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ---------- Bakici panosundaki rezervasyon kuyruklari ----------
+   Uc bolum (cevap bekleyen / yaklasan / gecmis) arasinda net bosluk;
+   baslikta sayi, bolumu acmadan kac tane oldugu gorunsun diye. */
+.booking-queues { display: grid; gap: var(--space-8); }
+.queue-head {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.queue-count {
+  display: inline-grid; place-items: center;
+  min-width: 1.75rem; height: 1.75rem; padding: 0 .5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+  font-size: 0.8125rem; font-weight: 600;
 }

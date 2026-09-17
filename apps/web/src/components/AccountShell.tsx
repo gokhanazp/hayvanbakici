@@ -14,7 +14,7 @@ export function AccountShell({
   locale: Locale;
   title: string;
   lead?: string | undefined;
-  active: 'overview' | 'profile' | 'pets' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar';
+  active: 'overview' | 'profile' | 'pets' | 'bookings' | 'favourites' | 'messages' | 'sitter' | 'calendar' | 'prices';
   isSitter: boolean;
   /**
    * Bakici kaydinin durumu — ROZET icin. `isSitter` yalnizca "kayit var mi"
@@ -81,6 +81,9 @@ export function AccountShell({
            talep listesi onun bir bolumu. */
         { key: 'sitter' as const, href: `/${seg}/account/sitter/`, label: m.account.dashTitle },
         { key: 'calendar' as const, href: `/${seg}/account/sitter/calendar/`, label: m.account.calendar },
+        /* UCRETLER kendi sekmesinde: fiyat degistirmek rutin bir is ve
+           bugune kadar yolu yalnizca basvuru sihirbazindan geciyordu. */
+        { key: 'prices' as const, href: `/${seg}/account/sitter/prices/`, label: m.prices.nav },
       ]
     : [];
 

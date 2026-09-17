@@ -10,7 +10,10 @@ import {
 import { getSession } from '@/lib/auth';
 import { AccountShell } from '@/components/AccountShell';
 import { BookingCard } from '@/components/BookingCard';
-import { listSitterBookings, getSitterDashboard, isAdmin, type SitterDashboard } from '@/lib/data';
+import {
+  listSitterBookings, getSitterDashboard, isAdmin,
+  type SitterDashboard, type BookingSummary,
+} from '@/lib/data';
 import { money } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -236,12 +239,45 @@ function NextStepsCard({
   );
 }
 
+/** Ileri dogru yurumekte olan rezervasyon durumlari. */
+const LIVE = new Set(['confirmed', 'paid', 'in_progress']);
+
+const PAST_PREVIEW = 5;
+
+/** Tek bir kuyruk bolumu: baslik + sayi + kartlar ya da bos satiri. */
+function Queue({
+  title, empty, count, locale, children,
+}: {
+  title: string; empty: string; count: number; locale: Locale;
+  children: readonly BookingSummary[];
+}) {
+  return (
+    <div>
+      <h2 className="text-h4 queue-head">
+        {title}
+        {/* Sayi baslikta: bolumu acmadan kac tane oldugu goruluyor. */}
+        {count > 0 && <span className="queue-count tabular">{count}</span>}
+      </h2>
+      {count === 0 ? (
+        <p className="muted text-body-sm">{empty}</p>
+      ) : (
+        <div className="booking-list">
+          {children.map((b) => (
+            <BookingCard key={b.id} booking={b} locale={locale} viewerRole="sitter" />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default async function SitterDashboardPage({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ past?: string | string[] }>;
 }) {
-  const { locale: seg } = await params;
+  const [{ locale: seg }, sp] = await Promise.all([params, searchParams]);
   const locale = localeFromSegment(seg);
   if (!locale) notFound();
 
@@ -258,6 +294,22 @@ export default async function SitterDashboardPage({
   const m = getMessages(locale);
   const bookings = await listSitterBookings(session.user.id);
   const segment = segmentFor(locale);
+  const showAllPast = (Array.isArray(sp.past) ? sp.past[0] : sp.past) === 'all';
+
+  /*
+    GECMIS "eski tarih" demek DEGIL, "artik bir sey beklemiyor" demek:
+    iptal edilmis gelecek bir rezervasyon da buraya ait. Tarihe gore
+    ayirsaydik, iptal edilmis bir konaklama "Yaklasan" bolumunde
+    durmaya devam ederdi.
+  */
+  const now = Date.now();
+  const queues = {
+    answer: bookings.filter((b) => b.status === 'requested'),
+    upcoming: bookings.filter((b) => LIVE.has(b.status) && Date.parse(b.endAt) >= now),
+    past: bookings.filter(
+      (b) => b.status !== 'requested' && !(LIVE.has(b.status) && Date.parse(b.endAt) >= now),
+    ),
+  };
 
   return (
     <AccountShell
@@ -276,22 +328,64 @@ export default async function SitterDashboardPage({
         <NextStepsCard locale={locale} seg={segment} dash={dash} />
       </div>
 
+      {/*
+        LISTE UC PARCAYA AYRILDI.
+
+        Tek bir "Talepler" basligi altinda bakicinin BUTUN gecmisi
+        dokuluyordu: cevap bekleyen uc talep, aylar once odenmis yirmi
+        rezervasyonun arasinda kayboluyordu. Baslik "talepler" diyordu,
+        liste arsiv gosteriyordu.
+
+        CEVAP BEKLEYENLER ASLA KISALTILMIYOR — onlarin suresi doluyor
+        (36 saat). Kisaltilan tek bolum gecmis, ve "hepsini goster"
+        ADRESTE (?past=all): geri tusu calisiyor, bag paylasilabiliyor
+        ve JS olmadan da aciliyor.
+      */}
       <section id="requests" style={{ marginTop: 'var(--space-8)', scrollMarginTop: 'var(--space-8)' }}>
-        <h2 className="text-h3" style={{ marginBottom: 'var(--space-5)' }}>{m.account.requests}</h2>
         {bookings.length === 0 ? (
-          <div className="card card-pad" style={{ maxWidth: '36rem' }}>
-            <h3 className="text-h4">{m.account.noRequests}</h3>
-            <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.account.noRequestsHint}</p>
-            <Link href={`/${segment}/account/sitter/calendar/`} className="btn btn-secondary"
-              style={{ marginTop: 'var(--space-5)' }}>
-              {m.account.calendar}
-            </Link>
-          </div>
+          <>
+            <h2 className="text-h3" style={{ marginBottom: 'var(--space-5)' }}>{m.account.requests}</h2>
+            <div className="card card-pad" style={{ maxWidth: '36rem' }}>
+              <h3 className="text-h4">{m.account.noRequests}</h3>
+              <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{m.account.noRequestsHint}</p>
+              <Link href={`/${segment}/account/sitter/calendar/`} className="btn btn-secondary"
+                style={{ marginTop: 'var(--space-5)' }}>
+                {m.account.calendar}
+              </Link>
+            </div>
+          </>
         ) : (
-          <div className="booking-list">
-            {bookings.map((b) => (
-              <BookingCard key={b.id} booking={b} locale={locale} viewerRole="sitter" />
-            ))}
+          <div className="booking-queues">
+            <Queue
+              title={m.account.queueAnswer} empty={m.account.queueAnswerNone}
+              count={queues.answer.length} locale={locale}
+            >
+              {queues.answer}
+            </Queue>
+            <Queue
+              title={m.account.queueUpcoming} empty={m.account.queueUpcomingNone}
+              count={queues.upcoming.length} locale={locale}
+            >
+              {queues.upcoming}
+            </Queue>
+            <Queue
+              title={m.account.queuePast} empty={m.account.queuePastNone}
+              count={queues.past.length} locale={locale}
+            >
+              {showAllPast ? queues.past : queues.past.slice(0, PAST_PREVIEW)}
+            </Queue>
+            {queues.past.length > PAST_PREVIEW && (
+              <p style={{ marginTop: 'var(--space-4)' }}>
+                <Link
+                  href={showAllPast ? '?#requests' : '?past=all#requests'}
+                  className="btn btn-secondary btn-sm"
+                >
+                  {showAllPast
+                    ? m.account.queueShowLess
+                    : interpolate(m.account.queueShowAll, { count: queues.past.length })}
+                </Link>
+              </p>
+            )}
           </div>
         )}
       </section>

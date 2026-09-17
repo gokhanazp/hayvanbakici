@@ -133,15 +133,25 @@ describe('kartta hangi hizmet yaziyor', () => {
       gostermek, dogru bir rakamla yanlis soruyu cevaplamak olurdu.
       Bakici konaklama sunuyorsa kartta konaklama yaziyor.
     */
+    /*
+      Siralamasiz bir LIMIT 1 vardi: baska bir test dosyasinin yarattigi,
+      sehri olmayan bir bakici secilebiliyordu ve favouriteSitters
+      (sehirle JOIN yapiyor) hicbir satir dondurmuyordu. Sehir zorunlu,
+      sira sabit.
+    */
     const rows = await db.execute(sql`
       SELECT ss.sitter_id::text AS id
       FROM sitter_services ss
-      WHERE ss.is_active AND ss.service_type = 'boarding'
+      JOIN sitters  st ON st.user_id = ss.sitter_id
+      JOIN profiles p  ON p.user_id  = ss.sitter_id
+      JOIN cities   c  ON c.id       = p.city_id
+      WHERE ss.is_active AND ss.service_type = 'boarding' AND st.status = 'active'
         AND EXISTS (
           SELECT 1 FROM sitter_services o
           WHERE o.sitter_id = ss.sitter_id AND o.is_active
             AND o.service_type <> 'boarding' AND o.price_cents < ss.price_cents
         )
+      ORDER BY st.created_at, ss.sitter_id
       LIMIT 1
     `);
     const id = (rows as unknown as Array<{ id: string }>)[0]?.id;

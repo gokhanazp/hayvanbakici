@@ -27,10 +27,26 @@ const iso = (offsetDays: number) =>
   new Date(Date.now() + offsetDays * 86400000).toISOString().slice(0, 10);
 
 beforeAll(async () => {
+  /*
+    FIKSTUR SECIMI DETERMINISTIK VE TAM OLMALI.
+
+    Burada siralamasiz bir LIMIT 1 vardi ve bu, testin BASKA bir test
+    dosyasinin yarattigi bakiciyi secmesine yol aciyordu: o bakicinin
+    sehri (dolayisiyla eyaleti) yok ve vergi hesabi "Bilinmeyen eyalet
+    kodu: null" diye patliyordu. Testler yeniden tohumlanmis bir
+    veritabaninda gecip, ikinci calistirmada kirilyordu — yani hata
+    koddaydi degil, fikstur secimindeydi.
+
+    Sehir ve eyalet ZORUNLU (fiyat hesabi eyalete bagli), sira sabit.
+  */
   const rows = await db.execute(sql`
     SELECT ss.sitter_id::text AS id FROM sitter_services ss
-    JOIN sitters st ON st.user_id = ss.sitter_id
+    JOIN sitters  st ON st.user_id = ss.sitter_id
+    JOIN profiles p  ON p.user_id  = ss.sitter_id
+    JOIN cities   c  ON c.id       = p.city_id
     WHERE ss.service_type = 'boarding' AND ss.is_active AND st.status = 'active'
+      AND p.province IS NOT NULL
+    ORDER BY st.created_at, ss.sitter_id
     LIMIT 1
   `);
   sitterId = String((rows as unknown as Array<{ id: string }>)[0]!.id);

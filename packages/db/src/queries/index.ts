@@ -18,3 +18,4 @@ export * from './pets.js';
 export * from './settings.js';
 export * from './waitlist.js';
 export * from './reviews.js';
+export * from './pricing.js';

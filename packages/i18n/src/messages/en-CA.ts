@@ -125,6 +125,24 @@ export const enCA = {
     respondBy: 'Respond by {date}',
     viewBooking: 'View booking',
 
+    /*
+      BAKICI PANOSUNDAKI LISTE UC PARCAYA AYRILDI.
+
+      Tek bir "Requests" basligi altinda bakicinin BUTUN gecmisi
+      doküluyordu: cevap bekleyen uc talep, aylar once odenmis yirmi
+      rezervasyonun arasinda kayboluyordu. Baslik "talepler" diyor, liste
+      ise arsiv gosteriyordu. Cevap bekleyenler kendi bolumunde ve asla
+      kisaltilmiyor — onlarin suresi doluyor.
+    */
+    queueAnswer: 'Waiting for your answer',
+    queueAnswerNone: 'Nothing is waiting on you right now.',
+    queueUpcoming: 'Coming up',
+    queueUpcomingNone: 'No confirmed bookings ahead.',
+    queuePast: 'Earlier',
+    queuePastNone: 'Nothing yet.',
+    queueShowAll: 'Show all {count}',
+    queueShowLess: 'Show fewer',
+
     overview: 'Overview',
     signedInAs: 'Signed in as {email}',
     youAre: 'What you are on Havre',
@@ -478,6 +496,43 @@ export const enCA = {
     noneSelected: 'No days picked yet.',
     selectedOne: '{count} day picked.',
     selectedMany: '{count} days picked.',
+  },
+
+  /*
+    UCRETLER.
+
+    Bakici ucretlerini yalnizca BASVURU SIHIRBAZINDA belirleyebiliyordu.
+    Fiyatini degistirmek icin "Bakici olun" sihirbazina geri donmesi,
+    "Adim 3 / 6" ve "Basvurumu gonder" yazan ekranlardan gecmesi
+    gerekiyordu. Pazar yerinde fiyat degistirmek istisna degil, rutin.
+  */
+  prices: {
+    title: 'Your rates',
+    lead: 'You set your own prices. Change them whenever you like — a booking that is already agreed keeps the price it was agreed at.',
+    nav: 'Rates',
+    price: 'Your rate',
+    extraPet: 'Each extra pet',
+    holiday: 'Holiday surcharge',
+    cancellation: 'Cancellation policy',
+    save: 'Save rates',
+    saving: 'Saving…',
+    saved: 'Your rates are updated. New requests will use them.',
+    /*
+      YURUYEN REZERVASYONLAR SABIT. Rezervasyon satiri kendi fiyatini
+      talep aninda yaziyor; bu ekran yalnizca hizmet fiyatina dokunuyor.
+      Bunu yazmazsak bakici, bekleyen talepleri bozmaktan korkup
+      fiyatina hiç dokunmaz.
+    */
+    frozenNote: 'Bookings already sent, waiting or confirmed keep the amount both sides saw. Only new requests use the new rate.',
+    noServices: 'You have not set up a service yet.',
+    addService: 'Choose your services',
+    changeServices: 'Add or remove a service',
+    changeServicesHint: 'Which services you offer is a bigger change — it goes through the sitter setup, where the species and pet sizes you accept are set too.',
+    'error.not_allowed': 'You cannot do that.',
+    'error.priceRange': 'Enter a rate between $5 and $500.',
+    'error.extraPetRange': 'That extra-pet fee is out of range.',
+    'error.holidayRange': 'The holiday surcharge can be at most 50%.',
+    'error.none': 'Nothing to save.',
   },
   service: {
     boarding: 'Dog boarding',
