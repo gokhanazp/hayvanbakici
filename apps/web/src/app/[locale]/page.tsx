@@ -154,7 +154,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* ---- Kahramanin altina binen arama karti ---- */}
       <section className="container hero-search">
         <SearchBar locale={locale} />
-        <div className="row" style={{ justifyContent: 'center', marginTop: 'var(--space-5)' }}>
+        {/* Serit dar ekranda TAM GENISLIK: `row` iceriginin genisligi
+            kadar daraltip ortaliyordu ve arama kartiyla hizalanmiyordu. */}
+        <div className="trust-strip-wrap">
           {/* Veri konaklama hizmetinden geliyor (yukarida getLandingData) —
               birim de ondan; sabit "/gece" yazmak baska bir hizmette yalan olur. */}
           <TrustStrip
@@ -230,6 +232,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {fr ? 'Voir nos frais' : 'See how our fees work'}
               </Link>
             </div>
+
+            {/*
+              YENI BASLAYANA TEK SATIR.
+
+              Bu bandin butun cumleleri ZATEN bakicilik yapan kisiye
+              yazilmis ("kendi musterini getir"). Hic yapmamis kisiye
+              soylenen tek sey bu satir: onu davet sayfasindaki tarif
+              bolumune, kaydirmadan, dogrudan goturuyor. Ayri bir bolum
+              acmak ana sayfayi uzatir ve ayni icerigi iki yerde
+              tekrarlardi.
+            */}
+            <p className="text-body-sm" style={{ marginTop: 'var(--space-4)' }}>
+              <Link href={`/${seg}/become-a-sitter/#what-sitting-is`} className="link-underline">
+                {fr ? 'Vous débutez ? En quoi consiste la garde' : 'New to this? What sitting involves'}
+              </Link>
+              {' \u2192'}
+            </p>
 
             {/*
               Rakamla desteklenen iddia. Competition Act: dayanak
