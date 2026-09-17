@@ -210,18 +210,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {fr ? 'Pour les gardiens' : 'For sitters'}
             </span>
 
+            {/*
+              BASLIK DUYGUSAL, KANIT HEMEN ALTINDA.
+
+              Once baslik da "kendi musterini getir" diyordu; o cumle
+              ZATEN bakicilik yapan kisiye yazilmis ve ana sayfaya
+              yeni gelen birine hicbir sey soylemiyordu. Ana sayfa
+              huninin ustu: isi TIKLATMAK. Ikna etme isi davet
+              sayfasinin kahramaninda, orada ekonomik cumle duruyor.
+
+              Ama duygusal cumle tek basina birakilmadi: "hayvanlarla
+              gecir" yaninda "kazandigin sende kalsin" var ve %100
+              iddiasi hemen altindaki cumlede, rakam yine vurgulu.
+              Rakibin de kurabilecegi bir cumleyle yetinmiyoruz.
+
+              RAKAM HALA MOTORDAN: {100 - zero} elle yazilmis bir sayi
+              degil, calculateCommission()'in dondurdugu oran.
+            */}
             <h2 className="text-h1" style={{ margin: 'var(--space-4) 0 0' }}>
-              {fr ? 'Amenez vos propres clients.' : 'Bring your own clients.'}
+              {fr ? 'Passez vos journées avec des animaux.' : 'Spend your days with animals.'}
               <br />
-              {fr ? 'Gardez ' : 'Keep '}
-              <span style={{ color: 'var(--color-primary)' }}>{100 - zero}%</span>
-              {fr ? ' de ce qu’ils paient.' : ' of what they pay.'}
+              {fr ? 'Gardez ce que vous gagnez.' : 'Keep what you earn.'}
             </h2>
 
             <p className="text-body-lg muted" style={{ marginTop: 'var(--space-4)' }}>
+              {fr ? 'Fixez votre prix et n’acceptez que les réservations que vous voulez. Amenez un client vous-même et vous gardez ' : 'Set your own price and take only the bookings you want. Bring a client yourself and you keep '}
+              <strong style={{ color: 'var(--color-primary)' }}>{100 - zero}%</strong>
               {fr
-                ? 'Invitez un client avec votre propre code et nous ne prenons rien sur ses réservations — de façon permanente, pas pour un mois d’essai.'
-                : 'Invite a client with your own code and we take nothing on their bookings — permanently, not for a trial month.'}
+                ? ' de ce qu’il paie — de façon permanente, pas pour un mois d’essai.'
+                : ' of what they pay — permanently, not for a trial month.'}
             </p>
 
             <div className="row" style={{ marginTop: 'var(--space-6)' }}>
