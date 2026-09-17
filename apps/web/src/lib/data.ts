@@ -18,7 +18,8 @@ import {
   isAdmin as dbIsAdmin, getOverview as dbGetOverview, listApplications as dbListApplications,
   getApplication as dbGetApplication, decideApplication as dbDecideApplication,
   listAudit as dbListAudit, countAudit as dbCountAudit, listAllBookings as dbListAllBookings,
-  countAllBookings as dbCountAllBookings, countReviews as dbCountReviews, recordAudit as dbRecordAudit,
+  countAllBookings as dbCountAllBookings, countReviews as dbCountReviews,
+  listManualReviews as dbListManualReviews, recordAudit as dbRecordAudit,
   getCounts as dbGetCounts,
   listUsers as dbListUsers, getUser as dbGetUser, setSuspension as dbSetSuspension,
   setRole as dbSetRole, listNotes as dbListNotes, addNote as dbAddNote,
@@ -192,6 +193,7 @@ export const listApplications = (filter?: 'pending' | 'all') => dbListApplicatio
 export const getApplication = (userId: string) => dbGetApplication(db(), userId);
 export const decideApplication = (input: Parameters<typeof dbDecideApplication>[1]) =>
   dbDecideApplication(db(), input);
+export const listManualReviews = () => dbListManualReviews(db());
 export const listAudit = (limit?: number, kind?: 'all' | 'decisions', offset?: number) =>
   dbListAudit(db(), limit, kind, offset);
 export const countAudit = (kind?: 'all' | 'decisions') => dbCountAudit(db(), kind);

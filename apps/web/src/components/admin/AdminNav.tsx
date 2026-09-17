@@ -22,6 +22,7 @@ export interface AdminCounts {
   applications: number;
   reports: number;
   requestedBookings: number;
+  manualReviews: number;
 }
 
 /**
@@ -41,6 +42,9 @@ const GROUPS: ReadonlyArray<{
     label: 'Operations',
     items: [
       { href: '/admin/applications/', label: 'Applications', icon: 'applications', badge: 'applications' },
+      /* Bekleyen adli sicil incelemesi: basvurunun hemen altinda, cunku
+         o basvuruyu bekleten sey bu. */
+      { href: '/admin/checks/', label: 'Checks', icon: 'applications', badge: 'manualReviews' },
       { href: '/admin/users/', label: 'Users', icon: 'users' },
       { href: '/admin/bookings/', label: 'Bookings', icon: 'bookings', badge: 'requestedBookings' },
     ],

@@ -91,6 +91,12 @@ export default async function AdminDashboard({
         <Stat label="Owners" value={String(overview.owners)} />
         <Stat label="Cities with supply" value={String(overview.citiesWithSupply)} />
         <Stat label="Published reviews" value={String(overview.reviewsPublished)} />
+        {/*
+          SORGU BUNU ZATEN GETIRIYORDU AMA HICBIR YERE CIZILMIYORDU.
+          Insan incelemesi bekleyen adli sicil kontrolu, gostergedeki
+          diger sayilardan farkli: bekledigi her gun bir kisi calisamiyor.
+        */}
+        <Stat label="Checks needing a person" value={String(overview.manualReviews)} />
       </div>
 
       {/*

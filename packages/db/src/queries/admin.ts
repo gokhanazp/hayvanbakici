@@ -380,6 +380,62 @@ export async function decideApplication(
   });
 }
 
+/**
+ * INSAN INCELEMESI BEKLEYEN KONTROLLER.
+ *
+ * NEDEN BU EKRAN GEREKTI: gosterge bunlari SAYIYORDU, `decideApplication`
+ * da bir basvuru karara baglanirken yan etki olarak kapatiyordu — ama
+ * hicbir ekran tek tek LISTELEMIYORDU. Yani "otomatik sistem tek basina
+ * karar vermez, bir insan okur" sozunun arkasinda, o insanin bakacagi
+ * bir liste yoktu. Sayilan ama gorulemeyen is, yapilmayan istir.
+ *
+ * KARAR BURADA VERILMIYOR, BASVURU EKRANINDA VERILIYOR. Ikinci bir
+ * karar yolu acmak iki ayri dogruluk kaynagi yaratirdi; bu ekranin isi
+ * bekleyeni GORUNUR kilmak ve karara goturmek.
+ */
+export interface ManualReviewRow {
+  id: string;
+  sitterId: string;
+  type: string;
+  provider: string | null;
+  sitterName: string | null;
+  email: string | null;
+  sitterStatus: string;
+  requestedAt: string | null;
+  createdAt: string;
+}
+
+export async function listManualReviews(db: Database): Promise<ManualReviewRow[]> {
+  return withDbErrors(async () => {
+    const rows = await db.execute(sql`
+      SELECT v.id::text, v.sitter_id::text, v.type::text, v.provider,
+             v.human_review_requested_at, v.created_at,
+             st.status::text AS sitter_status,
+             COALESCE(p.first_name, u.email) AS sitter_name,
+             u.email
+      FROM verifications v
+      JOIN sitters st ON st.user_id = v.sitter_id
+      LEFT JOIN users u ON u.id = v.sitter_id
+      LEFT JOIN profiles p ON p.user_id = v.sitter_id
+      WHERE v.status = 'manual_review'
+      ORDER BY COALESCE(v.human_review_requested_at, v.created_at) ASC
+      LIMIT 200
+    `);
+    return (rows as unknown as Array<Record<string, unknown>>).map((r) => ({
+      id: String(r.id),
+      sitterId: String(r.sitter_id),
+      type: String(r.type),
+      provider: (r.provider as string | null) ?? null,
+      sitterName: (r.sitter_name as string | null) ?? null,
+      email: (r.email as string | null) ?? null,
+      sitterStatus: String(r.sitter_status),
+      requestedAt: r.human_review_requested_at
+        ? new Date(r.human_review_requested_at as Date).toISOString() : null,
+      createdAt: new Date(r.created_at as Date).toISOString(),
+    }));
+  });
+}
+
 /* ----------------------------------------------------------- listeler */
 
 export interface AdminBookingRow {
@@ -486,6 +542,8 @@ export interface AdminCounts {
   applications: number;
   reports: number;
   requestedBookings: number;
+  /** Insan incelemesi bekleyen adli sicil kontrolu — bkz. listManualReviews. */
+  manualReviews: number;
 }
 
 export async function getCounts(db: Database): Promise<AdminCounts> {
@@ -494,13 +552,15 @@ export async function getCounts(db: Database): Promise<AdminCounts> {
       SELECT
         (SELECT count(*)::int FROM sitters WHERE status = 'pending') AS applications,
         (SELECT count(*)::int FROM reports WHERE status IN ('open','reviewing')) AS reports,
-        (SELECT count(*)::int FROM bookings WHERE status = 'requested') AS requested_bookings
+        (SELECT count(*)::int FROM bookings WHERE status = 'requested') AS requested_bookings,
+        (SELECT count(*)::int FROM verifications WHERE status = 'manual_review') AS manual_reviews
     `);
     const r = (rows as unknown as Array<Record<string, unknown>>)[0] ?? {};
     return {
       applications: Number(r.applications ?? 0),
       reports: Number(r.reports ?? 0),
       requestedBookings: Number(r.requested_bookings ?? 0),
+      manualReviews: Number(r.manual_reviews ?? 0),
     };
   });
 }
