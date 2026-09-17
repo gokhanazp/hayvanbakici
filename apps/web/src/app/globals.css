@@ -1202,6 +1202,31 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 @media (min-width: 1000px) { .header-account { display: contents; } }
 @media (min-width: 1000px) { .nav-drawer .header-account { display: none; } }
 
+/*
+  IKI KAPI — bakici davet sayfasinda kahramanin altinda.
+
+  Donen bir bant yerine iki kart yan yana: gizlenen hicbir sey yok,
+  hareket eden hicbir sey yok, eklenen istemci JS yok. Dar ekranda alt
+  alta geciyorlar; iki kutuyu 390px'de yan yana sikistirmak her ikisini
+  de okunmaz yapardi.
+*/
+.door-grid {
+  display: grid; gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 720px) {
+  .door-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.door {
+  display: grid; gap: var(--space-2); align-content: start;
+  /* Kart tamamen tiklanabilir: kucuk bir baglanti metni yerine butun
+     kutu hedef — dokunmatikte aranacak bir sey kalmiyor. */
+  text-decoration: none;
+}
+.door:hover { border-color: var(--color-border-strong); }
+.door-cta { margin-top: var(--space-2); font-weight: 600; color: var(--color-primary); }
+.door:hover .door-cta { text-decoration: underline; text-underline-offset: 3px; }
+
 /* --- Alt bilgi --- */
 .site-footer {
   margin-top: var(--space-20);

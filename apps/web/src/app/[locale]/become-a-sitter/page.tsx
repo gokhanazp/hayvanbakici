@@ -10,7 +10,7 @@ import { SitterStartCta } from '@/components/auth/SitterStartCta';
 import { Faq } from '@/components/Faq';
 import { ShieldIcon } from '@/components/VerificationBadge';
 import { money, dayFmt } from '@/lib/format';
-import { getCommission } from '@/lib/data';
+import { cityName, getCommission, getDefaultCity, getLandingData } from '@/lib/data';
 
 /**
  * Bakici davet sayfasi — HERKESE ACIK ve INDEKSLENEBILIR.
@@ -55,6 +55,29 @@ export default async function BecomeSitterPage({
   // (Sahip ucreti ayri kalemdir, bakicinin cebinden cikmaz.)
   const oursPayout = sample - ours.sitterCommissionCents;
   const roverPayout = oursPayout - vs.sitterSavesCents;
+
+  /*
+    MEDYAN GERCEK SORGUDAN — ana sayfadaki guven seridiyle AYNI kaynak.
+    Sayfa ulusal, o yuzden sehir adi cumlenin icinde yaziyor: "Toronto'da
+    medyan" demek ile "medyan" demek ayni sey degil.
+  */
+  const city = await getDefaultCity();
+  const { medianPriceCents } = await getLandingData(city, 'boarding', locale);
+  const platformPct = c.sitterPct.platform;
+  const payBody = medianPriceCents > 0
+    ? interpolate(s['work.payCity'], {
+        city: cityName(city, locale),
+        price: money(medianPriceCents, locale),
+        pct: String(platformPct),
+      })
+    : interpolate(s['work.payPlain'], { pct: String(platformPct) });
+
+  const work = [
+    { title: s['work.doTitle'], body: s['work.doBody'] },
+    { title: s['work.timeTitle'], body: s['work.timeBody'] },
+    { title: s['work.needTitle'], body: s['work.needBody'] },
+    { title: s['work.payTitle'], body: payBody },
+  ];
 
   const rates = [
     { pct: c.sitterPct.sitter_referral, label: m.commission.sitter_referral },
@@ -101,8 +124,77 @@ export default async function BecomeSitterPage({
         </div>
       </section>
 
+      {/*
+        YENI BASLAYANIN BOLUMU — KAHRAMAN DEGIL, KAHRAMANIN ALTI.
+
+        Sitedeki iki guclu baslik da ("kendi musterini getir", "kendi
+        fiyatini koy") ZATEN bakicilik yapan kisiye sesleniyordu. Hic
+        yapmamis kisiye soylenmis tek cumle yoktu; bu bolum o boslugu
+        dolduruyor.
+
+        NEDEN KAHRAMANDA DEGIL: "hayvanlari seviyorsan para kazan"
+        cumlesini rakip de kuruyor; kahramandaki cumle ise rakibin
+        kuramayacagi tek cumle. Duygusal olani onun yerine koymak,
+        ayirt edici bir iddiayi siradan biriyle takas etmek olurdu.
+        Duygusal cumle KANCA (ust huni), ekonomik cumle KAPANIS.
+
+        NEDEN DONEN BANT (slider) DEGIL: donen kahramanlarda tiklama
+        orani ~%1 ve o tiklamalarin ~%89'u yalnizca ilk karede. Ikinci
+        karedeki mesaj pratikte yazilmamis sayiliyor. Ustelik kendinden
+        hareket eden icerik WCAG 2.2.2 geregi durdurma kontrolu
+        istiyor ve kahramana ilk kez istemci JS sokardi. Iki kapi ayni
+        anda ekranda: gizlenen hicbir sey yok, hareket eden hicbir sey
+        yok, eklenen JS yok.
+      */}
+      <section className="container section" id="start" style={{ paddingBottom: 0 }}>
+        <div className="section-head">
+          <h2 className="text-h2">{s['start.heading']}</h2>
+          <p className="text-body-lg muted">{s['start.body']}</p>
+        </div>
+
+        <div className="door-grid">
+          <a className="card card-pad door" href="#what-sitting-is">
+            <strong className="text-h4">{s['start.newTitle']}</strong>
+            <span className="muted">{s['start.newBody']}</span>
+            <span className="door-cta">{s['start.newCta']} &rarr;</span>
+          </a>
+          <a className="card card-pad door" href="#rates">
+            <strong className="text-h4">{s['start.clientsTitle']}</strong>
+            <span className="muted">{s['start.clientsBody']}</span>
+            <span className="door-cta">{s['start.clientsCta']} &rarr;</span>
+          </a>
+        </div>
+      </section>
+
+      {/*
+        BAKICILIK NE DEMEK — VAAT YOK, TARIF VAR.
+
+        Yeni baslayan kisi "ne kadar kazanirim"dan once "bu ne demek, ne
+        gerekiyor, ne kadar vaktimi alir" diye soruyor. Dorduncu kart
+        parayi da soyluyor ama HESAPLAYICI DEGIL: Kanada'da gelir
+        iddialari kanitlanabilir olmak zorunda, o yuzden ekranda yalnizca
+        MEDYAN var — bakicinin ne kazanacagina dair bir soz degil, bu
+        sehirdeki bakicilarin fiilen ne istedigi. Medyan sifirsa (veri
+        yok) sayi HIC yazilmiyor, cumlenin sayisiz hali kuruluyor.
+      */}
+      <section className="container section" id="what-sitting-is">
+        <div className="section-head">
+          <h2 className="text-h2">{s.workHeading}</h2>
+          <p className="text-body-lg muted">{s.workNote}</p>
+        </div>
+
+        <div className="grid grid-4">
+          {work.map((w) => (
+            <div key={w.title} className="card card-pad">
+              <h3 className="text-h4" style={{ marginBottom: 'var(--space-3)' }}>{w.title}</h3>
+              <p className="text-body-sm muted">{w.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ---- Oranlar ---- */}
-      <section className="container section">
+      <section className="container section" id="rates">
         <div className="section-head">
           <h2 className="text-h1">{s.ratesHeading}</h2>
           <p className="text-body-lg muted">{s.ratesNote}</p>
