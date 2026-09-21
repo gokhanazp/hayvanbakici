@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "npm@10.9.8",
-  "description": "Kanada evcil hayvan bakimi pazaryeri \u2014 monorepo",
+  "description": "Kanada evcil hayvan bakimi pazaryeri — monorepo",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -17,6 +17,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "verify": "turbo run typecheck test build && node scripts/check-bundle-budget.mjs",
+    "hooks:install": "git config core.hooksPath .githooks && echo \"✓ git kancalari acildi (.githooks)\"",
     "tokens": "npm run build -w @havre/tokens",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next packages/*/dist",
     "db:up": "docker compose up -d --wait",

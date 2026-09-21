@@ -1,0 +1,94 @@
+# SUREKLI ENTEGRASYON — typecheck + test + build.
+#
+# NE ICIN VAR: bugune kadar testleri calistiran tek sey, birinin elle
+# `npm test` yazmasiydi. Bir dagitim, kirik bir testin ustunden gecebilir.
+#
+# ONEMLI OLAN SIRA: `next build` sayfalari uretirken VERITABANINA
+# BAGLANIYOR (sehir ve bakici sayfalari statik uretiliyor). Bu yuzden
+# once migration, sonra tohum, ancak ondan sonra build. Bos bir
+# veritabaniyla build "calisir gorunup" bos sayfalar uretir.
+#
+# TOHUM VERI TESTLER ICIN DE ZORUNLU: arama, siralama ve yer cozumleme
+# testleri gercek sehir/mahalle verisi istiyor; bos veritabaninda
+# 19 test "Tohum veri yok" diyerek duser (olculdu).
+
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+# Ayni dal icin ust uste itmelerde eskisini iptal et.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      db:
+        # PostGIS ZORUNLU: sema geography sutunlari ve GIST indeksleri
+        # kullaniyor, duz postgres imajiyla migration coker.
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: havre
+          POSTGRES_PASSWORD: havre
+          POSTGRES_DB: havre
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U havre"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://havre:havre@127.0.0.1:5432/havre
+      NEXT_PUBLIC_SITE_URL: https://havre.ca
+      NEXT_PUBLIC_DEFAULT_LOCALE: en-CA
+      # Depolama: CI'da yerel disk yeterli ve bilerek acik birakiliyor
+      # (uretimde ALLOW_LOCAL_STORAGE olmadan uygulama acilista durur).
+      STORAGE_DRIVER: local
+      ALLOW_LOCAL_STORAGE: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ANAHTARLAR DEPOYA GIRMIYOR, HER KOSUDA URETILIYOR.
+      # Ikisi de yalnizca bu kosu boyunca yasiyor; depoda ya da
+      # GitHub Secrets'ta duran bir ornek deger yok.
+      - name: Tek kullanimlik anahtarlar
+        run: |
+          echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+          echo "FIELD_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
+      - run: npm ci
+
+      - name: Veritabani semasi
+        run: npm run db:migrate
+
+      - name: Tohum veri
+        run: npm run db:seed
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testler
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Paylasilan JS butcesi: her sayfada, her ziyaretcide odenen sayi.
+      # "Kucuk bir paket ekledim" diye baslayan buyumeleri yakalar.
+      - name: Paylasilan JS butcesi
+        run: node scripts/check-bundle-budget.mjs

@@ -1,0 +1,42 @@
+#!/bin/sh
+# ITMEDEN ONCE DOGRULA — typecheck + test + build + paket butcesi.
+#
+# NEDEN VAR: depoda henuz uzak sunucu yok, yani GitHub Actions
+# (.github/workflows/ci.yml) kimse depoyu GitHub'a itene kadar
+# CALISMIYOR. Bu kanca ayni uc adimi BUGUN, bu makinede calistiriyor.
+#
+# Kurulum (bir kez):  npm run hooks:install
+# Atlamak icin:       SKIP_VERIFY=1 git push
+#
+# ALTYAPI YUZUNDEN ITME ENGELLENMEZ: Postgres kapaliysa kanca uyarir
+# ve gecer. Kirik bir test itmeyi durdurur, kapali bir docker durdurmaz.
+
+if [ -n "$SKIP_VERIFY" ]; then
+  echo "⚠ SKIP_VERIFY=1 — dogrulama atlandi"
+  exit 0
+fi
+
+root=$(git rev-parse --show-toplevel)
+cd "$root" || exit 0
+
+url=$(grep -m1 '^DATABASE_URL=' .env 2>/dev/null | cut -d= -f2-)
+if [ -z "$url" ]; then
+  echo "⚠ .env icinde DATABASE_URL yok — dogrulama atlandi, itmeye devam"
+  exit 0
+fi
+
+if ! node -e "
+const p=require('postgres');const c=p(process.argv[1],{max:1,connect_timeout:3,onnotice:()=>{}});
+c\`select 1\`.then(()=>c.end()).then(()=>process.exit(0)).catch(()=>process.exit(1));
+" "$url" 2>/dev/null; then
+  echo "⚠ Veritabanina ulasilamadi (npm run db:up) — dogrulama atlandi, itmeye devam"
+  exit 0
+fi
+
+echo "→ npm run verify (typecheck + test + build + paket butcesi)"
+npm run verify || {
+  echo ""
+  echo "✗ Dogrulama basarisiz — itme durduruldu."
+  echo "  Yine de itmek icin: SKIP_VERIFY=1 git push"
+  exit 1
+}
