@@ -47,7 +47,9 @@
         "SENTRY_ENVIRONMENT",
         "SENTRY_RELEASE",
         "ADMIN_IP_ALLOWLIST",
-        "ADMIN_ALLOW_ANY_IP"
+        "ADMIN_ALLOW_ANY_IP",
+        "DEMO_MODE",
+        "VERCEL_ENV"
       ]
     },
     "dev": {
@@ -93,7 +95,9 @@
         "SENTRY_ENVIRONMENT",
         "SENTRY_RELEASE",
         "ADMIN_IP_ALLOWLIST",
-        "ADMIN_ALLOW_ANY_IP"
+        "ADMIN_ALLOW_ANY_IP",
+        "DEMO_MODE",
+        "VERCEL_ENV"
       ]
     },
     "typecheck": {
@@ -137,7 +141,9 @@
         "SENTRY_ENVIRONMENT",
         "SENTRY_RELEASE",
         "ADMIN_IP_ALLOWLIST",
-        "ADMIN_ALLOW_ANY_IP"
+        "ADMIN_ALLOW_ANY_IP",
+        "DEMO_MODE",
+        "VERCEL_ENV"
       ]
     },
     "test": {

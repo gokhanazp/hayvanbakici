@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
+import { isDemo } from '@/lib/demo';
 
 /**
  * ROBOTS.TXT (yol haritasi §7.4).
@@ -13,6 +14,16 @@ import { SITE_URL } from '@/lib/seo';
  * yoksa buradaki izin tek basina ise yaramaz.
  */
 export default function robots(): MetadataRoute.Robots {
+  /*
+    DEMO YAYINI: tek satir, istisnasiz. Uydurma bakici profillerinin
+    indekslenmesi hem yalan hem de gercek site acildiginda kendi
+    icerigimizle rekabet demek. Sitemap de verilmiyor — olmayan bir
+    izin icin harita sunmak celiskidir.
+  */
+  if (isDemo()) {
+    return { rules: [{ userAgent: '*', disallow: '/' }] };
+  }
+
   return {
     rules: [
       {

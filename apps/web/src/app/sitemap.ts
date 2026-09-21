@@ -3,6 +3,7 @@ import { evaluateIndexability, servicesForPhase } from '@havre/core';
 import { LOCALES, serviceSlug } from '@havre/i18n';
 import { getCities, getLandingData, getSitterSlugsForBuild } from '@/lib/data';
 import { landingUrl, urlFor } from '@/lib/seo';
+import { isDemo } from '@/lib/demo';
 
 /**
  * DINAMIK SITEMAP.
@@ -11,6 +12,9 @@ import { landingUrl, urlFor } from '@/lib/seo';
  * degilse tum sitenin guveni zarar gorur.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Demo yayininda harita BOS: robots.txt zaten her seyi yasakliyor.
+  if (isDemo()) return [];
+
   const entries: MetadataRoute.Sitemap = [];
   const services = servicesForPhase('v1');
   const cities = await getCities();

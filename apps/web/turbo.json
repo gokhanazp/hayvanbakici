@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    // TYPECHECK BUILD'E BAGLI — Next'in urettigi tipler olmadan calismiyor.
+    //
+    // `next build`, .next/types altina her rota icin bir tip dosyasi yaziyor
+    // ve tsconfig bunlari iceriyor. Temiz bir checkout'ta (CI) ya da .next
+    // silindikten sonra typecheck'i once calistirmak sunu veriyor:
+    //   error TS6053: File '.next/types/app/.../page.ts' not found
+    //
+    // Bu satir yazilmadan once turbo ikisini PARALEL calistirabiliyordu:
+    // ayni komut bazen yesil, bazen kirmizi. Once gorup gecistirilecek bir
+    // titreklik degil, sirasi tanimsiz bir gorev grafigiydi.
+    "typecheck": {
+      "dependsOn": ["^build", "build"]
+    }
+  }
+}

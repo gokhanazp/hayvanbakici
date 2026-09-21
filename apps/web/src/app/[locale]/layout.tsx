@@ -5,6 +5,8 @@ import '../globals.css';
 import localFont from 'next/font/local';
 import { getMessages, localeFromSegment, LOCALES, segmentFor } from '@havre/i18n';
 import { Header } from '@/components/Header';
+import { DemoNotice } from '@/components/DemoNotice';
+import { isDemo } from '@/lib/demo';
 import { Footer } from '@/components/Footer';
 import { ChatDock } from '@/components/chat/ChatDock';
 import { citySlug, getDefaultCity, getLinkableCities } from '@/lib/data';
@@ -57,6 +59,10 @@ export async function generateMetadata(
 
   return {
     metadataBase: new URL(SITE_URL),
+    // Demo yayini: her sayfa noindex. robots.txt'e ek olarak, cunku
+    // dogrudan baglanti verilen bir sayfa robots.txt'ten bagimsiz
+    // indekslenebiliyor.
+    ...(isDemo() ? { robots: { index: false, follow: false } } : {}),
     title: { default: `${m.brand.name} — ${m.brand.tagline}`, template: `%s · ${m.brand.name}` },
     description: m.home.heroSubtitle,
     openGraph: { siteName: m.brand.name, locale, type: 'website' },
@@ -81,6 +87,7 @@ export default async function LocaleLayout({
       <body>
         {/* WCAG 2.4.1 — icerige atlama baglantisi */}
         <a href="#main" className="sr-only">Skip to content</a>
+        {isDemo() && <DemoNotice locale={locale} />}
         <Header locale={locale} citySlug={citySlug(city, locale)} />
         <main id="main">{children}</main>
         <Footer locale={locale} cities={linkableCities} />
