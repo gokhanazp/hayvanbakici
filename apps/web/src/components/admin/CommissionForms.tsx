@@ -31,9 +31,28 @@ const MESSAGES: Record<string, string> = {
   not_allowed: 'You cannot do that.',
 };
 
+/*
+  HATA SATIRI.
+
+  Burada tanimsiz bir CSS degiskeni cagriliyordu; sozlukte karsiligi
+  olmadigi icin renk her zaman yanindaki elle yazilmis yedekten
+  geliyordu — tasarim sisteminin disinda bir kirmizi, koyu temada da
+  degismiyor. Artik tanimli token kullaniliyor.
+
+  Token sozlugu testi bunu yakaliyor ama turbo onbellegi temizlenene
+  kadar gorunmuyordu: onbellekten gelen yesil, yesil degildir.
+
+  NOT: test dosya metnini ham okuyor, YORUMLAR DAHIL. Bu yuzden burada
+  eski cagrinin kendisi ORNEK OLARAK YAZILAMAZ — yazarsam test yine
+  kirilir. (Bir kez yazdim, kirildi.)
+*/
 function Err({ code }: { code: string | undefined }) {
   if (!code) return null;
-  return <span className="a-hint" style={{ color: 'var(--a-bad, #b4232c)' }}>{MESSAGES[code] ?? code}</span>;
+  return (
+    <span className="a-hint" style={{ color: 'var(--color-danger-strong)' }}>
+      {MESSAGES[code] ?? code}
+    </span>
+  );
 }
 
 function Num({
