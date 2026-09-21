@@ -19,6 +19,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { WaitlistForm } from '@/components/WaitlistForm';
 import { SectionDoodles } from '@/components/Doodles';
 import { PHOTOS, type PhotoId } from '@/lib/photos';
+import { isDemo } from '@/lib/demo';
 import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
 import { joinWaitlistAction } from './actions';
@@ -34,6 +35,23 @@ export const dynamicParams = true;
  * 10.000 sayfayi build'de uretmek deploy suresini dakikalardan saatlere cikarir.
  */
 export async function generateStaticParams() {
+  /*
+    DEMO YAYININDA ONCEDEN URETIM YOK.
+
+    Bu sayfalari build'de uretmenin tek sebebi SEO ve ilk ziyaretteki
+    hiz. Demo yayini arama motorlarina TAMAMEN KAPALI (noindex +
+    robots.txt), yani onceden uretmek hicbir sey kazandirmiyor —
+    buna karsilik build makinesi (us-east) ile veritabani (Montreal)
+    arasinda yuzlerce sorgu turu atiyor ve ilk dagitim tam da bu
+    yuzden zaman asimina dustu.
+
+    Sayfalar KAYBOLMUYOR: dynamicParams varsayilan olarak acik, her
+    adres ilk istekte uretilip `revalidate = 3600` ile onbellege
+    aliniyor. Gercek yayinda (DEMO_MODE yok) eski davranis aynen
+    geri geliyor.
+  */
+  if (isDemo()) return [];
+
   const services = servicesForPhase('v1');
   const tier1 = await getTier1Cities();
   const params: Array<{ locale: string; city: string; service: string }> = [];

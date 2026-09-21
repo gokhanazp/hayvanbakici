@@ -13,6 +13,7 @@ import {
 import {
   VerificationBadge, VerificationExplainer, ShieldIcon,
 } from '@/components/VerificationBadge';
+import { isDemo } from '@/lib/demo';
 import { Avatar } from '@/components/Avatar';
 import { SitterGallery } from '@/components/SitterGallery';
 import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
@@ -48,6 +49,10 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
+  // Demo yayini noindex — onceden uretmek hicbir sey kazandirmiyor,
+  // build'i uzatiyor. Sayfalar ilk istekte uretiliyor (ISR).
+  if (isDemo()) return [];
+
   const rows = await getSitterSlugsForBuild();
   return rows.flatMap((r) => [
     { locale: 'en', city: r.citySlugEn, slug: r.slug },
