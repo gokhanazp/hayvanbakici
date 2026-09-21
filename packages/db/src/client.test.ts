@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { getDb, withDbErrors } from './client.js';
+import { isLocalDatabase } from './seed-guard.js';
 
 /**
  * HATA MESAJLARI.
@@ -48,5 +49,33 @@ describe('veritabani hata mesajlari', () => {
     const m = await messageFor(sql`SELECT 1 / 0`);
     expect(m).toMatch(/Postgres 22012/);
     expect(m).toContain('db:doctor');
+  });
+});
+
+/*
+  UZAK VERITABANINDA TLS.
+
+  Gercek bir uzak sunucuya baglanmadan olculebilen tek sey karar
+  mantigi; burada test edilen de o. Yerelde TLS acilmamali (docker'da
+  sertifika yok, acilsa gelistirme kirilir), uzakta acilmali, adres
+  zaten sslmode soyluyorsa karar ona birakilmali.
+*/
+describe('uzak baglantida TLS karari', () => {
+  const decide = (url: string) => {
+    const hasSslMode = /[?&]sslmode=/i.test(url);
+    return !isLocalDatabase(url) && !hasSslMode;
+  };
+
+  it('yerelde TLS acilmaz', () => {
+    expect(decide('postgresql://havre:havre@localhost:5432/havre')).toBe(false);
+    expect(decide('postgresql://havre:havre@127.0.0.1:5432/havre')).toBe(false);
+  });
+
+  it('uzakta TLS acilir', () => {
+    expect(decide('postgresql://postgres:x@aws-0-ca-central-1.pooler.supabase.com:6543/postgres')).toBe(true);
+  });
+
+  it('adres kendi sslmode degerini soyluyorsa karar ona kalir', () => {
+    expect(decide('postgresql://postgres:x@db.example.com:5432/postgres?sslmode=verify-full')).toBe(false);
   });
 });

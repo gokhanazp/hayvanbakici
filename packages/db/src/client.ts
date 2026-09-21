@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema/index.js';
+import { isLocalDatabase } from './seed-guard.js';
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -185,7 +186,25 @@ export function getDb(connectionString = process.env.DATABASE_URL) {
     ? Math.floor(fromEnv)
     : (process.env.NODE_ENV === 'production' ? 10 : 5);
 
+  /*
+    UZAK VERITABANINA TLS ZORUNLU.
+
+    postgres-js, adreste `sslmode` yazmiyorsa sifresiz baglaniyor.
+    Yerelde (docker) bu dogru ve pratik; ama Supabase ya da baska bir
+    saglayiciya sifresiz baglanmak iki anlama gelir: ya baglanti
+    kurulmaz ve "connection is insecure" diye anlasilmaz bir hata
+    alirsin, ya da kurulur ve KULLANICI VERISI INTERNETTEN ACIK GECER.
+
+    Bu yuzden karar adresten cikariliyor: yerel degilse ve adres zaten
+    bir sslmode soylemiyorsa TLS acilir. Adreste sslmode varsa ona
+    dokunulmuyor — ozellikle `verify-full` kullanmak isteyen biri
+    burada engellenmemeli.
+  */
+  const hasSslMode = /[?&]sslmode=/i.test(connectionString);
+  const needsTls = !isLocalDatabase(connectionString) && !hasSslMode;
+
   const client = postgres(connectionString, {
+    ...(needsTls ? { ssl: 'require' as const } : {}),
     max,
     idle_timeout: 20,
     max_lifetime: 60 * 30,
