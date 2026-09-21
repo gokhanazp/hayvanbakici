@@ -24,6 +24,7 @@
     "db:generate": "npm run generate -w @havre/db",
     "db:migrate": "npm run migrate -w @havre/db",
     "db:seed": "npm run seed -w @havre/db",
+    "db:seed:prod": "npm run seed:prod -w @havre/db --",
     "db:smoke": "npm run smoke -w @havre/db",
     "db:studio": "npm run studio -w @havre/db",
     "setup": "npm run db:preflight && npm run db:up && npm run db:migrate && npm run db:seed",

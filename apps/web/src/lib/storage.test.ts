@@ -21,6 +21,13 @@ const ENV_KEYS = [
 
 let saved: Record<string, string | undefined> = {};
 
+/*
+  NODE_ENV Next'in tiplerinde SALT OKUNUR. Testin "uretimde ne olur"
+  sorusunu sorabilmesi icin yazilabilir bir gorunumden geciyoruz —
+  cast yalnizca burada, uygulama kodunda degil.
+*/
+const env = process.env as Record<string, string | undefined>;
+
 beforeEach(() => {
   saved = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
   resetStorageForTests();
@@ -68,16 +75,16 @@ describe('surucu secimi', () => {
   it('URETIMDE yerel disk ACIKCA reddediliyor', () => {
     /* Sunucusuz ortamda dosya sistemi kalici degil: sessizce kaybolan
        fotograf, acilista hata veren sunucudan kotudur. */
-    process.env.STORAGE_DRIVER = 'local';
-    process.env.NODE_ENV = 'production';
-    delete process.env.ALLOW_LOCAL_STORAGE;
+    env.STORAGE_DRIVER = 'local';
+    env.NODE_ENV = 'production';
+    delete env.ALLOW_LOCAL_STORAGE;
     expect(() => getStorage()).toThrow(/yerel disk/i);
   });
 
   it('uretimde bilerek izin verilirse gecer', () => {
-    process.env.STORAGE_DRIVER = 'local';
-    process.env.NODE_ENV = 'production';
-    process.env.ALLOW_LOCAL_STORAGE = '1';
+    env.STORAGE_DRIVER = 'local';
+    env.NODE_ENV = 'production';
+    env.ALLOW_LOCAL_STORAGE = '1';
     expect(() => getStorage()).not.toThrow();
   });
 

@@ -18,9 +18,13 @@ import {
 } from './seed-data.js';
 import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
 import { sitterSlug } from './queries/onboarding.js';
+import { assertSeedTarget } from './seed-guard.js';
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL tanimli degil');
+
+/* UZAK VERITABANINA UYDURMA VERI YAZILAMAZ — bkz. seed-guard.ts. */
+assertSeedTarget(url);
 const client = postgres(url, { max: 1 });
 const db = drizzle(client, { schema: s });
 

@@ -82,11 +82,43 @@ export function TrustStrip({
     Metin ayni kaliyor, yalnizca yerlesim degisiyor — ekranda iki ayri
     kopya yok (ne arama motoru ne ekran okuyucu ikisini birden gorur).
   */
+  /*
+    SIFIR OLAN OLCU BURADA DA YAZILMIYOR.
+
+    Bu kural yukarida `stats` gorunumune yazilmisti ama HAP gorunumu
+    atlanmisti — ve hap, ANA SAYFADA arama kartinin hemen altinda duran
+    olan. Veritabani bosaltilip site gezilince ortaya cikti: ana sayfa
+    "0 verified sitters in Toronto · $0 median price / night" diyordu.
+
+    Rakamlar dogruydu. Ama bir pazaryerinin ilk ekraninda buyuk
+    puntoyla "sifir bakici" ve "sifir dolar medyan fiyat" yazmasi, hem
+    urunu olu gosteriyor hem de "$0 medyan fiyat" ile piyasa hakkinda
+    YANLIS bir sey soyluyor: o rakam bir olcum degil, olcum yoklugu.
+
+    Olcuyu atlamak bir sey gizlemek degil; olmayan bir basariyi ilan
+    etmemek. Hicbiri yoksa serit hic cizilmiyor ve kahramanda yalnizca
+    arama karti kaliyor — ilk gercek bakicilar geldikce kendiliginden
+    doluyor.
+  */
   const items = [
-    { value: numberFmt(sitterCount, locale), label: interpolate(m.home.statSittersIn, { city: cityName }) },
-    { value: `$${price}`, label: `${m.home.statPrice} / ${unitText}` },
-    { value: numberFmt(bookingCount, locale), label: m.home.statBookings },
-  ];
+    {
+      value: numberFmt(sitterCount, locale),
+      label: interpolate(m.home.statSittersIn, { city: cityName }),
+      show: sitterCount > 0,
+    },
+    {
+      value: `$${price}`,
+      label: `${m.home.statPrice} / ${unitText}`,
+      show: medianPriceCents > 0,
+    },
+    {
+      value: numberFmt(bookingCount, locale),
+      label: m.home.statBookings,
+      show: bookingCount > 0,
+    },
+  ].filter((it) => it.show);
+
+  if (items.length === 0) return null;
 
   return (
     <dl className="trust-strip">

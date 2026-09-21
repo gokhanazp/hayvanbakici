@@ -134,18 +134,31 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </div>
               </div>
 
-              {/* Canli veri — uydurma "10.000 mutlu musteri" degil, sorgudan gelen sayi */}
-              <div className="hero-float hero-in hero-in-5">
-                <span className="avatar-stack">
-                  {data.sitters.slice(0, 3).map((s) => (
-                    <Avatar key={s.id} src={s.avatarUrl} initials={s.photoInitials} size={30} />
-                  ))}
-                </span>
-                <span className="text-body-sm" style={{ lineHeight: '1.1rem' }}>
-                  <strong className="tabular">{numberFmt(data.sitterCount, locale)}</strong>{' '}
-                  {fr ? `gardiens vérifiés à ${cityName(city, locale)}` : `verified sitters in ${cityName(city, locale)}`}
-                </span>
-              </div>
+              {/*
+                Canli veri — uydurma "10.000 mutlu musteri" degil, sorgudan
+                gelen sayi.
+
+                BAKICI YOKSA HIC CIZILMIYOR. Veritabani bosaltilip site
+                gezilince bu kutu "0 verified sitters in Toronto" diyordu ve
+                yanindaki avatar siarasi bombostu. Rakam dogruydu ama
+                kahramanin ustune yapistirilmis "sifir bakici" rozeti,
+                urunu olu gosteriyor. Ayni kural seritte de var
+                (components/TrustStrip.tsx): olcuyu atlamak bir sey
+                gizlemek degil, olmayan bir basariyi ilan etmemek.
+              */}
+              {data.sitterCount > 0 && (
+                <div className="hero-float hero-in hero-in-5">
+                  <span className="avatar-stack">
+                    {data.sitters.slice(0, 3).map((s) => (
+                      <Avatar key={s.id} src={s.avatarUrl} initials={s.photoInitials} size={30} />
+                    ))}
+                  </span>
+                  <span className="text-body-sm" style={{ lineHeight: '1.1rem' }}>
+                    <strong className="tabular">{numberFmt(data.sitterCount, locale)}</strong>{' '}
+                    {fr ? `gardiens vérifiés à ${cityName(city, locale)}` : `verified sitters in ${cityName(city, locale)}`}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

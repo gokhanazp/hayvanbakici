@@ -22,7 +22,8 @@
     "test": "vitest run",
     "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "admin": "tsx --env-file-if-exists=../../.env src/make-admin.ts",
-    "users": "tsx --env-file-if-exists=../../.env src/users-list.ts"
+    "users": "tsx --env-file-if-exists=../../.env src/users-list.ts",
+    "seed:prod": "tsx --env-file-if-exists=../../.env src/seed-prod.ts"
   },
   "dependencies": {
     "@havre/core": "0.1.0",
