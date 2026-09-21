@@ -29,6 +29,35 @@ const config: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  /*
+    @sentry/node PAKETLENMIYOR, CALISMA ANINDA YUKLENIYOR.
+
+    Sentry Node SDK, otomatik enstrumentasyon icin `require-in-the-middle`
+    ve `import-in-the-middle` kullaniyor; bunlar `node:child_process` gibi
+    yalnizca Node'da olan seyleri istiyor. Webpack `instrumentation.ts`'i
+    KENAR (edge) calisma zamani icin de derledigi icin, dinamik `import()`
+    bile olsa paketlemeye calisiyor ve derleme "Can't resolve 'path'" ile
+    kiriliyor. Bu liste onlari harici birakiyor: sunucuda `require` ile
+    okunuyorlar, paketin icine girmiyorlar.
+  */
+  serverExternalPackages: ['@sentry/node', 'import-in-the-middle', 'require-in-the-middle'],
+  /*
+    ...ve KENAR ile TARAYICI derlemesinde paket HIC COZULMUYOR.
+
+    `instrumentation.ts` Next tarafindan her calisma zamani icin
+    derleniyor. Kodun icinde `NEXT_RUNTIME !== 'nodejs'` ise cikan bir
+    kosul var ama webpack bunu calismadan bilemez ve dosyayi yine de
+    cozmeye calisir — kenar derlemesinde `node:child_process` cikinca
+    derleme kiriliyor. Burada paketi yalnizca o derlemelerde bos module
+    esliyoruz; node tarafinda dokunulmuyor.
+  */
+  webpack: (config: { resolve?: { alias?: Record<string, unknown> } }, { nextRuntime }: { nextRuntime?: string }) => {
+    if (nextRuntime !== 'nodejs') {
+      config.resolve ??= {};
+      config.resolve.alias = { ...(config.resolve.alias ?? {}), '@sentry/node': false };
+    }
+    return config;
+  },
   transpilePackages: ['@havre/core', '@havre/i18n', '@havre/tokens', '@havre/auth', '@havre/screening'],
   async headers() {
     return [

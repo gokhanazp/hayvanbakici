@@ -42,7 +42,10 @@
         "SES_ACCESS_KEY_ID",
         "SES_SECRET_ACCESS_KEY",
         "SES_CONFIGURATION_SET",
-        "CRON_SECRET"
+        "CRON_SECRET",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "SENTRY_RELEASE"
       ]
     },
     "dev": {
@@ -83,7 +86,10 @@
         "SES_ACCESS_KEY_ID",
         "SES_SECRET_ACCESS_KEY",
         "SES_CONFIGURATION_SET",
-        "CRON_SECRET"
+        "CRON_SECRET",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "SENTRY_RELEASE"
       ]
     },
     "typecheck": {
@@ -122,7 +128,10 @@
         "SES_ACCESS_KEY_ID",
         "SES_SECRET_ACCESS_KEY",
         "SES_CONFIGURATION_SET",
-        "CRON_SECRET"
+        "CRON_SECRET",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "SENTRY_RELEASE"
       ]
     },
     "test": {
