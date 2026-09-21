@@ -181,9 +181,23 @@ export function getDb(connectionString = process.env.DATABASE_URL) {
     once kapatilmis bir sayfanin baglantisi, acilmak isteyen yeni surecin
     yerini kaplamamali.
   */
+  /*
+    SUNUCUSUZDA HAVUZ KUCUK OLMALI.
+
+    Tek bir uzun omurlu sunucuda 10 baglantili bir havuz dogru. Vercel
+    gibi sunucusuz bir ortamda ise AYNI ANDA ONLARCA fonksiyon ornegi
+    yasiyor ve her biri kendi havuzunu aciyor: 10 x 30 ornek = 300
+    baglantı, havuzlayicinin istemci sinirini tek basina doldurur ve
+    istekler sirada bekler.
+
+    Bu yuzden varsayilan ortamdan cikariliyor. DB_POOL_MAX verilirse o
+    kazaniyor (build sirasinda gecici olarak buyutmek mesru).
+  */
+  const serverless = Boolean(process.env.VERCEL) || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
   const fromEnv = Number(process.env.DB_POOL_MAX);
   const max = Number.isFinite(fromEnv) && fromEnv > 0
     ? Math.floor(fromEnv)
+    : serverless ? 2
     : (process.env.NODE_ENV === 'production' ? 10 : 5);
 
   /*

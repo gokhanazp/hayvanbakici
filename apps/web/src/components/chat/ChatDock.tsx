@@ -44,10 +44,29 @@ interface ThreadData {
   messages: ThreadMsg[];
 }
 
-/** Okunmamis sayisi bu aralikla tazeleniyor (balon kapaliyken de). */
-const PING_MS = 10_000;
-/** Acik yazisma daha sik: sohbet hissi burada. */
+/*
+  YOKLAMA ARALIKLARI — HER GIRIS YAPMIS KULLANICI ICIN SURUYOR.
+
+  Bu iki sayi, sunucuya giden istek sayisini dogrudan belirliyor ve
+  kullanici sayisiyla CARPILIYOR: 100 kisi acikken 10 saniyelik bir
+  aralik dakikada 600 istek demek. Her istek bir fonksiyon cagrisi ve
+  bir veritabani sorgusu.
+
+  Rozet 30 saniyede bir tazeleniyor: okunmamis sayisinin 10 saniye
+  once mi 30 saniye once mi hesaplandigi kimsenin fark ettigi bir sey
+  degil.
+
+  Acik yazisma 6 saniyeyle basliyor (sohbet hissi burada) ama SESSIZ
+  GECEN HER TURDA yavasliyor, 30 saniyeye kadar. Yeni mesaj gelince
+  ya da kullanici yazmaya baslayinca yeniden 6 saniyeye donuyor.
+  Acik unutulmus bir sohbet, konusulan bir sohbet kadar maliyetli
+  olmamali.
+
+  Sekme gorunmuyorsa istek zaten HIC atilmiyor (asagida).
+*/
+const PING_MS = 30_000;
 const THREAD_MS = 6000;
+const THREAD_MAX_MS = 30_000;
 const OPEN_KEY = 'havre.chat.open';
 const CONV_KEY = 'havre.chat.conv';
 
@@ -141,26 +160,38 @@ export function ChatDock({ locale }: { locale: Locale }) {
     return () => { alive = false; clearInterval(t); };
   }, [session, hidden]);
 
-  /* Acik yazismayi tazele — YALNIZCA yeni mesaj varsa yeniden cek. */
+  /* Acik yazismayi tazele — YALNIZCA yeni mesaj varsa yeniden cek.
+     Sessiz gecen her turda aralik uzuyor (6 sn -> 30 sn); yeni mesaj
+     gelince basa donuyor. */
   useEffect(() => {
     if (!open || !convId) return;
     let alive = true;
+    let delay = THREAD_MS;
+    let timer: ReturnType<typeof setTimeout>;
+
     const tick = async () => {
-      if (document.visibilityState !== 'visible') return;
-      try {
-        const r = await fetch(`/api/messages/ping?c=${convId}`, { cache: 'no-store' });
-        if (!r.ok) return;
-        const j = (await r.json()) as { lastAt: string | null; unread: number };
-        if (!alive) return;
-        setUnread(j.unread);
-        if (j.lastAt && (!lastSeen.current || j.lastAt > lastSeen.current)) {
-          await loadThread(convId);
-          void loadList();
-        }
-      } catch { /* sessiz */ }
+      if (document.visibilityState === 'visible') {
+        try {
+          const r = await fetch(`/api/messages/ping?c=${convId}`, { cache: 'no-store' });
+          if (r.ok) {
+            const j = (await r.json()) as { lastAt: string | null; unread: number };
+            if (!alive) return;
+            setUnread(j.unread);
+            if (j.lastAt && (!lastSeen.current || j.lastAt > lastSeen.current)) {
+              delay = THREAD_MS; // konusma canlandi
+              await loadThread(convId);
+              void loadList();
+            } else {
+              delay = Math.min(delay * 2, THREAD_MAX_MS);
+            }
+          }
+        } catch { /* sessiz */ }
+      }
+      if (alive) timer = setTimeout(tick, delay);
     };
-    const t = setInterval(tick, THREAD_MS);
-    return () => { alive = false; clearInterval(t); };
+
+    timer = setTimeout(tick, delay);
+    return () => { alive = false; clearTimeout(timer); };
   }, [open, convId, loadThread, loadList]);
 
   /* Acilista liste, hatirlanan konusma varsa o da */
