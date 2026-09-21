@@ -16,6 +16,19 @@ export const runtime = 'nodejs';
  * (`vercel.json` → crons). Ayri bir surec calistirmak, ayri bir dagitim
  * ve ayri bir izleme demekti; bu is gunde birkac saniye suruyor.
  *
+ * SIKLIK — VERCEL PLANINA BAGLI.
+ *
+ * vercel.json gunde bir kez diyor (04:17 UTC), cunku Vercel Hobby
+ * planinda cron gunde birden fazla calistirilamiyor; saatlik ifade
+ * dagitimi reddediyor. Sonucu durustce yazmak gerekirse: ekranda
+ * "36 saat" diyoruz, gunluk calismada bir talep 36-60 saat arasinda
+ * dusuyor.
+ *
+ * DEMO YAYINI ICIN kabul edilebilir (veri zaten uydurma ve site bunu
+ * her sayfada soyluyor). GERCEK KULLANICIYLA YAYINA CIKMADAN ONCE
+ * Pro plana gecip bu ifadeyi "17 * * * *" yapmak GEREKIYOR; aksi
+ * halde ekrandaki sozu tutmuyoruz.
+ *
  * KIMLIK: `CRON_SECRET`.
  *
  * Bu adres herkese acik ve kimlik kontrolu olmasaydi HERKES
