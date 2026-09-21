@@ -35,7 +35,13 @@
         "S3_SECRET_ACCESS_KEY",
         "S3_PREFIX",
         "DB_POOL_MAX",
-        "DB_APP_NAME"
+        "DB_APP_NAME",
+        "MAIL_DRIVER",
+        "SES_REGION",
+        "SES_ENDPOINT",
+        "SES_ACCESS_KEY_ID",
+        "SES_SECRET_ACCESS_KEY",
+        "SES_CONFIGURATION_SET"
       ]
     },
     "dev": {
@@ -69,7 +75,13 @@
         "S3_SECRET_ACCESS_KEY",
         "S3_PREFIX",
         "DB_POOL_MAX",
-        "DB_APP_NAME"
+        "DB_APP_NAME",
+        "MAIL_DRIVER",
+        "SES_REGION",
+        "SES_ENDPOINT",
+        "SES_ACCESS_KEY_ID",
+        "SES_SECRET_ACCESS_KEY",
+        "SES_CONFIGURATION_SET"
       ]
     },
     "typecheck": {
@@ -101,7 +113,13 @@
         "S3_SECRET_ACCESS_KEY",
         "S3_PREFIX",
         "DB_POOL_MAX",
-        "DB_APP_NAME"
+        "DB_APP_NAME",
+        "MAIL_DRIVER",
+        "SES_REGION",
+        "SES_ENDPOINT",
+        "SES_ACCESS_KEY_ID",
+        "SES_SECRET_ACCESS_KEY",
+        "SES_CONFIGURATION_SET"
       ]
     },
     "test": {
@@ -114,7 +132,11 @@
         "FIELD_ENCRYPTION_KEY",
         "STORAGE_DRIVER",
         "ALLOW_LOCAL_STORAGE",
-        "S3_TEST_ENDPOINT"
+        "S3_TEST_ENDPOINT",
+        "MAIL_DRIVER",
+        "SES_REGION",
+        "SES_ENDPOINT",
+        "SES_TEST_ENDPOINT"
       ]
     },
     "lint": {}
