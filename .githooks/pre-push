@@ -33,8 +33,17 @@ c\`select 1\`.then(()=>c.end()).then(()=>process.exit(0)).catch(()=>process.exit
   exit 0
 fi
 
+# DOGRULAMA HER ZAMAN YEREL VERITABANINDA.
+#
+# Kabukta disari acilmis bir DATABASE_URL (ornegin Supabase'e baglanmak
+# icin `set -a; . ./.env.supabase.local`) bu kabugu miras aliyor ve
+# testler UZAK veritabanina gitmeye calisiyordu. Test kurulumu bunu
+# dogru sekilde reddediyor (14 dosya "no tests" ile duser) ama mesaj
+# hicbir sey anlatmiyor ve itme sebepsiz yere duruyor.
+#
+# Cozum: adresi .env'den ZORLA ver, kabukta ne olursa olsun.
 echo "→ npm run verify (typecheck + test + build + paket butcesi)"
-npm run verify || {
+DATABASE_URL="$url" SEED_ALLOW_REMOTE= npm run verify || {
   echo ""
   echo "✗ Dogrulama basarisiz — itme durduruldu."
   echo "  Yine de itmek icin: SKIP_VERIFY=1 git push"
