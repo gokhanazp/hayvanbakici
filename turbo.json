@@ -45,7 +45,9 @@
         "CRON_SECRET",
         "SENTRY_DSN",
         "SENTRY_ENVIRONMENT",
-        "SENTRY_RELEASE"
+        "SENTRY_RELEASE",
+        "ADMIN_IP_ALLOWLIST",
+        "ADMIN_ALLOW_ANY_IP"
       ]
     },
     "dev": {
@@ -89,7 +91,9 @@
         "CRON_SECRET",
         "SENTRY_DSN",
         "SENTRY_ENVIRONMENT",
-        "SENTRY_RELEASE"
+        "SENTRY_RELEASE",
+        "ADMIN_IP_ALLOWLIST",
+        "ADMIN_ALLOW_ANY_IP"
       ]
     },
     "typecheck": {
@@ -131,7 +135,9 @@
         "CRON_SECRET",
         "SENTRY_DSN",
         "SENTRY_ENVIRONMENT",
-        "SENTRY_RELEASE"
+        "SENTRY_RELEASE",
+        "ADMIN_IP_ALLOWLIST",
+        "ADMIN_ALLOW_ANY_IP"
       ]
     },
     "test": {

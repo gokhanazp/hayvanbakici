@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { LOCALES, segmentFor } from '@havre/i18n';
+import { adminGate, clientIp, isAdminPath } from '@/lib/admin-gate';
 
 /** 'en' | 'fr' — dil segmentleri, i18n paketinden tureniyor. */
 const LOCALE_SEGMENTS: ReadonlySet<string> = new Set<string>(LOCALES.map(segmentFor));
@@ -58,6 +59,35 @@ function hasKnownLocale(pathname: string): boolean {
 
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
+
+  /*
+    YONETICI KAPISI — OTURUM KONTROLUNDEN ONCE.
+
+    Kurallar ve gerekceleri lib/admin-gate.ts icinde. Burada onemli olan
+    iki sey:
+
+    1. Kapi ISTEK SUNUCUYA GIRER GIRMEZ calisiyor. Oturum kontrolu
+       sayfanin icinde, yani kapiyi gecemeyen istek veritabanina hic
+       dokunmuyor.
+    2. Reddedilen istek 403 degil 404 aliyor ve /admin'in var oldugunu
+       ele vermeyen MARKALI 404 sayfasi ciziliyor: yakala-hepsini
+       rotasina yeniden yaziliyor, adres cubugunda /admin kaliyor,
+       durum kodu 404.
+  */
+  if (isAdminPath(pathname)) {
+    const gate = adminGate({
+      ip: clientIp(req.headers),
+      allowlist: process.env.ADMIN_IP_ALLOWLIST,
+      allowAny: process.env.ADMIN_ALLOW_ANY_IP,
+      isProduction: process.env.NODE_ENV === 'production',
+    });
+    if (!gate.ok) {
+      const url = new URL(req.url);
+      url.pathname = '/en/not-found/';
+      url.search = '';
+      return NextResponse.rewrite(url, { request: { headers: withPath(req) } });
+    }
+  }
 
   if (pathname === '/' || pathname.endsWith('/')) {
     if (pathname !== '/' && !hasKnownLocale(pathname)) {
