@@ -272,8 +272,16 @@ function line(q: Quote, key: string): number {
   return q.lines.find((l) => l.key === `quote.${key}`)?.amountCents ?? 0;
 }
 
+/**
+ * Durum degisikligini kaydeder.
+ *
+ * `actorId` NULL olabilir: bazi degisiklikleri bir insan degil sistem
+ * yapiyor (suresi dolan talep). Oraya bir kullanici kimligi yazmak,
+ * kaydin "bakici bu talebi sonlandirdi" diye okunmasina yol acardi —
+ * oysa bakici tam olarak hicbir sey yapmadi. NULL = sistem.
+ */
 async function logStatus(
-  db: Database, bookingId: string, actorId: string,
+  db: Database, bookingId: string, actorId: string | null,
   from: BookingStatus | null, to: BookingStatus,
 ): Promise<void> {
   await db.execute(sql`

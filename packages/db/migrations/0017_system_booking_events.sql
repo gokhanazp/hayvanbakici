@@ -1,0 +1,12 @@
+-- SISTEM OLAYLARININ AKTORU YOK.
+--
+-- `booking_events.created_by` NOT NULL idi ve bu, yalnizca INSANIN
+-- yaptigi durum degisikliklerini kaydedebilecegimiz anlamina geliyordu.
+-- Suresi dolan bir talebi kapatan sey ise bir insan degil, zamanin
+-- kendisi. Bos birakamadigimiz icin oraya bir kullanici kimligi yazmak
+-- zorunda kalirdik ve kayit "bakici bu talebi sonlandirdi" diye
+-- okunurdu — oysa bakici tam olarak HICBIR SEY yapmadi.
+--
+-- NULL artik "sistem" demek. Yonetici panelindeki zaman cizelgesi
+-- aktor adini zaten LEFT JOIN ile okuyor; bos gelince "Sistem" yaziyor.
+ALTER TABLE "booking_events" ALTER COLUMN "created_by" DROP NOT NULL;

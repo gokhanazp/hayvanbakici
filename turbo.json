@@ -41,7 +41,8 @@
         "SES_ENDPOINT",
         "SES_ACCESS_KEY_ID",
         "SES_SECRET_ACCESS_KEY",
-        "SES_CONFIGURATION_SET"
+        "SES_CONFIGURATION_SET",
+        "CRON_SECRET"
       ]
     },
     "dev": {
@@ -81,7 +82,8 @@
         "SES_ENDPOINT",
         "SES_ACCESS_KEY_ID",
         "SES_SECRET_ACCESS_KEY",
-        "SES_CONFIGURATION_SET"
+        "SES_CONFIGURATION_SET",
+        "CRON_SECRET"
       ]
     },
     "typecheck": {
@@ -119,7 +121,8 @@
         "SES_ENDPOINT",
         "SES_ACCESS_KEY_ID",
         "SES_SECRET_ACCESS_KEY",
-        "SES_CONFIGURATION_SET"
+        "SES_CONFIGURATION_SET",
+        "CRON_SECRET"
       ]
     },
     "test": {

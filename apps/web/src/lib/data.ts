@@ -42,6 +42,7 @@ import {
   updateSitterPricing as dbUpdateSitterPricing,
   getReviewContext as dbGetReviewContext, submitReview as dbSubmitReview,
   getReviewInbox as dbGetReviewInbox, countReviewsAwaitingReply as dbCountReviewsAwaitingReply,
+  expireStaleRequests as dbExpireStaleRequests, countStaleRequests as dbCountStaleRequests,
   type ReviewAbout,
   respondToReview as dbRespondToReview, type ReviewContext,
   listOwnerPets as dbListOwnerPets, getOwnerPet as dbGetOwnerPet,
@@ -288,6 +289,14 @@ export const servicePriceRanges = (cityId: string) => dbServicePriceRanges(db(),
 export const updateSitterPricing = (
   userId: string, input: Parameters<typeof dbUpdateSitterPricing>[2],
 ) => dbUpdateSitterPricing(db(), userId, input);
+
+/* ------------------------------------------------------------- bakim isi */
+/**
+ * Suresi dolan talepleri kapatir — zamanli is (`/api/cron/expire`).
+ * Ekranda verilen "36 saat" sozunu tutan tek yer.
+ */
+export const expireStaleRequests = (limit?: number) => dbExpireStaleRequests(db(), limit);
+export const countStaleRequests = () => dbCountStaleRequests(db());
 
 /* ------------------------------------------------------------ yorumlar */
 /**
