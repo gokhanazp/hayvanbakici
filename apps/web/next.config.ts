@@ -12,6 +12,21 @@ loadEnvConfig(path.resolve(process.cwd(), '../..'));
 
 const config: NextConfig = {
   reactStrictMode: true,
+  /*
+    STATIK SAYFA URETIM SURESI — varsayilan 60 sn, 180'e cikarildi.
+
+    Build makinesi Vercel'de us-east'te calisiyor; veritabani ise
+    Montreal'de (ca-central-1). Her sayfa birkac sorgu yapiyor ve
+    aradaki gidis-donus zamani yerelde hic gorunmeyen bir maliyet
+    ekliyor. Ilk uretim dagitiminda sehir/hizmet sayfalari tam da bu
+    yuzden 60 saniyeyi asip build'i dusurdu.
+
+    BU BIR CARE DEGIL, PAY. Bir sayfa dakikalarca suruyorsa sebep
+    yavas sorgudur; cozumu once ANALYZE ve indeks, sonra sayfa
+    sayisini azaltmak. Bu satir yalnizca sinirdaki sayfalarin
+    dagitimi topyekun dusurmesini engelliyor.
+  */
+  staticPageGenerationTimeout: 180,
   poweredByHeader: false,
   // canonical URL'lerimiz sonu slash'li: sunucu da ayni davranmali,
   // aksi halde canonical bir 308'e isaret eder (SEO hatasi)
