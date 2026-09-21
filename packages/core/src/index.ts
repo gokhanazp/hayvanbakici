@@ -12,3 +12,4 @@ export * from './holidays.js';
 export * from './postal.js';
 export * from './redact.js';
 export * from './reviews.js';
+export * from './demo.js';

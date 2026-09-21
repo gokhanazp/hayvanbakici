@@ -1,3 +1,4 @@
+import { isDemoEnv } from '@havre/core';
 import { CertnScreeningProvider } from './certn.js';
 import { MockScreeningProvider } from './mock.js';
 import type { ScreeningProvider } from './types.js';
@@ -23,11 +24,25 @@ export function createScreeningProvider(
 
   if (key && secret) return new CertnScreeningProvider(key, secret);
 
-  if (env.NODE_ENV === 'production') {
+  /*
+    TEK ISTISNA: DEMO YAYINI.
+
+    Kural degismedi — sahte saglayiciyla GERCEK bir siteye cikilamaz.
+    Ama demo yayininda site zaten her sayfanin tepesinde "buradaki
+    bakicilar, yorumlar ve rezervasyonlar uydurma" diyor ve arama
+    motorlarina tamamen kapali. Orada "dogrulanmis bakici" rozetinin
+    kimseyi yaniltma ihtimali yok; iddia zaten uydurma veriye ait.
+
+    Bayrak paylasilan tek tanimdan geliyor (@havre/core): uyari seridi
+    ile bu izin AYNI anahtara bagli. Ayri iki tanim olsaydi en kotu
+    bileşim mumkun olurdu — seridi olmayan ama sahte dogrulama yapan
+    bir site.
+  */
+  if (env.NODE_ENV === 'production' && !isDemoEnv(env)) {
     throw new Error(
       'CERTN_API_KEY / CERTN_WEBHOOK_SECRET tanimli degil. Uretimde sahte ' +
         'adli sicil saglayicisi kullanilamaz — "dogrulanmis bakici" iddiasi ' +
-        'dayanaksiz kalirdi.',
+        'dayanaksiz kalirdi. (Demo yayini icin: DEMO_MODE=1)',
     );
   }
 

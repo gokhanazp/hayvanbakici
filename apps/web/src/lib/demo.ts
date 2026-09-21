@@ -1,3 +1,7 @@
+import { isDemoEnv } from '@havre/core';
+
+export { isDemoEnv };
+
 /**
  * DEMO YAYINI — "bu sitedeki insanlar gercek degil" anahtari.
  *
@@ -19,15 +23,6 @@
  * elle isaretlemeyi unutmak cok kolay ve bedeli indekslenmis
  * uydurma veri.
  */
-export function isDemoEnv(env: {
-  DEMO_MODE?: string | undefined;
-  VERCEL_ENV?: string | undefined;
-}): boolean {
-  if (env.DEMO_MODE === '1') return true;
-  if (env.DEMO_MODE === '0') return false;
-  return env.VERCEL_ENV === 'preview';
-}
-
 export function isDemo(): boolean {
   return isDemoEnv({
     DEMO_MODE: process.env.DEMO_MODE,

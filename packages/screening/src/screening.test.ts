@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createHmac } from 'node:crypto';
 import { MockScreeningProvider } from './mock.js';
 import { decide, badgeLevelFor } from './decision.js';
-import { createScreeningProvider } from './index.js';
+import { createScreeningProvider, CertnScreeningProvider } from './index.js';
 
 describe('karar kurali', () => {
   it('temiz sonuc otomatik gecer', () => {
@@ -99,5 +99,35 @@ describe('saglayici secimi', () => {
       CERTN_API_KEY: 'k', CERTN_WEBHOOK_SECRET: 's',
     } as NodeJS.ProcessEnv);
     expect(p.name).toBe('certn');
+  });
+});
+
+describe('saglayici secimi', () => {
+  const base = { NODE_ENV: 'production' } as NodeJS.ProcessEnv;
+
+  it('uretimde anahtar yoksa ACILISTA durur', () => {
+    expect(() => createScreeningProvider({ ...base })).toThrow(/CERTN_API_KEY/);
+  });
+
+  it('DEMO yayininda sahte saglayiciya izin verilir', () => {
+    const p = createScreeningProvider({ ...base, DEMO_MODE: '1' });
+    expect(p).toBeInstanceOf(MockScreeningProvider);
+  });
+
+  it('Vercel onizlemesi de demo sayilir', () => {
+    const p = createScreeningProvider({ ...base, VERCEL_ENV: 'preview' });
+    expect(p).toBeInstanceOf(MockScreeningProvider);
+  });
+
+  it('DEMO_MODE=0 onizlemede bile kurali geri getirir', () => {
+    expect(() => createScreeningProvider({ ...base, VERCEL_ENV: 'preview', DEMO_MODE: '0' }))
+      .toThrow(/CERTN_API_KEY/);
+  });
+
+  it('anahtar varsa demo bayragi bir sey degistirmez — GERCEK saglayici', () => {
+    const p = createScreeningProvider({
+      ...base, DEMO_MODE: '1', CERTN_API_KEY: 'k', CERTN_WEBHOOK_SECRET: 's',
+    });
+    expect(p).toBeInstanceOf(CertnScreeningProvider);
   });
 });
