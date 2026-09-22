@@ -1,3 +1,4 @@
+import { postalMatchesProvince } from '@havre/core';
 import { and, eq, sql } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import {
@@ -296,11 +297,23 @@ export interface LocationInput {
   exactAddress: string;
 }
 
+/**
+ * Konum kaydinin sonucu.
+ *
+ * `postal_province_mismatch`: posta kodunun ilk harfi secilen sehrin
+ * eyaletini tutmuyor (ornegin Calgary + M5V). Bu bir BICIM hatasi degil,
+ * TUTARSIZLIK; bu yuzden ayri bir sonuc olarak donuyor ve kullaniciya
+ * hangi ikisinin celistigi soyleniyor.
+ */
+export type SaveLocationResult =
+  | { ok: true }
+  | { ok: false; error: 'postal_province_mismatch'; province: string };
+
 export async function saveLocation(
   db: Database, userId: string, input: LocationInput,
-): Promise<void> {
+): Promise<SaveLocationResult> {
   await ensureSitter(db, userId);
-  await withDbErrors(async () => {
+  return withDbErrors(async (): Promise<SaveLocationResult> => {
     const [hood] = await db
       .select({
         id: neighbourhoods.id,
@@ -320,6 +333,19 @@ export async function saveLocation(
      * Cografi kodlama servisi yok; ayrica gizlilik acisindan dogru olan da
      * bu: tam adres hicbir zaman bir koordinata cevrilip saklanmiyor.
      */
+    /*
+      POSTA KODU ILE EYALET CELISIYOR MU?
+
+      Kontrol burada, cunku eyaleti ancak mahalleyi okuduktan sonra
+      biliyoruz. Yakalanan gercek durum: Calgary secilip Toronto posta
+      kodu yazildiginda hicbir uyari cikmiyor, yanlis kod profile
+      giriyordu. Kaydetmeden duruyoruz — bu bir yazim hatasi ve
+      kullaniciya hangi ikisinin celistigini soylemek gerekiyor.
+    */
+    if (!postalMatchesProvince(input.postalCode, hood.province)) {
+      return { ok: false as const, error: 'postal_province_mismatch' as const, province: hood.province };
+    }
+
     const point = approximatePoint(userId, hood.lon, hood.lat);
 
     const postalCode = input.postalCode.toUpperCase().replace(/\s+/g, ' ').trim();
@@ -353,6 +379,8 @@ export async function saveLocation(
           updatedAt: new Date(),
         },
       });
+
+    return { ok: true as const };
   });
 }
 

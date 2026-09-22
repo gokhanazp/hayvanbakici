@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ONBOARDING_STEPS, stepIndex, type OnboardingStep } from '@havre/core';
+import { ONBOARDING_STEPS, REQUIRED_STEPS, stepIndex, type OnboardingStep } from '@havre/core';
 import { getMessages, interpolate, segmentFor, type Locale, type Messages } from '@havre/i18n';
 
 /**
@@ -40,6 +40,7 @@ export function Progress({
         {ONBOARDING_STEPS.map((step, i) => {
           const label = m.onboarding[`step.${step}` as keyof Messages['onboarding']] as string;
           const isCurrent = step === current;
+          const optional = step !== 'review' && !(REQUIRED_STEPS as readonly string[]).includes(step);
           const isDone = completed[step] && !isCurrent;
           const reachable = completed[step] || i < currentIndex;
 
@@ -55,7 +56,20 @@ export function Progress({
                   i + 1
                 )}
               </span>
-              <span className="wizard-name">{label}</span>
+              <span className="wizard-name">
+                {label}
+                {/*
+                  ZORUNLU OLMAYAN ADIM ACIKCA ISARETLI.
+
+                  Ilerleme "7 adim" diyordu ama gonderim icin BESI
+                  yetiyor: fotograf istege bagli (elinde iyi bir kare
+                  olmayan birini adli sicil adimina bile sokmamak,
+                  arzi kaybetmenin en sessiz yolu) ve son adim zaten
+                  ozet. Sayiyi degistirmek yerine istisnayi yaziyoruz:
+                  yedi kutu goren biri yedisini de zorunlu saniyordu.
+                */}
+                {optional && <span className="wizard-optional"> · {m.onboarding.optional}</span>}
+              </span>
             </>
           );
 

@@ -67,3 +67,27 @@ export function postalRegion(raw: string): PostalRegion | null {
     ? { fsa: v.slice(0, 3), province }
     : { fsa: v.slice(0, 3), province, citySlug };
 }
+
+/**
+ * POSTA KODU SECILEN EYALETLE TUTUYOR MU?
+ *
+ * Posta kodunun ILK HARFI Kanada'da eyaleti belirler ve bu es gecilmesi
+ * kolay bir tutarsizligi yakalamanin en ucuz yolu: sihirbazda Calgary
+ * secip Toronto posta kodu yazmak hicbir uyari almadan kaydediliyordu.
+ * Harita noktasi mahalleden turetildigi icin arama bozulmuyor — ama
+ * bakicinin profilinde yanlis posta kodu duruyor ve o kod adres
+ * dogrulamasindan faturaya kadar her yerde kullaniliyor.
+ *
+ * Kontrol EYALET duzeyinde, sehir duzeyinde DEGIL: Ottawa'da oturup
+ * Gatineau tarafinda bir posta koduna sahip olmak mumkun degil ama
+ * eyalet icinde sehirler arasi gecis normal (yeni tasinmis biri).
+ *
+ * Tanimsiz/bozuk posta kodu icin `true` donuyor: bicim hatasini zaten
+ * `isValidPostalCode` yakaliyor, ayni girdi icin iki ayri hata mesaji
+ * gostermek kullaniciyi sasirtir.
+ */
+export function postalMatchesProvince(raw: string, province: ProvinceCode): boolean {
+  const region = postalRegion(raw);
+  if (!region) return true;
+  return region.province === province;
+}

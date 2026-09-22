@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { postalRegion } from './postal.js';
+import { postalRegion, postalMatchesProvince } from './postal.js';
 
 describe('postalRegion', () => {
   it('M ile baslayan kod Toronto', () => {
@@ -38,5 +38,27 @@ describe('postalRegion', () => {
 
   it('ABD posta kodu Kanada kodu sanilmaz', () => {
     expect(postalRegion('90210')).toBeNull();
+  });
+});
+
+describe('postalMatchesProvince', () => {
+  it('ayni eyalet — gecer', () => {
+    expect(postalMatchesProvince('M5V 2T6', 'ON')).toBe(true);
+    expect(postalMatchesProvince('T2P 1J9', 'AB')).toBe(true);
+  });
+
+  it('baska eyalet — takilir', () => {
+    // Toronto posta kodu + Calgary secimi: sihirbazda yakalanan gercek durum
+    expect(postalMatchesProvince('M5V 2T6', 'AB')).toBe(false);
+    expect(postalMatchesProvince('H2X 1Y6', 'ON')).toBe(false);
+  });
+
+  it('bicimi bozuk girdide SUSUYOR — bicim hatasini baska kontrol veriyor', () => {
+    expect(postalMatchesProvince('12345', 'ON')).toBe(true);
+    expect(postalMatchesProvince('', 'ON')).toBe(true);
+  });
+
+  it('bosluksuz ve kucuk harf de calisiyor', () => {
+    expect(postalMatchesProvince('m5v2t6', 'ON')).toBe(true);
   });
 });

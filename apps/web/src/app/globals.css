@@ -4486,3 +4486,10 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   list-style: disc;
 }
 .auth-next li + li { margin-top: var(--space-2); }
+
+/* Sihirbaz adim listesinde "istege bagli" etiketi */
+.wizard-optional {
+  font-weight: 400;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}

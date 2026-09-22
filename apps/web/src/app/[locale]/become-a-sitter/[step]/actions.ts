@@ -103,7 +103,14 @@ export async function saveLocationAction(
   const errors = validateLocation(input);
   if (Object.keys(errors).length) return { errors };
 
-  await saveLocation(getDb(), userId, input);
+  /*
+    Posta kodu ile eyalet celisirse KAYDETMIYORUZ ve sebebini posta kodu
+    alaninda gosteriyoruz. Sessizce kaydetmek, bakicinin profilinde
+    yanlis bir posta kodu birakirdi.
+  */
+  const res = await saveLocation(getDb(), userId, input);
+  if (!res.ok) return { errors: { postalCode: 'error.postalProvinceMismatch' } };
+
   redirect(`/${locale}/become-a-sitter/${nextStep('location')}/`);
 }
 
