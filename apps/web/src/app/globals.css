@@ -4467,3 +4467,14 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
 }
+
+/* ---- Demo giris blogu (yalnizca DEMO_MODE) --------------------------- */
+.demo-enter {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--color-surface-sunken);
+}
+.demo-enter h2 { margin-bottom: var(--space-3); }
+.demo-enter .row { gap: var(--space-3); flex-wrap: wrap; }

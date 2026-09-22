@@ -74,6 +74,7 @@ import {
   type AdminBookingDetail, type AdminTransition, type AdminMetrics,
   type ConversationSummary, type Thread, type ThreadMessage, type RawMessage,
   type FavouriteSitter, type OwnerPet, type PetInput, type Species,
+  pickDemoAccounts as dbPickDemoAccounts,
 } from '@havre/db';
 import type { ServiceType } from '@havre/core';
 import type { Locale } from '@havre/i18n';
@@ -144,6 +145,9 @@ export const getSitterProfile = cache(
 );
 
 /** Build'de uretilecek profiller — Tier-1 sehirlerin en ust siradaki bakicilari */
+/** Demo girisi icin secilen uydurma hesaplar (bkz. queries/demo.ts). */
+export const getDemoAccounts = cache(async () => dbPickDemoAccounts(db()));
+
 export const getSitterSlugsForBuild = cache(
   async () => listSitterSlugsForBuild(db(), 40),
 );

@@ -3,6 +3,8 @@ import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
 import { getSession, providers } from '@/lib/auth';
 import { readAnonFavourites } from '@/lib/favourites';
 import { SignInForm } from '@/components/auth/SignInForm';
+import { DemoEnter } from '@/components/auth/DemoEnter';
+import { isDemo } from '@/lib/demo';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +44,7 @@ export default async function SignInPage({
 
   return (
     <>
+      {isDemo() && <DemoEnter locale={locale} />}
       <h1 className="text-h2" style={{ marginBottom: 'var(--space-6)' }}>{m.auth.signIn}</h1>
       <SignInForm locale={locale} providers={providers()} callbackURL={callbackURL} />
     </>

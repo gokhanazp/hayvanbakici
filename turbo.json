@@ -49,7 +49,8 @@
         "ADMIN_IP_ALLOWLIST",
         "ADMIN_ALLOW_ANY_IP",
         "DEMO_MODE",
-        "VERCEL_ENV"
+        "VERCEL_ENV",
+        "DEMO_LOGIN_PASSWORD"
       ]
     },
     "dev": {
@@ -97,7 +98,8 @@
         "ADMIN_IP_ALLOWLIST",
         "ADMIN_ALLOW_ANY_IP",
         "DEMO_MODE",
-        "VERCEL_ENV"
+        "VERCEL_ENV",
+        "DEMO_LOGIN_PASSWORD"
       ]
     },
     "typecheck": {
@@ -143,7 +145,8 @@
         "ADMIN_IP_ALLOWLIST",
         "ADMIN_ALLOW_ANY_IP",
         "DEMO_MODE",
-        "VERCEL_ENV"
+        "VERCEL_ENV",
+        "DEMO_LOGIN_PASSWORD"
       ]
     },
     "test": {

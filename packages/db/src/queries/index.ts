@@ -20,3 +20,4 @@ export * from './waitlist.js';
 export * from './reviews.js';
 export * from './pricing.js';
 export * from './maintenance.js';
+export * from './demo.js';
