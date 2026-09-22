@@ -115,6 +115,15 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
           <Link href={`/${seg}/protection/`} className="nav-link">{m.nav.protection}</Link>
           {/* Ucret seffafligi ana menude — rakiplere karsi en guclu hamle */}
           <Link href={`/${seg}/pricing/`} className="nav-link nav-link-strong">{m.nav.pricing}</Link>
+          {/*
+            BAKICI OLMA YOLU ANA GEZINMEDE.
+
+            Bu bir pazar yeri: arz olmadan talebin anlami yok. Bakici
+            olma yolu bugune kadar yalnizca alt bilgide ve giris yapmis
+            kullanicinin hesap sayfasinda duruyordu — yani siteyi ilk
+            kez acan biri, kazanc tarafini hic gormeden cikiyordu.
+          */}
+          <Link href={`/${seg}/become-a-sitter/`} className="nav-link">{m.nav.becomeSitter}</Link>
         </nav>
 
         <div className="site-header-actions">
@@ -185,6 +194,7 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
               <Link href={`/${seg}/how-it-works/`} className="nav-drawer-item">{m.nav.howItWorks}</Link>
               <Link href={`/${seg}/protection/`} className="nav-drawer-item">{m.nav.protection}</Link>
               <Link href={`/${seg}/pricing/`} className="nav-drawer-item">{m.nav.pricing}</Link>
+              <Link href={`/${seg}/become-a-sitter/`} className="nav-drawer-item">{m.nav.becomeSitter}</Link>
               <Link href={`/${seg}/help/`} className="nav-drawer-item">{m.footer.help}</Link>
 
               {/*

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { authClient } from '@havre/auth/client';
 import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
@@ -41,6 +41,26 @@ export function SignInForm({
   */
   const [noPasswordHint, setNoPasswordHint] = useState(false);
   const [sent, setSent] = useState(false);
+  const [resent, setResent] = useState(false);
+  /* Yeniden gonderme kilidi — saniye saniye eriyor. */
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function resend(): Promise<void> {
+    setBusy(true);
+    setError(null);
+    const res = await authClient.signIn.magicLink({ email: email.trim(), callbackURL });
+    setBusy(false);
+    if (res.error) { setError(res.error.message ?? m.auth['error.generic']); return; }
+    setResent(true);
+    setCooldown(30);
+  }
+
 
   async function handleMagic(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +71,7 @@ export function SignInForm({
     setBusy(false);
     if (res.error) { setError(messageForError(m, res.error.code, res.error.status)); return; }
     setSent(true);
+    setCooldown(30);
   }
 
   async function handlePassword(e: React.FormEvent) {
@@ -73,10 +94,44 @@ export function SignInForm({
     await authClient.signIn.social({ provider, callbackURL });
   }
 
+  /*
+    GONDERDIKTEN SONRAKI EKRAN.
+
+    Once yalnizca "gonderildi" yaziyordu ve kullanici orada kaliyordu:
+    gelmezse ne yapacagi, nereye bakacagi, adresi yanlis yazdiysa nasil
+    donecegi yazili degildi. Bir akisin en kirilgan yeri, kullanicinin
+    BEKLEMEK zorunda oldugu yerdir; orada ne olacagini soylemek
+    arayuzun isi.
+
+    Yeniden gonderme 30 saniye kilitli: arka arkaya basmak hem yeni
+    baglantilar uretip eskisini gecersiz kilar (kullanici en eski
+    postayi acarsa calismaz) hem de saglayici kotasini yer.
+  */
   if (sent) {
     return (
       <div className="auth-form">
-        <Alert kind="ok">{interpolate(m.auth.magicLinkSent, { email: email.trim() })}</Alert>
+        <Alert kind="ok">
+          {resent
+            ? m.auth.magicLinkResent
+            : interpolate(m.auth.magicLinkSent, { email: email.trim() })}
+        </Alert>
+        <ul className="text-body-sm muted auth-next">
+          <li>{m.auth.magicLinkSpam}</li>
+          <li>{m.auth.magicLinkDevice}</li>
+        </ul>
+        <div className="row">
+          <button type="button" className="btn btn-secondary"
+            disabled={busy || cooldown > 0}
+            onClick={() => { void resend(); }}>
+            {cooldown > 0
+              ? interpolate(m.auth.magicLinkWait, { seconds: String(cooldown) })
+              : m.auth.magicLinkResend}
+          </button>
+          <button type="button" className="btn btn-ghost"
+            onClick={() => { setSent(false); setResent(false); setError(null); }}>
+            {m.auth.magicLinkOther}
+          </button>
+        </div>
         <DevInboxLink locale={locale} />
       </div>
     );

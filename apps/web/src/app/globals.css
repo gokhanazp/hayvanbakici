@@ -4478,3 +4478,11 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .demo-enter h2 { margin-bottom: var(--space-3); }
 .demo-enter .row { gap: var(--space-3); flex-wrap: wrap; }
+
+/* Giris baglantisi gonderildikten sonraki yonlendirme listesi */
+.auth-next {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+.auth-next li + li { margin-top: var(--space-2); }
