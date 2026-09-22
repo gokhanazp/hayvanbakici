@@ -1353,32 +1353,71 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .auth-shell {
   display: grid;
   place-items: start center;
-  padding: var(--space-10) var(--space-4) var(--space-16);
+  padding: var(--space-10) 0 var(--space-12);
 }
-@media (min-width: 768px) { .auth-shell { padding-inline: var(--space-8); } }
 
 /*
-  Giris ekrani: solda form, sagda fotograf.
-  Fotograf 960px altinda HIC gosterilmiyor — telefonda form zaten tum
-  ekrani dolduruyor ve fotograf klavye acilinca yeri daraltiyordu.
+  GIRIS EKRANI DUZENI.
+
+  Once sag sutun (%40) bastan asagi tek bir fotografla doluyordu.
+  Iki sorun: sayfanin agirlik merkezi formdan kayiyordu ve fotograf
+  yuklenmeden — ya da yer tutucu goruntulerde — dev bir bos alan gibi
+  duruyordu. Simdi:
+
+    - iki sutun ORTALANMIS bir kapsayicinin icinde, asiri genis
+      ekranlarda sonsuza kadar uzamiyor (max-width),
+    - fotograf sabit oranli ve yuvarlatilmis bir KART,
+    - guven maddeleri akisin icinde (once mutlak konumluydu ve kisa
+      ekranlarda alttan kirpiliyordu),
+    - dar ekranda maddeler formun ALTINDA gorunuyor; oncesinde hic
+      gorunmuyorlardi.
 */
-.auth-split { display: grid; grid-template-columns: minmax(0, 1fr); }
+.auth-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-8);
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
 @media (min-width: 960px) {
-  .auth-split { grid-template-columns: minmax(0, 1fr) 40%; min-height: calc(100vh - 68px); }
+  .auth-split {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+    align-items: center;
+    gap: var(--space-10);
+    min-height: calc(100vh - 68px);
+    padding-inline: var(--space-8);
+  }
   .auth-shell { place-items: center; }
 }
-.auth-aside { display: none; position: relative; overflow: hidden; }
+
+.auth-aside { display: none; }
 @media (min-width: 960px) { .auth-aside { display: block; } }
-.auth-aside-card {
-  position: absolute; z-index: 2; inset-inline: var(--space-8); bottom: var(--space-8);
-  padding: var(--space-6);
-  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
-  backdrop-filter: blur(6px);
-  border-radius: var(--radius-lg);
+.auth-aside-inner { display: grid; gap: var(--space-5); }
+
+.auth-aside-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  max-height: 26rem;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-sunken);
 }
-.auth-aside-card ul { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.auth-aside-card li { display: flex; gap: var(--space-2); align-items: flex-start; font-size: 0.875rem; line-height: 1.25rem; }
-.auth-aside-card svg { flex: none; margin-top: 2px; color: var(--color-accent-hover); }
+.auth-aside-photo > img { width: 100%; height: 100%; object-fit: cover; }
+
+.auth-points { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.auth-points li {
+  display: flex; gap: var(--space-2); align-items: flex-start;
+  font-size: 0.875rem; line-height: 1.3rem; color: var(--color-ink-secondary);
+}
+.auth-points svg { flex: none; margin-top: 3px; color: var(--color-accent-hover); }
+
+/* Dar ekranda maddeler formun altinda; genis ekranda sag panelde. */
+.auth-points-inline { margin-top: var(--space-6); max-width: 27rem; }
+@media (min-width: 960px) { .auth-points-inline { display: none; } }
+
 .auth-card {
   width: 100%;
   max-width: 27rem;
@@ -4492,4 +4531,13 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   font-weight: 400;
   color: var(--color-ink-muted);
   white-space: nowrap;
+}
+
+.auth-aside-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.6rem;
+  color: var(--color-ink);
+  margin: 0;
+  max-width: 22rem;
 }

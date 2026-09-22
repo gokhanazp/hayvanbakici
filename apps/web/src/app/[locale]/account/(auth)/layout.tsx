@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { localeFromSegment } from '@havre/i18n';
+import { getMessages, localeFromSegment } from '@havre/i18n';
 import { Photo } from '@/components/Photo';
 import { ShieldIcon } from '@/components/VerificationBadge';
 
@@ -52,26 +52,53 @@ export default async function AccountLayout({
        'Nothing is charged until a booking is confirmed',
        'Sign in by email link — no password required'];
 
+  /*
+    UC MADDE IKI YERDE DE AYNI KAYNAKTAN.
+
+    Genis ekranda sagdaki panelde, dar ekranda formun ALTINDA
+    gosteriliyorlar. Onceden dar ekranda HIC gorunmuyorlardi: oysa
+    "e-postami verir miyim" karari en cok telefonda veriliyor ve o
+    karara yarayan tek metin buydu.
+  */
+  const Points = ({ className }: { className: string }) => (
+    <ul className={className}>
+      {points.map((p) => (
+        <li key={p}>
+          <ShieldIcon size={14} />
+          {p}
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <div className="auth-split">
       <div className="auth-shell">
         <div className="auth-card">{children}</div>
+        <Points className="auth-points auth-points-inline" />
       </div>
 
-      {/* Genis ekranda fotografli panel; dar ekranda hic basilmaz (CSS) */}
+      {/*
+        SAG PANEL: fotograf artik TAM KANAMA DEGIL.
+
+        Once sag sutunun tamami bir fotografla doluyordu; hem sayfanin
+        agirlik merkezini formdan kaydiriyor hem de fotograf yuklenene
+        kadar (ve yer tutucu goruntulerde) kocaman bos bir alan gibi
+        duruyordu. Simdi fotograf sabit oranli, yuvarlatilmis bir kart;
+        maddeler onun altinda, akisin icinde — kirpilma ihtimali yok.
+      */}
       <aside className="auth-aside">
-        <span className="photo-fill">
-          <Photo id="auth-panel" locale={locale} decorative sizes="42vw" />
-        </span>
-        <div className="auth-aside-card">
-          <ul>
-            {points.map((p) => (
-              <li key={p}>
-                <ShieldIcon size={14} />
-                {p}
-              </li>
-            ))}
-          </ul>
+        <div className="auth-aside-inner">
+          {/*
+            Panelin bir isi olsun: yalnizca fotograf degil, markanin
+            kendi cumlesi. Yeni bir iddia YAZILMIYOR — sitenin her
+            yerinde duran slogan burada da duruyor.
+          */}
+          <p className="auth-aside-title">{getMessages(locale).brand.tagline}</p>
+          <span className="auth-aside-photo">
+            <Photo id="auth-panel" locale={locale} decorative sizes="(min-width: 960px) 32vw, 100vw" />
+          </span>
+          <Points className="auth-points" />
         </div>
       </aside>
     </div>
