@@ -396,6 +396,23 @@ const [ownerUser] = await db.insert(s.users).values({
 }).returning({ id: s.users.id });
 const ownerId = ownerUser!.id;
 
+/*
+  SABIT SAHIP HESABININ PROFIL SATIRI.
+
+  Bu hesap yukaridaki dongunun disinda, elle aciliyordu ve PROFILI YOKTU.
+  Gercek kayitta profil satirini auth kancasi aciyor (sosyal giris dahil),
+  yani bu yalnizca tohuma ozgu bir eksiklikti — ama bedeli gorunurdu:
+  demo girisiyle bu hesaba girip bakici sihirbazini doldurmaya calisan
+  biri, adimlar ilerledigi halde hicbir seyin kaydedilmedigini ancak
+  sonda "gonder" dugmesi kapali kalinca anliyordu. (Sihirbaz tarafinda
+  da ayrica upsert'e gecildi; iki tarafi birden duzeltmek gerekiyordu.)
+*/
+await db.insert(s.profiles).values({
+  userId: ownerId,
+  firstName: 'Demo',
+  lastNameInitial: 'S',
+}).onConflictDoNothing();
+
 const r2 = rng('bookings');
 for (const svcRow of allServices) {
   const n = Math.floor(r2() * 9); // 0-8 tamamlanmis rezervasyon

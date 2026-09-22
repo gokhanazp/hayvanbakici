@@ -239,15 +239,38 @@ export async function saveAbout(
 ): Promise<void> {
   await ensureSitter(db, userId);
   await withDbErrors(async () => {
+    /*
+      UPDATE DEGIL UPSERT — SESSIZ KAYBI ONLEMEK ICIN.
+
+      Profil satiri normalde kayit sirasinda aciliyor (auth tarafindaki
+      user.create kancasi, sosyal giris dahil). Ama satir herhangi bir
+      sebeple yoksa — elle acilmis bir hesap, tohum verisi, ileride
+      yazilacak bir ice aktarma — `update` HICBIR SATIRI etkilemiyor ve
+      hata da vermiyordu: sihirbaz bir sonraki adima geciyor, girilen
+      her sey sessizce kayboluyordu. Bu, yonetici formlarinda kapatilan
+      "sessiz form" hatasinin ta kendisi.
+
+      Olculdu: profili olmayan bir hesapla sihirbaz sonuna kadar
+      gidiyor, sonra "gonder" dugmesi kapali kaliyor ve kullanici
+      neden oldugunu ogrenemiyordu.
+    */
     await db
-      .update(profiles)
-      .set({
+      .insert(profiles)
+      .values({
+        userId,
         firstName: input.firstName,
         lastNameInitial: input.lastNameInitial.slice(0, 1).toUpperCase(),
         bio: input.bio,
-        updatedAt: new Date(),
       })
-      .where(eq(profiles.userId, userId));
+      .onConflictDoUpdate({
+        target: profiles.userId,
+        set: {
+          firstName: input.firstName,
+          lastNameInitial: input.lastNameInitial.slice(0, 1).toUpperCase(),
+          bio: input.bio,
+          updatedAt: new Date(),
+        },
+      });
 
     await db.update(users).set({ phone: input.phone, updatedAt: new Date() }).where(eq(users.id, userId));
 
@@ -299,18 +322,37 @@ export async function saveLocation(
      */
     const point = approximatePoint(userId, hood.lon, hood.lat);
 
+    const postalCode = input.postalCode.toUpperCase().replace(/\s+/g, ' ').trim();
+    const location = sql`ST_SetSRID(ST_MakePoint(${point.lon}, ${point.lat}), 4326)::geography`;
+
+    // UPSERT — gerekcesi saveAbout icinde yazili.
     await db
-      .update(profiles)
-      .set({
+      .insert(profiles)
+      .values({
+        userId,
+        // firstName/lastNameInitial NOT NULL: satir zaten varsa asagidaki
+        // onConflictDoUpdate kazaniyor, bu degerler hic yazilmiyor.
+        firstName: '',
+        lastNameInitial: '',
         cityId: input.cityId,
         neighbourhoodId: input.neighbourhoodId,
         province: hood.province,
-        postalCode: input.postalCode.toUpperCase().replace(/\s+/g, ' ').trim(),
+        postalCode,
         exactAddressEnc: encryptField(input.exactAddress),
-        approxLocation: sql`ST_SetSRID(ST_MakePoint(${point.lon}, ${point.lat}), 4326)::geography`,
-        updatedAt: new Date(),
+        approxLocation: location,
       })
-      .where(eq(profiles.userId, userId));
+      .onConflictDoUpdate({
+        target: profiles.userId,
+        set: {
+          cityId: input.cityId,
+          neighbourhoodId: input.neighbourhoodId,
+          province: hood.province,
+          postalCode,
+          exactAddressEnc: encryptField(input.exactAddress),
+          approxLocation: location,
+          updatedAt: new Date(),
+        },
+      });
   });
 }
 
