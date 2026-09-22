@@ -700,6 +700,11 @@ export const enCA = {
     resetInvalid: 'This link has expired or has already been used. Request a new one.',
     verifyTitle: 'Confirm your email',
     verifySent: 'We sent a confirmation link to {email}. Open it to finish setting up your account.',
+    verifySpam: 'Nothing after a minute? Check your spam folder — the message comes from our address, not a person.',
+    verifyNext: 'After you confirm, you can search sitters and send a request right away. Becoming a sitter yourself is a separate step, and you can start it whenever you like.',
+    verifyResend: 'Send the link again',
+    verifyResent: 'Sent again — the older link no longer works.',
+    verifyOther: 'Use a different address',
     verifyDone: 'Your email is confirmed.',
     verifyInvalid: 'This confirmation link has expired or has already been used.',
     /*

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { authClient } from '@havre/auth/client';
 import { checkPassword, PASSWORD_RULES } from '@havre/auth/password';
@@ -49,6 +49,28 @@ export function SignUpForm({
   const [error, setError] = useState<string | null>(null);
   const [pwProblems, setPwProblems] = useState<string[]>([]);
   const [done, setDone] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function resend(): Promise<void> {
+    setBusy(true);
+    setError(null);
+    const res = await authClient.sendVerificationEmail({
+      email: email.trim(),
+      callbackURL: verifyURL,
+    });
+    setBusy(false);
+    if (res.error) { setError(messageForError(m, res.error.code, res.error.status)); return; }
+    setResent(true);
+    setCooldown(30);
+  }
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -87,6 +109,7 @@ export function SignUpForm({
     }
 
     setDone(true);
+    setCooldown(30);
   }
 
   async function handleProvider(provider: 'google' | 'apple') {
@@ -94,10 +117,43 @@ export function SignUpForm({
     await authClient.signIn.social({ provider, callbackURL });
   }
 
+  /*
+    KAYITTAN SONRAKI EKRAN — giris ekranindakiyle AYNI SEBEPLE.
+
+    Kullanici burada beklemek zorunda ve bekleme ani bir akisin en
+    kirilgan yeri. Gelmezse nereye bakacagi, adresi yanlis yazdiysa
+    nasil donecegi ve DOGRULADIKTAN SONRA ne yapabilecegi yazili
+    olmali. Son madde ozellikle onemli: "bakici olmak" ayri bir adim
+    ve bunu burada soylemek, hesabini acan birinin sihirbazi aradigi
+    dakikalari kurtariyor.
+
+    Tekrar gonderme 30 saniye kilitli: her yeni baglanti oncekini
+    gecersiz kiliyor, arka arkaya basan biri ilk postayi acinca
+    "calismiyor" diyecekti.
+  */
   if (done) {
     return (
       <div className="auth-form">
-        <Alert kind="ok">{interpolate(m.auth.verifySent, { email: email.trim() })}</Alert>
+        <Alert kind="ok">
+          {resent ? m.auth.verifyResent : interpolate(m.auth.verifySent, { email: email.trim() })}
+        </Alert>
+        <ul className="text-body-sm muted auth-next">
+          <li>{m.auth.verifySpam}</li>
+          <li>{m.auth.verifyNext}</li>
+        </ul>
+        <div className="row">
+          <button type="button" className="btn btn-secondary"
+            disabled={busy || cooldown > 0}
+            onClick={() => { void resend(); }}>
+            {cooldown > 0
+              ? interpolate(m.auth.magicLinkWait, { seconds: String(cooldown) })
+              : m.auth.verifyResend}
+          </button>
+          <button type="button" className="btn btn-ghost"
+            onClick={() => { setDone(false); setResent(false); setError(null); }}>
+            {m.auth.verifyOther}
+          </button>
+        </div>
         <DevInboxLink locale={locale} />
       </div>
     );
