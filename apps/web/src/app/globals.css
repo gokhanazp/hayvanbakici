@@ -922,10 +922,33 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   duruyordu; marka ile menu arasindaki bag okunmuyordu. Sagda kalan
   bosluk kasitli: eylem alanini nefes aldiriyor.
 */
+/*
+  CUBUK YA TAM SIGAR YA DA CEKMECEYE GECER — ESIK 1180px.
+
+  Esik 1000px idi ve giris yapmis bir kullanicida cubuk o genislikte
+  sigmiyordu: Fransizca "Terminer votre candidature" dugmesiyle
+  birlikte sayfa yatay olarak kayiyordu (1000px ekranda 1117px
+  belge genisligi). Kap zaten 1180px'de duruyor, yani ekrani
+  buyutmek de kurtarmiyordu.
+
+  Yeni esik kabin kendi genisligi: cubuk ancak tam sigacagi yerde
+  aciliyor, altinda cekmece calisiyor — cekmece dar ekranda zaten
+  daha iyi bir yuzey.
+*/
 .site-nav { display: none; align-items: center; gap: var(--space-2); }
-@media (min-width: 1000px) {
+@media (min-width: 1180px) {
   .site-nav { display: flex; margin-inline-start: var(--space-8); margin-inline-end: auto; }
 }
+
+/*
+  KELIME ORTASINDAN BOLUNME YOK. Cubuk dar kalinca baglantilar
+  kendi iclerinde sariliyordu ve "How it works" iki satir oluyordu:
+  yer kazandirmayan, yalnizca basligi buyuten bir kirilma. Sigmiyorsa
+  cubugun tamami cekmeceye gecmeli (asagidaki 1180px esigi), yazi
+  ikiye boluNMEmeli.
+*/
+.nav-link, .site-header-actions > a, .site-header-actions > button,
+.header-account > a, .header-account > button { white-space: nowrap; }
 
 .nav-link {
   display: inline-flex; align-items: center; gap: var(--space-1);
@@ -999,7 +1022,9 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 
 /* --- Mobil cekmece --- */
 .nav-drawer { position: relative; }
-@media (min-width: 1000px) { .nav-drawer { display: none; } }
+/* Cubukla ayni esik (1180px): arada hicbir genislikte ne ikisi birden
+   ne de hicbiri gorunuyor */
+@media (min-width: 1180px) { .nav-drawer { display: none; } }
 .nav-drawer > summary {
   display: grid; place-items: center;
   width: var(--min-touch-target); height: var(--min-touch-target);
@@ -1194,13 +1219,13 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 
   390px'de cubuk logo + EN/FR + isim + "Se deconnecter" + hamburger
   tasiyordu; Fransizcada cikis dugmesi iki satira boluniyor ve baslik
-  ekrandan tasiyordu. Cekmece 1000px'de kayboluyor, hesap alani da tam
+  ekrandan tasiyordu. Cekmece 1180px'de kayboluyor, hesap alani da tam
   o noktada cubuga geri geliyor — arada hicbir genislikte iki kopya da
   gorunmuyor, hicbirinde de kaybolmuyor.
 */
 .header-account { display: none; }
-@media (min-width: 1000px) { .header-account { display: contents; } }
-@media (min-width: 1000px) { .nav-drawer .header-account { display: none; } }
+@media (min-width: 1180px) { .header-account { display: contents; } }
+@media (min-width: 1180px) { .nav-drawer .header-account { display: none; } }
 
 /*
   IKI KAPI — bakici davet sayfasinda kahramanin altinda.

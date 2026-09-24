@@ -116,14 +116,20 @@ export function Header({ locale, citySlug }: { locale: Locale; citySlug: string 
           {/* Ucret seffafligi ana menude — rakiplere karsi en guclu hamle */}
           <Link href={`/${seg}/pricing/`} className="nav-link nav-link-strong">{m.nav.pricing}</Link>
           {/*
-            BAKICI OLMA YOLU ANA GEZINMEDE.
+            BAKICI OLMA YOLU: CUBUKTA BIR KEZ.
 
-            Bu bir pazar yeri: arz olmadan talebin anlami yok. Bakici
-            olma yolu bugune kadar yalnizca alt bilgide ve giris yapmis
-            kullanicinin hesap sayfasinda duruyordu — yani siteyi ilk
-            kez acan biri, kazanc tarafini hic gormeden cikiyordu.
+            Burada bir de "Bakici ol" baglantisi duruyordu. Sagdaki ana
+            dugme ZATEN ayni yere gidiyor ve duruma gore konusuyor
+            ("Bakici ol" / "Basvurunu bitir" / "Bakici paneli"), yani
+            cubuk ayni yolu iki kez gosteriyordu. Giris yapmis
+            kullanicida bunun bedeli gorunurdu: cubukta hesap adi,
+            cikis ve uzun dugme de olunca 1180 piksellik kaba sigmiyor
+            ve baglantilar kelime ortasindan iki satira boluniyordu
+            ("How it / works").
+
+            Yol kaybolmadi: sagdaki dugme, mobil cekmecedeki liste ve
+            alt bilgi hala goturuyor.
           */}
-          <Link href={`/${seg}/become-a-sitter/`} className="nav-link">{m.nav.becomeSitter}</Link>
         </nav>
 
         <div className="site-header-actions">
