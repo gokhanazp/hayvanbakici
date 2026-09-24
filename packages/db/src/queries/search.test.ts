@@ -171,18 +171,51 @@ describe('boyut filtresi', () => {
     for (const r of rows) expect(r.sizes).toContain('small');
   });
 
+  /*
+    Bu test once tohum verideki rastgeleye dayaniyordu ("kucugu
+    atlayan bir bakici vardir"). Goc ile doldurulmus bir veritabaninda
+    boyle bir satir YOK — geri doldurma her zaman kucukten basliyor —
+    ve test kirmizi oluyordu. Oysa kirmizi olan sey uygulama degil,
+    testin varsayimiydi.
+
+    Artik kosulu test kendisi kuruyor: var olan bir bakiciyi gecici
+    olarak "yalnizca orta" yapiyor, iki aramayi da olcuyor ve satiri
+    eski haline geri koyuyor.
+  */
   it('kucukleri ALMAYAN bakici kucuk aramada CIKMIYOR', async () => {
     const criteria = await toronto();
-    const small = new Set(
-      (await searchSitters(db, { ...criteria, petWeightKg: 3, limit: 500 }, 'en-CA')).map((s) => s.id),
-    );
-    const medium = await searchSitters(db, { ...criteria, petWeightKg: 12, limit: 500 }, 'en-CA');
+    const small = await searchSitters(db, { ...criteria, petWeightKg: 3, limit: 500 }, 'en-CA');
+    expect(small.length).toBeGreaterThan(0);
 
-    // Tohum veride kucugu atlayan bakiciler var (seed.ts). Orta
-    // aramasinda cikip kucuk aramasinda cikmayan en az bir tane
-    // olmali; yoksa bu test hicbir sey kanitlamiyor demektir.
-    const skipsSmall = medium.filter((s) => !small.has(s.id));
-    expect(skipsSmall.length).toBeGreaterThan(0);
+    const victim = small[0]!.id;
+    const [row] = await db
+      .select({ id: sitterServices.id, sizes: sitterServices.acceptedSizes })
+      .from(sitterServices)
+      .where(and(
+        eq(sitterServices.sitterId, victim),
+        eq(sitterServices.serviceType, 'boarding'),
+        eq(sitterServices.isActive, true),
+      ));
+    if (!row) throw new Error('Tohum veri beklenmedik: konaklama hizmeti yok');
+
+    try {
+      await db.update(sitterServices)
+        .set({ acceptedSizes: ['medium'] })
+        .where(eq(sitterServices.id, row.id));
+
+      // 3 kg = kucuk kademesi, artik isaretli degil: CIKMAMALI.
+      const afterSmall = await searchSitters(db, { ...criteria, petWeightKg: 3, limit: 500 }, 'en-CA');
+      expect(afterSmall.map((s) => s.id)).not.toContain(victim);
+
+      // 12 kg = orta: ayni bakici hala cikmali. Bu ikinci olcum
+      // olmadan test, filtrenin her seyi eledigini de gecerdi.
+      const afterMedium = await searchSitters(db, { ...criteria, petWeightKg: 12, limit: 500 }, 'en-CA');
+      expect(afterMedium.map((s) => s.id)).toContain(victim);
+    } finally {
+      await db.update(sitterServices)
+        .set({ acceptedSizes: row.sizes })
+        .where(eq(sitterServices.id, row.id));
+    }
   });
 
   it('sayim ile listeleme boyut filtresinde de ayni', async () => {
