@@ -5,18 +5,29 @@ import Link from 'next/link';
 import {
   MAX_EXTRA_PET_CENTS, MAX_HOLIDAY_PCT,
   MAX_PRICE_CENTS, MIN_PRICE_CENTS, MIN_RANGE_SAMPLE, SERVICES, servicesForPhase,
-  PET_SIZE_STEPS,
+  PET_SIZE_STEPS, normalizePetSizes, type PetSizeKey,
   type CommissionConfig,
   netPerUnit, previousStep,
   type OnboardingStep, type PriceRange, type ProvinceCode, type ServiceType,
 } from '@havre/core';
 import { getMessages, interpolate, segmentFor, type Locale, type Messages } from '@havre/i18n';
 import { ServiceIcon, SERVICE_TILE } from '@/components/ServiceIcon';
+import { DogSilhouette } from '@/components/HomeIcon';
 import { Select } from '@/components/ui/Select';
 import { DateOfBirthField } from '@/components/ui/DateOfBirthField';
 import type { StepState } from '@/app/[locale]/become-a-sitter/[step]/actions';
 
 type Action = (prev: StepState, form: FormData) => Promise<StepState>;
+
+/*
+  Siluet kademeye gore buyuyor: aradaki fark BOYUTUN kendisi oldugu
+  icin, yazidan once gozle okunuyor. Bakici profilindeki liste de ayni
+  olcekleri kullaniyor (sitter/[slug]/page.tsx) — bakicinin sihirbazda
+  isaretledigi sey, sahibin profilde gordugu seyle ayni gorunmeli.
+*/
+const SIZE_CHIP_PX: Record<PetSizeKey, number> = {
+  small: 18, medium: 23, large: 28, giant: 33,
+};
 
 const EMPTY: StepState = { errors: {} };
 
@@ -363,8 +374,8 @@ interface ServiceDraft {
   /** Bos string = ek ucret yok. "0" yazmakla bos birakmak ayni sey. */
   extraPet: string;
   holiday: string;
-  /** Kabul edilen en buyuk kilo — kademe sinirlarindan biri */
-  maxKg: string;
+  /** Kabul edilen boyut kademeleri — en az bir tane */
+  sizes: PetSizeKey[];
 }
 
 export function ServicesForm({
@@ -376,7 +387,7 @@ export function ServicesForm({
     serviceType: string; priceCents: number; cancellationPolicy: string;
     acceptsDogs: boolean; acceptsCats: boolean; acceptsOther: boolean;
     extraPetPriceCents: number; holidaySurchargePct: number;
-    acceptedSizeMaxKg: number;
+    acceptedSizes: readonly string[];
   }>;
   /** Net kazanc satirinin vergisi ile icin — konum adimi bundan once geliyor */
   province?: ProvinceCode | null | undefined;
@@ -418,12 +429,12 @@ export function ServicesForm({
         extraPet: row?.extraPetPriceCents ? String(row.extraPetPriceCents / 100) : '',
         holiday: row?.holidaySurchargePct ? String(row.holidaySurchargePct) : '',
         /*
-          VARSAYILAN EN BUYUK KADEME DEGIL. Sutunun veritabani
-          varsayilani 100 kg ve bu, hicbir bakicinin vermedigi bir
-          sozdu: yeni her profil "dev kopek alirim" diye ilan
-          ediyordu. Yeni hizmette secim BOS basliyor ve alan zorunlu.
+          HICBIRI ISARETLI BASLAMIYOR. Sutunun eski varsayilani
+          "100 kg" idi ve bu, hicbir bakicinin vermedigi bir sozdu:
+          yeni her profil "dev kopek alirim" diye ilan ediyordu.
+          Secim bos basliyor ve en az bir kademe zorunlu.
         */
-        maxKg: row ? String(Math.round(row.acceptedSizeMaxKg)) : '',
+        sizes: normalizePetSizes(row?.acceptedSizes),
       };
     }
     return out;
@@ -530,36 +541,63 @@ export function ServicesForm({
                   </div>
 
                   {/*
-                    EN BUYUK KABUL EDILEN BOYUT.
+                    KABUL EDILEN BOYUTLAR — KUTUCUK, ACILIR LISTE DEGIL.
 
-                    Alan yoktu: sutun veritabaninda 100 kg varsayiliyla
-                    duruyordu ve her profilde "0-100 kg" yaziyordu —
-                    bakicinin vermedigi bir soz. Arama da bu sayidan
-                    filtreliyor, yani yanlis olmasi yalnizca gorsel
-                    degil: kucuk bir daireye dev kopek istegi gidiyordu.
+                    Onceden tek bir "en buyuk kilo" acilir listesi
+                    vardi. Iki sorunu birden tasiyordu: kapaliyken
+                    hicbir sey soylemiyordu (ekranda yalnizca "—"),
+                    ve bakiciyi sifirdan baslayan KESINTISIZ bir
+                    aralik soylemeye zorluyordu. Kendi iri kopegi olan
+                    bir bakici "buyuk alirim ama uc kiloluk yavru
+                    alamam" diyemiyordu.
+
+                    Artik her kademe bagimsiz. Arama da (search.ts)
+                    kiloyu kademeye cevirip bu kumede ariyor: burada
+                    isaretlenmeyen bir boyutun istegi HIC gelmiyor.
                   */}
-                  <div className="field-block">
-                    <label htmlFor={`size-${type}`}>{m.onboarding['services.maxSize']}</label>
-                    <Select
-                      id={`size-${type}`}
-                      name={`size.${type}`}
-                      value={d.maxKg}
-                      required
-                      placeholder="—"
-                      onChange={(next) => patch(type, { maxKg: next })}
-                      options={PET_SIZE_STEPS.map((step) => ({
-                        value: String(step.maxKg),
-                        label: interpolate(
-                          m.onboarding[`services.size.${step.key}` as keyof Messages['onboarding']] as string,
-                          { min: step.minKg, max: step.maxKg },
-                        ),
-                      }))}
-                    />
-                    <span className="field-hint">{m.onboarding['services.maxSizeHint']}</span>
+                  <fieldset className="field-block" style={{ border: 0, padding: 0, margin: 0 }}>
+                    <legend className="field-legend">{m.onboarding['services.sizes']}</legend>
+                    <div className="size-choices">
+                      {PET_SIZE_STEPS.map((step) => {
+                        const on = d.sizes.includes(step.key);
+                        return (
+                          <label key={step.key} className="size-choice">
+                            <input
+                              type="checkbox"
+                              name={`size.${type}`}
+                              value={step.key}
+                              checked={on}
+                              onChange={(e) => patch(type, {
+                                sizes: normalizePetSizes(
+                                  e.target.checked
+                                    ? [...d.sizes, step.key]
+                                    : d.sizes.filter((k) => k !== step.key),
+                                ),
+                              })}
+                            />
+                            <span className="size-choice-art" aria-hidden="true">
+                              <DogSilhouette size={SIZE_CHIP_PX[step.key]} />
+                            </span>
+                            <span className="size-choice-text">
+                              <span className="size-choice-name">
+                                {m.onboarding[`services.size.${step.key}` as keyof Messages['onboarding']] as string}
+                              </span>
+                              <span className="size-choice-range">
+                                {interpolate(
+                                  m.onboarding[`services.sizeRange.${step.key}` as keyof Messages['onboarding']] as string,
+                                  { min: step.minKg, max: step.maxKg },
+                                )}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <span className="field-hint">{m.onboarding['services.sizesHint']}</span>
                     {state.errors[`size.${type}`] && (
                       <span className="field-error" role="alert">{err(m, state.errors[`size.${type}`])}</span>
                     )}
-                  </div>
+                  </fieldset>
 
                   <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
                     <legend className="field-hint" style={{ marginBottom: 'var(--space-2)' }}>

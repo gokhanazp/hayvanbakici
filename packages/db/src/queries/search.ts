@@ -10,6 +10,7 @@ import { sql, type SQL } from 'drizzle-orm';
 import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
 import type { SitterSummary } from './landing.js';
+import { petSizeForKg } from '@havre/core';
 import type { ServiceType } from '@havre/core';
 
 export interface SearchParams {
@@ -68,7 +69,13 @@ function filters(params: SearchParams, origin: SQL, radius: number): SQL {
     AND st.slug IS NOT NULL
     AND ST_DWithin(pr.approx_location, ${origin}, ${radius})
     ${params.petWeightKg !== undefined
-      ? sql`AND ${params.petWeightKg} BETWEEN ss.accepted_size_min_kg AND ss.accepted_size_max_kg`
+      /*
+        Kilo once KADEMEYE cevriliyor, sonra bakicinin isaretledigi
+        kumede araniyor. Eskiden bir BETWEEN vardi ve bu, kabul edilen
+        boyutun sifirdan baslayan kesintisiz bir aralik olmasini
+        varsayiyordu; artik oyle degil (bkz. 0018 gocu).
+      */
+      ? sql`AND ${petSizeForKg(params.petWeightKg)} = ANY(ss.accepted_sizes)`
       : sql``}
     ${params.needsCats ? sql`AND ss.accepts_cats` : sql``}
     ${params.maxPriceCents !== undefined ? sql`AND ss.price_cents <= ${params.maxPriceCents}` : sql``}

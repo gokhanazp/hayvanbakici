@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { withDbErrors, type Database } from '../client.js';
 import type { Locale } from './types.js';
+import { normalizePetSizes, type PetSizeKey } from '@havre/core';
 import type { ServiceType } from '@havre/core';
 
 /**
@@ -49,8 +50,7 @@ export interface SitterService {
   acceptsDogs: boolean;
   acceptsCats: boolean;
   acceptsOther: boolean;
-  acceptedSizeMinKg: number;
-  acceptedSizeMaxKg: number;
+  acceptedSizes: PetSizeKey[];
 }
 
 export interface SitterProfile {
@@ -215,7 +215,7 @@ export async function getSitterProfile(
         SELECT service_type, price_cents, extra_pet_price_cents, holiday_surcharge_pct,
                price_unit, cancellation_policy,
                accepts_dogs, accepts_cats, accepts_other,
-               accepted_size_min_kg, accepted_size_max_kg
+               accepted_sizes
         FROM sitter_services
         WHERE sitter_id = ${userId} AND is_active
         ORDER BY price_cents ASC
@@ -381,8 +381,7 @@ export async function getSitterProfile(
         acceptsDogs: Boolean(s.accepts_dogs),
         acceptsCats: Boolean(s.accepts_cats),
         acceptsOther: Boolean(s.accepts_other),
-        acceptedSizeMinKg: Number(s.accepted_size_min_kg ?? 0),
-        acceptedSizeMaxKg: Number(s.accepted_size_max_kg ?? 100),
+        acceptedSizes: normalizePetSizes(s.accepted_sizes as string[] | null),
       })),
 
       reviews: (reviewRows as unknown as Array<Record<string, unknown>>).map((r) => ({

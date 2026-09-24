@@ -4571,3 +4571,59 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .service-extras > summary .field-hint { font-weight: 400; display: block; }
 .service-extras > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
 .service-extras[open] > *:not(summary) { margin-top: var(--space-4); }
+
+/*
+  BOYUT KADEMESI KUTUCUKLARI (sihirbaz, hizmet adimi).
+
+  Once bir acilir liste vardi ve kapaliyken ekranda yalnizca "—"
+  yaziyordu: bakici neyi secmesi gerektigini ancak listeyi acinca
+  goruyordu. Dort secenek de artik aciktan duruyor.
+
+  Izgara, hap seklinde yan yana dizilmek YERINE kullaniliyor: etiketler
+  ("Moyen · 7-18 kg") hap icinde uc satira kiriliyordu. Sabit sutun
+  genisligi hepsini ayni hizada tutuyor, dar ekranda tek sutuna
+  duşuyor.
+*/
+.size-choices {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2); margin-bottom: var(--space-2);
+}
+@media (max-width: 560px) { .size-choices { grid-template-columns: 1fr; } }
+
+/*
+  Kutucugun kendisi: `.field-block input { width: 100% }` kurali bunu
+  da yakaliyordu ve kutucuk satirin BOS kalan tum genisligini alip
+  yaziyi saga itiyordu. Grup bir field-block icinde duruyor (hata ve
+  ipucu satirlari oradan geliyor), o yuzden kural burada geri aliniyor.
+*/
+.size-choice > input[type="checkbox"] { width: auto; flex: 0 0 auto; margin: 0; }
+
+.size-choice {
+  display: flex; align-items: center; gap: var(--space-3);
+  min-height: 52px; padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong); background: var(--color-surface);
+  border-radius: var(--radius-md); cursor: pointer;
+}
+/* Siluet kademeye gore buyuyor: fark BOYUTUN kendisi, yazidan once gozle okunuyor */
+.size-choice-art {
+  display: flex; align-items: flex-end; justify-content: center;
+  width: 36px; flex: 0 0 36px; color: var(--color-ink-secondary);
+}
+.size-choice-text { display: grid; gap: 2px; min-width: 0; }
+.size-choice-name { font-size: 0.9375rem; font-weight: 500; }
+.size-choice-range { font-size: 0.8125rem; color: var(--color-ink-secondary); }
+
+/* Isaretliyken tur kutucuklariyla AYNI dili konusuyor */
+.size-choice:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-active);
+}
+.size-choice:has(input:checked) .size-choice-art,
+.size-choice:has(input:checked) .size-choice-range { color: var(--color-primary-active); }
+
+/* Kutucuk grubunun basligi: label degil legend, cunku dort kutucuk tek soru */
+.field-legend {
+  display: block; margin-bottom: var(--space-2);
+  font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-secondary);
+}

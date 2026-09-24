@@ -69,9 +69,7 @@ export function primaryService<T extends { serviceType: ServiceType }>(
  *
  * NEDEN KADEME: bakici "45 kilodan buyugunu alamam" diye dusunmuyor,
  * "buyuk kopek alamam" diye dusunuyor. Sahip de kopeginin kilosunu
- * degil bedenini biliyor. Kademeler kilo araligina BAGLI kaliyor
- * cunku arama sorgusu (search.ts) kilo uzerinden calisiyor — tek
- * kaynak: sitter_services.accepted_size_max_kg.
+ * degil bedenini biliyor.
  *
  * Sinirlar metrik ve Kanada'da yaygin bolumlemeye yakin:
  * 7 kg (kucuk irk), 18 kg (orta), 45 kg (buyuk), ustu dev.
@@ -85,12 +83,38 @@ export const PET_SIZE_STEPS = [
 
 export type PetSizeKey = (typeof PET_SIZE_STEPS)[number]['key'];
 
+export const PET_SIZE_KEYS: readonly PetSizeKey[] = PET_SIZE_STEPS.map((s) => s.key);
+
 /**
- * Bir bakicinin kabul ettigi en buyuk kilodan hangi kademelerin
- * kapsandigini bulur. Bir kademe ANCAK tamamen kapsaniyorsa
- * isaretlenir: 20 kiloya kadar alan bir bakiciyi "buyuk kopek alir"
- * diye gostermek (18-45 kademesi) verilmemis bir soz olurdu.
+ * KABUL EDILEN BOYUTLAR BIR KUME, TEK BIR TAVAN DEGIL.
+ *
+ * Onceden tek bir "en buyuk kilo" sakliyorduk; bu, kabul edilebilir
+ * her cevabin sifirdan baslayan KESINTISIZ bir aralik olmasini
+ * zorunlu kiliyordu. Gercekte oyle degil: kendi iri kopegi olan bir
+ * bakici "buyuk kopek alirim ama 3 kiloluk yavru alamam, benimki sert
+ * oynuyor" diyebiliyor. Tavan modeli bu cumleyi kuramiyordu, bakiciyi
+ * ya yanlis soz vermeye ya da hizmeti hic acmamaya zorluyordu.
+ *
+ * Artik her kademe bagimsiz isaretleniyor ve arama da (search.ts)
+ * hayvanin kilosunu kademeye cevirip bu kumede ariyor. Tek kaynak:
+ * sitter_services.accepted_sizes.
  */
-export function petSizeStepsFor(maxKg: number): PetSizeKey[] {
-  return PET_SIZE_STEPS.filter((s) => maxKg >= s.maxKg).map((s) => s.key);
+
+/** Bir kilonun dustugu kademe. Sinir degeri ALT kademeye ait: 7 kg = kucuk. */
+export function petSizeForKg(kg: number): PetSizeKey {
+  for (const s of PET_SIZE_STEPS) {
+    if (kg <= s.maxKg) return s.key;
+  }
+  return 'giant';
+}
+
+/**
+ * Disaridan gelen listeyi temizler: yalnizca gecerli anahtarlar,
+ * tekrarsiz ve HER ZAMAN kademe sirasinda. Sira onemli cunku hem
+ * profildeki siluet listesi hem de testler bu diziyi dogrudan
+ * karsilastiriyor.
+ */
+export function normalizePetSizes(input: readonly string[] | null | undefined): PetSizeKey[] {
+  if (!input) return [];
+  return PET_SIZE_STEPS.filter((s) => input.includes(s.key)).map((s) => s.key);
 }

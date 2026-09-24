@@ -1,4 +1,4 @@
-import { postalMatchesProvince } from '@havre/core';
+import { postalMatchesProvince, normalizePetSizes, type PetSizeKey } from '@havre/core';
 import { and, eq, sql } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import {
@@ -67,8 +67,8 @@ export interface OnboardingState {
     acceptsOther: boolean;
     extraPetPriceCents: number;
     holidaySurchargePct: number;
-    /** Kabul edilen en buyuk kilo — profildeki boyut kutucuklari bundan */
-    acceptedSizeMaxKg: number;
+    /** Kabul edilen boyut kademeleri — profildeki kutucuklar bunlar */
+    acceptedSizes: PetSizeKey[];
   }>;
   screening: { status: string; providerRef: string | null } | null;
   /**
@@ -142,7 +142,7 @@ export async function getOnboardingState(
         acceptsOther: sitterServices.acceptsOther,
         extraPetPriceCents: sitterServices.extraPetPriceCents,
         holidaySurchargePct: sitterServices.holidaySurchargePct,
-        acceptedSizeMaxKg: sitterServices.acceptedSizeMaxKg,
+        acceptedSizes: sitterServices.acceptedSizes,
       })
       .from(sitterServices)
       .where(eq(sitterServices.sitterId, userId));
@@ -464,13 +464,14 @@ export interface ServiceInput {
   /** Tatil donemi ek ucret yuzdesi — 0 = yok */
   holidaySurchargePct: number;
   /**
-   * Kabul edilen en buyuk kilo.
+   * Kabul edilen boyut kademeleri.
    *
    * ARAMA BUNUN UZERINDEN CALISIYOR (queries/search.ts): sahibin
-   * girdigi kilo bu araligin disindaysa bakici sonuclarda cikmiyor.
-   * Profildeki boyut kutucuklari da bundan turetiliyor — tek kaynak.
+   * girdigi kilo hangi kademeye dusuyorsa o kademe bu kumede yoksa
+   * bakici sonuclarda cikmiyor. Profildeki kutucuklar da bunlar —
+   * tek kaynak.
    */
-  acceptedSizeMaxKg: number;
+  acceptedSizes: readonly string[];
 }
 
 export async function saveServices(
@@ -501,11 +502,12 @@ export async function saveServices(
         extraPetPriceCents: s.extraPetPriceCents,
         holidaySurchargePct: s.holidaySurchargePct,
         /*
-          Alt sinir 0 kalir: "en az kac kilo" diye bir sart yok.
-          Ust sinir kademe sinirlarindan biri (7/18/45/100) — araligin
-          disinda bir sayi gelirse kademe kutucuklari yarim kalirdi.
+          Kume BURADA da temizleniyor. Dogrulama zaten bos birakmiyor
+          ama bu fonksiyon tek girisi degil (seed, testler); tanimsiz
+          bir anahtarin veritabanina gecmesi, arama filtresini sessizce
+          hicbir seyle eslesmez hale getirirdi.
         */
-        acceptedSizeMaxKg: Math.max(1, Math.min(100, s.acceptedSizeMaxKg)),
+        acceptedSizes: normalizePetSizes(s.acceptedSizes),
         isActive: true,
       })),
     );

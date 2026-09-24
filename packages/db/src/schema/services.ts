@@ -2,6 +2,7 @@ import {
   pgTable, uuid, integer, boolean, date, timestamp, real, index, uniqueIndex, text,
 } from 'drizzle-orm/pg-core';
 import { sitters } from './identity.js';
+import type { PetSizeKey } from '@havre/core';
 import { serviceTypeEnum, priceUnitEnum, cancellationPolicyEnum, verificationTypeEnum, verificationStatusEnum } from './enums.js';
 
 export const sitterServices = pgTable(
@@ -16,8 +17,20 @@ export const sitterServices = pgTable(
     extraPetPriceCents: integer('extra_pet_price_cents').notNull().default(0),
     holidaySurchargePct: real('holiday_surcharge_pct').notNull().default(0),
     cancellationPolicy: cancellationPolicyEnum('cancellation_policy').notNull().default('moderate'),
-    acceptedSizeMinKg: real('accepted_size_min_kg').notNull().default(0),
-    acceptedSizeMaxKg: real('accepted_size_max_kg').notNull().default(100),
+    /*
+      KABUL EDILEN BOYUTLAR — KUME.
+
+      Once `accepted_size_min_kg` / `accepted_size_max_kg` vardi. Alt
+      sinir hicbir zaman kullanilmadi (kimse "en az 5 kilo" demiyor) ve
+      tek bir tavan, bakiciyi sifirdan baslayan kesintisiz bir aralik
+      soylemeye zorluyordu. Kademeler artik bagimsiz: bkz.
+      PET_SIZE_STEPS ve normalizePetSizes (packages/core/services.ts).
+
+      Varsayilan YOK ve bos dizi gecerli bir cevap degil: sihirbaz en az
+      bir kademe istiyor. Sutun varsayilaniyla dolan bir satir,
+      bakicinin vermedigi bir soz olurdu.
+    */
+    acceptedSizes: text('accepted_sizes').array().$type<PetSizeKey[]>().notNull(),
     acceptsDogs: boolean('accepts_dogs').notNull().default(true),
     acceptsCats: boolean('accepts_cats').notNull().default(false),
     acceptsOther: boolean('accepts_other').notNull().default(false),

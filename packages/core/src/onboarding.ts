@@ -9,7 +9,7 @@
  * Fransizca karsiligi unutulursa katalog testi yakaliyor (Bill 96).
  */
 
-import { PET_SIZE_STEPS } from './services.js';
+import { normalizePetSizes } from './services.js';
 
 export const ONBOARDING_STEPS = [
   'about', 'location', 'services', 'home', 'photos', 'screening', 'review',
@@ -143,8 +143,8 @@ export function validateServices(
     /** Istege bagli — verilmezse 0 (ucretsiz / ek ucret yok) */
     extraPetPriceCents?: number | undefined;
     holidaySurchargePct?: number | undefined;
-    /** Kabul edilen en buyuk kilo — kademe sinirlarindan biri olmali */
-    acceptedSizeMaxKg?: number | undefined;
+    /** Kabul edilen boyut kademeleri — en az bir tane */
+    acceptedSizes?: readonly string[] | undefined;
   }>,
 ): FieldErrors {
   const e: FieldErrors = {};
@@ -161,15 +161,18 @@ export function validateServices(
     }
 
     /*
-      BOYUT ZORUNLU ve kademe sinirlarindan biri olmali.
+      EN AZ BIR BOYUT KADEMESI ZORUNLU.
 
-      Bos birakilirsa sutun varsayilani (100 kg) devreye girer ve
-      profil "dev kopek alirim" diye ilan eder — bakicinin vermedigi
-      bir soz. Kademe disinda bir sayi ise profildeki kutucuklari
-      yarim birakir.
+      Bos birakilmasina izin verirsek satir "hicbir boyutta hayvan
+      almam" demis olur — kimsenin kastetmedigi bir cumle. Arama da bu
+      kumeden filtreliyor, yani bos bir kume hizmeti sessizce
+      goruntedirilmez yapardi: bakici ilanini acik saniyor, hicbir
+      istek gelmiyor.
+
+      Tanimsiz anahtarlar (elle gonderilmis bir form) sessizce
+      atiliyor; geriye bir sey kalmiyorsa alan bos sayiliyor.
     */
-    const size = s.acceptedSizeMaxKg;
-    if (!size || !PET_SIZE_STEPS.some((step) => step.maxKg === size)) {
+    if (normalizePetSizes(s.acceptedSizes ?? []).length === 0) {
       e[`size.${s.serviceType}`] = 'error.required';
     }
 

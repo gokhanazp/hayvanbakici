@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { and, eq, inArray } from 'drizzle-orm';
+import { sitterServices } from '../schema/services.js';
 import { getDb } from '../client.js';
 import { resolvePlace } from './place.js';
 import {
@@ -134,5 +136,60 @@ describe('arama siralamasi', () => {
       expect(other.size).toBe(best.size);
       for (const id of best) expect(other.has(id)).toBe(true);
     }
+  });
+});
+
+/**
+ * BOYUT FILTRESI — VERILEN SOZ BU.
+ *
+ * Bakici sihirbazda hangi kademeleri isaretlediyse yalnizca onlar
+ * kabul edilmis sayiliyor. Bu filtre kayarsa hata gorunmez olur:
+ * bakiciya alamayacagi bir hayvan icin istek gider, sahip de reddi
+ * gunler sonra ogrenir. Onceki model tek bir tavandi ve kesintisiz
+ * olmayan bir kumeyi ("orta ve dev alirim, kucuk almam") hic
+ * kuramiyordu — o kume artik hem saklaniyor hem de ARANIYOR.
+ */
+describe('boyut filtresi', () => {
+  it('kiloyu kademeye cevirip bakicinin kumesinde ariyor', async () => {
+    const criteria = await toronto();
+
+    // 3 kg = kucuk kademesi. Donen her bakicinin bu kademeyi
+    // isaretlemis olmasi gerekiyor — sorgunun kendi sonucuna degil,
+    // satirlarin kendisine bakiliyor.
+    const small = await searchSitters(db, { ...criteria, petWeightKg: 3, limit: 500 }, 'en-CA');
+    expect(small.length).toBeGreaterThan(0);
+
+    const rows = await db
+      .select({ sizes: sitterServices.acceptedSizes })
+      .from(sitterServices)
+      .where(and(
+        inArray(sitterServices.sitterId, small.map((s) => s.id)),
+        eq(sitterServices.serviceType, 'boarding'),
+        eq(sitterServices.isActive, true),
+      ));
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) expect(r.sizes).toContain('small');
+  });
+
+  it('kucukleri ALMAYAN bakici kucuk aramada CIKMIYOR', async () => {
+    const criteria = await toronto();
+    const small = new Set(
+      (await searchSitters(db, { ...criteria, petWeightKg: 3, limit: 500 }, 'en-CA')).map((s) => s.id),
+    );
+    const medium = await searchSitters(db, { ...criteria, petWeightKg: 12, limit: 500 }, 'en-CA');
+
+    // Tohum veride kucugu atlayan bakiciler var (seed.ts). Orta
+    // aramasinda cikip kucuk aramasinda cikmayan en az bir tane
+    // olmali; yoksa bu test hicbir sey kanitlamiyor demektir.
+    const skipsSmall = medium.filter((s) => !small.has(s.id));
+    expect(skipsSmall.length).toBeGreaterThan(0);
+  });
+
+  it('sayim ile listeleme boyut filtresinde de ayni', async () => {
+    const criteria = await toronto();
+    const params = { ...criteria, petWeightKg: 60 };
+    const total = await countSitters(db, params);
+    const rows = await searchSitters(db, { ...params, limit: 500 }, 'en-CA');
+    expect(rows.length).toBe(total);
   });
 });

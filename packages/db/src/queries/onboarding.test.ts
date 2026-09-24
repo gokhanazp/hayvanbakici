@@ -139,15 +139,15 @@ describe('bakici onboarding', () => {
 
   it('hizmetler tam olarak degistirilir, birikmez', async () => {
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6500, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: true, acceptsOther: false, extraPetPriceCents: 1500, holidaySurchargePct: 20 , acceptedSizeMaxKg: 18},
-      { serviceType: 'dog_walking', priceCents: 2500, priceUnit: 'walk', cancellationPolicy: 'flexible', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizeMaxKg: 18},
+      { serviceType: 'boarding', priceCents: 6500, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: true, acceptsOther: false, extraPetPriceCents: 1500, holidaySurchargePct: 20 , acceptedSizes: ['small', 'medium']},
+      { serviceType: 'dog_walking', priceCents: 2500, priceUnit: 'walk', cancellationPolicy: 'flexible', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizes: ['small', 'medium']},
     ]);
     let rows = await db.select().from(sitterServices).where(eq(sitterServices.sitterId, userId));
     expect(rows).toHaveLength(2);
 
     // Secimden cikarilan hizmet SILINMELI
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 7000, priceUnit: 'night', cancellationPolicy: 'strict', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizeMaxKg: 18},
+      { serviceType: 'boarding', priceCents: 7000, priceUnit: 'night', cancellationPolicy: 'strict', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizes: ['small', 'medium']},
     ]);
     rows = await db.select().from(sitterServices).where(eq(sitterServices.sitterId, userId));
     expect(rows).toHaveLength(1);
@@ -166,14 +166,14 @@ describe('bakici onboarding', () => {
   */
   it('ek hayvan ve tatil ucreti kaydediliyor, geri okunuyor ve sifirlanabiliyor', async () => {
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 1200, holidaySurchargePct: 25 , acceptedSizeMaxKg: 18},
+      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 1200, holidaySurchargePct: 25 , acceptedSizes: ['small', 'medium']},
     ]);
     let state = await getOnboardingState(db, userId);
     expect(state?.services[0]?.extraPetPriceCents).toBe(1200);
     expect(state?.services[0]?.holidaySurchargePct).toBe(25);
 
     await saveServices(db, userId, [
-      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizeMaxKg: 18},
+      { serviceType: 'boarding', priceCents: 6000, priceUnit: 'night', cancellationPolicy: 'moderate', acceptsDogs: true, acceptsCats: false, acceptsOther: false, extraPetPriceCents: 0, holidaySurchargePct: 0 , acceptedSizes: ['small', 'medium']},
     ]);
     state = await getOnboardingState(db, userId);
     expect(state?.services[0]?.extraPetPriceCents).toBe(0);

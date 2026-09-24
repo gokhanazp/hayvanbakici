@@ -16,7 +16,7 @@ import {
   SCHEDULE_TEXTS_EN, SCHEDULE_TEXTS_FR, TYPICAL_DAY_TEXTS_EN, TYPICAL_DAY_TEXTS_FR,
   SAFETY_TEXTS_EN, SAFETY_TEXTS_FR, OWNER_PREFS_TEXTS_EN, OWNER_PREFS_TEXTS_FR,
 } from './seed-data.js';
-import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
+import { SERVICES, servicesForPhase, PET_SIZE_KEYS, type ServiceType } from '@havre/core';
 import { sitterSlug } from './queries/onboarding.js';
 import { assertSeedTarget } from './seed-guard.js';
 
@@ -269,15 +269,19 @@ for (const city of SEED_CITIES) {
         extraPetPriceCents: Math.round((base * 0.35) / 100) * 100,
         holidaySurchargePct: r() > 0.6 ? 20 : 0,
         cancellationPolicy: pick(r, ['flexible', 'moderate', 'strict'] as const),
-        acceptedSizeMinKg: 0,
         /*
-          KADEME SINIRLARINDAN biri. Once 15/25/40/60 seciliyordu ve
-          profildeki kutucuklar yarim kaliyordu: 25 kiloya kadar alan
-          bakicida "18-45 kg" kademesi cizilmiyor, cunku o kademe
-          tamamen kapsanmiyor (bkz. petSizeStepsFor). Sihirbaz da
-          yalnizca bu dort degeri sunuyor.
+          KABUL EDILEN KADEMELER — KUME.
+
+          Cogu bakici kucukten baslayan kesintisiz bir aralik veriyor,
+          ornek veri de oyle. Ama on kisiden biri KUCUKLERI ALMIYOR
+          (kendi iri kopegi var). Bu satir olmasa arama filtresi ve
+          profil listesi yalnizca kesintisiz araliklarla denenmis
+          olurdu — yani 0018 gocunun asil sebebi hic test edilmezdi.
         */
-        acceptedSizeMaxKg: pick(r, [7, 18, 45, 100]),
+        acceptedSizes: (() => {
+          const steps = PET_SIZE_KEYS.slice(0, pick(r, [1, 2, 3, 4]));
+          return r() > 0.9 && steps.length > 1 ? steps.slice(1) : steps;
+        })(),
         acceptsDogs: true,
         acceptsCats: r() > 0.35,
         acceptsOther: r() > 0.85,

@@ -127,6 +127,13 @@
       "when": 1789641894450,
       "tag": "0017_system_booking_events",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789641895450,
+      "tag": "0018_accepted_pet_sizes",
+      "breakpoints": true
     }
   ]
 }

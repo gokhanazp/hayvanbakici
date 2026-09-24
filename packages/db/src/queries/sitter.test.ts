@@ -61,9 +61,9 @@ describe('bakici panosu', () => {
 
   it('ek hayvan ucreti girilmemis hizmetleri sayiyor', async () => {
     await db.execute(sql`
-      INSERT INTO sitter_services (sitter_id, service_type, price_cents, price_unit, extra_pet_price_cents)
-      VALUES (${sitterId}, 'boarding', 5000, 'night', 0),
-             (${sitterId}, 'dog_walking', 2500, 'walk', 1000)
+      INSERT INTO sitter_services (sitter_id, service_type, price_cents, price_unit, extra_pet_price_cents, accepted_sizes)
+      VALUES (${sitterId}, 'boarding', 5000, 'night', 0, ARRAY['small','medium']),
+             (${sitterId}, 'dog_walking', 2500, 'walk', 1000, ARRAY['small','medium'])
     `);
     const d = await getSitterDashboard(db, sitterId);
     expect(d?.steps.serviceCount).toBe(2);

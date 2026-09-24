@@ -157,9 +157,10 @@ export async function saveServicesAction(
       */
       extraPetPriceCents: centsOrZero(str(form, `extraPet.${type}`)),
       holidaySurchargePct: numberOrZero(str(form, `holiday.${type}`)),
-      /* Bos birakilirsa 0 kalir ve dogrulama 'error.required' verir —
-         sutun varsayilani (100 kg) asla sessizce devreye girmemeli. */
-      acceptedSizeMaxKg: Number(str(form, `size.${type}`)) || 0,
+      /* Kutucuk grubu: hicbiri isaretli degilse bos dizi gelir ve
+         dogrulama 'error.required' verir. Sutunun varsayilani yok —
+         hicbir satir sessizce "her boyutu alirim" demiyor. */
+      acceptedSizes: form.getAll(`size.${type}`).filter((v): v is string => typeof v === 'string'),
     };
   });
 

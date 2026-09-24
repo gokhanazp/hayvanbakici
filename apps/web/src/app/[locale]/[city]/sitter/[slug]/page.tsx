@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound, permanentRedirect } from 'next/navigation';
 import {
-  SERVICES, primaryService, servicesForPhase, petSizeStepsFor, PET_SIZE_STEPS,
+  SERVICES, primaryService, servicesForPhase, normalizePetSizes, PET_SIZE_STEPS, type PetSizeKey,
   type ServiceType,
 } from '@havre/core';
 import {
@@ -36,6 +36,23 @@ import { resolvePhoto } from '@/lib/photos';
   reddettigi bir hizmeti fiyatiyla gostermesin.
 */
 const V1_SERVICES = new Set(servicesForPhase('v1'));
+
+/*
+  BOYUT ETIKETI TEK YERDE.
+
+  Ayni kademe ucretlendirme kartinda da, ustteki siluet listesinde de
+  yaziliyor. Iki ayri yerde kurulan cumleler kaymisti: biri "0-18 kg"
+  derken digeri "18 kg'a kadar" diyordu. Ayni veri, ayni cumle.
+*/
+function sizeLabel(
+  m: Messages,
+  key: PetSizeKey,
+  step: { minKg: number; maxKg: number },
+): string {
+  if (key === 'small') return interpolate(m.sitter['pets.sizeSmall'], { max: step.maxKg });
+  if (key === 'giant') return interpolate(m.sitter['pets.sizeGiant'], { min: step.minKg });
+  return interpolate(m.sitter['pets.sizeBand'], { min: step.minKg, max: step.maxKg });
+}
 
 /**
  * BAKICI PROFIL SAYFASI.
@@ -195,12 +212,11 @@ export default async function SitterPage({
     "bu bakici en fazla bu boyutta bir hayvan aliyor". Hangi hizmette
     hangi sinir oldugu zaten hizmet kartinda yaziyor.
 
-    Kademe ANCAK tamamen kapsaniyorsa isaretleniyor (petSizeStepsFor):
-    20 kiloya kadar alan bakiciyi "buyuk kopek alir" diye gostermek
-    verilmemis bir soz olurdu.
+    Hicbir sey TURETILMIYOR: bakicinin sihirbazda isaretledigi
+    kademelerin birlesimi yaziliyor. Isaretlenmeyen bir kademe burada
+    da yok — bakicinin vermedigi bir soz profilde gorunmuyor.
   */
-  const maxAcceptedKg = bookable.reduce((a, svc) => Math.max(a, svc.acceptedSizeMaxKg), 0);
-  const sizeSteps = petSizeStepsFor(maxAcceptedKg);
+  const sizeSteps = normalizePetSizes(bookable.flatMap((svc) => svc.acceptedSizes));
   const sizeIconPx: Record<string, number> = { small: 20, medium: 26, large: 32, giant: 38 };
 
   /*
@@ -456,15 +472,20 @@ export default async function SitterPage({
                       {s.acceptsCats && <span className="badge badge-outline">{m.onboarding['services.cats']}</span>}
                       {s.acceptsOther && <span className="badge badge-outline">{m.onboarding['services.other']}</span>}
                       {/*
-                        "0-18 kg" yaziyordu. Alt sinir HER ZAMAN sifir
-                        (kimse "en az 5 kilo" demiyor), yani sifir bir
-                        bilgi tasimiyor ve rozeti gereksiz uzatiyordu.
+                        HIZMETIN KENDI kademeleri. Ustteki ozet tum
+                        hizmetlerin birlesimi; burada hangi hizmette
+                        hangi boyutun kabul edildigi ayri ayri yaziyor
+                        cunku bakici konaklamada kucuk, yurutmede her
+                        boyutu alabiliyor.
                       */}
-                      <span className="badge badge-outline tabular">
-                        {interpolate(m.sitter['pets.sizeSmall'], {
-                          max: Math.round(s.acceptedSizeMaxKg),
-                        })}
-                      </span>
+                      {normalizePetSizes(s.acceptedSizes).map((key) => {
+                        const step = PET_SIZE_STEPS.find((x) => x.key === key)!;
+                        return (
+                          <span key={key} className="badge badge-outline tabular">
+                            {sizeLabel(m, key, step)}
+                          </span>
+                        );
+                      })}
                     </div>
                     {/*
                       IPTAL POLITIKASI SOZLESME KURULMADAN ONCE tam gosteriliyor
@@ -552,11 +573,7 @@ export default async function SitterPage({
                 <ul className="size-steps">
                   {sizeSteps.map((key) => {
                     const step = PET_SIZE_STEPS.find((x) => x.key === key)!;
-                    const label = key === 'small'
-                      ? interpolate(m.sitter['pets.sizeSmall'], { max: step.maxKg })
-                      : key === 'giant'
-                        ? interpolate(m.sitter['pets.sizeGiant'], { min: step.minKg })
-                        : interpolate(m.sitter['pets.sizeBand'], { min: step.minKg, max: step.maxKg });
+                    const label = sizeLabel(m, key, step);
                     return (
                       <li key={key}>
                         {/* Siluet kademeye gore buyuyor: fark BOYUTUN kendisi */}

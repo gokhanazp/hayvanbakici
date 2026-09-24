@@ -76,7 +76,7 @@ describe('hizmet adimi', () => {
   const ok = {
     serviceType: 'boarding', priceCents: 5400,
     acceptsDogs: true, acceptsCats: false, acceptsOther: false,
-    acceptedSizeMaxKg: 18,
+    acceptedSizes: ['small', 'medium'],
   };
 
   it('hic hizmet secilmediyse ilerlemez', () => {
@@ -94,22 +94,23 @@ describe('hizmet adimi', () => {
   });
 
   /*
-    BOYUT ZORUNLU. Bos birakilirsa sutun varsayilani (100 kg) devreye
-    girer ve profil "dev kopek alirim" diye ilan eder — bakicinin
-    vermedigi bir soz. Kademe disinda bir sayi da kabul edilmiyor:
-    profildeki kutucuklari yarim birakirdi.
+    EN AZ BIR KADEME ZORUNLU. Bos bir kume "hicbir boyutta hayvan
+    almam" demek olurdu; arama da bu kumeden filtreledigi icin bakici
+    ilanini acik sanip hic istek almazdi.
   */
-  it('boyut secilmediyse ilerlemez', () => {
-    const { acceptedSizeMaxKg: _drop, ...noSize } = ok;
+  it('hicbir boyut secilmediyse ilerlemez', () => {
+    const { acceptedSizes: _drop, ...noSize } = ok;
     expect(validateServices([noSize])['size.boarding']).toBe('error.required');
+    expect(validateServices([{ ...ok, acceptedSizes: [] }])['size.boarding']).toBe('error.required');
   });
-  it('kademe disindaki boyutu reddeder', () => {
-    expect(validateServices([{ ...ok, acceptedSizeMaxKg: 30 }])['size.boarding']).toBe('error.required');
+  it('tanimsiz anahtar secim sayilmiyor', () => {
+    // Elle gonderilmis bir formda "huge" gelirse bu, hicbir kademe
+    // isaretlenmemis demek — sessizce kaydedilmemeli.
+    expect(validateServices([{ ...ok, acceptedSizes: ['huge'] }])['size.boarding']).toBe('error.required');
   });
-  it('dort kademenin dordunu de kabul eder', () => {
-    for (const kg of [7, 18, 45, 100]) {
-      expect(validateServices([{ ...ok, acceptedSizeMaxKg: kg }])).toEqual({});
-    }
+  it('tek kademe de, kesintisiz olmayan kume de gecerli', () => {
+    expect(validateServices([{ ...ok, acceptedSizes: ['giant'] }])).toEqual({});
+    expect(validateServices([{ ...ok, acceptedSizes: ['medium', 'giant'] }])).toEqual({});
   });
 });
 
@@ -205,7 +206,7 @@ describe('ek ucret dogrulamasi', () => {
   const base = {
     serviceType: 'boarding', priceCents: 6000,
     acceptsDogs: true, acceptsCats: false, acceptsOther: false,
-    acceptedSizeMaxKg: 18,
+    acceptedSizes: ['small', 'medium'],
   };
 
   it('verilmemis ek ucretler HATA DEGIL', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { primaryService, servicesForPhase, petSizeStepsFor, SERVICES } from './services.js';
+import { primaryService, servicesForPhase, petSizeForKg, normalizePetSizes, SERVICES } from './services.js';
 
 /*
   VITRIN HIZMETI.
@@ -43,22 +43,51 @@ describe('primaryService', () => {
   });
 });
 
-describe('petSizeStepsFor', () => {
-  it('yalnizca TAMAMEN kapsanan kademeyi isaretler', () => {
-    // 20 kiloya kadar alan bakici "buyuk kopek alir" diye gosterilemez:
-    // buyuk kademesi 45 kiloya kadar ve o soz verilmedi.
-    expect(petSizeStepsFor(20)).toEqual(['small', 'medium']);
-    expect(petSizeStepsFor(45)).toEqual(['small', 'medium', 'large']);
-    expect(petSizeStepsFor(100)).toEqual(['small', 'medium', 'large', 'giant']);
+describe('petSizeForKg', () => {
+  it('kiloyu dogru kademeye koyar', () => {
+    expect(petSizeForKg(3)).toBe('small');
+    expect(petSizeForKg(12)).toBe('medium');
+    expect(petSizeForKg(30)).toBe('large');
+    expect(petSizeForKg(60)).toBe('giant');
   });
 
-  it('en kucuk kademenin altinda hicbir kademe isaretlenmez', () => {
-    expect(petSizeStepsFor(5)).toEqual([]);
-    expect(petSizeStepsFor(0)).toEqual([]);
+  it('kademe siniri ALT kademeye ait', () => {
+    // 7 kiloluk bir kopek "kucuk". Sinirin iki kademeye birden ait
+    // olmasi, aramada ayni kopegi iki farkli kumede aratirdi.
+    expect(petSizeForKg(7)).toBe('small');
+    expect(petSizeForKg(18)).toBe('medium');
+    expect(petSizeForKg(45)).toBe('large');
   });
 
-  it('kademe siniri tam esitse o kademe DAHIL', () => {
-    expect(petSizeStepsFor(7)).toEqual(['small']);
-    expect(petSizeStepsFor(18)).toEqual(['small', 'medium']);
+  it('en ust kademenin ustu yine dev', () => {
+    // 100 kg tablodaki ust sinir ama bundan agir bir hayvan da
+    // aramayi bosa dusurmemeli: kademesiz kalirsa hicbir bakiciyla
+    // eslesmezdi.
+    expect(petSizeForKg(120)).toBe('giant');
+  });
+});
+
+describe('normalizePetSizes', () => {
+  it('HER ZAMAN kademe sirasinda donuyor', () => {
+    // Form verisi kutucuklarin tiklanma sirasiyla geliyor; profildeki
+    // siluet listesi buyukten kucuge kaymasin diye sira burada
+    // sabitleniyor.
+    expect(normalizePetSizes(['giant', 'small'])).toEqual(['small', 'giant']);
+  });
+
+  it('kesintisiz olmayan kume KORUNUYOR', () => {
+    // Asil mesele bu: kendi iri kopegi olan bakici "buyuk alirim ama
+    // uc kiloluk yavru alamam" diyebiliyor. Eski tavan modeli bu
+    // cevabi kuramiyordu.
+    expect(normalizePetSizes(['medium', 'giant'])).toEqual(['medium', 'giant']);
+  });
+
+  it('tanimsiz anahtar ve tekrar atiliyor', () => {
+    expect(normalizePetSizes(['small', 'small', 'huge'])).toEqual(['small']);
+  });
+
+  it('bos ve tanimsiz girdi bos dizi', () => {
+    expect(normalizePetSizes([])).toEqual([]);
+    expect(normalizePetSizes(null)).toEqual([]);
   });
 });
