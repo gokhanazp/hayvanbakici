@@ -709,6 +709,8 @@ export const frCA = {
     'services.net.promo': 'Votre offre de lancement est active : Havre ne prend aucune commission jusqu’au {date}.',
     'services.typical': 'Les gardiens pr\u00e8s de chez vous demandent environ {median} / {unit}',
     'services.price': 'Votre prix',
+    'services.extrasTitle': 'Frais supplémentaires et annulation',
+    'services.extrasHint': 'Facultatif — frais par animal additionnel, tarif des jours fériés et délai d’annulation. Les valeurs par défaut conviennent si vous passez.',
     'services.extraPet': 'Par animal suppl\u00e9mentaire',
     'services.extraPetHint': 'Laissez vide si un deuxi\u00e8me animal ne co\u00fbte rien de plus. Ajout\u00e9 par nuit, visite ou promenade.',
     'services.holiday': 'Suppl\u00e9ment jours f\u00e9ri\u00e9s',

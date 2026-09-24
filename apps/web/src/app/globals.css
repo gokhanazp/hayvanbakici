@@ -4541,3 +4541,33 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   margin: 0;
   max-width: 22rem;
 }
+
+/* ---- Hizmet kartindaki istege bagli blok ------------------------------
+   Kart tek ekranda dokuz karar soruyordu; makul varsayilani olan uc alan
+   (ek hayvan, tatil farki, iptal politikasi) buraya alindi. Saklamiyor:
+   baslik ne oldugunu yaziyor, tek tikla aciliyor, klavyeyle calisiyor. */
+.service-extras {
+  margin-top: var(--space-5);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-4);
+}
+.service-extras > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+.service-extras-text { display: grid; gap: var(--space-1); }
+.service-extras-title { font-weight: 600; }
+.service-extras > summary::-webkit-details-marker { display: none; }
+.service-extras > summary::before {
+  content: '+';
+  flex: none;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.service-extras[open] > summary::before { content: '–'; }
+.service-extras > summary .field-hint { font-weight: 400; display: block; }
+.service-extras > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+.service-extras[open] > *:not(summary) { margin-top: var(--space-4); }

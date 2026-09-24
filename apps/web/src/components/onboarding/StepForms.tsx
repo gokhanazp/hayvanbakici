@@ -476,20 +476,13 @@ export function ServicesForm({
                     {m.serviceDescription[type as ServiceType]}
                   </span>
                   {/*
-                    Tipik fiyat GERCEK veriden; ornek kucukse (bkz.
-                    MIN_RANGE_SAMPLE) hicbir sey yazmiyor. Uydurma bir
-                    "ortalama", bakicinin fiyatini yanlis yere cakar.
+                    TIPIK FIYAT SATIRI KALDIRILDI.
+                    Ayni bilgi fiyat alaninin ALTINDA, hem aralik hem
+                    medyan olarak zaten yaziyordu: "Sitters near you
+                    charge $45-$60 - median $55". Iki farkli cumleyle
+                    ayni seyi iki kez soylemek, karti kalabaliklastiran
+                    seylerden biriydi.
                   */}
-                  {r && r.count >= MIN_RANGE_SAMPLE && (
-                    <span className="field-hint" style={{ display: 'block' }}>
-                      {interpolate(m.onboarding['services.typical'], {
-                        median: new Intl.NumberFormat(locale, {
-                          style: 'currency', currency: 'CAD', maximumFractionDigits: 0,
-                        }).format(r.medianCents / 100),
-                        unit: m.unit[SERVICES[type as ServiceType].unit],
-                      })}
-                    </span>
-                  )}
                 </span>
               </div>
 
@@ -534,81 +527,6 @@ export function ServicesForm({
                     {state.errors[`price.${type}`] && (
                       <span className="field-error" role="alert">{err(m, state.errors[`price.${type}`])}</span>
                     )}
-                  </div>
-
-                  {/*
-                    EK UCRETLER.
-
-                    Alanlar veritabaninda ve rezervasyon hesabinda vardi
-                    ama hicbir ekrandan yazilamiyordu: iki hayvanli bir
-                    rezervasyonda bakici ek ucret alamiyordu.
-
-                    Ikisi de ISTEGE BAGLI ve bos birakilabilir; bos =
-                    "istemiyorum". Ust sinirlar yaninda yaziyor cunku
-                    sinirin varligini ancak hata alinca ogrenmek kotu.
-                  */}
-                  <div className="field-row extra-fees">
-                    <div className="field-block">
-                      <label htmlFor={`extra-${type}`}>{m.onboarding['services.extraPet']}</label>
-                      <span className="price-input">
-                        <span aria-hidden="true">$</span>
-                        <input
-                          id={`extra-${type}`}
-                          name={`extraPet.${type}`}
-                          type="number" min={0} max={MAX_EXTRA_PET_CENTS / 100} step="1"
-                          inputMode="decimal"
-                          value={d.extraPet}
-                          onChange={(e) => patch(type, { extraPet: e.target.value })}
-                          aria-describedby={`extra-hint-${type}`}
-                        />
-                        <span className="dim text-body-sm">
-                          / {m.unit[SERVICES[type as ServiceType].unit]}
-                        </span>
-                      </span>
-                      <span className="field-hint" id={`extra-hint-${type}`}>
-                        {m.onboarding['services.extraPetHint']}
-                      </span>
-                      {state.errors[`extraPet.${type}`] && (
-                        <span className="field-error" role="alert">{err(m, state.errors[`extraPet.${type}`])}</span>
-                      )}
-                    </div>
-
-                    <div className="field-block">
-                      <label htmlFor={`hol-${type}`}>{m.onboarding['services.holiday']}</label>
-                      <span className="price-input">
-                        <input
-                          id={`hol-${type}`}
-                          name={`holiday.${type}`}
-                          type="number" min={0} max={MAX_HOLIDAY_PCT} step="1"
-                          inputMode="numeric"
-                          value={d.holiday}
-                          onChange={(e) => patch(type, { holiday: e.target.value })}
-                          aria-describedby={`hol-hint-${type}`}
-                        />
-                        <span aria-hidden="true">%</span>
-                      </span>
-                      <span className="field-hint" id={`hol-hint-${type}`}>
-                        {interpolate(m.onboarding['services.holidayHint'], { max: MAX_HOLIDAY_PCT })}
-                      </span>
-                      {state.errors[`holiday.${type}`] && (
-                        <span className="field-error" role="alert">{err(m, state.errors[`holiday.${type}`])}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="field-block">
-                    <label htmlFor={`cxl-${type}`}>{m.onboarding['services.cancellation']}</label>
-                    <Select
-                      id={`cxl-${type}`}
-                      name={`cancellation.${type}`}
-                      value={d.cancellation}
-                      onChange={(next) => patch(type, { cancellation: next })}
-                      options={[
-                        { value: 'flexible', label: m.onboarding['cancellation.flexible'] },
-                        { value: 'moderate', label: m.onboarding['cancellation.moderate'] },
-                        { value: 'strict', label: m.onboarding['cancellation.strict'] },
-                      ]}
-                    />
                   </div>
 
                   {/*
@@ -668,6 +586,107 @@ export function ServicesForm({
                       <span className="field-error" role="alert">{err(m, state.errors[`accepts.${type}`])}</span>
                     )}
                   </fieldset>
+
+                  {/*
+                    ISTEGE BAGLI OLANLAR KAPALI GELIYOR.
+
+                    Kart tek ekranda dokuz karar soruyordu: fiyat, ek
+                    hayvan, tatil farki, iptal politikasi, en buyuk
+                    hayvan, tur secimi... Hepsi ayni gorsel agirlikta
+                    duruyordu ve fiyat karari — bakicinin gercekten
+                    dusunmesi gereken tek sey — arada kayboluyordu.
+
+                    Ucu de MAKUL BIR VARSAYILANA sahip: ek ucret yok,
+                    tatil farki yok, iptal politikasi orta. Bu yuzden
+                    acilir bir blokta duruyorlar. SAKLANMIYORLAR:
+                    baslik ne oldugunu yaziyor ve tek tikla aciliyor.
+                  */}
+                  <details className="service-extras">
+                    <summary>
+                      <span className="service-extras-text">
+                        <span className="service-extras-title">
+                          {m.onboarding['services.extrasTitle']}
+                        </span>
+                        <span className="field-hint">
+                          {m.onboarding['services.extrasHint']}
+                        </span>
+                      </span>
+                    </summary>
+                  {/*
+                    EK UCRETLER.
+
+                    Alanlar veritabaninda ve rezervasyon hesabinda vardi
+                    ama hicbir ekrandan yazilamiyordu: iki hayvanli bir
+                    rezervasyonda bakici ek ucret alamiyordu.
+
+                    Ikisi de ISTEGE BAGLI ve bos birakilabilir; bos =
+                    "istemiyorum". Ust sinirlar yaninda yaziyor cunku
+                    sinirin varligini ancak hata alinca ogrenmek kotu.
+                  */}
+                  <div className="field-row extra-fees">
+                    <div className="field-block">
+                      <label htmlFor={`extra-${type}`}>{m.onboarding['services.extraPet']}</label>
+                      <span className="price-input">
+                        <span aria-hidden="true">$</span>
+                        <input
+                          id={`extra-${type}`}
+                          name={`extraPet.${type}`}
+                          type="number" min={0} max={MAX_EXTRA_PET_CENTS / 100} step="1"
+                          inputMode="decimal"
+                          value={d.extraPet}
+                          onChange={(e) => patch(type, { extraPet: e.target.value })}
+                          aria-describedby={`extra-hint-${type}`}
+                        />
+                        <span className="dim text-body-sm">
+                          / {m.unit[SERVICES[type as ServiceType].unit]}
+                        </span>
+                      </span>
+                      <span className="field-hint" id={`extra-hint-${type}`}>
+                        {m.onboarding['services.extraPetHint']}
+                      </span>
+                      {state.errors[`extraPet.${type}`] && (
+                        <span className="field-error" role="alert">{err(m, state.errors[`extraPet.${type}`])}</span>
+                      )}
+                    </div>
+
+                    <div className="field-block">
+                      <label htmlFor={`hol-${type}`}>{m.onboarding['services.holiday']}</label>
+                      <span className="price-input">
+                        <input
+                          id={`hol-${type}`}
+                          name={`holiday.${type}`}
+                          type="number" min={0} max={MAX_HOLIDAY_PCT} step="1"
+                          inputMode="numeric"
+                          value={d.holiday}
+                          onChange={(e) => patch(type, { holiday: e.target.value })}
+                          aria-describedby={`hol-hint-${type}`}
+                        />
+                        <span aria-hidden="true">%</span>
+                      </span>
+                      <span className="field-hint" id={`hol-hint-${type}`}>
+                        {interpolate(m.onboarding['services.holidayHint'], { max: MAX_HOLIDAY_PCT })}
+                      </span>
+                      {state.errors[`holiday.${type}`] && (
+                        <span className="field-error" role="alert">{err(m, state.errors[`holiday.${type}`])}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="field-block">
+                    <label htmlFor={`cxl-${type}`}>{m.onboarding['services.cancellation']}</label>
+                    <Select
+                      id={`cxl-${type}`}
+                      name={`cancellation.${type}`}
+                      value={d.cancellation}
+                      onChange={(next) => patch(type, { cancellation: next })}
+                      options={[
+                        { value: 'flexible', label: m.onboarding['cancellation.flexible'] },
+                        { value: 'moderate', label: m.onboarding['cancellation.moderate'] },
+                        { value: 'strict', label: m.onboarding['cancellation.strict'] },
+                      ]}
+                    />
+                  </div>
+                  </details>
+
                 </div>
               )}
             </div>

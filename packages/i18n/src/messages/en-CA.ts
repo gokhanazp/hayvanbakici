@@ -814,6 +814,8 @@ export const enCA = {
     'services.net.promo': 'Your launch offer is on: Havre takes no commission until {date}.',
     'services.typical': 'Sitters near you usually charge about {median} / {unit}',
     'services.price': 'Your price',
+    'services.extrasTitle': 'Extra fees and cancellation',
+    'services.extrasHint': 'Optional — an extra-pet fee, a holiday rate, and how late a booking can be cancelled. Fine as they are if you skip this.',
     'services.extraPet': 'Each extra pet',
     'services.extraPetHint': 'Leave empty if a second pet costs nothing extra. Added per night, visit or walk.',
     'services.holiday': 'Holiday surcharge',
