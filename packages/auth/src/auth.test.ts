@@ -37,15 +37,12 @@ class CapturingMailer implements Mailer {
 
 const db = getDb();
 const mailer = new CapturingMailer();
-const auth = createAuth({
-  db,
-  mailer,
-  env: {
-    NEXT_PUBLIC_SITE_URL: 'http://localhost:3000',
-    BETTER_AUTH_SECRET: 'test-secret-test-secret-test-secret-1234',
-    NODE_ENV: 'test',
-  } as NodeJS.ProcessEnv,
-});
+const baseEnv = {
+  NEXT_PUBLIC_SITE_URL: 'http://localhost:3000',
+  BETTER_AUTH_SECRET: 'test-secret-test-secret-test-secret-1234',
+  NODE_ENV: 'test',
+} as NodeJS.ProcessEnv;
+const auth = createAuth({ db, mailer, env: baseEnv });
 
 const EMAIL = `test-${Date.now()}@havre-test.ca`;
 const PASSWORD = 'kanada-kedi-kopek-2026';
@@ -168,5 +165,39 @@ describe('e-posta + sifre akisi', () => {
     );
     const plain = rows.find((r) => r.value === token);
     expect(plain).toBeUndefined();
+  });
+});
+
+/**
+ * KANONIK ADRES — SESSIZ KIRILMANIN KAYNAGI.
+ *
+ * `.env.example` uretim adresini tasiyordu ve onu kopyalayan herkeste
+ * giris akisi yerelde kiriliyordu. Hata hicbir yerde gorunmuyordu:
+ * baslik giris yapmis kullaniciya bile "Giris yap" diyor, tiklayinca
+ * sunucu cerezi gorup ana sayfaya atiyordu. Bu testler o iki kurali
+ * sabitliyor.
+ */
+describe('site adresi', () => {
+  it('uretimde tanimsiz birakilamaz', () => {
+    expect(() => createAuth({
+      env: { ...baseEnv, NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: undefined } as NodeJS.ProcessEnv,
+      db, mailer,
+    })).toThrow(/NEXT_PUBLIC_SITE_URL/);
+  });
+
+  it('uretimde localhost olamaz', () => {
+    // Dogrulama e-postasi kullanicinin acamayacagi bir adrese baglanti
+    // gonderirse kimse hata gormez -- kullanici da hesabini hic acamaz.
+    expect(() => createAuth({
+      env: { ...baseEnv, NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: 'http://localhost:3000' } as NodeJS.ProcessEnv,
+      db, mailer,
+    })).toThrow(/localhost/);
+  });
+
+  it('gelistirmede tanimsiz birakilabilir', () => {
+    expect(() => createAuth({
+      env: { ...baseEnv, NODE_ENV: 'development', NEXT_PUBLIC_SITE_URL: undefined } as NodeJS.ProcessEnv,
+      db, mailer,
+    })).not.toThrow();
   });
 });

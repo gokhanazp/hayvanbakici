@@ -26,8 +26,32 @@ export interface AuthDeps {
   env?: NodeJS.ProcessEnv;
 }
 
+/**
+ * SITENIN KANONIK ADRESI — SUNUCU TARAFI.
+ *
+ * Nerede kullaniliyor: e-posta baglantilari (dogrulama, sihirli
+ * baglanti, sifre sifirlama) ve guvenilen kaynak listesi. TARAYICI
+ * ISTEMCISI BUNU KULLANMIYOR; orada dogru taban her zaman sayfanin
+ * kendi kaynagi (bkz. client.ts).
+ *
+ * URETIMDE ZORUNLU ve localhost olamaz: yanlis birakilirsa dogrulama
+ * e-postasi kullanicinin ACAMAYACAGI bir adrese baglanti gonderir ve
+ * hesabini hic acamaz. Bu sessizce olur -- e-posta gider, kimse hata
+ * gormez -- o yuzden acilista durduruyoruz.
+ */
 function siteUrl(env: NodeJS.ProcessEnv): string {
-  return env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const raw = env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  if (env.NODE_ENV === 'production') {
+    if (!raw || /localhost|127\.0\.0\.1/.test(raw)) {
+      throw new Error(
+        'NEXT_PUBLIC_SITE_URL uretimde zorunlu ve localhost olamaz. '
+        + 'Dogrulama ve sifre sifirlama e-postalari bu adrese baglanti veriyor; '
+        + 'yanlis olursa kullanici hesabini hic acamaz. '
+        + 'Ornek: NEXT_PUBLIC_SITE_URL=https://havre.ca',
+      );
+    }
+  }
+  return raw || 'http://localhost:3000';
 }
 
 /**
@@ -114,6 +138,20 @@ export function createAuth(deps: AuthDeps = {}) {
         // Tum tablolarda tek tip birincil anahtar: uuid.
         generateId: 'uuid',
       },
+      /*
+        CEREZ ON EKI ORTAMDAN, ADRESTEN DEGIL.
+
+        Better Auth `Secure` bayragini baseURL'in semasindan cikariyor.
+        NEXT_PUBLIC_SITE_URL uretim adresine (https) ayarliyken yerelde
+        calistirinca cerezler `__Secure-` on ekiyle ve `Secure`
+        bayragiyla yaziliyordu -- duz http uzerinde bazi tarayicilar
+        bunlari hic kabul etmiyor ve giris sessizce "tutmuyor".
+
+        Karar artik ortamin kendisi: uretimde guvenli cerez, disinda
+        duz. Yerelde https ile calisan biri icin de yanlis degil,
+        yalnizca on ek dusuyor.
+      */
+      useSecureCookies: env.NODE_ENV === 'production',
     },
 
     user: {
@@ -239,7 +277,22 @@ export function createAuth(deps: AuthDeps = {}) {
       },
     },
 
-    trustedOrigins: [base],
+    /*
+      GUVENILEN KAYNAKLAR.
+
+      Uretimde yalnizca sitenin kendi adresi. Gelistirmede localhost'un
+      HER portu da guveniliyor: `npm run dev` 3000 doluysa 3001/3002'ye
+      dusuyor ve o durumda giris formu "Invalid origin" ile sessizce
+      reddediliyordu -- sunucu 3000 bekliyor, tarayici 3002'den
+      gonderiyor. Bu, kimsenin tahmin edemeyecegi bir hata; yerelde
+      denenemeyen bir giris akisi ise hic yazilmamis gibidir.
+
+      Joker YALNIZCA uretim disinda: localhost'a guvenmek canli sitede
+      bir CSRF kapisi acar.
+    */
+    trustedOrigins: env.NODE_ENV === 'production'
+      ? [base]
+      : [base, 'http://localhost:*', 'http://127.0.0.1:*'],
   });
 }
 
