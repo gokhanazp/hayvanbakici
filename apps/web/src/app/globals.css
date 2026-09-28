@@ -4652,3 +4652,25 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   display: block; margin-bottom: var(--space-2);
   font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-secondary);
 }
+
+/*
+  HENUZ ACILMAMIS SEHIR SAYFASI.
+
+  Dar bir sutun: burada okunacak tek sey bir cumle ve bir e-posta
+  kutusu. Bakici kartlarinin oldugu genis izgarayi burada kullanmak,
+  sayfanin dolu oldugu izlenimini verirdi -- oysa bilerek bos.
+*/
+.coming-soon { max-width: 46rem; margin-inline: auto; display: grid; gap: var(--space-5); }
+.coming-soon .eyebrow-plain {
+  font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--color-primary);
+}
+.coming-soon-form {
+  padding: var(--space-6); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); background: var(--color-surface);
+}
+.coming-soon-open { display: grid; gap: var(--space-3); }
+.coming-soon-sitter {
+  display: grid; gap: var(--space-3); justify-items: start;
+  padding-top: var(--space-6); border-top: 1px dashed var(--color-border);
+}

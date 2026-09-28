@@ -52,11 +52,20 @@ export interface PlaceMatch {
   cityNameFr: string;
   /** true ise konum sehir kesinliginde; arayuz bunu soylemek zorunda */
   approximate: boolean;
+  /**
+   * Bu sehirde bugun hizmet veriyor muyuz.
+   *
+   * Arama sayfasi bunu SOYLEMEK ZORUNDA. Kapali bir sehirde sonuc
+   * bos doner ve ekran "bu filtrelere uyan bakici yok" derdi -- oysa
+   * sorun filtreler degil: orada hic yokuz. Kullanici filtreleri
+   * gevsetip durur ve hicbir sey degismez.
+   */
+  cityIsLive: boolean;
 }
 
 interface Row extends Record<string, unknown> {
   lon: number; lat: number;
-  city_id: string; city_slug_en: string; city_slug_fr: string;
+  city_id: string; city_slug_en: string; city_slug_fr: string; city_is_live: boolean;
   city_name_en: string; city_name_fr: string;
   hood_en: string | null; hood_fr: string | null;
 }
@@ -72,6 +81,7 @@ const toMatch = (
     lon: Number(r.lon), lat: Number(r.lat),
     cityId: String(r.city_id),
     citySlugEn: String(r.city_slug_en), citySlugFr: String(r.city_slug_fr),
+    cityIsLive: Boolean(r.city_is_live),
     cityNameEn: String(r.city_name_en), cityNameFr: String(r.city_name_fr),
     approximate,
   };
@@ -96,7 +106,7 @@ export async function resolvePlace(
     const hoodRes = await db.execute(sql`
       SELECT
         ST_X(n.centroid::geometry) AS lon, ST_Y(n.centroid::geometry) AS lat,
-        c.id AS city_id, c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
+        c.id AS city_id, c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr, c.is_live AS city_is_live,
         c.name_en AS city_name_en, c.name_fr AS city_name_fr,
         n.name_en AS hood_en, n.name_fr AS hood_fr,
         LEAST(
@@ -124,7 +134,7 @@ export async function resolvePlace(
     const cityRes = await db.execute(sql`
       SELECT
         ST_X(c.centroid::geometry) AS lon, ST_Y(c.centroid::geometry) AS lat,
-        c.id AS city_id, c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
+        c.id AS city_id, c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr, c.is_live AS city_is_live,
         c.name_en AS city_name_en, c.name_fr AS city_name_fr,
         NULL::text AS hood_en, NULL::text AS hood_fr
       FROM cities c
@@ -153,7 +163,7 @@ export async function resolvePlace(
     const postalRes = await db.execute(sql`
       SELECT
         ST_X(c.centroid::geometry) AS lon, ST_Y(c.centroid::geometry) AS lat,
-        c.id AS city_id, c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr,
+        c.id AS city_id, c.slug_en AS city_slug_en, c.slug_fr AS city_slug_fr, c.is_live AS city_is_live,
         c.name_en AS city_name_en, c.name_fr AS city_name_fr,
         NULL::text AS hood_en, NULL::text AS hood_fr
       FROM cities c

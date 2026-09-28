@@ -65,7 +65,12 @@ const GROUPS: ReadonlyArray<{
   */
   {
     label: 'Platform',
-    items: [{ href: '/admin/settings/', label: 'Commission', icon: 'settings' }],
+    items: [
+      /* Kapsam komisyonun yaninda: ikisi de "sitenin ne vaat ettigini"
+         degistiriyor ve gunluk isin arasinda durmamalilar. */
+      { href: '/admin/coverage/', label: 'Coverage', icon: 'coverage' },
+      { href: '/admin/settings/', label: 'Commission', icon: 'settings' },
+    ],
   },
 ];
 

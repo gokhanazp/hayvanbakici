@@ -11,12 +11,19 @@ export interface CityRecord {
   nameFr: string;
   province: (typeof provinceEnum.enumValues)[number];
   tier: 1 | 2 | 3;
+  /**
+   * Bugun hizmet veriyor muyuz.
+   *
+   * `tier` bir PLAN, bu bir GERCEK. Kapali sehirde arama sonuc
+   * dondurmuyor ve sehir sayfasi bekleme listesine donuyor.
+   */
+  isLive: boolean;
 }
 
 const SELECT = {
   id: cities.id, slugEn: cities.slugEn, slugFr: cities.slugFr,
   nameEn: cities.nameEn, nameFr: cities.nameFr,
-  province: cities.province, tier: cities.tier,
+  province: cities.province, tier: cities.tier, isLive: cities.isLive,
 } as const;
 
 const cast = (r: { tier: number } & Omit<CityRecord, 'tier'>): CityRecord =>
@@ -28,10 +35,27 @@ export async function listCities(db: Database): Promise<CityRecord[]> {
   return rows.map(cast);
 }
 
-/** Yalnizca Tier-1 — build'de statik uretilecek sayfalar (yol haritasi §7.3) */
+/**
+ * Build'de statik uretilecek sayfalar (yol haritasi §7.3).
+ *
+ * TIER-1 VE ACIK. Tier tek basina yetmiyordu: kapali bir sehrin
+ * sayfasini build'de uretmek, Google'a hic hizmet vermedigimiz bir
+ * yerin arama sayfasini sunmak demek.
+ */
 export async function listTier1Cities(db: Database): Promise<CityRecord[]> {
   const rows = await withDbErrors(() =>
-    db.select(SELECT).from(cities).where(eq(cities.tier, 1)).orderBy(asc(cities.slugEn)));
+    db.select(SELECT).from(cities)
+      .where(and(eq(cities.tier, 1), eq(cities.isLive, true)))
+      .orderBy(asc(cities.slugEn)));
+  return rows.map(cast);
+}
+
+/** Bugun hizmet verdigimiz sehirler — site haritasi ve "nerelerdeyiz" listeleri. */
+export async function listLiveCities(db: Database): Promise<CityRecord[]> {
+  const rows = await withDbErrors(() =>
+    db.select(SELECT).from(cities)
+      .where(eq(cities.isLive, true))
+      .orderBy(asc(cities.tier), asc(cities.slugEn)));
   return rows.map(cast);
 }
 
@@ -71,7 +95,7 @@ export async function listCitiesWithSupply(
   tier?: 1 | 2 | 3,
 ): Promise<CityRecord[]> {
   const rows = await withDbErrors(() => db.execute(sql`
-    SELECT c.id, c.slug_en, c.slug_fr, c.name_en, c.name_fr, c.province, c.tier,
+    SELECT c.id, c.slug_en, c.slug_fr, c.name_en, c.name_fr, c.province, c.tier, c.is_live,
            count(*)::int AS sitter_count
     FROM cities c
     JOIN profiles p       ON p.city_id = c.id
@@ -79,7 +103,11 @@ export async function listCitiesWithSupply(
     JOIN sitter_services s ON s.sitter_id = st.user_id
                           AND s.is_active
                           AND s.service_type = ${serviceType}::service_type
-    ${tier ? sql`WHERE c.tier = ${tier}` : sql``}
+    /* ACIK SEHIRLER. Bu liste alt bilgiye ve gezinmeye baglanti
+       veriyor; kapali bir sehre baglanti vermek, hizmet vermedigimiz
+       yeri Google'a "degerli sayfa" diye gostermek olurdu. */
+    WHERE c.is_live
+    ${tier ? sql`AND c.tier = ${tier}` : sql``}
     GROUP BY c.id
     HAVING count(*) >= ${minSitters}
     ORDER BY c.tier ASC, count(*) DESC
@@ -93,5 +121,6 @@ export async function listCitiesWithSupply(
     nameFr: String(r.name_fr),
     province: r.province as CityRecord['province'],
     tier: Number(r.tier) as 1 | 2 | 3,
+    isLive: true,
   }));
 }

@@ -40,6 +40,10 @@ const LABEL: Record<string, string> = {
   'settings.campaignCreated': 'Started a commission campaign',
   'settings.campaignEnded': 'Ended a commission campaign',
   'admin.reveal': 'Opened a private message',
+  /* Kapsam: sitenin NEREDE hizmet verdigini degistiren kararlar */
+  'coverage.cityOpened': 'Opened a city',
+  'coverage.cityClosed': 'Closed a city',
+  'coverage.cityAdded': 'Added a city (closed)',
 };
 
 /** Tanimadigimiz bir kod gelirse bari okunur duruyor: "user.foo" -> "user foo". */

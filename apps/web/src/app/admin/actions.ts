@@ -8,6 +8,7 @@ import {
   setReviewHidden, resolveReport, createReport, adminSetBookingStatus,
   getRawMessage, getReport, recordAudit,
   saveCommissionSettings, getCommissionSettings, createCampaign, endCampaign,
+  listCoverage, setCityLive, createCity,
 } from '@/lib/data';
 import { validateCommissionSettings, validateCampaign } from '@havre/core';
 import type { SettingsState } from '@/components/admin/CommissionForms';
@@ -447,5 +448,99 @@ function revalidateRates(): void {
     revalidatePath(`/${seg}/become-a-sitter`);
     revalidatePath(`/${seg}/help`);
     revalidatePath(`/${seg}/legal/sitter-agreement`);
+  }
+}
+
+/* ------------------------------------------------------------- kapsam */
+
+/**
+ * SEHRI AC / KAPAT.
+ *
+ * Bu dugme SITENIN NEREDE HIZMET VERDIGINI degistiriyor: acik bir
+ * sehirde arama bakici donduruyor, sehir sayfasi indeksleniyor ve
+ * bakici profilleri herkese acik. Kapatmak bunlarin hepsini geri
+ * aliyor — rezervasyonlara DOKUNMUYOR, var olan rezervasyonlar ve
+ * mesajlasma oldugu gibi duruyor.
+ *
+ * Karar denetim kaydina yaziliyor (setCityLive icinde): bir sehrin
+ * bir sabah kapali olmasinin sebebi "kim, ne zaman" diye sorulabilmeli.
+ */
+export async function setCityLiveAction(
+  _prev: ActionState, form: FormData,
+): Promise<ActionState> {
+  const admin = await guard();
+  if (!admin) return { error: 'not_allowed' };
+
+  const cityId = field(form, 'cityId');
+  if (!isUuid(cityId)) return { error: 'invalid_id' };
+  const live = field(form, 'live') === '1';
+
+  const res = await setCityLive(cityId, live, admin.id);
+  if (!res.ok) return { error: 'not_found' };
+
+  revalidateCoverage();
+  return { done: live ? `${res.name} is open.` : `${res.name} is closed.` };
+}
+
+/**
+ * YENI SEHIR — HER ZAMAN KAPALI BASLAR.
+ *
+ * Eklemek ve acmak ayri iki karar. Merkez koordinati zorunlu: arama
+ * yaricapi oradan olculuyor, noktasiz bir sehirde arama hicbir sey
+ * bulamaz ve sebebi gorunmezdi.
+ */
+export async function createCityAction(
+  _prev: ActionState, form: FormData,
+): Promise<ActionState> {
+  const admin = await guard();
+  if (!admin) return { error: 'not_allowed' };
+
+  const slugify = (v: string) =>
+    v.normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  const nameEn = field(form, 'nameEn').trim();
+  const nameFr = field(form, 'nameFr').trim() || nameEn;
+  const province = field(form, 'province').trim().toUpperCase();
+  const lat = Number(field(form, 'lat').replace(',', '.'));
+  const lon = Number(field(form, 'lon').replace(',', '.'));
+  const tier = Number(field(form, 'tier')) || 3;
+
+  if (nameEn.length < 2) return { error: 'invalid' };
+  if (!PROVINCES.includes(province)) return { error: 'invalid' };
+  /* Kanada'nin kabaca sinirlari. Amac tipo yakalamak: virgul yerine
+     nokta koymayi unutmus bir koordinat, sehri Gine Korfezi'ne
+     tasir ve arama hicbir sey bulmaz. */
+  if (!Number.isFinite(lat) || lat < 41 || lat > 84) return { error: 'invalid' };
+  if (!Number.isFinite(lon) || lon < -142 || lon > -52) return { error: 'invalid' };
+
+  const res = await createCity({
+    nameEn, nameFr,
+    slugEn: slugify(nameEn), slugFr: slugify(nameFr),
+    province, lat, lon, tier,
+  }, admin.id);
+  if (!res.ok) return { error: 'duplicate_slug' };
+
+  revalidateCoverage();
+  return { done: `${nameEn} added — still closed. Open it when there are sitters.` };
+}
+
+const PROVINCES = [
+  'AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT',
+];
+
+/*
+  Kapsam degisince NE TAZELENIR.
+
+  Sehir listeleri her sayfanin alt bilgisinde ve gezinmesinde; ana
+  sayfanin ornek sehri de buradan geliyor. Kok duzeni tazelenmezse
+  kapatilan sehir alt bilgide durmaya devam eder ve tiklayan kisi
+  bekleme listesine duser -- kapatma kararinin yarim uygulanmasi.
+*/
+function revalidateCoverage(): void {
+  revalidatePath('/admin/coverage');
+  revalidatePath('/sitemap.xml');
+  for (const seg of ['en', 'fr']) {
+    revalidatePath(`/${seg}`, 'layout');
   }
 }

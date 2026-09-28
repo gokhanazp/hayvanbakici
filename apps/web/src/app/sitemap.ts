@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { evaluateIndexability, servicesForPhase } from '@havre/core';
 import { LOCALES, serviceSlug } from '@havre/i18n';
-import { getCities, getLandingData, getSitterSlugsForBuild } from '@/lib/data';
+import { getLiveCities, getLandingData, getSitterSlugsForBuild } from '@/lib/data';
 import { landingUrl, urlFor } from '@/lib/seo';
 import { isDemo } from '@/lib/demo';
 
@@ -17,7 +17,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = [];
   const services = servicesForPhase('v1');
-  const cities = await getCities();
+  /*
+    YALNIZCA ACIK SEHIRLER. Bir sehir sayfasini haritaya koymak,
+    Google'a "burasi degerli, tara" demek. Hizmet vermedigimiz bir
+    sehir icin bunu demek, tiklayan herkese tutamadigimiz bir soz
+    vermekle ayni sey. Sehir acildigi gun sayfalari haritaya
+    kendiliginden giriyor.
+  */
+  const cities = await getLiveCities();
 
   /*
     SABIT SAYFALAR. Hepsi iki dilde var ve birbirine hreflang ile bagli

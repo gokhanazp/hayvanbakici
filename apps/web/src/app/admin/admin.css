@@ -292,6 +292,8 @@
 
 .a-num { font-variant-numeric: tabular-nums; }
 .a-dim { color: var(--color-ink-muted); }
+/* Sifir bakici: bir sehri acmadan once gorulmesi gereken tek sayi */
+.a-zero { color: var(--color-danger-strong); font-weight: 600; }
 .a-sec { color: var(--color-ink-secondary); }
 
 /* --------------------------------------------------------------- tablo */

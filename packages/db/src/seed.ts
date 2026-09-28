@@ -123,6 +123,17 @@ for (const city of SEED_CITIES) {
     nameEn: city.nameEn, nameFr: city.nameFr,
     province: city.province, tier: city.tier, population: city.population,
     centroid: point(city.lon, city.lat) as unknown as string,
+    /*
+      TOHUM VERIDE DE YALNIZCA TORONTO ACIK.
+
+      Tablo her tohumlamada bosaltiliyor, yani 0019 gocunun yaptigi
+      isaretleme burada kaybolurdu ve tohumlanmis bir veritabani
+      "her sehirde hizmet veriyoruz" derdi -- tam olarak kaldirmaya
+      calistigimiz yanlis. Diger sehirler bekleme listesi sayfasi
+      olarak duruyor; panelden acilabiliyorlar.
+    */
+    isLive: city.slugEn === 'toronto',
+    liveSince: city.slugEn === 'toronto' ? new Date() : null,
   }).returning({ id: s.cities.id });
   const cityId = cityRow!.id;
 

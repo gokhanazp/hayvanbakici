@@ -7,7 +7,7 @@
  */
 import { cache } from 'react';
 import {
-  getDb, listCities, listTier1Cities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
+  getDb, listCities, listTier1Cities, listLiveCities, listCitiesWithSupply, findCityBySlug as dbFindCityBySlug,
   getSitterProfile as dbGetSitterProfile, listSitterSlugsForBuild, listFeaturedReviews,
   resolvePlace as dbResolvePlace,
   getCalendar as dbGetCalendar, setAvailability as dbSetAvailability,
@@ -54,6 +54,8 @@ import {
   existingSitterIds as dbExistingSitterIds,
   getCommissionSettings as dbGetCommissionSettings,
   saveCommissionSettings as dbSaveCommissionSettings,
+  listCoverage as dbListCoverage, setCityLive as dbSetCityLive, createCity as dbCreateCity,
+  type CoverageCity, type NewCity,
   getResolvedCommission as dbGetResolvedCommission,
   getActiveCampaign as dbGetActiveCampaign, listCampaigns as dbListCampaigns,
   createCampaign as dbCreateCampaign, endCampaign as dbEndCampaign,
@@ -100,6 +102,9 @@ export const getCities = cache(async (): Promise<CityRecord[]> => listCities(db(
 
 export const getTier1Cities = cache(async (): Promise<CityRecord[]> => listTier1Cities(db()));
 
+/** Bugun hizmet verdigimiz sehirler — site haritasi ve "nerelerdeyiz" listeleri */
+export const getLiveCities = cache(async (): Promise<CityRecord[]> => listLiveCities(db()));
+
 export const findCityBySlug = cache(
   async (slug: string, locale: Locale): Promise<CityRecord | null> =>
     dbFindCityBySlug(db(), slug, locale),
@@ -119,12 +124,25 @@ export async function countSitters(params: SearchParams): Promise<number> {
   return dbCountSitters(db(), params);
 }
 
-/** Ana sayfanin ornek sehri — en buyuk Tier-1 */
+/**
+ * Ana sayfanin ornek sehri — ACIK sehirlerden en buyuk Tier-1.
+ *
+ * ACIK OLMASI SART: ana sayfadaki ornek arama, hizmet vermedigimiz bir
+ * sehri gosteremez. Tier-1 acik sehir yoksa herhangi bir acik sehre
+ * dusuyor; hic acik sehir yoksa hata veriyor, cunku o durumda site
+ * "bakici bul" diyecek bir yer bulamaz ve bunu sessizce gecmek
+ * yanlis sayfalar uretirdi.
+ */
 export const getDefaultCity = cache(async (): Promise<CityRecord> => {
-  const cities = await getTier1Cities();
-  const toronto = cities.find((c) => c.slugEn === 'toronto');
-  const first = toronto ?? cities[0];
-  if (!first) throw new Error('Veritabaninda sehir yok — once `npm run seed -w @havre/db` calistirin');
+  const tier1 = await getTier1Cities();
+  const live = await getLiveCities();
+  const first = tier1.find((c) => c.slugEn === 'toronto') ?? tier1[0] ?? live[0];
+  if (!first) {
+    throw new Error(
+      'Acik sehir yok — panelden (/admin/coverage) en az bir sehir acin '
+      + 'ya da `npm run db:seed` calistirin',
+    );
+  }
   return first;
 });
 
@@ -390,3 +408,15 @@ export const endCampaign = (input: { adminId: string; campaignId: string; ip?: s
   dbEndCampaign(db(), input);
 export const listCommissionAudit = (limit?: number) => dbListCommissionAudit(db(), limit);
 export type { CommissionSettingsRow, CampaignRow };
+
+/* ------------------------------------------------------------ kapsam */
+/*
+  Hangi sehirde hizmet verdigimiz. Onbellek YOK: bir sehri acan
+  yonetici sonucu aninda gormeli, "bir dakika sonra" degil.
+*/
+export const listCoverage = () => dbListCoverage(db());
+export const setCityLive = (cityId: string, live: boolean, actorId: string) =>
+  dbSetCityLive(db(), cityId, live, actorId);
+export const createCity = (input: NewCity, actorId: string) =>
+  dbCreateCity(db(), input, actorId);
+export type { CoverageCity, NewCity };

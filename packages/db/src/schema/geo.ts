@@ -21,6 +21,26 @@ export const cities = pgTable(
     centroid: geography('centroid'),
     /** 1 = lansman sehri, 2 = faz 1, 3 = faz 2 */
     tier: integer('tier').notNull().default(3),
+    /*
+      SEHIR ACIK MI — HIZMET VERDIGIMIZ YER BURADAN BELLI.
+
+      `tier` bir PLAN ("bir gun buraya acilacagiz"), bu sutun bir
+      GERCEK ("bugun burada hizmet veriyoruz"). Ikisini ayni sutunda
+      tutmak, planla vaadi birbirine karistirmak olurdu: tier 1 olan
+      ama henuz tek bakicisi olmayan bir sehirde arama sayfasi acip
+      "bakici bul" demek, tutamadigimiz bir soz.
+
+      VARSAYILAN KAPALI. Yeni eklenen bir sehir kendiliginden yayina
+      girmiyor; birinin panelden bilerek acmasi gerekiyor.
+
+      Kapali sehirde: arama o sehirdeki bakicilari HIC dondurmuyor,
+      sehir sayfasi bekleme listesine donuyor ve noindex oluyor.
+      Bakici basvurusu ENGELLENMIYOR — sehir acildiginda arz hazir
+      olsun diye (bkz. sitter panosundaki uyari).
+    */
+    isLive: boolean('is_live').notNull().default(false),
+    /** Ne zaman acildi — panelde "su tarihten beri acik" diye yaziyor */
+    liveSince: timestamp('live_since', { withTimezone: true }),
     population: integer('population'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -28,6 +48,7 @@ export const cities = pgTable(
     uniqueIndex('cities_slug_en_uq').on(t.slugEn, t.province),
     uniqueIndex('cities_slug_fr_uq').on(t.slugFr, t.province),
     index('cities_tier_idx').on(t.tier),
+    index('cities_live_idx').on(t.isLive),
   ],
 );
 

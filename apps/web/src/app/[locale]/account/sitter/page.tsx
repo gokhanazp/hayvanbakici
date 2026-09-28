@@ -67,12 +67,28 @@ function StatusCard({
   };
   const v = view[dash.status];
 
+  /*
+    SEHIR HENUZ ACIK DEGILSE ONAY YETMIYOR.
+
+    Basvuru her sehirde acik (sehir acildiginda arz hazir olsun diye)
+    ama profil yalnizca ACIK sehirlerde aramada cikiyor. Bunu
+    soylemezsek onaylanmis bir bakici haftalarca hic istek almaz ve
+    sebebini bilmez -- ekranda "profiliniz yayinda" yazarken.
+    "Yayinda" kelimesi de bu durumda kullanilmiyor.
+  */
+  const cityClosed = dash.status === 'active' && !dash.cityIsLive;
+  const cityLabel = (locale === 'fr-CA' ? dash.cityNameFr : dash.cityNameEn) ?? '';
+
   return (
     <section className="card card-pad">
-      <h2 className="text-h4">{v.title}</h2>
-      <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{v.lead}</p>
+      <h2 className="text-h4">{cityClosed ? key('dashCityClosed') : v.title}</h2>
+      <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+        {cityClosed
+          ? interpolate(key('dashCityClosedLead'), { city: cityLabel })
+          : v.lead}
+      </p>
 
-      {dash.status === 'active' && dash.slug && citySlug && (
+      {dash.status === 'active' && !cityClosed && dash.slug && citySlug && (
         <Link
           href={`/${seg}/${citySlug}/sitter/${dash.slug}/`}
           className="btn btn-secondary"

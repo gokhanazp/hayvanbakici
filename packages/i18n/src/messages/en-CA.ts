@@ -49,6 +49,23 @@ export const enCA = {
     statPrice: 'median price',
     statBookings: 'completed bookings',
   },
+  /*
+    HENUZ ACILMAMIS SEHIR.
+
+    Metin ozur dilemiyor ve "cok yakinda" gibi tarih vermiyor: tarih
+    veremedigimiz bir sey icin tarih soylemek, tutulmayacak bir soz.
+    Soyledigi sey olabildigince somut: bugun neredeyiz, haber
+    verebiliriz, ve orada bakiciysaniz simdiden basvurabilirsiniz.
+  */
+  coverage: {
+    heading: 'We are not in {city} yet',
+    lead: 'Havre is open in Toronto today. We open a new city only once there are enough sitters in it to actually book — an empty search page helps nobody. Leave your email and we will write the day {city} opens.',
+    openHeading: 'Open today',
+    sitterHeading: 'Do you sit in {city}?',
+    sitterBody: 'Applications are open everywhere, including cities we have not opened. Finish your profile now and it goes live the day your city does — no bookings, and no fees, until then.',
+    metaTitle: '{service} in {city} — not open yet',
+    metaDescription: 'Havre is not in {city} yet. See where we are open today, or leave your email and we will write when {city} opens.',
+  },
   search: {
     service: 'Service',
     location: 'Neighbourhood, city or postal code',
@@ -191,6 +208,9 @@ export const enCA = {
     dashTitle: 'Your sitting',
     dashLead: 'Where your sitter profile stands, and what would move it forward.',
     dashLive: 'Your profile is live',
+    /* Onaylandi ama sehri henuz acik degil: "yayinda" demek yanlis olurdu */
+    dashCityClosed: 'Approved — waiting for your city',
+    dashCityClosedLead: 'Your profile is complete and approved, but Havre is not open in {city} yet, so owners searching there cannot see you and no requests will arrive. Nothing more is needed from you: the day we open {city}, your profile goes live as it is. You are charged nothing in the meantime.',
     dashLiveLead: 'Owners can find you in search and send you booking requests.',
     dashViewProfile: 'See it the way owners do',
     dashPending: 'Waiting for review',

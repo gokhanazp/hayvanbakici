@@ -67,6 +67,17 @@ function filters(params: SearchParams, origin: SQL, radius: number): SQL {
     AND ss.is_active
     AND st.status = 'active'
     AND st.slug IS NOT NULL
+    /*
+      ACIK SEHIR KOSULU — HER ARAMADA.
+
+      Kapali bir sehirdeki bakici hicbir aramada cikmiyor. Yarinin
+      sehrinden bugun basvurmus bir bakiciyi sonuclara koymak,
+      sahibe hizmet vermedigimiz bir yerde rezervasyon vaadi olurdu.
+
+      Filtre BURADA, listeleme ve sayim sorgusunun ortak yerinde:
+      birinde unutulursa ekran "12 bakici" deyip uc tane cizerdi.
+    */
+    AND EXISTS (SELECT 1 FROM cities c WHERE c.id = pr.city_id AND c.is_live)
     AND ST_DWithin(pr.approx_location, ${origin}, ${radius})
     ${params.petWeightKg !== undefined
       /*

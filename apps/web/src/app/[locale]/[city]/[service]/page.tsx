@@ -18,9 +18,10 @@ import { ServiceIcon } from '@/components/ServiceIcon';
 import { SearchBar } from '@/components/SearchBar';
 import { WaitlistForm } from '@/components/WaitlistForm';
 import { SectionDoodles } from '@/components/Doodles';
+import { ComingSoon } from '@/components/ComingSoon';
 import { PHOTOS, type PhotoId } from '@/lib/photos';
 import { isDemo } from '@/lib/demo';
-import { cityName, citySlug, findCityBySlug, getCities, getLandingData, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
+import { cityName, citySlug, findCityBySlug, getLandingData, getLiveCities, getTier1Cities, type CityRecord, type LandingData } from '@/lib/data';
 import { alternatesFor, landingJsonLd, landingUrl, robotsFor, urlFor } from '@/lib/seo';
 import { joinWaitlistAction } from './actions';
 import { money, numberFmt, dateFmt, responseTime } from '@/lib/format';
@@ -86,10 +87,27 @@ export async function generateMetadata(
   const r = await resolve(params);
   if (!r) return { robots: { index: false, follow: false } };
 
-  const data = await getLandingData(r.city, r.service, r.locale);
   const m = getMessages(r.locale);
   const name = cityName(r.city, r.locale);
   const svc = m.service[r.service];
+
+  /*
+    HENUZ ACILMAMIS SEHIR — NOINDEX, FOLLOW.
+
+    Sayfa duruyor (bekleme listesi) ama Google'a sunulmuyor: hizmet
+    vermedigimiz bir sehrin arama sayfasini indekslettirmek, tiklayan
+    herkese tutamadigimiz bir soz vermek olurdu. follow acik kaliyor
+    ki sayfadaki ACIK sehir baglantilari izlensin.
+  */
+  if (!r.city.isLive) {
+    return {
+      title: interpolate(m.coverage.metaTitle, { city: name, service: svc }),
+      description: interpolate(m.coverage.metaDescription, { city: name }),
+      robots: { index: false, follow: true },
+    };
+  }
+
+  const data = await getLandingData(r.city, r.service, r.locale);
 
   // ARZ ESIGI KURALI — sayfanin indekslenip indekslenmeyecegini belirler
   if (data.sitterCount === 0) return { robots: { index: false, follow: false } };
@@ -166,6 +184,31 @@ export default async function LandingPage(
   const r = await resolve(params);
   if (!r) notFound();
 
+  /*
+    SEHIR HENUZ ACIK DEGILSE BURADA BITIYOR.
+
+    404 DEGIL: "Ottawa'da kopek pansiyonu" arayan biri bizim icin bir
+    bilgi ve bekleme listesi tam olarak bunu topluyor. Ama sayfa bakici
+    karti, fiyat araligi ya da "rezervasyon iste" dugmesi GOSTERMIYOR --
+    hicbiri dogru olmazdi.
+
+    Dal getLandingData'dan ONCE: kapali bir sehir icin fiyat/bakici
+    toplami hesaplamak hem gereksiz hem de o sayilarin bir yerde
+    ekrana sizma ihtimali.
+  */
+  if (!r.city.isLive) {
+    const liveCities = await getLiveCities();
+    return (
+      <ComingSoon
+        locale={r.locale}
+        city={r.city}
+        service={r.service}
+        liveCities={liveCities}
+        action={joinWaitlistAction as never}
+      />
+    );
+  }
+
   const data = await getLandingData(r.city, r.service, r.locale);
   const rule = evaluateIndexability({ sitterCount: data.sitterCount });
 
@@ -178,7 +221,15 @@ export default async function LandingPage(
   const faqs = buildFaqs(data, r.locale, name, svc);
   const seg = segmentFor(r.locale);
 
-  const allCities = await getCities();
+  /*
+    YAKINDAKI SEHIRLER — YALNIZCA ACIK OLANLAR.
+
+    Once tum sehirler listeleniyordu. Bugun bunun anlami, hizmet
+    vermedigimiz bir sehrin bekleme listesi sayfasina "yakininizdaki
+    sehirler" basligi altinda baglanti vermek olurdu: tiklayan kisi
+    bakici bekliyor, bekleme listesi buluyor.
+  */
+  const allCities = await getLiveCities();
   const nearby: CityRecord[] = allCities
     .filter((c) => c.id !== r.city.id && c.province === r.city.province)
     .concat(allCities.filter((c) => c.id !== r.city.id && c.province !== r.city.province))

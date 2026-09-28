@@ -7,6 +7,7 @@ export * from './sitter.js';
 export * from './place.js';
 export * from './booking.js';
 export * from './admin.js';
+export * from './coverage.js';
 export * from './admin-users.js';
 export * from './admin-bookings.js';
 export * from './admin-moderation.js';

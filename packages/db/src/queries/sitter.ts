@@ -203,6 +203,11 @@ export async function getSitterProfile(
         -- Yalnizca AKTIF bakicilar. Taslak, beklemede ya da cikarilmis bir
         -- bakicinin sayfasi olmamali: indekslenir ve sonra 404'e doner.
         AND st.status = 'active'
+        -- ACIK SEHIR. Kapali bir sehirdeki bakicinin herkese acik
+        -- profili de olmamali: arama onu zaten dondurmuyor, ama adres
+        -- elde paylasilabilir ve sayfa "rezervasyon iste" derdi --
+        -- hizmet vermedigimiz bir yerde tutulamayacak bir soz.
+        AND c.is_live
       LIMIT 1
     `);
 
@@ -574,6 +579,17 @@ export interface SitterDashboard {
   slug: string | null;
   citySlugEn: string | null;
   citySlugFr: string | null;
+  cityNameEn: string | null;
+  cityNameFr: string | null;
+  /**
+   * Bakicinin sehri bugun acik mi.
+   *
+   * Kapali sehirde basvuru ENGELLENMIYOR (sehir acildiginda arz hazir
+   * olsun diye) ama profil aramada cikmiyor. Panoda bunun yazmasi
+   * sart: onaylanmis bir bakicinin hic istek almamasi ve sebebini
+   * bilmemesi, sessizce tutulmayan bir soz olurdu.
+   */
+  cityIsLive: boolean;
   badgeLevel: number;
   /** Profil gucu icin — @havre/core profileCompleteness girdisi */
   steps: {
@@ -623,6 +639,9 @@ export async function getSitterDashboard(
         s.badge_level,
         c.slug_en AS city_slug_en,
         c.slug_fr AS city_slug_fr,
+        c.name_en AS city_name_en,
+        c.name_fr AS city_name_fr,
+        COALESCE(c.is_live, false) AS city_is_live,
 
         (p.bio IS NOT NULL AND s.date_of_birth IS NOT NULL AND u.phone IS NOT NULL) AS has_about,
         (p.city_id IS NOT NULL AND p.exact_address_enc IS NOT NULL)                 AS has_location,
@@ -676,6 +695,9 @@ export async function getSitterDashboard(
       slug: (r.slug as string | null) ?? null,
       citySlugEn: (r.city_slug_en as string | null) ?? null,
       citySlugFr: (r.city_slug_fr as string | null) ?? null,
+      cityNameEn: (r.city_name_en as string | null) ?? null,
+      cityNameFr: (r.city_name_fr as string | null) ?? null,
+      cityIsLive: Boolean(r.city_is_live),
       badgeLevel: Number(r.badge_level ?? 0),
       steps: {
         hasAbout: Boolean(r.has_about),

@@ -317,10 +317,29 @@ export default async function SearchPage({
 
             {results.length === 0 ? (
               <div className="card card-pad" style={{ maxWidth: '42rem' }}>
+                {/*
+                  BOS SONUCUN IKI AYRI SEBEBI VAR VE AYNI CUMLE OLAMAZ.
+
+                  Kapali bir sehirde "bu filtrelere uyan bakici yok"
+                  demek yanlis yone gonderiyor: kullanici yaricapi
+                  buyutur, fiyati acar, tarihi siler ve hicbiri
+                  degismez -- cunku sorun filtreler degil, orada hic
+                  olmayisimiz. Sehir kapaliysa ekran bunu soyluyor.
+                */}
                 <h2 className="text-h4">
-                  {interpolate(t.noMatches, { radius: String(radiusKm), place: placeLabel })}
+                  {place.cityIsLive
+                    ? interpolate(t.noMatches, { radius: String(radiusKm), place: placeLabel })
+                    : interpolate(m.coverage.heading, {
+                      city: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
+                    })}
                 </h2>
-                <p className="muted" style={{ marginTop: 'var(--space-2)' }}>{t.noMatchesHint}</p>
+                <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
+                  {place.cityIsLive
+                    ? t.noMatchesHint
+                    : interpolate(m.coverage.lead, {
+                      city: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
+                    })}
+                </p>
                 <p style={{ marginTop: 'var(--space-5)' }}>
                   <Link
                     href={`/${segmentFor(locale)}/${place.citySlugEn === '' ? '' : (locale === 'fr-CA' ? place.citySlugFr : place.citySlugEn)}/${serviceSlug(service, locale)}/`}

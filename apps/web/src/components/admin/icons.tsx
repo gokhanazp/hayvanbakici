@@ -26,7 +26,7 @@ const base = {
 
 export type IconName =
   | 'dashboard' | 'applications' | 'users' | 'bookings'
-  | 'reviews' | 'reports' | 'audit' | 'settings'
+  | 'reviews' | 'reports' | 'audit' | 'settings' | 'coverage'
   | 'collapse' | 'expand' | 'back' | 'signout';
 
 export function Icon({ name }: { name: IconName }) {
@@ -39,6 +39,16 @@ export function Icon({ name }: { name: IconName }) {
           <circle cx="7.5" cy="7.5" r="3" />
           <circle cx="16.5" cy="16.5" r="3" />
           <path d="M18.5 5.5 5.5 18.5" />
+        </svg>
+      );
+    /* Kapsam — harita igneleri: "nerelerdeyiz" sorusunun sekli */
+    case 'coverage':
+      return (
+        <svg {...base}>
+          <path d="M9 21 3 18V4l6 3 6-3 6 3v7" />
+          <path d="M9 7v9" />
+          <path d="M15 4v6" />
+          <path d="M18 21s3-3.2 3-5.2A3 3 0 0 0 15 15.8c0 2 3 5.2 3 5.2Z" />
         </svg>
       );
     case 'dashboard':
