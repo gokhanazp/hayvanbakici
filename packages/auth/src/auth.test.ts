@@ -178,20 +178,45 @@ describe('e-posta + sifre akisi', () => {
  * sabitliyor.
  */
 describe('site adresi', () => {
-  it('uretimde tanimsiz birakilamaz', () => {
+  it('uretimde tanimsiz ve Vercel disindaysa durur', () => {
     expect(() => createAuth({
-      env: { ...baseEnv, NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: undefined } as NodeJS.ProcessEnv,
+      env: { ...baseEnv, NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: undefined, VERCEL_URL: undefined } as NodeJS.ProcessEnv,
       db, mailer,
     })).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
-  it('uretimde localhost olamaz', () => {
+  it('Vercel dagitiminda kendi adresine duser, DURMAZ', () => {
+    /* Unutulmus bir degisken yuzunden yayini komple dusurmek, cozdugu
+       sorundan buyuk bir sorun olurdu. */
+    expect(() => createAuth({
+      env: {
+        ...baseEnv, NODE_ENV: 'production',
+        NEXT_PUBLIC_SITE_URL: undefined, VERCEL_URL: 'havre-demo.vercel.app',
+      } as NodeJS.ProcessEnv,
+      db, mailer,
+    })).not.toThrow();
+  });
+
+  it('uretimde localhost yazilmissa Vercel adresi kazanir', () => {
+    expect(() => createAuth({
+      env: {
+        ...baseEnv, NODE_ENV: 'production',
+        NEXT_PUBLIC_SITE_URL: 'http://localhost:3000', VERCEL_URL: 'havre-demo.vercel.app',
+      } as NodeJS.ProcessEnv,
+      db, mailer,
+    })).not.toThrow();
+  });
+
+  it('uretimde localhost yazilmis ve baska secenek yoksa durur', () => {
     // Dogrulama e-postasi kullanicinin acamayacagi bir adrese baglanti
     // gonderirse kimse hata gormez -- kullanici da hesabini hic acamaz.
     expect(() => createAuth({
-      env: { ...baseEnv, NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: 'http://localhost:3000' } as NodeJS.ProcessEnv,
+      env: {
+        ...baseEnv, NODE_ENV: 'production',
+        NEXT_PUBLIC_SITE_URL: 'http://localhost:3000', VERCEL_URL: undefined,
+      } as NodeJS.ProcessEnv,
       db, mailer,
-    })).toThrow(/localhost/);
+    })).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
   it('gelistirmede tanimsiz birakilabilir', () => {

@@ -34,24 +34,41 @@ export interface AuthDeps {
  * ISTEMCISI BUNU KULLANMIYOR; orada dogru taban her zaman sayfanin
  * kendi kaynagi (bkz. client.ts).
  *
- * URETIMDE ZORUNLU ve localhost olamaz: yanlis birakilirsa dogrulama
- * e-postasi kullanicinin ACAMAYACAGI bir adrese baglanti gonderir ve
- * hesabini hic acamaz. Bu sessizce olur -- e-posta gider, kimse hata
- * gormez -- o yuzden acilista durduruyoruz.
+ * SIRA: acikca verilen adres > dagitimin KENDI adresi > localhost.
+ *
+ * Ortadaki basamak bir dagitim kazasini onluyor. VERCEL_URL her
+ * dagitimda o dagitimin kendi konagi olarak geliyor; NEXT_PUBLIC_SITE_URL
+ * tanimlanmayi unutulmus olsa bile kimlik akisi dogru adresi kullaniyor
+ * ve uygulama acilista DURMUYOR -- unutulmus bir degisken yuzunden
+ * yayini komple dusurmek, cozdugu sorundan buyuk bir sorun.
+ *
+ * ONIZLEME DAGITIMLARI icin de dogrusu bu: orada kanonik adres
+ * (havre.ca) yazsa bile dogrulama e-postasi o onizlemeye degil canli
+ * siteye baglanti verirdi ve onizlemede giris denenemezdi.
+ *
+ * Hicbiri yoksa ve uretimdeysek duruyoruz: o durumda e-posta
+ * baglantilari localhost'a giderdi, kullanici hesabini hic acamazdi ve
+ * kimse bir hata gormezdi.
  */
 function siteUrl(env: NodeJS.ProcessEnv): string {
-  const raw = env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  const explicit = env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  const isLocal = (u: string) => /localhost|127\.0\.0\.1/.test(u);
+
+  if (explicit && !(env.NODE_ENV === 'production' && isLocal(explicit))) return explicit;
+
+  /* Vercel her dagitimda semasiz konak veriyor: "proje-abc123.vercel.app" */
+  const vercel = env.VERCEL_URL?.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  if (vercel) return `https://${vercel}`;
+
   if (env.NODE_ENV === 'production') {
-    if (!raw || /localhost|127\.0\.0\.1/.test(raw)) {
-      throw new Error(
-        'NEXT_PUBLIC_SITE_URL uretimde zorunlu ve localhost olamaz. '
-        + 'Dogrulama ve sifre sifirlama e-postalari bu adrese baglanti veriyor; '
-        + 'yanlis olursa kullanici hesabini hic acamaz. '
-        + 'Ornek: NEXT_PUBLIC_SITE_URL=https://havre.ca',
-      );
-    }
+    throw new Error(
+      'NEXT_PUBLIC_SITE_URL uretimde zorunlu (ve localhost olamaz). '
+      + 'Dogrulama ve sifre sifirlama e-postalari bu adrese baglanti veriyor; '
+      + 'yanlis olursa kullanici hesabini hic acamaz. '
+      + 'Ornek: NEXT_PUBLIC_SITE_URL=https://havre.ca',
+    );
   }
-  return raw || 'http://localhost:3000';
+  return 'http://localhost:3000';
 }
 
 /**
