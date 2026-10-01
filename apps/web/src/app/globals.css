@@ -6136,3 +6136,71 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   border: 0; border-radius: 1rem; background: var(--color-surface);
   box-shadow: 0 4px 16px -2px rgba(83, 72, 62, 0.07);
 }
+
+/*
+  REZERVASYON FORMUNUN ICI.
+
+  Sayfanin ust blogu ve ozet kutusu tasarima gecmisti ama ALANLAR eski
+  dilde kalmisti: 2 piksel kenarlikli beyaz girdiler, kucuk harfli
+  etiketler, cerceveli onay satirlari. Ekranin govdesi degismemis
+  gorunuyordu.
+
+  Kurallar YALNIZCA .book-page icinde gecerli: ayni sinflar (field-block,
+  checkbox-row, textarea) sitenin baska yerlerinde de kullaniliyor ve
+  onlar henuz gecmedi.
+*/
+.book-page .book-fields { display: grid; gap: 1.25rem; padding: 1.5rem; }
+@media (max-width: 559px) { .book-page .book-fields { padding: 1rem; } }
+
+/* Bolum basliklari: tasarimda kalin ve 17px */
+.book-page .step-group-title {
+  margin: 0; font-size: 1.0625rem; line-height: 1.5rem; font-weight: 700; color: var(--color-ink);
+}
+
+/* Etiketler: kucuk, kalin, buyuk harf degil */
+.book-page .field-block > label,
+.book-page .field-label-static,
+.book-page .field-legend {
+  font-size: 0.75rem; font-weight: 700; color: var(--color-ink); text-transform: none; letter-spacing: 0;
+}
+
+/* Girdiler: kenarliksiz, acik zeminli, 0.75rem yaricap */
+.book-page :is(input[type='text'], input[type='number'], input[type='email'], input:not([type]), textarea, select, .select-trigger) {
+  border: 0; border-radius: 0.75rem;
+  background: var(--color-surface-sunken); color: var(--color-ink);
+  box-shadow: none;
+}
+.book-page :is(input, textarea, select, .select-trigger):focus-visible {
+  outline: 2px solid var(--color-accent); outline-offset: 1px; box-shadow: none;
+}
+.book-page .select-trigger:hover { border-color: transparent; }
+.book-page .textarea { min-height: 7rem; }
+
+/*
+  EVCIL HAYVAN SECIMI. Tasarimda her hayvan kendi satirinda: acik
+  zeminli bir kutu, solda ad, secilince yesil onay. Eski hal cerceveli
+  bir onay kutusu satiriydi ve listeden cok forma benziyordu.
+*/
+.book-page .checkbox-row {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.75rem; border: 0; border-radius: 0.75rem;
+  background: var(--color-surface-sunken); cursor: pointer;
+  transition: background-color var(--duration-standard) var(--easing-standard);
+}
+.book-page .checkbox-row:hover { background: var(--color-surface-high); }
+.book-page .checkbox-row:has(input:checked) {
+  background: var(--color-primary-fixed); color: var(--color-on-primary-fixed);
+}
+.book-page .checkbox-row input { accent-color: var(--color-accent); }
+
+/* Gonder dugmesi: tasarimdaki parlak mercan hap */
+.book-page .book-summary .btn-primary {
+  min-height: 3rem; border-radius: var(--radius-full);
+  background: var(--color-primary-bright); color: var(--color-primary-active);
+  box-shadow: 0 4px 12px rgba(253, 131, 99, 0.35);
+}
+.book-page .book-summary .btn-primary:hover:not(:disabled) {
+  background: var(--color-primary); color: var(--color-primary-on);
+}
+/* "+ Hayvan ekle" ikincil bir eylem, dugme gibi degil bag gibi dursun */
+.book-page .btn-ghost { justify-content: flex-start; padding-inline: 0; color: var(--color-accent); font-weight: 700; }
