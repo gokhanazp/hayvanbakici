@@ -259,7 +259,7 @@ export default async function LandingPage(
         <div className="container page-head page-head-with-search">
           <nav aria-label="Breadcrumb" className="text-body-sm" style={{ marginBottom: 'var(--space-5)' }}>
             <ol className="row" style={{ gap: 'var(--space-2)', listStyle: 'none', padding: 0 }}>
-              <li><Link href={`/${seg}`} className="muted">{m.brand.name.toLowerCase()}</Link></li>
+              <li><Link href={`/${seg}`} className="muted">{m.brand.name}</Link></li>
               <li aria-hidden="true" className="dim">/</li>
               <li className="dim">{r.city.province}</li>
               <li aria-hidden="true" className="dim">/</li>

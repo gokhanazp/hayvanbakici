@@ -888,6 +888,13 @@ export const frCA = {
     citiesHeading: 'Villes',
     companyHeading: 'Havre',
     legalHeading: 'Mentions légales',
+    trustHeading: 'Confiance et sécurité',
+    trustGuarantee: 'Le programme Havre Protection — une garantie de l’entreprise, pas une assurance',
+    trustChecks: 'Vérification du casier judiciaire et de l’identité par biométrie',
+    trustExpiry: 'Une demande sans réponse expire d’elle-même au bout de 36 heures',
+    trustData: 'Vos données sont hébergées au Canada, à Montréal',
+    badgeChecked: 'Chaque gardien vérifié',
+    badgeCanada: 'Conçu et hébergé au Canada',
     blog: 'Guides et récits',
     help: 'Centre d’aide',
     contact: 'Nous joindre',
@@ -903,6 +910,10 @@ export const frCA = {
     notInsurance: 'Le programme Protection Havre est une garantie de l’entreprise, pas un produit d’assurance, et il ne remplace pas votre propre assurance.',
   },
   header: {
+    /* Tek para birimiyle calisiyoruz; cip bunu SOYLUYOR, secenek sunmuyor */
+    currency: 'CAD ($)',
+    findSitters: 'Trouver un gardien',
+    brandLine: 'Canada',
     stripNote:
       'Gardiens dont les antécédents sont vérifiés · Tous les frais affichés avant de réserver',
     stripNoteShort: 'Tous les frais affichés avant de réserver',

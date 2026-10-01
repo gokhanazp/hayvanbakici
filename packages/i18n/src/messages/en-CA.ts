@@ -1007,6 +1007,13 @@ export const enCA = {
     citiesHeading: 'Cities',
     companyHeading: 'Havre',
     legalHeading: 'Legal',
+    trustHeading: 'Trust and safety',
+    trustGuarantee: 'The Havre Protection programme — a company guarantee, not insurance',
+    trustChecks: 'Criminal record check and biometric identity verification',
+    trustExpiry: 'A request nobody answers expires on its own in 36 hours',
+    trustData: 'Your data is stored in Canada, in Montréal',
+    badgeChecked: 'Every sitter checked',
+    badgeCanada: 'Built and hosted in Canada',
     blog: 'Guides & stories',
     help: 'Help centre',
     contact: 'Contact us',
@@ -1022,6 +1029,10 @@ export const enCA = {
     notInsurance: 'The Havre Protection programme is a company guarantee, not an insurance product, and it does not replace your own insurance.',
   },
   header: {
+    /* Tek para birimiyle calisiyoruz; cip bunu SOYLUYOR, secenek sunmuyor */
+    currency: 'CAD ($)',
+    findSitters: 'Find sitters',
+    brandLine: 'Canada',
     /*
       UST SERIT — sitenin iki sozu, tek satirda. Ikisi de baska
       sayfalarda AYNI sekilde yaziyor: "arka plan kontrollu bakicilar"
