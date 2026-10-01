@@ -1190,6 +1190,11 @@ export const enCA = {
     moreServicesPlural: '{count} more services',
     messageCta: 'Ask a question first',
     /* Kimlik kartindaki fiyat kutusunun basligi — {price} ICERMEZ */
+    /* ---- Rezervasyon kutusu (Stitch) ---- */
+    bookEyebrow: 'Quick and secure',
+    bookWith: 'Book with {name}',
+    selectService: 'Choose a service',
+    youPayLabel: 'You pay',
     rateLabel: 'Starting rate',
     priceFrom: 'From {price}',
     feeNote: 'You will see the full price — our fee and taxes included — before you confirm anything.',

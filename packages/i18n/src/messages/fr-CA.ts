@@ -1065,6 +1065,11 @@ export const frCA = {
     moreServicesPlural: '{count} autres services',
     messageCta: 'Poser une question d’abord',
     /* Kimlik kartindaki fiyat kutusunun basligi — {price} ICERMEZ */
+    /* ---- Rezervasyon kutusu (Stitch) ---- */
+    bookEyebrow: 'Rapide et sécuritaire',
+    bookWith: 'Réserver avec {name}',
+    selectService: 'Choisissez un service',
+    youPayLabel: 'Vous payez',
     rateLabel: 'Tarif de départ',
     priceFrom: 'À partir de {price}',
     feeNote: 'Vous verrez le prix complet — nos frais et les taxes inclus — avant de confirmer quoi que ce soit.',

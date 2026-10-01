@@ -390,6 +390,13 @@ export default async function SitterPage({
 
                 <div className="sp-name-row">
                   <h1 className="sp-name">{name}</h1>
+                  {/* Tasarimda konum adin YANINDA, altinda degil */}
+                  {where && (
+                    <span className="sp-where">
+                      <Sym name="location" size={16} />
+                      {where}
+                    </span>
+                  )}
                   {/* Kalp basligin YANINDA: karar burada veriliyor. */}
                   <FavouriteScope ids={[sitter.userId]} locale={locale} path={`/${seg}/favourites/`}>
                     <FavouriteHeart sitterId={sitter.userId} />
@@ -442,44 +449,6 @@ export default async function SitterPage({
             )}
           </div>
 
-          {/*
-            SAYILAR VE PUAN DAGILIMI. Tasarimda kimlik karti tek satir;
-            bizde bu veri VAR ve sahibin sordugu seyi cevapliyor, o
-            yuzden kartin hemen altinda ikinci bir kartta duruyor.
-
-            Dagilim yorum yoksa HIC cizilmiyor — bos cubuklar "kimse
-            puan vermemis" yerine "puanlar dusuk" gibi okunuyordu.
-          */}
-          <div className="sp-facts">
-            <ul className="sitter-stats">
-              <Stat value={numberFmt(sitter.completedBookings, locale)} label={m.sitter['stat.completed']} />
-              <Stat value={numberFmt(sitter.repeatClients, locale)} label={m.sitter['stat.repeat']} />
-              <Stat value={responseTime(sitter.medianResponseMinutes, locale)} label={m.sitter['stat.responds']} />
-              <Stat value={`${Math.round(sitter.acceptanceRate * 100)}%`} label={m.sitter['stat.acceptance']} />
-              {/*
-                YANIT ORANI kabul oranindan AYRI bir sey: burada ret de
-                cevaptir. Hic cevaplanabilir istek yoksa satir HIC
-                cizilmiyor — "%0" yanlis olurdu.
-              */}
-              {sitter.responseRate !== null && (
-                <Stat
-                  value={`${Math.round(sitter.responseRate * 100)}%`}
-                  label={m.sitter['stat.responseRate']}
-                />
-              )}
-            </ul>
-
-            {sitter.reviewCount > 0 && (
-              <div className="sp-breakdown">
-                <p className="sp-breakdown-h">{m.sitter.ratingBreakdown}</p>
-                <RatingBreakdown
-                  counts={sitter.ratingCounts}
-                  total={sitter.reviewCount}
-                  locale={locale}
-                />
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -524,6 +493,49 @@ export default async function SitterPage({
               </ul>
             </section>
           )}
+
+          {/*
+            SAYILAR VE PUAN DAGILIMI.
+
+            Referansta boyle bir blok YOK; bizde var ve sahibin
+            sordugu seyi cevapliyor. Ama tam genislikte bir satir
+            olarak kimlik kartiyla icerik arasinda duruyordu: hem
+            rezervasyon kutusunu bir ekran asagi itiyor hem de
+            izgaranin iki sutununu bozuyordu. Artik SOL SUTUNDA,
+            diger bloklarla ayni kartta.
+
+            Dagilim yorum yoksa HIC cizilmiyor — bos cubuklar "kimse
+            puan vermemis" yerine "puanlar dusuk" gibi okunuyordu.
+          */}
+          <section className="card card-pad sitter-block">
+            <SecHead icon="bolt">{m.sitter.ratingBreakdown}</SecHead>
+            <div className="sp-facts">
+              <ul className="sitter-stats">
+                <Stat value={numberFmt(sitter.completedBookings, locale)} label={m.sitter['stat.completed']} />
+                <Stat value={numberFmt(sitter.repeatClients, locale)} label={m.sitter['stat.repeat']} />
+                <Stat value={responseTime(sitter.medianResponseMinutes, locale)} label={m.sitter['stat.responds']} />
+                <Stat value={`${Math.round(sitter.acceptanceRate * 100)}%`} label={m.sitter['stat.acceptance']} />
+                {/*
+                  YANIT ORANI kabul oranindan AYRI bir sey: burada ret
+                  de cevaptir. Hic cevaplanabilir istek yoksa satir HIC
+                  cizilmiyor — "%0" yanlis olurdu.
+                */}
+                {sitter.responseRate !== null && (
+                  <Stat
+                    value={`${Math.round(sitter.responseRate * 100)}%`}
+                    label={m.sitter['stat.responseRate']}
+                  />
+                )}
+              </ul>
+              {sitter.reviewCount > 0 && (
+                <RatingBreakdown
+                  counts={sitter.ratingCounts}
+                  total={sitter.reviewCount}
+                  locale={locale}
+                />
+              )}
+            </div>
+          </section>
 
           {sitter.bio && (
             <section className="card card-pad sitter-block">
@@ -908,69 +920,100 @@ export default async function SitterPage({
 
         {/* --- Rezervasyon kutusu --- */}
         <aside className="sitter-aside">
-          <div className="card card-pad sitter-book">
-            {primary && (
-              <div>
-                <p className="tabular" style={{ margin: 0 }}>
-                  <span className="text-h2">{money(primary.priceCents, locale)}</span>
-                  <span className="dim"> / {m.unit[SERVICES[primary.serviceType].unit]}</span>
-                </p>
+          <div className="card card-pad sitter-book sp-book">
+            {/*
+              KUTUNUN BASLIGI. Tasarimda ustte kucuk bir ust baslik ve
+              "Book with <ad>" var. Yanindaki "Instant Confirm" rozeti
+              ALINMADI: aninda onay diye bir seyimiz yok, istekler
+              bakicinin cevabini bekliyor. Olmayan bir hiz sozu,
+              rezervasyon ekranindaki ilk hayal kirikligi olurdu.
+            */}
+            <div className="sp-book-head">
+              <span className="sp-book-eyebrow">{m.sitter.bookEyebrow}</span>
+              <h2 className="sp-book-title">
+                {interpolate(m.sitter.bookWith, { name: sitter.firstName })}
+              </h2>
+            </div>
+
+            {/*
+              HIZMET SECICI. Tasarimda bir <select> var ve secim fiyati
+              degistiriyor. Bizde sayfa STATIK (ISR) ve JavaScript'siz
+              calismasi gerekiyor, o yuzden secici bir GET FORMU:
+              secilen hizmet rezervasyon sayfasina parametre olarak
+              gidiyor ve form ORADA dogru hizmetle aciliyor. Secim
+              degisince buradaki rakamin degismemesi bilincli — yanlis
+              rakam gostermektense, rakami hizmetin yaninda yazmak.
+            */}
+            {bookable.length > 0 && (
+              <form method="get" action={`/${seg}/${citySlug}/sitter/${sitter.slug}/book/`} className="sp-book-form">
+                <label className="sp-book-label" htmlFor="book-service">{m.sitter.selectService}</label>
+                <div className="sp-book-select">
+                  <select id="book-service" name="service" defaultValue={primary ? serviceSlug(primary.serviceType, locale) : undefined}>
+                    {bookable.map((sv) => (
+                      <option key={sv.serviceType} value={serviceSlug(sv.serviceType, locale)}>
+                        {m.service[sv.serviceType]} — {money(sv.priceCents, locale)} / {m.unit[SERVICES[sv.serviceType].unit]}
+                      </option>
+                    ))}
+                  </select>
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                    strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+                </div>
+
                 {/*
-                  HANGI HIZMETIN fiyati oldugu YAZIYOR. Rakamin tek basina
-                  durmasi, birden fazla hizmeti olan bakicida "her sey bu
-                  fiyata" gibi okunuyordu.
+                  FIYAT KUTUSU. Tasarimda uc kalem var: hizmet, veteriner
+                  teminati, platform ucreti. Bizde ayri bir ucret kalemi
+                  YOK — gosterilen rakam odenecek rakam ve bunu soyleyen
+                  cumle altinda. Uc satirlik bir dokum uydurmak, olmayan
+                  bir ucret yapisini varmis gibi gostermek olurdu.
                 */}
-                <p className="text-body-sm dim" style={{ marginTop: 'var(--space-1)' }}>
-                  {m.service[primary.serviceType]}
-                  {bookable.length > 1 && ` · ${interpolate(
-                    bookable.length === 2 ? m.sitter.moreServices : m.sitter.moreServicesPlural,
-                    { count: bookable.length - 1 },
-                  )}`}
-                </p>
-              </div>
+                {primary && (
+                  <div className="sp-book-price">
+                    <div className="sp-book-row">
+                      <span>{m.service[primary.serviceType]}</span>
+                      <strong className="tabular">{money(primary.priceCents, locale)}</strong>
+                    </div>
+                    <div className="sp-book-total">
+                      <span>{m.sitter.youPayLabel}</span>
+                      <strong className="tabular">
+                        {money(primary.priceCents, locale)}
+                        <span className="sp-book-unit"> / {m.unit[SERVICES[primary.serviceType].unit]}</span>
+                      </strong>
+                    </div>
+                    <p className="sp-book-note">{m.sitter.feeNote}</p>
+                  </div>
+                )}
+
+                <button type="submit" className="sp-book-cta">
+                  <Sym name="calendar" size={18} />
+                  {m.sitter.bookCta}
+                </button>
+              </form>
             )}
 
-            <p className="text-body-sm muted">{m.sitter.feeNote}</p>
-
             {/*
-              Rezervasyon: giris gerekiyorsa book sayfasi kendisi giris
-              ekranina yonlendiriyor ve donusu hatirliyor. Dugmenin
-              dogrudan giris sayfasina gitmesi, giris yapmis kullaniciyi da
-              bos yere oraya gonderiyordu.
-            */}
-            <Link href={bookHref(primary?.serviceType)} className="btn btn-primary btn-block">
-              {m.sitter.bookCta}
-            </Link>
-            {/*
-              SORU SOR. Mesajlasma gelene kadar bu dugme kaldirilmisti;
-              geri geldi. Rezervasyondan ONCE soru sorabilmek, donusumu
+              SORU SOR. Rezervasyondan ONCE soru sorabilmek, donusumu
               artiran ana akis: bakiciyi tanimadan uc gecelik bir
               konaklama ayirtmak cogu insan icin buyuk bir adim.
             */}
-            <AskInChat href={askUrl} className="btn btn-secondary btn-block" detail={askDetail}>
+            <AskInChat href={askUrl} className="sp-book-second" detail={askDetail}>
               {m.sitter.messageCta}
             </AskInChat>
 
-            <ul className="sitter-facts" style={{ marginTop: 'var(--space-2)' }}>
-              <Fact>{interpolate(m.sitter.openDays, { count: sitter.openDays })}</Fact>
-              <Fact>{interpolate(m.sitter.memberSince, { date: dateFmt(sitter.memberSince, locale) })}</Fact>
+            {/*
+              GUVENCE SATIRLARI. Tasarimda uc satir var: para iade
+              garantisi, Stripe ile guvenli odeme, 7/24 destek. Ilki ve
+              sonuncusu bizde YOK ve yazilmadi. Yerlerinde duran uc satir
+              gercek: musaitlik, uyelik tarihi ve dogrulama notu.
+            */}
+            <ul className="sp-book-assure">
+              <li><Sym name="calendar" size={16} />{interpolate(m.sitter.openDays, { count: sitter.openDays })}</li>
+              <li><Sym name="verified" size={16} />{interpolate(m.sitter.memberSince, { date: dateFmt(sitter.memberSince, locale) })}</li>
+              <li><Sym name="shield" size={16} />{m.verification.disclaimer}</li>
             </ul>
 
-            {/*
-              ROZETIN KISA NOTU. Her kademenin TAM aciklamasi artik
-              sayfadaki "Her rozet neyi kapsiyor" bolumunde duruyor;
-              burada ayni metni ikinci kez yazmak kutuyu sisiriyordu.
-              Kalan sey tek satirlik uyari ve ayrintiya giden bag.
-            */}
-            <div>
-              <p className="field-hint" style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                <span style={{ color: 'var(--color-primary)', flex: '0 0 auto' }}><ShieldIcon size={13} /></span>
-                {m.verification.disclaimer}
-              </p>
-              <Link href={`/${seg}/protection/`} className="field-hint" style={{ textDecoration: 'underline' }}>
-                {m.verification.whatTheseMean}
-              </Link>
-            </div>
+            <Link href={`/${seg}/protection/`} className="sp-book-link">
+              {m.verification.whatTheseMean}
+            </Link>
           </div>
         </aside>
       </section>
