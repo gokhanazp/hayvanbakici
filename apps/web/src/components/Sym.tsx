@@ -55,12 +55,21 @@ export function Sym({
           <path d="m12.5 15.8-2.6 2.4-2.1 2.8" {...stroke} />
         </svg>
       );
+    /*
+      GECELEME. Onceki cizim catinin altina bir KAPI koyuyordu ve
+      18 pikselde duz bir evden ayirt edilemiyordu — marka isaretiyle
+      ayni sekle dusuyordu. Tasarimin kullandigi night_shelter gibi
+      catinin altinda bir YATAK var: silueti artik tek basina
+      "burada uyunuyor" diyor.
+    */
     case 'night':
       return (
         <svg {...common}>
-          <path d="M3.5 11.4 12 4.6l8.5 6.8" {...stroke} />
-          <path d="M6 10.4V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8.6" {...stroke} />
-          <path d="M9.4 20v-4.4a2.6 2.6 0 0 1 5.2 0V20" {...stroke} />
+          <path d="M3.4 10.8 12 4.2l8.6 6.6" {...stroke} />
+          <path d="M6 10v9h12v-9" {...stroke} />
+          <path d="M8 16.4h8" {...stroke} />
+          <path d="M8 16.4v-2.2a1.4 1.4 0 0 1 1.4-1.4h5.2a1.4 1.4 0 0 1 1.4 1.4v2.2" {...stroke} />
+          <path d="M8 16.4V19M16 16.4V19" {...stroke} />
         </svg>
       );
     case 'sun':
@@ -70,12 +79,14 @@ export function Sym({
           <path d="M12 2.6v2.1M12 19.3v2.1M4.2 4.2l1.5 1.5M18.3 18.3l1.5 1.5M2.6 12h2.1M19.3 12h2.1M4.2 19.8l1.5-1.5M18.3 5.7l1.5-1.5" {...stroke} />
         </svg>
       );
+    /* Adrese gelme — damlanin icinde bir ev. Damla biraz doldu, 18
+       pikselde icindeki ev artik seciliyor. */
     case 'home-pin':
       return (
         <svg {...common}>
-          <path d="M12 21s6.4-5.6 6.4-10.4A6.4 6.4 0 0 0 5.6 10.6C5.6 15.4 12 21 12 21Z" {...stroke} />
-          <path d="m9.3 11 2.7-2.3 2.7 2.3" {...stroke} />
-          <path d="M10.1 10.5v3.2h3.8v-3.2" {...stroke} />
+          <path d="M12 21.2c3.9-4.2 6.2-7.4 6.2-10.4A6.2 6.2 0 0 0 5.8 10.8c0 3 2.3 6.2 6.2 10.4Z" {...stroke} />
+          <path d="m8.8 11.2 3.2-2.8 3.2 2.8" {...stroke} />
+          <path d="M9.9 10.6v3.8h4.2v-3.8" {...stroke} />
         </svg>
       );
     case 'pets':

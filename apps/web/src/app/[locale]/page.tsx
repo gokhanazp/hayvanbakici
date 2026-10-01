@@ -6,6 +6,7 @@ import {
 import { servicesForPhase, SERVICES } from '@havre/core';
 import { Sym, type SymName } from '@/components/Sym';
 import { Photo } from '@/components/Photo';
+import { DateRangeField } from '@/components/ui/DateRangeField';
 import { SERVICE_SYM } from '@/components/ServiceIcon';
 import { Avatar } from '@/components/Avatar';
 import {
@@ -174,13 +175,29 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </div>
               </div>
 
-              <div className="st-field">
-                <label htmlFor="hs-start">{m.search.dates}</label>
+              {/*
+                TARIH — tasarimda TEK satir ("18 oct – 22 oct"), tek
+                takvim ikonu. Iki ham <input type="date"> yan yana
+                konunca tarayici her birine KENDI takvim dugmesini
+                ciziyordu: satirda uc ikon birden duruyordu ve hicbiri
+                tasarimdaki gibi degildi.
+
+                DateRangeField zaten var ve arama sayfasinda kullaniliyor:
+                JavaScript gelmeden iki native alan (form yine calisir),
+                geldikten sonra tek ozetli dugme + takvim paneli. Yani
+                tasarimdaki goruntu, JavaScript'siz calisma garantisi
+                bozulmadan.
+              */}
+              <div className="st-field st-field-dates">
+                <span className="st-field-label">{m.search.dates}</span>
                 <div className="st-field-row">
                   <Sym name="calendar" size={20} className="st-ic-coral" />
-                  <input id="hs-start" name="start" type="date" />
-                  <span className="st-dash" aria-hidden="true">–</span>
-                  <input name="end" type="date" aria-label={m.search.dates} />
+                  <DateRangeField
+                    locale={locale}
+                    startName="start"
+                    endName="end"
+                    label={m.search.dates}
+                  />
                 </div>
               </div>
 
