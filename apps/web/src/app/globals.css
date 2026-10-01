@@ -6183,3 +6183,62 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 /* Anahtarin gorunmez onay kutusu da genel kuraldan etkilenmesin. */
 .wiz-form .switch > input { height: 100%; }
+
+/* ==========================================================================
+   UST SERIT (.tb-*)
+
+   Basliktaki ikincil her sey buraya tasindi: dil/para birimi, iletisim
+   ve yardim baglantilari, sosyal hesaplar. Asil baslikta yalnizca
+   gezinmek ve hesap kaldi.
+
+   Neden: tek satirda marka + dil cipi + hap gezinme + birincil dugme +
+   uc yuvarlak ikon + hesap cipi vardi. Fransizca'da 1440 pikselde
+   tasiyordu (olculdu) ve sigdigi yerde bile okunmasi zordu.
+   ========================================================================== */
+.tb {
+  background: var(--color-primary-fixed);
+  color: var(--color-on-primary-fixed);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+/*
+  TELEFONDA GIZLI. 390 pikselde ikinci bir serit icerigi asagi iter ve
+  buradaki hicbir sey o ekranda ilk is degil. Dil secimi alt bilgide de
+  var, yani erisilemez hale gelmiyor.
+*/
+.tb { display: none; }
+@media (min-width: 900px) { .tb { display: block; } }
+
+.tb-in {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; min-height: 2.25rem;
+  font-size: 0.75rem; font-weight: 600;
+}
+.tb-left, .tb-right { display: flex; align-items: center; gap: 1.25rem; min-width: 0; }
+
+.tb-link {
+  display: inline-flex; align-items: center; gap: 0.375rem; min-height: 1.5rem;
+  color: var(--color-on-primary-fixed); text-decoration: none;
+}
+.tb-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tb-link svg { opacity: 0.75; }
+
+.tb-social { display: inline-flex; align-items: center; gap: 0.5rem; }
+.tb-social .social-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.5rem; height: 1.5rem; border-radius: var(--radius-full);
+  color: var(--color-on-primary-fixed); opacity: 0.8;
+}
+.tb-social .social-link:hover {
+  opacity: 1; background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+
+/* Serit icindeki dil/para cipi: zemini serit tasiyor, cipin kendi
+   zemini yok. */
+.tb .hd-chip {
+  display: inline-flex; background: none; border: 0; padding: 0;
+  color: var(--color-on-primary-fixed);
+}
+.tb .hd-chip a { color: var(--color-on-primary-fixed); opacity: 0.8; }
+.tb .hd-chip a:hover { opacity: 1; color: var(--color-on-primary-fixed); }
+.tb .hd-chip .is-on { opacity: 1; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.tb .hd-chip-sep { color: color-mix(in srgb, var(--color-on-primary-fixed) 45%, transparent); }

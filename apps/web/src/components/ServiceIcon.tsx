@@ -26,14 +26,32 @@ import { Sym, type SymName } from '@/components/Sym';
  * metin karsiligi gerekirdi (WCAG 1.1.1).
  */
 export const SERVICE_SYM: Record<ServiceType, SymName> = {
-  boarding:      'night',
-  house_sitting: 'home-pin',
-  drop_in:       'pets',
-  dog_walking:   'walk',
-  /* v1'de kapali olan hizmetler — ikonlari ayni dilde hazir duruyor */
-  day_care:      'sun',
-  training:      'verified',
-  grooming:      'tune',
+  /*
+    HANGI IKON HANGI HIZMETTE — TASARIMDAN, TAHMINDEN DEGIL.
+
+    Referansin arama sekmelerinde dogrudan yaziyor:
+      Dog Walking    -> directions_walk
+      House Sitting  -> night_shelter
+      Daycare        -> wb_sunny
+      Drop-In Visits -> home_pin
+    Bakici basvuru ekraninda ayrica:
+      House Boarding -> cottage
+
+    Bizim "boarding" (hayvan bakicinin evinde kaliyor) tasarimin
+    "House Boarding"i; "house_sitting" (bakici sahibin evinde kaliyor)
+    ise tasarimin "House Sitting"i. Yani uc ev benzeri ikon var ve
+    hangisinin nerede durdugu tasarimda belli.
+
+    Egitim ve tima tasarimda HIC gecmiyor (v2 hizmetleri); onlar icin
+    anlama en yakin ikon secildi ve bu bir TAHMIN, tasarim degil.
+  */
+  boarding: 'cottage',
+  house_sitting: 'night',
+  drop_in: 'home-pin',
+  dog_walking: 'walk',
+  day_care: 'sun',
+  training: 'verified',
+  grooming: 'tune',
 };
 
 /** Pastel kutucuk tonlari — dort hizmet dort ayri tonda. */

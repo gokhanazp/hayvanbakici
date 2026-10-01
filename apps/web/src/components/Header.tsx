@@ -37,6 +37,63 @@ export function Header({ locale, citySlug: city }: { locale: Locale; citySlug: s
     <header className="hd">
       <NavDismiss />
 
+      {/*
+        UST SERIT.
+
+        Baslik cok kalabaliklasmisti: marka, para/dil cipi, hap grup
+        gezinme, birincil dugme, uc yuvarlak ikon ve hesap cipi tek
+        satirdaydi. Fransizca'da bu satir 1440 pikselde tasiyordu bile.
+
+        Ikincil olan her sey (dil, iletisim, sosyal hesaplar) bu ince
+        seride cikti. Asil baslikta yalnizca gezinmek ve hesap kaldi.
+
+        Telefonda GIZLI: 390 pikselde ikinci bir serit, ekranin ustunden
+        iceriği iter ve buradaki hicbir sey o ekranda ilk is degil.
+        Dil secimi ayrica alt bilgide de var.
+      */}
+      <div className="tb">
+        <div className="st-wrap tb-in">
+          <div className="tb-left">
+            <Link href={`/${seg}/contact/`} className="tb-link">
+              <Sym name="chat" size={15} />
+              {m.footer.contact}
+            </Link>
+            <Link href={`/${seg}/help/`} className="tb-link">
+              <Sym name="help" size={15} />
+              {m.footer.help}
+            </Link>
+          </div>
+
+          <div className="tb-right">
+            <SocialLinks size={15} className="tb-social" />
+
+            {/*
+              PARA BIRIMI VE DIL. Tasarimda "CAD ($) · EN". Para birimi
+              SABIT: tek para birimiyle calisiyoruz ve bir secici koymak
+              olmayan bir secenek vaat ederdi. Dil kismi gercek baglanti.
+            */}
+            <div className="hd-chip" role="group" aria-label={m.footer.languageLabel}>
+              <Sym name="globe" size={15} />
+              <span>{m.header.currency}</span>
+              <span className="hd-chip-sep" aria-hidden="true">·</span>
+              {LOCALES.map((l, i) => (
+                <span key={l} className="hd-chip-lang">
+                  {i > 0 && <span className="hd-chip-sep" aria-hidden="true">/</span>}
+                  <Link
+                    href={`/${segmentFor(l)}`}
+                    hrefLang={l}
+                    className={l === locale ? 'is-on' : undefined}
+                    aria-current={l === locale ? 'true' : undefined}
+                  >
+                    {segmentFor(l).toUpperCase()}
+                  </Link>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="st-wrap hd-bar">
         {/* ---------------- Sol: marka + para/dil cipi ---------------- */}
         <div className="hd-left">
@@ -56,30 +113,6 @@ export function Header({ locale, citySlug: city }: { locale: Locale; citySlug: s
             </span>
           </Link>
 
-          {/*
-            PARA BIRIMI VE DIL TEK CIPTE. Tasarimda "CAD ($) · EN"
-            yaziyor. Para birimi SABIT: tek para birimiyle calisiyoruz
-            ve bir secici koymak, olmayan bir secenek vaat ederdi.
-            Dil kismi gercek baglanti.
-          */}
-          <div className="hd-chip" role="group" aria-label={m.footer.languageLabel}>
-            <Sym name="globe" size={16} />
-            <span>{m.header.currency}</span>
-            <span className="hd-chip-sep" aria-hidden="true">·</span>
-            {LOCALES.map((l, i) => (
-              <span key={l} className="hd-chip-lang">
-                {i > 0 && <span className="hd-chip-sep" aria-hidden="true">/</span>}
-                <Link
-                  href={`/${segmentFor(l)}`}
-                  hrefLang={l}
-                  className={l === locale ? 'is-on' : undefined}
-                  aria-current={l === locale ? 'true' : undefined}
-                >
-                  {segmentFor(l).toUpperCase()}
-                </Link>
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* ---------------- Orta: hap grup gezinme ---------------- */}

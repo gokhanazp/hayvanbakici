@@ -40,6 +40,12 @@ type Theme = typeof lightTheme;
 /** [metin, zemin, en az, aciklama] */
 const PAIRS: Array<[keyof Theme, keyof Theme, number, string]> = [
   ['ink', 'canvas', 4.5, 'govde metni'],
+  /*
+    UST SERIT. Yeni bir renk cifti: nane zeminde koyu yesil yazi.
+    Testte olmayan bir cift, korunmuyor demektir — serit eklendiginde
+    bu satir da eklendi.
+  */
+  ['on-primary-fixed', 'primary-fixed', 4.5, 'ust serit metni'],
   ['ink', 'surface', 4.5, 'kart uzerinde metin'],
   ['ink-secondary', 'canvas', 4.5, 'ikincil metin'],
   ['ink-muted', 'canvas', 4.5, 'soluk metin (fiyat satirlari)'],
