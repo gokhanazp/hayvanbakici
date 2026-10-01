@@ -20,6 +20,7 @@ import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { RatingBreakdown } from '@/components/RatingBreakdown';
 import { ServiceIcon } from '@/components/ServiceIcon';
+import { Sym } from '@/components/Sym';
 import { HomeIcon, DogSilhouette, VetIcon, type HomeIconName } from '@/components/HomeIcon';
 import { NoIcon } from '@/components/InfoIcons';
 import { AskInChat } from '@/components/chat/AskInChat';
@@ -305,100 +306,168 @@ export default async function SitterPage({
   return (
     <>
       {/*
-        KIMLIK BLOGU RENKLI BANTTA — ana sayfa ve sehir sayfasiyla ayni dil.
-        Bant, "bu bir kisinin sayfasi" bilgisini sayfanin geri kalanindan
-        (hizmetler, yorumlar) gorsel olarak ayiriyor.
+        KIRINTI SERIDI — tasarimda sayfanin en ustunde ince bir serit:
+        solda yol (Ana sayfa / Il / Sehir / Mahalle / Isim), sagda
+        bakicinin hizmet verdigi alan. Bir profil sayfasinda "bu kisi
+        nerede" sorusunun cevabi baslikla ayni yukseklikte olmali.
       */}
-      <section className="band band-blush band-round-b">
-        <div className="container" style={{ paddingBlock: 'var(--space-6) var(--space-10)' }}>
-          <Link href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/${serviceSlug('boarding', locale)}/`}
-            className="text-body-sm muted">
-            ← {interpolate(m.sitter.backToCity, { city: cityName(sitter, locale) })}
-          </Link>
+      <div className="sp-crumbs">
+        <div className="st-wrap sp-crumbs-in">
+          <nav aria-label="Breadcrumb">
+            <ol className="sp-crumb-list">
+              <li><Link href={`/${seg}`}>{m.brand.name}</Link></li>
+              <li aria-hidden="true" className="sp-crumb-sep">/</li>
+              <li>
+                <Link href={`/${seg}/${locale === 'fr-CA' ? sitter.citySlugFr : sitter.citySlugEn}/${serviceSlug('boarding', locale)}/`}>
+                  {cityName(sitter, locale)}
+                </Link>
+              </li>
+              {hoodName(sitter, locale) && (
+                <>
+                  <li aria-hidden="true" className="sp-crumb-sep">/</li>
+                  <li className="sp-crumb-hood">{hoodName(sitter, locale)}</li>
+                </>
+              )}
+              <li aria-hidden="true" className="sp-crumb-sep">/</li>
+              <li className="sp-crumb-on">{name}</li>
+            </ol>
+          </nav>
+          {/* Tasarimda burada "su mahallelere hizmet veriyor" cipi var.
+              Bizde mahalle listesi yok; olan sey bakicinin KENDI mahallesi. */}
+          {where && (
+            <span className="sp-area">
+              <Sym name="location" size={15} />
+              {where}
+            </span>
+          )}
+        </div>
+      </div>
 
-          <header className="sitter-head" style={{ marginTop: 'var(--space-6)' }}>
-            {/* Fotograf varsa fotograf, yoksa bas harfler */}
-            <Avatar src={sitter.avatarUrl} initials={sitter.photoInitials} size={92} className="sitter-avatar" />
-            <div style={{ minWidth: 0 }}>
-              <div className="row" style={{ gap: 'var(--space-3)', alignItems: 'center' }}>
-                <h1 className="text-h1" style={{ margin: 0 }}>{name}</h1>
-                {/* Kalp basligin YANINDA: karar burada veriliyor. */}
-                <FavouriteScope ids={[sitter.userId]} locale={locale} path={`/${seg}/favourites/`}>
-                  <FavouriteHeart sitterId={sitter.userId} />
-                </FavouriteScope>
-              </div>
-              <p className="muted" style={{ marginTop: 'var(--space-1)' }}>{where}</p>
-              <div className="row" style={{ marginTop: 'var(--space-3)' }}>
-                <VerificationBadge level={sitter.badgeLevel} locale={locale} />
-                {sitter.reviewCount > 0 && (
-                  <span className="text-body-sm tabular">
-                    ★ {sitter.averageRating.toFixed(1)}{' '}
-                    <span className="dim">({numberFmt(sitter.reviewCount, locale)})</span>
-                  </span>
-                )}
+      {/*
+        KIMLIK KARTI. Tasarimda kimlik, acik zeminin uzerinde duran
+        BEYAZ bir kart: solda fotograf ve ad, sagda baslangic fiyati.
+        Onceki surumde pembe bir banttaydi ve fiyat sayfanin cok
+        asagisindaki rezervasyon kutusuna kadar gorunmuyordu.
+      */}
+      <div className="sp-band">
+        <div className="st-wrap">
+          <div className="sp-hero">
+            <div className="sp-ident">
+              <span className="sp-avatar">
+                <Avatar src={sitter.avatarUrl} initials={sitter.photoInitials} size={104} />
+              </span>
+
+              <div className="sp-ident-text">
+                <div className="sp-chips">
+                  <VerificationBadge level={sitter.badgeLevel} locale={locale} />
+                  {sitter.smokeFree && (
+                    <span className="sp-chip sp-chip-sage">
+                      <Sym name="verified" size={14} />
+                      {m.sitter['home.smokeFree']}
+                    </span>
+                  )}
+                  {sitter.yardFenced && (
+                    <span className="sp-chip">
+                      <Sym name="home-pin" size={14} />
+                      {m.sitter['home.yardFenced']}
+                    </span>
+                  )}
+                </div>
+
+                <div className="sp-name-row">
+                  <h1 className="sp-name">{name}</h1>
+                  {/* Kalp basligin YANINDA: karar burada veriliyor. */}
+                  <FavouriteScope ids={[sitter.userId]} locale={locale} path={`/${seg}/favourites/`}>
+                    <FavouriteHeart sitterId={sitter.userId} />
+                  </FavouriteScope>
+                </div>
+
+                <ul className="sp-meta">
+                  {sitter.reviewCount > 0 && (
+                    <li className="sp-meta-star">
+                      <Sym name="star" size={17} filled />
+                      <strong className="tabular">{sitter.averageRating.toFixed(1)}</strong>
+                      <span className="sp-meta-dim tabular">
+                        ({numberFmt(sitter.reviewCount, locale)})
+                      </span>
+                    </li>
+                  )}
+                  <li>
+                    <Sym name="bolt" size={15} />
+                    {responseTime(sitter.medianResponseMinutes, locale)}
+                  </li>
+                  {sitter.repeatClients > 0 && (
+                    <li className="sp-meta-key">
+                      <Sym name="heart" size={15} />
+                      <span className="tabular">
+                        {interpolate(m.searchPage.repeatClients, {
+                          count: numberFmt(sitter.repeatClients, locale),
+                        })}
+                      </span>
+                    </li>
+                  )}
+                </ul>
               </div>
             </div>
 
             {/*
-              PUAN DAGILIMI BASLIGIN SAGINDA.
-
-              Once yorumlar bolumundeydi, sayfanin epey asagisinda:
-              "4,9" rakamini gorup "peki kim kac vermis" diye soran
-              kisi cevabi bulmak icin uc ekran asagi inmek zorundaydi.
-              Ustelik basligin sag yarisi bombostu.
-
-              Simdi yildizin hemen yaninda: ortalama ve dagilim ayni
-              bakista. Yorum yoksa panel HIC cizilmiyor — bos cubuklar
-              "kimse puan vermemis" yerine "puanlar dusuk" gibi
-              okunuyordu.
+              BASLANGIC FIYATI. Tasarimda "Starting rate" kutusu.
+              HANGI hizmetin fiyati oldugu yaziyor: rakamin tek basina
+              durmasi, birden fazla hizmeti olan bakicida "her sey bu
+              fiyata" gibi okunuyor.
             */}
+            {primary && (
+              <div className="sp-rate">
+                <span className="sp-rate-label">{m.sitter.rateLabel}</span>
+                <span className="sp-rate-value">
+                  <strong className="tabular">{money(primary.priceCents, locale)}</strong>
+                  <span className="sp-rate-unit">/ {m.unit[SERVICES[primary.serviceType].unit]}</span>
+                </span>
+                <span className="sp-rate-note">{m.service[primary.serviceType]}</span>
+              </div>
+            )}
+          </div>
+
+          {/*
+            SAYILAR VE PUAN DAGILIMI. Tasarimda kimlik karti tek satir;
+            bizde bu veri VAR ve sahibin sordugu seyi cevapliyor, o
+            yuzden kartin hemen altinda ikinci bir kartta duruyor.
+
+            Dagilim yorum yoksa HIC cizilmiyor — bos cubuklar "kimse
+            puan vermemis" yerine "puanlar dusuk" gibi okunuyordu.
+          */}
+          <div className="sp-facts">
+            <ul className="sitter-stats">
+              <Stat value={numberFmt(sitter.completedBookings, locale)} label={m.sitter['stat.completed']} />
+              <Stat value={numberFmt(sitter.repeatClients, locale)} label={m.sitter['stat.repeat']} />
+              <Stat value={responseTime(sitter.medianResponseMinutes, locale)} label={m.sitter['stat.responds']} />
+              <Stat value={`${Math.round(sitter.acceptanceRate * 100)}%`} label={m.sitter['stat.acceptance']} />
+              {/*
+                YANIT ORANI kabul oranindan AYRI bir sey: burada ret de
+                cevaptir. Hic cevaplanabilir istek yoksa satir HIC
+                cizilmiyor — "%0" yanlis olurdu.
+              */}
+              {sitter.responseRate !== null && (
+                <Stat
+                  value={`${Math.round(sitter.responseRate * 100)}%`}
+                  label={m.sitter['stat.responseRate']}
+                />
+              )}
+            </ul>
+
             {sitter.reviewCount > 0 && (
-              <div className="sitter-rating-panel">
-                <p className="text-body-sm" style={{ margin: 0, fontWeight: 600 }}>
-                  {m.sitter.ratingBreakdown}
-                </p>
+              <div className="sp-breakdown">
+                <p className="sp-breakdown-h">{m.sitter.ratingBreakdown}</p>
                 <RatingBreakdown
                   counts={sitter.ratingCounts}
                   total={sitter.reviewCount}
                   locale={locale}
                 />
-                <p className="text-body-sm dim tabular" style={{ margin: 0 }}>
-                  {interpolate(m.sitter.reviewCount, {
-                    count: numberFmt(sitter.reviewCount, locale),
-                    rating: sitter.averageRating.toFixed(1),
-                  })}
-                </p>
               </div>
             )}
-          </header>
-
-          {/*
-            Canli istatistikler — sayfanin benzersizligini tasiyan veri (§7.7).
-            Etiketler AYRI anahtarlar: cumlelerden degeri cikarip kalanini
-            etiket diye kullanmak ("Replies in about") Ingilizce'de yarim
-            cumle, Fransizca'da ise dogrudan yanlis uretiyordu.
-          */}
-          <ul className="sitter-stats sitter-stats-on-band" style={{ marginTop: 'var(--space-8)' }}>
-            <Stat value={numberFmt(sitter.completedBookings, locale)} label={m.sitter['stat.completed']} />
-            <Stat value={numberFmt(sitter.repeatClients, locale)} label={m.sitter['stat.repeat']} />
-            <Stat value={responseTime(sitter.medianResponseMinutes, locale)} label={m.sitter['stat.responds']} />
-            <Stat value={`${Math.round(sitter.acceptanceRate * 100)}%`} label={m.sitter['stat.acceptance']} />
-            {/*
-              YANIT ORANI kabul oranindan AYRI bir sey: burada ret de
-              cevaptir. "Bana doner mi" ile "beni kabul eder mi" iki
-              ayri soru ve ikisi de sahibin sordugu sorular.
-              Hic cevaplanabilir istek yoksa satir HIC cizilmiyor —
-              "%0" yanlis olurdu.
-            */}
-            {sitter.responseRate !== null && (
-              <Stat
-                value={`${Math.round(sitter.responseRate * 100)}%`}
-                label={m.sitter['stat.responseRate']}
-              />
-            )}
-          </ul>
+          </div>
         </div>
-      </section>
+      </div>
 
       <section className="container sitter-page has-book-bar">
         <div className="sitter-main">

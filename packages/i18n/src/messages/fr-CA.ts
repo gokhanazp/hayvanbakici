@@ -1064,6 +1064,8 @@ export const frCA = {
     moreServices: '{count} autre service',
     moreServicesPlural: '{count} autres services',
     messageCta: 'Poser une question d’abord',
+    /* Kimlik kartindaki fiyat kutusunun basligi — {price} ICERMEZ */
+    rateLabel: 'Tarif de départ',
     priceFrom: 'À partir de {price}',
     feeNote: 'Vous verrez le prix complet — nos frais et les taxes inclus — avant de confirmer quoi que ce soit.',
     'home.yard': 'Cour',

@@ -1189,6 +1189,8 @@ export const enCA = {
     moreServices: '{count} more service',
     moreServicesPlural: '{count} more services',
     messageCta: 'Ask a question first',
+    /* Kimlik kartindaki fiyat kutusunun basligi — {price} ICERMEZ */
+    rateLabel: 'Starting rate',
     priceFrom: 'From {price}',
     feeNote: 'You will see the full price — our fee and taxes included — before you confirm anything.',
     'home.yard': 'Yard',
