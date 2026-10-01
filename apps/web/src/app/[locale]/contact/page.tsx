@@ -43,7 +43,9 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   return (
     <ContentPage
       locale={locale}
-      title={t('Contact us', 'Nous joindre')}
+      eyebrow={t('Get in touch', 'Nous écrire')}
+      title={t('Contact', 'Nous')}
+      accent={t('us', 'joindre')}
       lead={t(
         'Havre is being built in Toronto and is not taking bookings yet. These are the channels, and what each one is for.',
         'Havre est en construction à Toronto et n’accepte pas encore de réservations. Voici les canaux et à quoi sert chacun.',

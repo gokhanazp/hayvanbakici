@@ -73,8 +73,13 @@ export default async function OnboardingStepPage({
         Sihirbaz once bunlarin hicbirini soylemiyordu — kullanici formu
         doldururken kac adim kaldigini bilmiyordu.
       */}
-      <section className="band band-blush band-round-b">
-        <div className="container wizard-head">
+      <section className="pg-hero">
+        <div className="st-blobs" aria-hidden="true">
+          <div className="st-blob st-blob-a"></div>
+          <div className="st-blob st-blob-b"></div>
+        </div>
+
+        <div className="st-wrap pg-hero-inner wizard-head">
           <Link href={`/${seg}/become-a-sitter/`} className="text-body-sm muted">
             ← {m.onboarding.backToStart}
           </Link>

@@ -122,8 +122,12 @@ export default async function FavouritesPage({
   if (!session) {
     return (
       <>
-        <section className="band band-blush band-round-b">
-          <div className="container" style={{ paddingBlock: 'var(--space-8)' }}>
+        <section className="pg-hero">
+          <div className="st-blobs" aria-hidden="true">
+            <div className="st-blob st-blob-a"></div>
+            <div className="st-blob st-blob-b"></div>
+          </div>
+          <div className="st-wrap pg-hero-inner">
             <h1 className="text-h1">{m.favourites.title}</h1>
             <p className="text-body-lg muted" style={{ marginTop: 'var(--space-3)', maxWidth: '40rem' }}>
               {m.favourites.lead}

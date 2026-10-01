@@ -57,7 +57,9 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   return (
     <ContentPage
       locale={locale}
-      title={t('Our fees', 'Nos frais')}
+      eyebrow={t('Transparency', 'Transparence')}
+      title={t('Our', 'Nos')}
+      accent={t('fees', 'frais')}
       lead={t(
         'Three commission rates for sitters, one service fee for owners, and nothing else. This page is the whole of it.',
         'Trois taux de commission pour les gardiens, un frais de service pour les propriétaires, et rien d’autre. Cette page, c’est tout.',

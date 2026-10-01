@@ -8,6 +8,7 @@ import { Sym, type SymName } from '@/components/Sym';
 import { Photo } from '@/components/Photo';
 import { DateRangeField } from '@/components/ui/DateRangeField';
 import { SERVICE_SYM } from '@/components/ServiceIcon';
+import { StSearch } from '@/components/StSearch';
 import { Avatar } from '@/components/Avatar';
 import {
   cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData,
@@ -153,90 +154,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           {/* ---- Arama kutusu ---- */}
-          <form className="st-search" action={`/${s}/search/`} method="get">
-            <div className="st-tabs">
-              {services.map((sv, i) => (
-                <label key={sv} className="st-tab">
-                  <input
-                    type="radio"
-                    name="service"
-                    value={serviceSlug(sv, locale)}
-                    defaultChecked={i === 0}
-                  />
-                  <Sym name={SERVICE_SYM[sv]} size={18} />
-                  <span>{m.service[sv]}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="st-fields">
-              <div className="st-field st-field-wide">
-                <label htmlFor="hs-where">{m.search.location}</label>
-                <div className="st-field-row">
-                  <Sym name="location" size={20} className="st-ic-sage" />
-                  <input
-                    id="hs-where"
-                    name="location"
-                    type="text"
-                    placeholder={interpolate(m.home.searchWherePlaceholder, { city: cityLabel })}
-                  />
-                </div>
-              </div>
-
-              {/*
-                TARIH — tasarimda TEK satir ("18 oct – 22 oct"), tek
-                takvim ikonu. Iki ham <input type="date"> yan yana
-                konunca tarayici her birine KENDI takvim dugmesini
-                ciziyordu: satirda uc ikon birden duruyordu ve hicbiri
-                tasarimdaki gibi degildi.
-
-                DateRangeField zaten var ve arama sayfasinda kullaniliyor:
-                JavaScript gelmeden iki native alan (form yine calisir),
-                geldikten sonra tek ozetli dugme + takvim paneli. Yani
-                tasarimdaki goruntu, JavaScript'siz calisma garantisi
-                bozulmadan.
-              */}
-              <div className="st-field st-field-dates">
-                <span className="st-field-label">{m.search.dates}</span>
-                <div className="st-field-row">
-                  <Sym name="calendar" size={20} className="st-ic-coral" />
-                  <DateRangeField
-                    locale={locale}
-                    startName="start"
-                    endName="end"
-                    label={m.search.dates}
-                  />
-                </div>
-              </div>
-
-              <div className="st-field">
-                <label htmlFor="hs-pet">{m.search.pet}</label>
-                <div className="st-field-row">
-                  <Sym name="rabbit" size={20} className="st-ic-gold" />
-                  <input
-                    id="hs-pet"
-                    name="weight"
-                    type="number"
-                    min={1}
-                    max={100}
-                    placeholder={m.home.searchPetPlaceholder}
-                  />
-                </div>
-              </div>
-
-              <button type="submit" className="st-search-btn">
-                <Sym name="search" size={22} />
-                <span>{m.search.submit}</span>
-              </button>
-            </div>
-
-            <ul className="st-ribbon">
-              <li><Sym name="verified" size={18} />{m.home.ribbonChecks}</li>
-              <li><Sym name="shield" size={18} />{m.home.ribbonFees}</li>
-              <li><Sym name="calendar" size={18} />{m.home.ribbonExpiry}</li>
-              <li className="st-ribbon-accent"><Sym name="globe" size={18} />{m.home.ribbonCanada}</li>
-            </ul>
-          </form>
+          {/* Ayni kutu sehir+hizmet sayfasinda da var: StSearch'e tasindi. */}
+          <StSearch locale={locale} cityLabel={cityLabel} />
         </div>
       </section>
 

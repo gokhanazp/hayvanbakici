@@ -76,7 +76,9 @@ export default async function HowItWorksPage({ params }: { params: Promise<{ loc
   return (
     <ContentPage
       locale={locale}
-      title={t('How Havre works', 'Comment fonctionne Havre')}
+      eyebrow={t('Step by step', 'Étape par étape')}
+      title={t('How', 'Comment fonctionne')}
+      accent={t('Havre works', 'Havre')}
       lead={t(
         'Six steps, and what each side can see at every one of them.',
         'Six étapes, et ce que chaque partie voit à chacune d’elles.',

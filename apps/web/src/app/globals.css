@@ -6259,3 +6259,186 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   background: var(--color-accent);
   transition: width var(--duration-standard) var(--easing-standard);
 }
+
+/* ==========================================================================
+   KAZANC TAHMINI (.ee-*)
+
+   Tasarimdaki hesaplayici kutusu. Oradaki tek buyuk rakamin yerine
+   uc satir var (komisyonun ucu de ayni anda gorunsun diye) ve altinda
+   silinmeyen bir uyari. Bu yuzden kutu tasarimdakinden uzun; genislik
+   ayni kalsin diye yan sutuna sabitlendi.
+   ========================================================================== */
+.sa-rates-split {
+  display: grid; gap: 1.5rem; margin-top: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1024px) {
+  .sa-rates-split { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
+}
+/*
+  Hesaplayici solundaki ornek kartindan uzun. Kart stretch ile
+  uzatildiginda ORTASI bos bir kutu haline geliyordu; dogal
+  yuksekliginde birakmak daha az goze batiyor.
+*/
+.sa-rates-split { align-items: start; }
+.sa-rates-split > .card > .field-hint { margin-top: var(--space-4); }
+
+.ee {
+  display: flex; flex-direction: column; gap: 1.125rem;
+  padding: 1.5rem; border-radius: 1.5rem;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-outline-variant);
+}
+.ee-head { display: flex; flex-direction: column; gap: 0.5rem; }
+.ee-title {
+  margin: 0; font-family: var(--font-display); font-size: 1.1875rem;
+  line-height: 1.3; font-weight: 700; color: var(--color-ink);
+}
+.ee-lead { margin: 0; font-size: 0.8125rem; line-height: 1.25rem; color: var(--color-ink-secondary); }
+
+.ee-fields { display: flex; flex-direction: column; gap: 1rem; }
+.ee-field { display: flex; flex-direction: column; gap: 0.4375rem; }
+.ee-field > label { font-size: 0.8125rem; font-weight: 600; color: var(--color-ink); }
+
+.ee-input {
+  display: flex; align-items: center; gap: 0.25rem;
+  padding: 0 0.875rem; border-radius: var(--radius-full);
+  background: var(--color-surface); border: 1px solid var(--color-outline-variant);
+  font-variant-numeric: tabular-nums;
+}
+.ee-input:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-subtle); }
+.ee-input > span { font-size: 1rem; font-weight: 700; color: var(--color-ink-muted); }
+.ee-input > input {
+  flex: 1; min-width: 0; padding: 0.625rem 0; border: 0; background: none;
+  font: inherit; font-size: 1.0625rem; font-weight: 700; color: var(--color-ink);
+}
+.ee-input > input:focus { outline: none; }
+/* Fransizcada simge sonda: sayi sola dayali kalsin diye input esner. */
+.ee-input-suffix > input { text-align: left; }
+
+/*
+  Kaydiracin kendi gorunumu: tarayici varsayilani mavi ve sitenin
+  disinda duruyordu. Yukseklik 1.5 rem'den kucuk olmasin — WCAG 2.5.8
+  hedef boyutu.
+*/
+.ee-range { width: 100%; height: 1.5rem; accent-color: var(--color-primary); cursor: pointer; }
+.ee-range:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-full); }
+.ee-week-value { font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-secondary); }
+
+.ee-out {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 1rem; border-radius: 1rem; background: var(--color-surface);
+}
+.ee-gross {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+  padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-outline-variant);
+}
+.ee-gross > span { font-size: 0.75rem; line-height: 1rem; color: var(--color-ink-secondary); }
+.ee-gross > strong { font-size: 1.25rem; font-weight: 800; color: var(--color-ink); white-space: nowrap; }
+.ee-keep {
+  margin: 0.25rem 0 0; font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted);
+}
+.ee-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.ee-rows > li {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+}
+.ee-row-label { display: flex; flex-direction: column; gap: 0.0625rem; font-size: 0.8125rem; color: var(--color-ink); }
+.ee-row-pct { font-size: 0.6875rem; color: var(--color-ink-muted); }
+/* Sifir komisyonlu satir sayfanin asil iddiasi — vurgulu. */
+.ee-rows > li.is-free .ee-row-pct { color: var(--color-accent-hover); font-weight: 700; }
+.ee-rows > li > strong { font-size: 1rem; font-weight: 700; color: var(--color-ink); white-space: nowrap; }
+.ee-rows > li.is-free > strong { color: var(--color-accent-hover); }
+
+.ee-note { margin: 0; font-size: 0.6875rem; line-height: 1.0625rem; color: var(--color-ink-muted); }
+
+/* ==========================================================================
+   SEHIR + HIZMET SAYFASI (.lp-*)
+
+   Sayfanin kahramani artik ana sayfanin `.st-hero` dili. Burada
+   yalnizca o dile EKLENEN iki parca var: kirinti yolu (ana sayfada
+   yok) ve kahramandan cikarilan uc sayilik serit.
+   ========================================================================== */
+.lp-crumbs { margin-bottom: 1.25rem; }
+.lp-crumbs ol {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+  margin: 0; padding: 0; list-style: none;
+  font-size: 0.8125rem; color: var(--color-ink-secondary);
+}
+.lp-crumbs a { color: var(--color-ink-secondary); text-decoration: none; }
+.lp-crumbs a:hover { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+.lp-crumbs li[aria-hidden='true'] { color: var(--color-ink-muted); }
+.lp-crumbs li[aria-current='page'] { color: var(--color-ink); font-weight: 600; }
+
+/*
+  Serit kahramandan HEMEN sonra, govdenin ustune biniyor: kahramanin
+  alt kenariyla arasinda bosluk kalirsa "unutulmus bir satir" gibi
+  duruyor. Ustte negatif bosluk yok — arama kutusu zaten tasiyor.
+*/
+.lp-stats { padding-top: 2.5rem; }
+/*
+  Serit ile sonuc listesi arasinda iki bosluk ust uste biniyordu
+  (seridin alti + bolumun kendi dolgusu) ve serit havada duruyor
+  gibi gorunuyordu.
+*/
+.lp-stats + .container.section { padding-top: 2rem; }
+
+/* ==========================================================================
+   ICERIK SAYFASI BASLIGI (.pg-*)
+
+   ContentPage on sayfada kullaniliyor (ucretler, nasil calisir, koruma,
+   yardim, iletisim, bes hukuki metin). Kahramanin SAKIN surumu: ayni
+   gradyan ve lekeler, kucuk baslik, yukseklik iceriginden geliyor.
+   ========================================================================== */
+.pg-hero {
+  position: relative; z-index: 2;
+  background: linear-gradient(180deg, var(--color-surface-sunken) 0%, var(--color-canvas) 70%);
+  padding-block: 2.25rem 2.75rem;
+}
+.pg-hero-inner { position: relative; z-index: 1; }
+.pg-hero-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); align-items: center; }
+@media (min-width: 900px) {
+  .pg-hero-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 20rem); }
+}
+.pg-hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 0.875rem; }
+/*
+  Vurgulu kelimenin altindaki dalgali cizgi satirin DISINA tasiyor;
+  0,875 rem'lik bosluk yetmedi ve cizgi alttaki paragrafin ustune
+  biniyordu ("Centre d'aide" sayfasinda okunmuyordu bile).
+*/
+.pg-h1 + .pg-lead { margin-top: 0.5rem; }
+/*
+  LEKELER ALTTAN SONLANDIRILIYOR.
+
+  Lekeler kahraman icin olculmus (24 rem capinda, %33'ten baslayan);
+  bu baslik bandi onun yarisi kadar yuksek, dolayisiyla leke alt
+  kenarda KESILIYOR ve bandin altinda duz bir cizgi birakiyordu.
+  Maske, kesilen kenari degil yumusak bir gecisi birakiyor.
+*/
+.pg-hero .st-blobs {
+  -webkit-mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+}
+.pg-hero .st-blob-a { width: 18rem; height: 18rem; inset-block-start: -7rem; }
+.pg-hero .st-blob-b { width: 15rem; height: 15rem; inset-block-start: -2rem; }
+.pg-h1 {
+  margin: 0; max-width: 22ch; font-family: var(--font-display);
+  font-size: clamp(2rem, 3.6vw, 2.875rem); line-height: 1.1;
+  letter-spacing: -0.02em; font-weight: 800; color: var(--color-ink);
+}
+.pg-lead {
+  margin: 0; max-width: 40rem; font-size: 1.0625rem; line-height: 1.625rem;
+  color: var(--color-ink-secondary); text-wrap: pretty;
+}
+/*
+  Fotograf 4/3'tu ve serbest duruyordu; kahramandaki fotograf
+  kart gibi (yuvarlak, golgeli). Yukseklik 16rem ile sinirli:
+  iki satirlik bir basligin yaninda 300 pikselik bir blok,
+  bandi iceriginin iki kati yapiyordu.
+*/
+.pg-hero-art {
+  aspect-ratio: 4 / 3; max-height: 16rem; border-radius: 1.5rem; overflow: hidden;
+  background: var(--color-surface-high);
+  box-shadow: 0 18px 32px -8px rgba(83, 72, 62, 0.18);
+}
+.pg-hero-art :is(img, picture, span) { width: 100%; height: 100%; object-fit: cover; display: block; }

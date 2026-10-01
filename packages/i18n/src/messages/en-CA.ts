@@ -1152,6 +1152,28 @@ export const enCA = {
     'work.payCity': 'You set your own price. In {city} the median boarding rate is {price} a night \u2014 what sitters here actually charge, not a promise about what you will earn. We take {pct}% of it, and nothing at all on clients you bring yourself.',
     'work.payPlain': 'You set your own price; we do not set it for you and we do not cap it. We take {pct}% of what you charge, and nothing at all on clients you bring yourself.',
     ctaHeading: 'Ready when you are',
+
+    /*
+      KAZANC TAHMINI — SOZ DEGIL, ARITMETIK.
+
+      Tasarimda burada "tahmini aylik 3 240 $" yazan bir kutu var. O
+      rakam uydurma olurdu; ustelik Kanada'da bir gelir iddiasi
+      kanitlanabilir olmak zorunda. Bu metinlerin hepsi rakami
+      KULLANICIYA ait kiliyor: "siz koyarsaniz", "varsayiminiz".
+    */
+    'calc.title': 'Work it out with your own numbers',
+    'calc.lead': 'Nothing here is a forecast. Put in the price you would charge and how often you would work, and we apply our real rates to it.',
+    'calc.rate': 'Your price per {unit}',
+    'calc.perWeek': 'Bookings a week',
+    'calc.perWeekValue': '{count} {unit} a week',
+    'calc.gross': 'What owners pay you, per month',
+    'calc.keep': 'What you keep',
+    'calc.rowOwn': 'A client you brought',
+    'calc.rowRepeat': 'A repeat client',
+    'calc.rowOurs': 'A client we introduced',
+    'calc.fee': '{pct}% to us',
+    'calc.noFee': 'nothing to us',
+    'calc.note': 'These are your own assumptions, not an estimate of your earnings and not a promise of work. Havre has no earnings history to average yet, and we will not invent one. Taxes and your own costs are not included.',
   },
   features: {
     eyebrow: 'How Havre works',

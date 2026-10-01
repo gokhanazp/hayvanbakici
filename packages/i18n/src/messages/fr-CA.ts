@@ -1027,6 +1027,21 @@ export const frCA = {
     'work.payCity': 'Vous fixez votre prix. À {city}, le tarif médian d’hébergement est de {price} par nuit — ce que les gardiens d’ici demandent réellement, et non une promesse de revenu. Nous en prenons {pct} %, et rien du tout sur les clients que vous amenez vous-même.',
     'work.payPlain': 'Vous fixez votre prix ; nous ne le fixons pas à votre place et nous ne le plafonnons pas. Nous prenons {pct} % de ce que vous demandez, et rien du tout sur les clients que vous amenez vous-même.',
     ctaHeading: 'Quand vous serez prêt',
+
+    /* Voir le commentaire du catalogue anglais : aucun revenu promis. */
+    'calc.title': 'Faites le calcul avec vos propres chiffres',
+    'calc.lead': 'Rien ici n’est une prévision. Entrez le prix que vous demanderiez et la fréquence à laquelle vous travailleriez : nous y appliquons nos taux réels.',
+    'calc.rate': 'Votre prix par {unit}',
+    'calc.perWeek': 'Réservations par semaine',
+    'calc.perWeekValue': '{count} {unit} par semaine',
+    'calc.gross': 'Ce que les propriétaires vous versent, par mois',
+    'calc.keep': 'Ce que vous gardez',
+    'calc.rowOwn': 'Un client que vous avez amené',
+    'calc.rowRepeat': 'Un client régulier',
+    'calc.rowOurs': 'Un client que nous vous avons présenté',
+    'calc.fee': '{pct} % pour nous',
+    'calc.noFee': 'rien pour nous',
+    'calc.note': 'Ce sont vos propres hypothèses, et non une estimation de vos revenus ni une promesse de travail. Havre n’a encore aucun historique de revenus à moyenner, et nous n’en inventerons pas. Les impôts et vos propres frais ne sont pas inclus.',
   },
   features: {
     eyebrow: 'Comment fonctionne Havre',

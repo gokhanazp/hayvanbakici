@@ -76,7 +76,9 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
   return (
     <ContentPage
       locale={locale}
-      title={t('Help centre', 'Centre d’aide')}
+      eyebrow={t('Support', 'Assistance')}
+      title={t('Help', 'Centre')}
+      accent={t('centre', 'd’aide')}
       lead={t('The questions we are asked most, answered without a support ticket.',
               'Les questions les plus fréquentes, sans avoir à ouvrir un billet.')}
       aside={

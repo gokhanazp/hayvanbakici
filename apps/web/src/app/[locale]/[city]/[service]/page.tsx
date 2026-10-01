@@ -15,9 +15,9 @@ import { Photo } from '@/components/Photo';
 import { Faq } from '@/components/Faq';
 import { ServiceTiles } from '@/components/ServiceTiles';
 import { ServiceIcon } from '@/components/ServiceIcon';
-import { SearchBar } from '@/components/SearchBar';
+import { StSearch } from '@/components/StSearch';
+import { Sym } from '@/components/Sym';
 import { WaitlistForm } from '@/components/WaitlistForm';
-import { SectionDoodles } from '@/components/Doodles';
 import { ComingSoon } from '@/components/ComingSoon';
 import { PHOTOS, type PhotoId } from '@/lib/photos';
 import { isDemo } from '@/lib/demo';
@@ -249,82 +249,145 @@ export default async function LandingPage(
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/*
-        SAYFA BASLIGI RENKLI BANTTA.
-        Ana sayfayla ayni dil: ilk ekran sicak bir bant, govde krem. Fotograf
-        basligin YANINDA, altinda degil — metin fotografin uzerine binmedigi
-        icin hangi fotograf gelirse gelsin kontrast garantisi bozulmuyor.
+        KAHRAMAN — ANA SAYFAYLA AYNI DIL.
+
+        Burasi `band band-blush` + karalamalar + duz bir fotograf
+        cercevesiydi; hemen altinda da ESKI arama kutusu duruyordu.
+        Yani sitenin en cok ziyaret edilecek sayfasi (SEO tasiyicisi)
+        iki farkli tasarim dilini ayni ekranda gosteriyordu.
+
+        Ana sayfadan FARKLI olan tek sey icerik: buraya gelen kisi
+        hizmeti ve sehri secmis durumda, o yuzden baslikta sehir
+        vurgulu, arama kutusunda hizmet sekmesi onceden isaretli ve
+        konum alani dolu geliyor.
       */}
-      <section className="band band-blush band-round-b has-doodles">
-        <SectionDoodles set="pageHead" />
-        <div className="container page-head page-head-with-search">
-          <nav aria-label="Breadcrumb" className="text-body-sm" style={{ marginBottom: 'var(--space-5)' }}>
-            <ol className="row" style={{ gap: 'var(--space-2)', listStyle: 'none', padding: 0 }}>
-              <li><Link href={`/${seg}`} className="muted">{m.brand.name}</Link></li>
-              <li aria-hidden="true" className="dim">/</li>
-              <li className="dim">{r.city.province}</li>
-              <li aria-hidden="true" className="dim">/</li>
-              <li>{name}</li>
+      <section className="st-hero">
+        <div className="st-blobs" aria-hidden="true">
+          <div className="st-blob st-blob-a"></div>
+          <div className="st-blob st-blob-b"></div>
+        </div>
+
+        <div className="st-wrap st-hero-inner">
+          <nav aria-label="Breadcrumb" className="lp-crumbs">
+            <ol>
+              <li><Link href={`/${seg}`}>{m.brand.name}</Link></li>
+              <li aria-hidden="true">/</li>
+              <li>{r.city.province}</li>
+              <li aria-hidden="true">/</li>
+              <li aria-current="page">{name}</li>
             </ol>
           </nav>
 
-          <div className="page-head-grid">
-            <div>
-              {/*
-                HANGI HIZMET — IKONLA. Baslikta hizmetin adi zaten
-                geciyor ama sayfa "Toronto" ile basliyordu; rozet, ana
-                sayfadaki kartla AYNI ikonu kullanarak nereye gelindigini
-                bir bakista soyluyor.
-              */}
-              <p className="hero-eyebrow">
-                <ServiceIcon service={r.service} size={17} />
-                {m.service[r.service]}
-              </p>
+          <div className="st-hero-grid">
+            <div className="st-hero-copy">
+              <span className="st-eyebrow-pill">
+                <ServiceIcon service={r.service} size={16} />
+                {svc}
+              </span>
 
-              <h1 className="text-h1" style={{ marginBottom: 'var(--space-3)' }}>
-                {r.locale === 'fr-CA' ? `${svc} à ${name}` : `${svc} in ${name}`}
+              {/*
+                SEHIR VURGULU. Ana sayfada vurgulanan kelime sehir
+                adi; burada da oyle olmali — kullanici "Toronto"
+                aradi, basligin ona ait oldugunu bir bakista
+                gormeli.
+              */}
+              <h1 className="st-h1">
+                {r.locale === 'fr-CA' ? `${svc} à ` : `${svc} in `}
+                <span className="st-h1-accent">{name}</span>
               </h1>
-              {/* Cevap-once paragrafi: ilk 40-60 kelimede tam cevap (§7.10) */}
-              <p className="text-body-lg muted" style={{ maxWidth: '38rem', marginBottom: 'var(--space-7)' }}>
-                {m.serviceDescription[r.service]}
-              </p>
 
-              {/*
-                Sayilar HAP degil BLOK. Ayni veri ana sayfada tek satirlik
-                bir hapta duruyor; burada sayfanin tek somut kaniti o uc
-                sayi ve kahramanin yarisi bos kaliyordu.
-              */}
-              <TrustStrip
-                variant="stats"
-                locale={r.locale}
-                cityName={name}
-                sitterCount={data.sitterCount}
-                medianPriceCents={data.medianPriceCents}
-                bookingCount={data.bookingCount}
-                unit={SERVICES[r.service].unit}
-              />
+              {/* Cevap-once paragrafi: ilk 40-60 kelimede tam cevap (§7.10) */}
+              <p className="st-hero-lead">{m.serviceDescription[r.service]}</p>
+
+              <div className="st-hero-pills">
+                {/* Puan rozeti YALNIZCA gercek yorum varsa. */}
+                {data.reviewCount > 0 && (
+                  <span className="st-stat-pill">
+                    <span className="st-stars" aria-hidden="true">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <Sym key={i} name="star" size={17} filled />
+                      ))}
+                    </span>
+                    <strong className="tabular">{data.avgRating.toFixed(2)}</strong>
+                    <span className="st-stat-sub">
+                      {interpolate(m.home.reviewsFrom, {
+                        count: numberFmt(data.reviewCount, r.locale),
+                      })}
+                    </span>
+                  </span>
+                )}
+                <span className="st-stat-pill st-stat-pill-sage">
+                  <Sym name="verified" size={17} />
+                  {m.home.heroPillChecks}
+                </span>
+              </div>
             </div>
 
-            <div className="photo-frame page-head-photo">
-              <Photo id={cityPhotoId(r.city.slugEn)} locale={r.locale}
-                     sizes="(min-width: 900px) 26rem, 100vw" priority />
+            <div className="st-hero-art">
+              <div className="st-hero-photo">
+                <Photo id={cityPhotoId(r.city.slugEn)} locale={r.locale}
+                       sizes="(min-width: 900px) 26rem, 100vw" priority />
+              </div>
+
+              <div className="st-badge-float">
+                <span className="st-badge-tile" aria-hidden="true">
+                  <Sym name="pets" size={26} />
+                </span>
+                <span>
+                  <strong className="st-badge-value">
+                    {interpolate(m.home.heroSitterCount, {
+                      city: name, count: numberFmt(data.sitterCount, r.locale),
+                    })}
+                  </strong>
+                  <span className="st-badge-sub">{m.home.heroBadgeSub}</span>
+                </span>
+              </div>
+
+              {data.medianPriceCents > 0 && (
+                <span className="st-badge-chip">
+                  <Sym name="verified" size={16} />
+                  {interpolate(m.home.heroMedian, {
+                    price: money(data.medianPriceCents, r.locale),
+                    unit: m.unit[SERVICES[r.service].unit],
+                  })}
+                </span>
+              )}
             </div>
           </div>
+
+          {/*
+            Hizmet ve konum ONCEDEN DOLU: sifirdan bir arama degil,
+            buradaki aramanin devami.
+          */}
+          <StSearch
+            locale={r.locale}
+            cityLabel={name}
+            selected={r.service}
+            defaultLocation={name}
+          />
         </div>
       </section>
 
       {/*
-        ARAMA KARTI BANDIN ALTINA BINIYOR — ana sayfayla ayni hareket.
-        Bu sayfaya gelen kisi hizmeti ve sehri SECMIS durumda; eksik olan
-        mahalle ve tarih. Kutu o ikisiyle ilgilendigi icin hizmet ve
-        konum onceden dolu geliyor: sifirdan bir arama degil, buradaki
-        aramanin devami.
+        UC SAYI KENDI SERIDINDE.
+
+        Kahramanda duruyorlardi ve yeni kahramanda yerleri yok (sayi
+        rozetleri fotografin uzerinde). Ama bu sayfanin TEK somut
+        kaniti o uc sayi; kaldirmak degil, kendi seridine almak
+        gerekiyordu. Tamamlanmis rezervasyon sayisi ustelik rozetlerde
+        hic gecmiyor.
       */}
-      <section className="container hero-search">
-        <SearchBar
+      <div className="st-wrap lp-stats">
+        <TrustStrip
+          variant="stats"
           locale={r.locale}
-          defaults={{ service: serviceSlug(r.service, r.locale), location: name }}
+          cityName={name}
+          sitterCount={data.sitterCount}
+          medianPriceCents={data.medianPriceCents}
+          bookingCount={data.bookingCount}
+          unit={SERVICES[r.service].unit}
         />
-      </section>
+      </div>
 
       <div className="container section">
 

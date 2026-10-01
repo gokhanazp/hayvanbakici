@@ -8,6 +8,7 @@ import {
 import { Photo } from '@/components/Photo';
 import { SitterStartCta } from '@/components/auth/SitterStartCta';
 import { Faq } from '@/components/Faq';
+import { EarningsEstimate } from '@/components/EarningsEstimate';
 import { ShieldIcon } from '@/components/VerificationBadge';
 import { money, dayFmt } from '@/lib/format';
 import { cityName, getCommission, getDefaultCity, getLandingData } from '@/lib/data';
@@ -83,6 +84,17 @@ export default async function BecomeSitterPage({
     { pct: c.sitterPct.sitter_referral, label: m.commission.sitter_referral },
     { pct: c.sitterPct.repeat, label: m.commission.repeat },
     { pct: c.sitterPct.platform, label: m.commission.platform },
+  ];
+
+  /*
+    HESAPLAYICI SATIRLARI. Ustteki `rates` dizisinin etiketleri tam
+    cumle ("Bu musteriyi biz getirdik, %18 aliyoruz."); bir tabloda
+    okunmaz. Ayni oranlar, kisa etiketlerle.
+  */
+  const calcRates = [
+    { pct: c.sitterPct.sitter_referral, label: s['calc.rowOwn'] },
+    { pct: c.sitterPct.repeat, label: s['calc.rowRepeat'] },
+    { pct: c.sitterPct.platform, label: s['calc.rowOurs'] },
   ];
 
   const faqs = [
@@ -234,8 +246,17 @@ export default async function BecomeSitterPage({
           ))}
         </div>
 
-        {/* Rakamla desteklenen karsilastirma — dayanak compareToRover() */}
-        <div className="card card-pad" style={{ marginTop: 'var(--space-6)' }}>
+        {/*
+          KARSILASTIRMA + HESAPLAYICI YAN YANA.
+
+          Solda SABIT bir ornek (bizim rakamimiz, compareToRover'dan),
+          sagda bakicinin KENDI rakami. Ikisi ayri bolumlere konunca
+          sayfa "once biz anlatiriz, sonra siz denersiniz" oluyordu;
+          yan yana durduklarinda ornek, hesaplayicinin nasil
+          okunacagini gosteren bir anahtar haline geliyor.
+        */}
+        <div className="sa-rates-split">
+        <div className="card card-pad">
           <h3 className="text-h4">{interpolate(s.exampleHeading, { amount: money(sample, locale) })}</h3>
           <dl className="rate-compare">
             <div>
@@ -255,7 +276,15 @@ export default async function BecomeSitterPage({
               </dd>
             </div>
           </dl>
-          <p className="field-hint" style={{ marginTop: 'var(--space-4)' }}>{s.exampleNote}</p>
+          <p className="field-hint">{s.exampleNote}</p>
+        </div>
+
+        <EarningsEstimate
+          locale={locale}
+          unit="night"
+          defaultRateCents={medianPriceCents > 0 ? medianPriceCents : dollars(45)}
+          rates={calcRates}
+        />
         </div>
       </section>
 

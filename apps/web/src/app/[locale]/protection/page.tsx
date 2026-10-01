@@ -44,7 +44,9 @@ export default async function ProtectionPage({ params }: { params: Promise<{ loc
   return (
     <ContentPage
       locale={locale}
-      title={t('Havre Protection', 'Protection Havre')}
+      eyebrow={t('Safety', 'Sécurité')}
+      title={t('Havre', 'Protection')}
+      accent={t('Protection', 'Havre')}
       lead={t(
         'Most of what keeps a stay safe happens before it starts. Here is exactly what we do, and what we do not claim to do.',
         'L’essentiel de ce qui rend un séjour sûr se passe avant qu’il ne commence. Voici précisément ce que nous faisons, et ce que nous ne prétendons pas faire.',

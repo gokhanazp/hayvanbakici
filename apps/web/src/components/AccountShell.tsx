@@ -113,8 +113,14 @@ export function AccountShell({
 
   return (
     <>
-      <section className="band band-blush band-round-b">
-        <div className="container" style={{ paddingBlock: 'var(--space-8) var(--space-8)' }}>
+      {/* Baslik bandi, ContentPage ile AYNI kabuk (.pg-hero). */}
+      <section className="pg-hero">
+        <div className="st-blobs" aria-hidden="true">
+          <div className="st-blob st-blob-a"></div>
+          <div className="st-blob st-blob-b"></div>
+        </div>
+
+        <div className="st-wrap pg-hero-inner">
           <div className="row" style={{ gap: 'var(--space-3)', alignItems: 'baseline' }}>
             <h1 className="text-h1">{title}</h1>
             <RoleBadge locale={locale} isSitter={isSitter} status={sitterStatus ?? null} />

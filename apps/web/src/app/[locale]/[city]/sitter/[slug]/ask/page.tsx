@@ -55,8 +55,13 @@ export default async function AskPage({
 
   return (
     <>
-      <section className="band band-blush band-round-b">
-        <div className="container" style={{ paddingBlock: 'var(--space-6) var(--space-8)' }}>
+      <section className="pg-hero">
+        <div className="st-blobs" aria-hidden="true">
+          <div className="st-blob st-blob-a"></div>
+          <div className="st-blob st-blob-b"></div>
+        </div>
+
+        <div className="st-wrap pg-hero-inner">
           <Link href={`/${seg}/${city}/sitter/${slug}/`} className="text-body-sm muted">
             ← {sitter.firstName} {sitter.lastNameInitial}.
           </Link>

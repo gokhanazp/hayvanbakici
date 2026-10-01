@@ -13,11 +13,19 @@ import type { PhotoId } from '@/lib/photos';
  * olarak 120 karakterlik satirla yayina girerdi.
  */
 export function ContentPage({
-  locale, title, lead, photo, updated, children, aside, wide = false,
+  locale, title, lead, eyebrow, accent, photo, updated, children, aside, wide = false,
 }: {
   locale: Locale;
   title: string;
   lead?: string | undefined;
+  /** Ustteki kucuk hap — sayfanin hangi ailede oldugunu soyler */
+  eyebrow?: string | undefined;
+  /**
+   * Baslikta VURGULANACAK son parca. Ana sayfadaki kahramanda sehir
+   * adi yesil ve altinda dalgali cizgi var; bu sayfalar o dilin
+   * disinda kaliyordu. Verilmezse baslik duz yazilir.
+   */
+  accent?: string | undefined;
   photo?: PhotoId | undefined;
   /** ISO tarih — hukuki metinlerde zorunlu */
   updated?: string | undefined;
@@ -37,19 +45,42 @@ export function ContentPage({
 }) {
   return (
     <>
-      <section className="band band-blush band-round-b">
-        <div className="container page-head">
-          <div className={photo ? 'page-head-grid' : undefined}>
-            <div>
-              <h1 className="text-display" style={{ maxWidth: '22ch' }}>{title}</h1>
-              {lead && (
-                <p className="text-body-lg muted" style={{ marginTop: 'var(--space-4)', maxWidth: '38rem', textWrap: 'pretty' }}>
-                  {lead}
-                </p>
-              )}
+      {/*
+        BASLIK — ANA SAYFAYLA AYNI DIL.
+
+        Onceden `band band-blush` + `page-head` idi: bandin yuksekligi
+        sabit, icerigi iki satir. Ekranin ustunde "Ucretlerimiz" yazip
+        400 piksel bos birakiyor, saginda da serbest duran bir
+        fotograf bulunuyordu. On sayfa birden bu iskeleti kullaniyor,
+        yani on sayfa birden eski dilde kaliyordu.
+
+        Yeni hali kahramanin SAKIN surumu: ayni gradyan ve lekeler,
+        ayni hap ve vurgulu baslik, ama yuksekligi iceriginden geliyor
+        ve fotograf bir kart gibi duruyor.
+      */}
+      <section className="pg-hero">
+        <div className="st-blobs" aria-hidden="true">
+          <div className="st-blob st-blob-a"></div>
+          <div className="st-blob st-blob-b"></div>
+        </div>
+
+        <div className="st-wrap pg-hero-inner">
+          <div className={photo ? 'pg-hero-grid' : undefined}>
+            <div className="pg-hero-copy">
+              {eyebrow && <span className="st-eyebrow-pill">{eyebrow}</span>}
+              <h1 className="pg-h1">
+                {accent ? (
+                  <>
+                    {title}
+                    {' '}
+                    <span className="st-h1-accent">{accent}</span>
+                  </>
+                ) : title}
+              </h1>
+              {lead && <p className="pg-lead">{lead}</p>}
             </div>
             {photo && (
-              <div className="photo-frame" style={{ aspectRatio: '4 / 3' }}>
+              <div className="pg-hero-art">
                 <Photo id={photo} locale={locale} priority sizes="(min-width: 900px) 24rem, 100vw" />
               </div>
             )}
