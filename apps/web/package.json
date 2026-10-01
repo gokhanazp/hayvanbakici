@@ -8,13 +8,14 @@
     "start": "node --env-file-if-exists=../../.env scripts/next.mjs start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "next lint",
-    "fonts:sync": "cp ../../node_modules/@fontsource-variable/fredoka/files/fredoka-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2 src/app/fonts/",
+    "fonts:sync": "cp ../../node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/fredoka/files/fredoka-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2 ../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2 src/app/fonts/",
     "photos:placeholders": "tsx scripts/make-photo-placeholders.mts",
     "photos:fetch": "tsx --env-file-if-exists=../../.env scripts/fetch-photos.mts",
     "test": "vitest run"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@havre/auth": "0.1.0",
     "@havre/core": "0.1.0",
     "@havre/db": "0.1.0",

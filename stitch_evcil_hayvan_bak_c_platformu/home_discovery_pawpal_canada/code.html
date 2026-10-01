@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface":"#fff8f4","surface-container-highest":"#f0e0d2","surface-variant":"#f0e0d2","secondary-container":"#fd8363","tertiary-container":"#956600","background":"#fff8f4","outline":"#707975","error-container":"#ffdad6","secondary-fixed-dim":"#ffb4a2","primary-fixed-dim":"#95d3be","on-secondary-fixed-variant":"#82270f","inverse-primary":"#95d3be","on-tertiary-container":"#fff1e3","inverse-surface":"#382f26","error":"#ba1a1a","surface-dim":"#e8d7ca","on-tertiary-fixed":"#281800","tertiary":"#754f00","on-primary":"#ffffff","primary-fixed":"#b0f0d9","on-secondary":"#ffffff","on-primary-container":"#caffeb","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","on-error":"#ffffff","primary-container":"#3d7a68","tertiary-fixed":"#ffddae","inverse-on-surface":"#ffeee0","surface-container-high":"#f6e5d7","on-error-container":"#93000a","on-secondary-container":"#721c05","on-tertiary-fixed-variant":"#604100","on-primary-fixed-variant":"#0a5040","primary":"#226150","outline-variant":"#bfc9c3","on-secondary-fixed":"#3c0800","on-surface-variant":"#404945","surface-bright":"#fff8f4","tertiary-fixed-dim":"#fdbb49","on-primary-fixed":"#002018","on-background":"#221a12","surface-container":"#fcebdd","secondary":"#a23e24","surface-container-low":"#fff1e7","on-surface":"#221a12","surface-tint":"#2b6958","secondary-fixed":"#ffdbd2"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin":"2.5rem","space-sm":"0.5rem","space-xl":"2.5rem","gutter-mobile":"1rem","space-md":"1rem","gutter":"1.5rem","margin-mobile":"1rem","space-lg":"1.5rem","space-xs":"0.25rem"},fontFamily:{"body-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"]},fontSize:{"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"body-md":["15px",{"lineHeight":"22px","fontWeight":"400"}],"display-lg-mobile":["34px",{"lineHeight":"42px","letterSpacing":"-0.02em","fontWeight":"800"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"600"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.015em","fontWeight":"700"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"700"}],"body-lg":["17px",{"lineHeight":"26px","fontWeight":"400"}],"headline-lg-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.01em","fontWeight":"700"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"800"}],"title-md":["17px",{"lineHeight":"24px","fontWeight":"600"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(83,72,62,0.06)]"><div class="h-20 max-w-7xl mx-auto px-margin-mobile lg:px-margin flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md flex-shrink-0"><a class="flex items-center gap-space-sm group" data-path="find-sitters" href="#"><img alt="PawPal Canada Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X37u6wp6ZCDDINOB2gJKQwAoI5wuB-j5FJ6kXKs703qiQo-HVFF6cSIHSuz6FEtFYfmMkw5-GHtmo4poaJ5zrPFhlXXbtvs2TOzE1G0bJGwbmRyxtd26O_9lfy8e7FSgNuBWsPtWlS1m_eXyWyljyolgSobtRcqOtwT7DM24HblMNzBSyJ061BQ_pkLw7J6qmmMDLZkgKOEkHCqwFCNFqA0dMNBSfwCmsx5fkCqBUVlSA_E_hd5_jtBRMo"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">PawPal</span><span class="font-label-sm text-label-sm text-secondary -mt-1 font-bold">Canada</span></div></a><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-[16px]">language</span><span>CAD ($) · EN</span></div></div><nav class="hidden lg:flex items-center gap-space-xs p-1 rounded-full bg-surface-container-low/80" data-active-classes="bg-surface-container-high text-primary font-bold rounded-full shadow-[0_2px_8px_rgba(83,72,62,0.06)]"><a aria-current="page" class="px-space-md py-2 transition-all bg-surface-container-high text-primary font-bold rounded-full shadow-[0_2px_8px_rgba(83,72,62,0.06)]" data-path="find-sitters" href="#">Find Sitters</a><a class="px-space-md py-2 rounded-full font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="dog-walking" href="#">Dog Walking</a><a class="px-space-md py-2 rounded-full font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="house-boarding" href="#">House Boarding</a><a class="px-space-md py-2 rounded-full font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="how-it-works" href="#">How it Works</a></nav><div class="flex items-center gap-space-sm lg:gap-space-md flex-shrink-0"><a class="hidden sm:inline-flex items-center justify-center px-space-lg py-2.5 rounded-full bg-secondary-container text-on-secondary font-label-lg text-label-lg shadow-[0_4px_12px_rgba(253,131,99,0.25)] hover:bg-secondary hover:text-on-secondary transition-all transform hover:-translate-y-0.5" data-path="become-a-sitter" href="#">Become a Sitter</a><div class="flex items-center gap-1"><a class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="#" title="Help &amp; Support"><span class="material-symbols-outlined text-[22px]">help_outline</span></a><a class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="#" title="Saved Sitters"><span class="material-symbols-outlined text-[22px]">favorite_border</span></a><a class="relative p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="#" title="Messages"><span class="material-symbols-outlined text-[22px]">chat_bubble_outline</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></a></div><div class="flex items-center gap-space-sm pl-space-xs py-1 pr-space-md rounded-full bg-surface-container border border-surface-container-highest hover:bg-surface-container-high transition-colors cursor-pointer"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1VeOu3GdK2gzDH3GEi1TDtgNbqKjXj9x1G87nHD1urLCGGw72AT4YIKOYuaA6dY6ZH1b98OSpq6g6hjUnyonSYLRqp3Mvaur2yIgYcHDWpjFh4b8IBR2LIGCM34M7VyJSfEWjrDCyF9Aih9RWlbJv3xw7vfd0QvNuuzFWRBCCprohUjzUeMgKONZwLSkYg0LObZB0YuxRo5ghhPAYrOCyGITl5TLGT-FW2J4R5V2ybRYRJlfh4kbVqvq3w9"/><div class="hidden md:flex flex-col text-left"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Sarah M.</span><span class="font-label-sm text-label-sm text-primary font-medium">2 Pets</span></div></div></div></div></header><main class="w-full pt-20 bg-surface min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- Hero Section -->
+<section class="relative w-full overflow-hidden bg-gradient-to-b from-surface-container-low via-surface to-surface pb-space-xl">
+<!-- Ambient organic blobs -->
+<div class="absolute -top-24 -left-20 w-96 h-96 rounded-full bg-secondary-fixed/30 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-primary-fixed/25 blur-3xl pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin pt-space-xl pb-space-lg relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+<!-- Text Column -->
+<div class="lg:col-span-7 flex flex-col items-start gap-space-md">
+<div class="inline-flex items-center gap-2 px-space-md py-1.5 rounded-full bg-surface-container-high shadow-sm text-secondary font-label-md text-label-md tracking-wider uppercase">
+<span>🇨🇦</span>
+<span class="font-bold">Canada's Most Trusted Pet Care Network</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight leading-tight max-w-2xl">
+            Loving, Verified Pet Sitters in Your <span class="text-primary underline decoration-secondary-container decoration-wavy underline-offset-8">Canadian</span> Neighborhood
+          </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+            Connect with background-checked local dog walkers, house sitters, and pet caregivers across Toronto, Vancouver, Calgary, and Montreal with 24/7 Canadian vet support.
+          </p>
+<div class="flex flex-wrap items-center gap-space-sm pt-space-xs">
+<div class="inline-flex items-center gap-2 px-space-md py-2 rounded-full bg-surface-container-lowest shadow-sm">
+<div class="flex -space-x-2">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">4.96 / 5.0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">from 45,000+ Canadian tail-wags</span>
+</div>
+<div class="hidden sm:inline-flex items-center gap-1.5 px-space-md py-2 rounded-full bg-primary-fixed/40 text-on-primary-fixed-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>100% RCMP Screened</span>
+</div>
+</div>
+</div>
+<!-- Hero Photo Accent (Bento Style) -->
+<div class="lg:col-span-5 relative mt-4 lg:mt-0">
+<div class="relative mx-auto max-w-md lg:max-w-none">
+<div class="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="Warm sunlight portrait of a friendly Canadian female dog sitter kneeling with an energetic Golden Retriever in High Park Toronto with autumn maple trees in soft amber and sage tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKkgOGU535aRES8PcmoO4CYOF_uxNOCW9cVvc7dQYw44obfE9OV7rxcrHlS156mMRj6hg1fd5OG6TmqeGevBsRp5tTxwmZgE4nlVwp9RDxkL6EjUubaxIOY3zqx9p0BHio6nXQNj8T-IkgSD9-lUG6jeLU_u27y7vPtljUN46SiaBRWUZSkBWk-MmLdd_brfAodydz7eF2JPg-mQSFwKx-1kjKEN7lHtkI6iFa36esttCEEgLNhZnzDA"/>
+</div>
+<!-- Floating Badge 1 -->
+<div class="absolute -bottom-6 -left-4 sm:left-4 p-space-md rounded-2xl bg-surface-container-lowest shadow-xl flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">pets</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface font-bold">12,840 Active Sitters</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Coast-to-coast availability</p>
+</div>
+</div>
+<!-- Floating Badge 2 -->
+<div class="absolute -top-4 -right-4 p-space-sm px-4 rounded-full bg-secondary-container text-on-secondary shadow-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">emergency</span>
+<span class="font-label-sm text-label-sm font-bold">24/7 Canadian Vet Line</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Search Widget -->
+<div class="mt-space-xl rounded-3xl bg-surface-container-lowest p-space-md lg:p-space-lg shadow-xl">
+<!-- Service Mode Switcher -->
+<div class="flex flex-wrap gap-space-xs pb-space-md">
+<button class="sitter-tab-btn flex items-center gap-2 px-space-lg py-2.5 rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">directions_walk</span>
+<span>Dog Walking</span>
+</button>
+<button class="sitter-tab-btn flex items-center gap-2 px-space-lg py-2.5 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high font-label-lg text-label-lg transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">night_shelter</span>
+<span>House Sitting</span>
+</button>
+<button class="sitter-tab-btn flex items-center gap-2 px-space-lg py-2.5 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high font-label-lg text-label-lg transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">wb_sunny</span>
+<span>Daycare</span>
+</button>
+<button class="sitter-tab-btn flex items-center gap-2 px-space-lg py-2.5 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high font-label-lg text-label-lg transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">home_pin</span>
+<span>Drop-In Visits</span>
+</button>
+</div>
+<!-- Filter Fields -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-sm items-center">
+<!-- Location Input -->
+<div class="md:col-span-4 p-space-sm rounded-2xl bg-surface-container-low">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Neighborhood / City</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface focus:outline-none placeholder:text-outline font-semibold" type="text" value="Toronto, ON - Downtown / Queen West"/>
+</div>
+</div>
+<!-- Dates Input -->
+<div class="md:col-span-3 p-space-sm rounded-2xl bg-surface-container-low">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Dates</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">calendar_month</span>
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface focus:outline-none placeholder:text-outline font-semibold" type="text" value="Oct 18 - Oct 22"/>
+</div>
+</div>
+<!-- Pets Input -->
+<div class="md:col-span-3 p-space-sm rounded-2xl bg-surface-container-low">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Your Pets</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[20px]">cruelty_free</span>
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface focus:outline-none placeholder:text-outline font-semibold" type="text" value="1 Medium Dog (Golden)"/>
+</div>
+</div>
+<!-- Search CTA -->
+<div class="md:col-span-2">
+<button class="w-full h-16 rounded-2xl bg-secondary hover:bg-secondary-container text-on-secondary font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0" type="button">
+<span class="material-symbols-outlined text-[22px]">search</span>
+<span>Find Sitters</span>
+</button>
+</div>
+</div>
+<!-- Trust Mini Ribbon inside widget -->
+<div class="mt-space-md pt-space-sm flex flex-wrap items-center justify-between gap-space-sm font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span>100% RCMP &amp; Identity Verified</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">shield</span>
+<span>$2,000,000 CAD PawPal Guarantee</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">route</span>
+<span>Daily GPS &amp; Live Photo Updates</span>
+</div>
+<div class="flex items-center gap-1 text-secondary font-bold">
+<span>🍁 Canadian-Owned &amp; Operated</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Services Cards Section -->
+<section class="w-full py-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
+<div>
+<span class="font-label-lg text-label-lg text-secondary font-bold uppercase tracking-wider">Tailored Canadian Care</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Thoughtful Care Tailored to Every Paw's Routine</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">
+          Flexible booking formats built for Canadian lifestyle, snowy winter strolls, and summer cottage weekends.
+        </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Service 1 -->
+<div class="group flex flex-col justify-between p-space-lg rounded-3xl bg-surface-container-lowest shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-primary-fixed/40 flex items-center justify-center text-primary mb-space-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[30px]">directions_walk</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Dog Walking</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+              GPS-tracked neighborhood routes, leash safety, brisk cardio, and fresh cold water replenishment after every stroll.
+            </p>
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">GPS Map</span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">Poop &amp; Pee Log</span>
+</div>
+</div>
+<div class="pt-space-md flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">From</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">$25 <span class="font-label-md text-label-md font-normal text-on-surface-variant">CAD / walk</span></span>
+</div>
+</div>
+<!-- Service 2 -->
+<div class="group flex flex-col justify-between p-space-lg rounded-3xl bg-surface-container-lowest shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-secondary-fixed/50 flex items-center justify-center text-secondary mb-space-md group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+<span class="material-symbols-outlined text-[30px]">night_shelter</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">House Sitting &amp; Boarding</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+              Cage-free cozy overnight stay at a verified sitter’s home or in your own space. Familiar blankets, cuddles, and routines.
+            </p>
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">Overnight</span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">Cage-Free</span>
+</div>
+</div>
+<div class="pt-space-md flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">From</span>
+<span class="font-headline-sm text-headline-sm text-secondary font-bold">$55 <span class="font-label-md text-label-md font-normal text-on-surface-variant">CAD / night</span></span>
+</div>
+</div>
+<!-- Service 3 -->
+<div class="group flex flex-col justify-between p-space-lg rounded-3xl bg-surface-container-lowest shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-tertiary-fixed/60 flex items-center justify-center text-tertiary mb-space-md group-hover:bg-tertiary-container group-hover:text-on-tertiary-container transition-colors">
+<span class="material-symbols-outlined text-[30px]">pets</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Cat Care &amp; Drop-Ins</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+              Feeding, litter scooping, medication administration, and gentle playtime right inside your kitty’s familiar safe haven.
+            </p>
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">30 or 60 Min</span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">Litter Care</span>
+</div>
+</div>
+<div class="pt-space-md flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">From</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">$22 <span class="font-label-md text-label-md font-normal text-on-surface-variant">CAD / visit</span></span>
+</div>
+</div>
+<!-- Service 4 -->
+<div class="group flex flex-col justify-between p-space-lg rounded-3xl bg-surface-container-lowest shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-primary-fixed/40 flex items-center justify-center text-primary mb-space-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[30px]">sunny</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Puppy &amp; Doggy Daycare</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+              Daytime companionship, fenced yard playtime, socialization with friendly peers, and supervised naps while you work.
+            </p>
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">Fenced Yard</span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">Social Play</span>
+</div>
+</div>
+<div class="pt-space-md flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">From</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">$40 <span class="font-label-md text-label-md font-normal text-on-surface-variant">CAD / day</span></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Neighborhood Sitter Spotlight -->
+<section class="w-full py-space-xl bg-surface-container-low/60">
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md mb-space-lg">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Available Right Now</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Meet Top-Rated Sitters in Toronto &amp; GTA</h2>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-2 rounded-full bg-surface-container-lowest shadow-sm hover:bg-surface-container font-label-md text-label-md text-on-surface transition-colors flex items-center gap-1.5">
+<span>Filter by Neighborhood</span>
+<span class="material-symbols-outlined text-[16px]">tune</span>
+</button>
+<a class="px-space-md py-2 rounded-full bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors" href="#">
+            View All 340+ Sitters
+          </a>
+</div>
+</div>
+<!-- Sitter Cards Mosaic -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- Sitter Card 1 -->
+<div class="flex flex-col rounded-3xl bg-surface-container-lowest p-space-md shadow-md hover:shadow-xl transition-all duration-300">
+<div class="relative w-full aspect-[16/11] rounded-2xl overflow-hidden bg-surface-container-high mb-space-md">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of Maya sitting on porch in Toronto Trinity Bellwoods with a happy Australian Shepherd dog resting head on her knee, warm sunny daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbevnuWQEcM0J4D6WfLLiaApOnNHVzohWODNgMq_SV3SFBA8CCfT47SYdyMiLP3IjZedvxTiYeICbtkI_CZZVwBSImAbJVL4X1JjuYzcDxmMlcwhJNWBA9WR-2S89es_8uAcx4NRewJf7MYv6DWHi66h7SjYHnZzyIIWBZWaQ87jKy1cjiWlfIytMa7TMyNSYml52CnCGGwyszhUTjFr_dv7U-YisX5kivwO-jztdUByXFc4OLa59-kA"/>
+<div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm font-bold text-on-surface">5.0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(142 reviews)</span>
+</div>
+<div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary font-label-sm text-label-sm font-bold shadow-sm">
+              Super Sitter
+            </div>
+<div class="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">location_on</span>
+<span>Trinity Bellwoods, Toronto (0.8 km)</span>
+</div>
+</div>
+<div class="flex items-start justify-between gap-space-sm mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Maya Tremblay</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Full-time Pet Specialist &amp; Vet Tech Student</p>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">$28</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">CAD / walk</span>
+</div>
+</div>
+<!-- Pet Traits Pills -->
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed/30 text-on-primary-fixed-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">health_and_safety</span> Pet CPR Certified
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              Fenced Backyard
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              1 Dog At A Time
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-md">
+            "Raised with Bernese mountain dogs and rescue cats. I send HD photos, follow medication schedules to the minute, and offer active trail runs."
+          </p>
+<div class="pt-space-sm mt-auto flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-primary font-semibold">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>RCMP Cleared</span>
+</div>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high hover:bg-primary hover:text-on-primary font-label-md text-label-md text-on-surface transition-all" type="button">
+              View Profile
+            </button>
+</div>
+</div>
+<!-- Sitter Card 2 -->
+<div class="flex flex-col rounded-3xl bg-surface-container-lowest p-space-md shadow-md hover:shadow-xl transition-all duration-300">
+<div class="relative w-full aspect-[16/11] rounded-2xl overflow-hidden bg-surface-container-high mb-space-md">
+<img class="w-full h-full object-cover" data-alt="Smiling Canadian male sitter David playing fetch with a French Bulldog in a bright living room in Toronto Liberty Village, soft window light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgde_epcAte1AN9IwHLIOyRMHGoPxDrfx1TiY94qbfob9rGIYTQgyTz1Z8ZgsnQWcTiHk8ENcJlPlVNuBVVfDT34X56orpaDnogtM-m55_Su5_t4lmg0GQtJ6pSTxPIGDUS8LTTZouiQJ7cq57J59R8HZ2uOmuvNyUsC7JFl2NuT6iCgG572yq-Y1y8KKA52wjy-Wxv-M_LkP9jhAEUOxwOL-RvVyJWYtde4yAUfRtwxhWQZAkapB02Q"/>
+<div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm font-bold text-on-surface">5.0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(98 reviews)</span>
+</div>
+<div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">bolt</span> Instant Book
+            </div>
+<div class="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">location_on</span>
+<span>Liberty Village, Toronto (1.4 km)</span>
+</div>
+</div>
+<div class="flex items-start justify-between gap-space-sm mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">David Chen</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Work-From-Home Software Engineer</p>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">$60</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">CAD / night</span>
+</div>
+</div>
+<!-- Pet Traits Pills -->
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed/30 text-on-primary-fixed-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">home</span> House Boarding
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              No Other Pets
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              Dog Park Nearby
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-md">
+            "I work 100% remote from my spacious 2-bedroom loft. Your pup gets constant human company, cozy couch snuggles, and 3-4 daily park walks."
+          </p>
+<div class="pt-space-sm mt-auto flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-primary font-semibold">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Identity Verified</span>
+</div>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high hover:bg-primary hover:text-on-primary font-label-md text-label-md text-on-surface transition-all" type="button">
+              View Profile
+            </button>
+</div>
+</div>
+<!-- Sitter Card 3 -->
+<div class="flex flex-col rounded-3xl bg-surface-container-lowest p-space-md shadow-md hover:shadow-xl transition-all duration-300">
+<div class="relative w-full aspect-[16/11] rounded-2xl overflow-hidden bg-surface-container-high mb-space-md">
+<img class="w-full h-full object-cover" data-alt="Compassionate mature Canadian pet caregiver Chloe gently petting an orange tabby cat on a cozy window sill in Toronto The Beaches neighborhood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuKVhJmr9R9QPSdLk1c0k2YRYf0NQyvWwOf2OFEmzYn4rAQ0_sFWkxAliP0C9Wd-JgXtt-1x8FRbdYA8S64sMOqKgdV-FZoAtm59uI49VRdgVjTSkXsvix80UB-bYpLkcrmxmBVTzyJS9_Mkf_-p-k7_At1V23eyaDrkIs-QJDlcLhAGedRkgseBoijykl0fncPs0H6LhNq4VMw9qvD1uy24uOFo1rLWe8xm0Bv9umY2zuiVIhY-QOhw"/>
+<div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm font-bold text-on-surface">4.99</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(185 reviews)</span>
+</div>
+<div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary font-label-sm text-label-sm font-bold shadow-sm">
+              Cat Whisperer
+            </div>
+<div class="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-surface/90 backdrop-blur-md font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">location_on</span>
+<span>The Beaches, Toronto (3.2 km)</span>
+</div>
+</div>
+<div class="flex items-start justify-between gap-space-sm mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Chloe &amp; Liam K.</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cat Care Specialists &amp; Senior Dog Sitters</p>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">$24</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">CAD / visit</span>
+</div>
+</div>
+<!-- Pet Traits Pills -->
+<div class="flex flex-wrap gap-1.5 mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed/30 text-on-primary-fixed-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">medication</span> Oral Meds Trained
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              Shy Pets Welcome
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              Water Plants / Mail
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-md">
+            "We treat your cats and senior dogs like Canadian royalty. Expect extensive visit photo stories, brush-outs, and gentle companionship."
+          </p>
+<div class="pt-space-sm mt-auto flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-primary font-semibold">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>RCMP Cleared</span>
+</div>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high hover:bg-primary hover:text-on-primary font-label-md text-label-md text-on-surface transition-all" type="button">
+              View Profile
+            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How it Works (3 Easy Steps for Peace of Mind) -->
+<section class="w-full py-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin">
+<div class="text-center max-w-2xl mx-auto mb-space-xl">
+<span class="font-label-lg text-label-lg text-secondary font-bold uppercase tracking-wider">Simple &amp; Transparent</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">3 Easy Steps for Complete Peace of Mind</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">
+          From first sniff to happy homecoming, booking local pet care has never felt more comforting.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg relative">
+<!-- Step 1 -->
+<div class="relative flex flex-col items-center text-center p-space-lg rounded-3xl bg-surface-container-low">
+<div class="w-16 h-16 rounded-2xl bg-primary text-on-primary flex items-center justify-center font-display-lg text-[28px] font-bold mb-space-md shadow-md">
+            1
+          </div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Browse Verified Sitters</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Explore detailed sitter bios, read genuine verified pet parent reviews, and filter by neighborhood radius and pet safety credentials.
+          </p>
+<div class="mt-space-md inline-flex items-center gap-1 text-primary font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[18px]">policy</span>
+<span>RCMP &amp; Background Checked</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative flex flex-col items-center text-center p-space-lg rounded-3xl bg-surface-container-low">
+<div class="w-16 h-16 rounded-2xl bg-secondary-container text-on-secondary flex items-center justify-center font-display-lg text-[28px] font-bold mb-space-md shadow-md">
+            2
+          </div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Free Meet &amp; Greet</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Schedule a relaxed, pressure-free session at your home or nearby park to verify chemistry between your furry friend and their future sitter.
+          </p>
+<div class="mt-space-md inline-flex items-center gap-1 text-secondary font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[18px]">handshake</span>
+<span>Always 100% Complimentary</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative flex flex-col items-center text-center p-space-lg rounded-3xl bg-surface-container-low">
+<div class="w-16 h-16 rounded-2xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-display-lg text-[28px] font-bold mb-space-md shadow-md">
+            3
+          </div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Relax with Live Updates</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Receive timestamped GPS route tracks, meal photos, potty updates, and direct messaging with 24/7 emergency vet backup.
+          </p>
+<div class="mt-space-md inline-flex items-center gap-1 text-tertiary font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[18px]">photo_camera</span>
+<span>Daily HD Photo Stories</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Trust & Safety Banner: "The PawPal Shield" -->
+<section class="w-full py-space-xl bg-surface-container">
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin">
+<div class="rounded-3xl bg-primary text-on-primary p-space-lg lg:p-space-xl shadow-xl relative overflow-hidden">
+<!-- Ambient decorative shapes -->
+<div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-primary-fixed/15 blur-2xl pointer-events-none"></div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center relative z-10">
+<div class="lg:col-span-6 flex flex-col gap-space-sm">
+<div class="inline-flex items-center gap-2 px-space-md py-1 rounded-full bg-on-primary/10 text-primary-fixed font-label-md text-label-md font-bold w-fit">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+<span>The PawPal Shield Protection Plan</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-primary">
+              Uncompromising Safety for Canadian Pets
+            </h2>
+<p class="font-body-lg text-body-lg text-on-primary-container max-w-lg">
+              Every single booking made through PawPal is automatically safeguarded by our comprehensive nationwide safety infrastructure.
+            </p>
+</div>
+<div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<!-- Pillar 1 -->
+<div class="p-space-md rounded-2xl bg-on-primary/10 backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary-fixed text-[28px] mb-2">health_and_safety</span>
+<h4 class="font-title-md text-title-md font-bold text-on-primary">$2,000,000 CAD Vet Coverage</h4>
+<p class="font-body-sm text-body-sm text-on-primary-container mt-1">Full medical emergency and property damage guarantee on every visit.</p>
+</div>
+<!-- Pillar 2 -->
+<div class="p-space-md rounded-2xl bg-on-primary/10 backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary-fixed text-[28px] mb-2">support_agent</span>
+<h4 class="font-title-md text-title-md font-bold text-on-primary">24/7 Canadian Vet Line</h4>
+<p class="font-body-sm text-body-sm text-on-primary-container mt-1">Instant phone access to registered Canadian veterinary professionals anytime.</p>
+</div>
+<!-- Pillar 3 -->
+<div class="p-space-md rounded-2xl bg-on-primary/10 backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary-fixed text-[28px] mb-2">verified_user</span>
+<h4 class="font-title-md text-title-md font-bold text-on-primary">Strict 5-Step Sitter Vetting</h4>
+<p class="font-body-sm text-body-sm text-on-primary-container mt-1">Only the top 15% of applicant sitters pass our stringent background protocols.</p>
+</div>
+<!-- Pillar 4 -->
+<div class="p-space-md rounded-2xl bg-on-primary/10 backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary-fixed text-[28px] mb-2">lock</span>
+<h4 class="font-title-md text-title-md font-bold text-on-primary">Escrow Sitter Payouts</h4>
+<p class="font-body-sm text-body-sm text-on-primary-container mt-1">Funds are released only after your service completes with total satisfaction.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials: Real Canadian Pet Parents -->
+<section class="w-full py-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md mb-space-lg">
+<div>
+<span class="font-label-lg text-label-lg text-secondary font-bold uppercase tracking-wider">Community Love</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Real Stories from Canadian Pet Guardians</h2>
+</div>
+<div class="inline-flex items-center gap-2 px-space-md py-1.5 rounded-full bg-surface-container-high font-label-md text-label-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span>Verified PawPal Bookings</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Review 1 -->
+<div class="p-space-lg rounded-3xl bg-surface-container-lowest shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-tertiary-fixed-dim mb-space-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-space-md">
+              "Finding a sitter in downtown Toronto who genuinely cares about reactive rescues was daunting. Maya made our rescue Labradoodle feel so secure during our 5-day Montreal trip!"
+            </p>
+</div>
+<div class="flex items-center gap-3 pt-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">
+              EM
+            </div>
+<div>
+<p class="font-title-md text-title-md text-on-surface font-bold">Elena M.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Toronto, ON · Pet Parent to Barnaby</p>
+</div>
+</div>
+</div>
+<!-- Review 2 -->
+<div class="p-space-lg rounded-3xl bg-surface-container-lowest shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-tertiary-fixed-dim mb-space-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-space-md">
+              "The live GPS tracker is wonderful! Seeing our Samoyed trekking around Kitsilano Beach with her sitter while I was stuck in Vancouver board meetings gave me total calm."
+            </p>
+</div>
+<div class="flex items-center gap-3 pt-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-secondary">
+              KL
+            </div>
+<div>
+<p class="font-title-md text-title-md text-on-surface font-bold">Kevin &amp; Liam T.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Vancouver, BC · Pet Parents to Yuki</p>
+</div>
+</div>
+</div>
+<!-- Review 3 -->
+<div class="p-space-lg rounded-3xl bg-surface-container-lowest shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-tertiary-fixed-dim mb-space-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-space-md">
+              "Our diabetic cat requires insulin shots twice daily. The Ottawa sitter was thoroughly trained, gentle, and messaged me photo verification after every injection."
+            </p>
+</div>
+<div class="flex items-center gap-3 pt-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-tertiary">
+              SA
+            </div>
+<div>
+<p class="font-title-md text-title-md text-on-surface font-bold">Sophie Arsenault</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Ottawa, ON · Cat Parent to Cleo</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Become a Sitter Callout Banner -->
+<section class="w-full pb-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin">
+<div class="rounded-3xl bg-secondary-container text-on-secondary p-space-lg lg:p-space-xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-space-lg relative overflow-hidden">
+<div class="relative z-10 max-w-xl">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-on-secondary/15 font-label-sm text-label-sm font-bold uppercase tracking-wider mb-2">
+<span>🐾 Sitter Community</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg font-extrabold text-on-secondary">
+            Love Animals? Earn up to $3,200 CAD/month as a PawPal Sitter
+          </h2>
+<p class="font-body-lg text-body-lg text-on-secondary-container mt-2">
+            Set your own rates, choose the pets you love caring for, and build a rewarding local pet care business backed by full Canadian insurance and 24/7 support.
+          </p>
+</div>
+<div class="relative z-10 flex-shrink-0">
+<a class="inline-flex items-center gap-2 px-space-xl py-4 rounded-full bg-surface text-on-surface font-headline-sm text-headline-sm shadow-xl hover:bg-surface-container-lowest transition-all transform hover:-translate-y-1 active:translate-y-0" data-path="become-a-sitter" href="#">
+<span>Become a Sitter</span>
+<span class="material-symbols-outlined text-[22px] text-secondary">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Simple interactive tab toggle for search widget
+  document.querySelectorAll('.sitter-tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.sitter-tab-btn').forEach(b => {
+        b.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+        b.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+      });
+      this.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+      this.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+    });
+  });
+</script></main><footer class="w-full bg-surface-container-low shadow-[0_-4px_20px_-4px_rgba(83,72,62,0.03)]"><div class="max-w-7xl mx-auto px-margin-mobile lg:px-margin pt-space-xl pb-space-lg"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-space-xl pb-space-xl border-b border-surface-container-highest/60"><div class="lg:col-span-4 flex flex-col gap-space-md"><div class="flex items-center gap-space-sm"><img alt="PawPal Canada Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X37u6wp6ZCDDINOB2gJKQwAoI5wuB-j5FJ6kXKs703qiQo-HVFF6cSIHSuz6FEtFYfmMkw5-GHtmo4poaJ5zrPFhlXXbtvs2TOzE1G0bJGwbmRyxtd26O_9lfy8e7FSgNuBWsPtWlS1m_eXyWyljyolgSobtRcqOtwT7DM24HblMNzBSyJ061BQ_pkLw7J6qmmMDLZkgKOEkHCqwFCNFqA0dMNBSfwCmsx5fkCqBUVlSA_E_hd5_jtBRMo"/><span class="font-headline-sm text-headline-sm text-primary tracking-tight">PawPal Canada</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-sm">Loving, insured &amp; police-checked pet sitters right in your neighborhood across Canada. Available in Toronto, Vancouver, Montreal, Calgary, and nationwide.</p><div class="flex items-center gap-space-xs pt-space-xs"><span class="inline-flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm"><span class="material-symbols-outlined text-[16px]">verified</span> Coast-to-Coast Care</span><span class="inline-flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm">🍁 Canadian Owned</span></div></div><div class="lg:col-span-2 flex flex-col gap-space-sm"><h4 class="font-title-md text-title-md text-on-surface font-bold">Services</h4><ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface-variant"><li class="hover:text-primary transition-colors cursor-pointer">Dog Walking</li><li class="hover:text-primary transition-colors cursor-pointer">Drop-in Pet Visits</li><li class="hover:text-primary transition-colors cursor-pointer">House Sitting</li><li class="hover:text-primary transition-colors cursor-pointer">Doggy Daycare</li><li class="hover:text-primary transition-colors cursor-pointer">Pet Taxi</li></ul></div><div class="lg:col-span-3 flex flex-col gap-space-sm"><h4 class="font-title-md text-title-md text-on-surface font-bold">Trust &amp; Safety</h4><ul class="flex flex-col gap-space-sm font-body-sm text-body-sm text-on-surface-variant"><li class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">shield</span><span>$2,000,000 CAD Veterinary &amp; Third Party Guarantee</span></li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">policy</span><span>RCMP Background Checked Sitters</span></li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">support_agent</span><span>24/7 Canadian Emergency Support</span></li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0 mt-0.5">lock</span><span>Secure Stripe Payments</span></li></ul></div><div class="lg:col-span-3 flex flex-col gap-space-md"><h4 class="font-title-md text-title-md text-on-surface font-bold">Monthly Paw Newsletter</h4><p class="font-body-sm text-body-sm text-on-surface-variant">Get pet care tips, vetted neighborhood recommendations, and Canadian sitter perks.</p><div class="flex flex-col sm:flex-row gap-space-xs"><input class="w-full h-11 px-4 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface placeholder:text-outline font-body-sm text-body-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Your email address" type="email"/><button class="px-space-md py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all flex-shrink-0" type="button">Subscribe</button></div><span class="font-label-sm text-label-sm text-outline">We respect your privacy. Unsubscribe anytime.</span></div></div><div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant"><div class="text-center md:text-left"><span>© 2025 PawPal Canada Inc. All rights reserved. · Toronto, ON · Vancouver, BC · Montreal, QC · Calgary, AB</span></div><div class="flex flex-wrap items-center justify-center gap-space-md font-label-md text-label-md"><a class="hover:text-primary transition-colors" href="#">Terms of Service</a><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a><a class="hover:text-primary transition-colors" href="#">PIPEDA Compliance</a><div class="flex items-center gap-1 text-primary font-semibold"><span class="material-symbols-outlined text-[16px]">public</span><span>CAD ($) / English</span></div></div></div></div></footer></body></html>

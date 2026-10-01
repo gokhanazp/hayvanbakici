@@ -1,132 +1,107 @@
 /**
- * Renk paleti — "Cizgi Film".
+ * Renk paleti — "Warm Paw".
  *
- * NEDEN BU PALET: onceki palet (bogurtlen + adacayi, erik moru murekkep)
- * dogru secilmisti ama SOGUK okunuyordu. Bu kategoride site, insanin
- * evine ve hayvanina bakacak birini secmeye calisirken guven kadar
- * SICAKLIK da satiyor; erik moru bir murekkep ve pembe-gri krem, bir
- * butik magaza gibi duruyordu.
+ * KAYNAK: Stitch'te uretilen tasarim sisteminin (warm_paw_companion)
+ * token'lari. Oradan AYNEN alinmadi; iki yerde bilerek ayrildi ve ikisi
+ * de kontrast yuzunden (contrast.test.ts hepsini olcuyor):
  *
- * DEGISEN: murekkep sicak kahveye (#2E2012), zemin sicak kreme
- * (#FFF7E8), koyu panel siyaha yakin yerine sicak kahveye dondu. Marka
- * rengi hala gul ailesinde ama bir tik koyu: bantlarin uzerinde AA'yi
- * gecmesi gerekiyordu (olculdu, #C63F63 4.04'te kaliyordu).
+ *  1. EYLEM RENGI KOYULASTIRILDI. Tasarimda dolgulu dugmeler parlak
+ *     mercan (#F37B5C) ve uzerinde beyaz yazi var; o cift 2,7:1 veriyor
+ *     ve AA'nin cok altinda. Parlak mercan artik bir YUZEY rengi
+ *     (band-blush, primary-300) ve uzerine koyu murekkep yaziliyor;
+ *     dolgulu dugmeler #BF4426 ile ciziliyor (beyaz yazi 5,0:1).
+ *     Ekranda fark neredeyse gorunmuyor, okunurluk farki buyuk.
+ *  2. SOLUK METIN KOYULASTIRILDI. Tasarimin "Neutral Muted" tonu
+ *     (#84776D) krem zeminde 4,2'de kaliyordu.
  *
- * ROL DAGILIMI degismedi: gul EYLEM rengi (ara, rezerve et, bakici ol),
- * yesil DESTEK (basari, onay, sakinlik). Guven rozetleri (kimlik,
- * sicil, sigorta, pro) marka renginden AYRI kalmaya devam ediyor —
- * bilincli: rozet marka degil, bagimsiz bir iddia.
- *
- * RAKIPLERDEN AYRISMA: Rover mavi-yesil, Hipaw turuncu-yesil. Sicak
- * krem zemin + gul eylem rengi ikisinde de yok; bal/kayisi yalnizca
- * yardimci ton olarak kullaniliyor, ana renk degil.
+ * ROL DAGILIMI: mercan EYLEM (ara, rezerve et, bakici ol), adacayi
+ * yesili DESTEK ve GUVEN (dogrulanmis rozeti, aktif gezinme, koyu
+ * panel). Onceki palette eylem gul, destek yesildi; roller ayni kaldi,
+ * yalnizca tonlar degisti — bu yuzden sayfalarin hicbirinde sinif
+ * degistirmek gerekmedi.
  *
  * Tum metin/zemin ciftleri WCAG 2.2 AA hedefler ve
  * packages/tokens/src/contrast.test.ts icinde OLCULUR.
  */
 
 export const palette = {
-  // Sicak notr omurga — hafif gul altili krem
-  canvas:        '#FFF7E8',
+  // Sicak notr omurga — "warm vanilla"
+  canvas:        '#FFF8F4',
   surface:       '#FFFFFF',
-  surfaceSunken: '#FCEEDA',
-  border:        '#EFDFC4',
-  borderStrong:  '#D9BE94',
+  surfaceSunken: '#FBF0E7',
+  border:        '#EFE7DE',
+  borderStrong:  '#DCCFC2',
 
-  // Murekkep (metin) — patlican
-  ink:          '#2E2012',
-  inkSecondary: '#63503B',
-  /*
-    5.46:1 krem zeminde. Daha acik bir gri (#9C8D95) 2.95'te kaliyordu.
-    #7C6B78 krem zeminde 4.64 ile geciyordu ama RENKLI BANTLAR eklenince
-    (blush 4.27, sage 4.44) AA'nin altina dustu: ayni token artik dort ayri
-    zemin uzerinde yasiyor, dolayisiyla en KOYU banda gore secildi.
-  */
-  inkMuted:     '#6E5A42',
+  // Murekkep (metin) — espresso tonlu, saf siyah degil
+  ink:          '#221A12',
+  inkSecondary: '#53483E',
+  /* Tasarimin #84776D tonu krem zeminde 4,2'de kaliyordu. */
+  inkMuted:     '#70645A',
 
-  // Birincil — "Bogurtlen". EYLEM rengi.
-  primary50:  '#FBDEE6',
-  primary100: '#F3C3D4',
-  primary300: '#D07C9F',
-  primary500: '#AF3453',
-  primary600: '#962C47',
-  primary700: '#8E2942',
-  primary900: '#4E152E',
+  // Birincil — "Mercan". EYLEM rengi.
+  primary50:  '#FDEEE9',
+  primary100: '#FAD9CE',
+  /* Tasarimin parlak mercani: YUZEY olarak kullaniliyor, yazi rengi olarak degil */
+  primary300: '#F37B5C',
+  primary500: '#BF4426',
+  primary600: '#A83A1F',
+  primary700: '#8E3019',
+  primary900: '#4A180B',
 
-  // Aksan — "Adacayi". DESTEK rengi.
-  accent100: '#D8EDE2',
-  accent500: '#2F7D5E',
-  /* Rozet metni pastel adacayi zeminde yasiyor: #4B7A5C orada 4.03'te
-     kaliyordu (11px yari kalin = kucuk metin, 4.5 gerekir). */
-  accent600: '#25664C',
+  // Aksan — "Adacayi yesili". DESTEK ve GUVEN rengi.
+  accent100: '#EBF3EF',
+  accent500: '#226150',
+  accent600: '#1A4F41',
 
   /*
-    BOLUM BANTLARI — sayfa artik tek bir krem zemin degil.
-    Kahraman bandi govdeden ACIK SEKILDE farkli bir sicaklikta; aralarindaki
-    gecis yuvarlatilmis kose ile yapiliyor. Bantlar bilincli olarak SOLUK:
-    ustlerinde ink/ink-secondary/ink-muted/primary hepsi AA'yi gecmek zorunda
-    (contrast.test.ts'te dordu de olculuyor), bu da tonu sinirliyor.
+    BOLUM BANTLARI. Tasarimda sayfa tek bir krem zemin degil: hizmet
+    kartlari seftali, adimlar bal, guven paneli koyu yesil zeminde.
   */
-  bandBlush:   '#FDE3E8',
-  bandApricot: '#FDECCF',
-  bandSage:    '#DFF0E4',
+  bandBlush:   '#FDEEE9',
+  bandApricot: '#FEF4E6',
+  bandSage:    '#EBF3EF',
 
   // Durum
-  /*
-    Basari ve bilgi tonlarinin da KENDI zemin/metin ciftleri var.
-
-    Eskiden "basarili" kutusu marka pembesiyle (primary-subtle)
-    ciziliyordu: kayit sonrasi "Onay baglantisi gonderdik" mesaji
-    kirmizimsi bir kutuda cikiyor ve iyi haber HATA gibi okunuyordu.
-    Renk, metnin soyledigi seyle ayni yone bakmali.
-  */
-  success100: '#E3F1E8',
+  success100: '#E6F2EB',
   success500: '#2E7D4F',
   success700: '#1F5B39',
-  /*
-    UYARI — kutu ve METIN icin ayri iki ton.
-
-    Ortada yalnizca warning500 vardi ve o bir KUTU rengi: beyaz uzerinde
-    3,4:1 ile govde metni icin yeterli degil. "20 Eyl'e kadar cevap
-    bekleniyor" gibi bir satiri o tonla yazmak, okunmasini istedigimiz
-    seyi okunmaz yapardi. 900 tonu metin icin, 100 tonu zemin icin.
-  */
-  warning100: '#FAEEDA',
+  warning100: '#FEF4E6',
   warning500: '#C8860D',
   warning900: '#6B4405',
-  danger100:  '#FBEAE6',
-  danger500:  '#B23A2E',
-  danger700:  '#8A2A20',
-  info100:    '#E4EEF6',
+  danger100:  '#FFEAE6',
+  danger500:  '#BA1A1A',
+  danger700:  '#93000A',
+  info100:    '#E8EEF6',
   info500:    '#2C5F8A',
   info700:    '#1E4667',
 
-  // Panel — koyu patlican. Sayfa acik kalir, koyuluk TEK bir bloga hapsedilir
-  // (tasarim karari: koyu arayuz uzun bakici listelerinde yoruyor).
-  panel:          '#2B2114',
-  panelRaised:    '#3C2E1C',
-  panelInk:       '#FFF7E8',
-  panelInkMuted:  '#DDC9AC',
-  panelPrimary:   '#F0A0C0',
-  panelAccent:    '#9CC4A8',
+  /*
+    PANEL — koyu adacayi yesili. Tasarimdaki "guven kalkani" bolumu bu
+    zeminde duruyor. Sayfanin geri kalani acik kaliyor: koyuluk tek bir
+    bloga hapsedilmis durumda.
+  */
+  panel:          '#1E4F42',
+  panelRaised:    '#2A6355',
+  panelInk:       '#FFF8F4',
+  panelInkMuted:  '#BFD9CE',
+  panelPrimary:   '#FFB4A2',
+  panelAccent:    '#95D3BE',
 
-  // PASTEL KUTUCUKLAR — hizmet kartlarindaki ikon zeminleri.
-  // Dort ayri ton bilincli: tek marka rengiyle boyanmis dort kart,
-  // "dort ayri hizmet" hissini vermiyor.
-  tileRose:   '#FBDEE6',
-  tileSage:   '#D8EDE2',
-  tileApricot:'#FBE3BE',
-  tilePeri:   '#DFE3F7',
-  tileRoseInk:    '#8E2942',
-  tileSageInk:    '#25664C',
-  tileApricotInk: '#92541C',
-  tilePeriInk:    '#3F4A8F',
+  // PASTEL KUTUCUKLAR — hizmet kartlarindaki ikon zeminleri
+  tileRose:   '#FDEEE9',
+  tileSage:   '#EBF3EF',
+  tileApricot:'#FEF4E6',
+  tilePeri:   '#E8EEF6',
+  tileRoseInk:    '#8E3019',
+  tileSageInk:    '#1A4F41',
+  tileApricotInk: '#8A5A0B',
+  tilePeriInk:    '#2F4F7A',
 
   // Guven rozetleri — bilincli olarak marka renginden ayri
   verifyId:      '#2C5F8A',
-  verifyCheck:   '#2F6B52',
+  verifyCheck:   '#226150',
   verifyInsured: '#6B4E9E',
-  verifyPro:     '#B8892B',
+  verifyPro:     '#8A5A0B',
 } as const;
 
 /** Acik tema semantik eslemesi */

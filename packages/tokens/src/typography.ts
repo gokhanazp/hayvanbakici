@@ -53,23 +53,34 @@ export const fontWeight = {
 
 /** Display stilleri siki tracking ister; gövde metni notr kalir. */
 export const textStyles = {
-  display:  { size: '3.125rem', line: '3.35rem',  tracking: '-0.012em', weight: 700, family: 'display' },
-  h1:       { size: '2.25rem',  line: '2.6rem',   tracking: '-0.012em', weight: 700, family: 'display' },
-  h2:       { size: '1.75rem',  line: '2.2rem',   tracking: '-0.008em', weight: 600, family: 'display' },
-  h3:       { size: '1.5rem',   line: '1.95rem',  tracking: '-0.008em', weight: 600, family: 'display' },
+  /*
+    OLCEK — Stitch tasarim sisteminden (warm_paw_companion) birebir,
+    px degerleri 16px kokune gore rem'e cevrilmis durumda.
+
+    Tek aile: Plus Jakarta Sans. Onceden baslik Fredoka, govde Schibsted
+    Grotesk'ti; tasarim her kademede ayni aileyi kullaniyor ve farki
+    AGIRLIK ile kuruyor (800 / 700 / 600 / 400). Iki aile yerine bir
+    aile ayrica tek bir font dosyasi demek: ~46 kB daha az indirme.
+  */
+  display:  { size: '3rem',     line: '3.5rem',   tracking: '-0.02em',  weight: 800, family: 'display' },
+  h1:       { size: '2rem',     line: '2.5rem',   tracking: '-0.015em', weight: 700, family: 'display' },
+  h2:       { size: '1.5rem',   line: '2rem',     tracking: '-0.01em',  weight: 700, family: 'display' },
+  h3:       { size: '1.25rem',  line: '1.75rem',  tracking: '0',        weight: 600, family: 'display' },
   h4:       { size: '1.0625rem',line: '1.5rem',   tracking: '0',        weight: 600, family: 'ui' },
-  bodyLg:   { size: '1.0625rem',line: '1.7rem',   tracking: '0',        weight: 400, family: 'ui' },
-  body:     { size: '0.9375rem',line: '1.45rem',  tracking: '0',        weight: 400, family: 'ui' },
-  bodySm:   { size: '0.8125rem',line: '1.25rem',  tracking: '0',        weight: 400, family: 'ui' },
-  caption:  { size: '0.75rem',  line: '1rem',     tracking: '0.01em',   weight: 500, family: 'ui' },
-  /** Buyuk para/istatistik rakamlari — display ailesi, tabular */
-  numeral:  { size: '2.125rem', line: '2.125rem', tracking: '-0.01em',  weight: 600, family: 'display' },
+  bodyLg:   { size: '1.0625rem',line: '1.625rem', tracking: '0',        weight: 400, family: 'ui' },
+  body:     { size: '0.9375rem',line: '1.375rem', tracking: '0',        weight: 400, family: 'ui' },
+  bodySm:   { size: '0.8125rem',line: '1.125rem', tracking: '0',        weight: 400, family: 'ui' },
+  /** label-md: rozet ve mikro etiketler — pozitif harf araligi bilincli */
+  caption:  { size: '0.75rem',  line: '1rem',     tracking: '0.02em',   weight: 600, family: 'ui' },
+  /** Buyuk para/istatistik rakamlari */
+  numeral:  { size: '2rem',     line: '2.5rem',   tracking: '-0.015em', weight: 800, family: 'display' },
 } as const;
 
 export type TextStyle = keyof typeof textStyles;
 
 /** next/font ile yuklenecek aileler — apps/web/src/app/[locale]/layout.tsx */
 export const FONT_SOURCES = {
-  display: { family: 'Fredoka', weights: [400, 600, 700] },
-  ui: { family: 'Schibsted Grotesk', weights: [400, 500, 600] },
+  /* Tek aile, iki rol: 'display' agir kademeler, 'ui' govde. */
+  display: { family: 'Plus Jakarta Sans', weights: [600, 700, 800] },
+  ui: { family: 'Plus Jakarta Sans', weights: [400, 600, 700] },
 } as const;

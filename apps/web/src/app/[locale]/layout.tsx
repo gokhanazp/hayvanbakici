@@ -30,19 +30,29 @@ import { organizationJsonLd, SITE_URL } from '@/lib/seo';
  * Alt kume 'latin' — Fransizca aksanlar Latin-1 Supplement'te, yani kapsam icinde.
  * Turkce icin (Faz 7) 'latin-ext' dosyasi ayrica eklenecek.
  */
+/*
+  TEK AILE, IKI DEGISKEN.
+
+  Tasarim her kademede Plus Jakarta Sans kullaniyor ve farki agirlikla
+  kuruyor. Iki ayri aile yerine tek aile: ~46 kB daha az font indirmesi
+  ve basliklarla govdenin birbirine oturmasi.
+
+  Iki CSS degiskeni KALDI (--font-display-src / --font-ui-src) cunku
+  token katmani ve tum CSS onlarin uzerinden yaziyor; ikisi de ayni
+  dosyayi gosteriyor, next/font dosyayi bir kez yukluyor.
+*/
 const display = localFont({
-  src: '../fonts/fredoka-latin-wght-normal.woff2',
+  src: '../fonts/plus-jakarta-sans-latin-wght-normal.woff2',
   variable: '--font-display-src',
   display: 'swap',
-  /* Fredoka'nin ekseni 300-700; 800 istenirse tarayici sahte kalin cizer. */
-  weight: '300 700',
+  weight: '200 800',
 });
 
 const ui = localFont({
-  src: '../fonts/schibsted-grotesk-latin-wght-normal.woff2',
+  src: '../fonts/plus-jakarta-sans-latin-wght-normal.woff2',
   variable: '--font-ui-src',
   display: 'swap',
-  weight: '400 900',
+  weight: '200 800',
 });
 
 export function generateStaticParams() {
