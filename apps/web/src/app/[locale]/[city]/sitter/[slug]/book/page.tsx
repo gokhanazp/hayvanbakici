@@ -82,28 +82,36 @@ export default async function BookPage({
 
   return (
     <>
-      <section className="band band-blush band-round-b">
-        <div className="container" style={{ paddingBlock: 'var(--space-6) var(--space-8)' }}>
-          <Link href={`/${seg}/${city}/sitter/${slug}/`} className="text-body-sm muted">
+      {/*
+        BASLIK — tasarimdaki rezervasyon ekraninin ustu: kucuk bir
+        durum cipi, buyuk baslik, tek satirlik aciklama.
+
+        Tasarimdaki "ADIM 2 / 3" ilerleme hapi ALINMADI: bizde uc
+        adimli bir akis yok, istek tek sayfada olusuyor ve odeme
+        bakici kabul ettikten sonra. Olmayan adimlari cizmek,
+        kullaniciya daha iki ekran daha var dedirtirdi.
+      */}
+      <div className="bk-top">
+        <div className="st-wrap">
+          <Link href={`/${seg}/${city}/sitter/${slug}/`} className="bk-back">
             ← {sitter.firstName} {sitter.lastNameInitial}.
           </Link>
-          <div className="row" style={{ gap: 'var(--space-4)', marginTop: 'var(--space-5)' }}>
-            <Avatar src={sitter.avatarUrl} initials={sitter.photoInitials} size={64} />
-            <div>
-              <h1 className="text-h2" style={{ margin: 0 }}>
-                {interpolate(m.booking.requestTitle, { name: sitter.firstName })}
-              </h1>
-              <div className="row" style={{ marginTop: 'var(--space-2)' }}>
-                <VerificationBadge level={sitter.badgeLevel} locale={locale} />
-              </div>
-            </div>
-          </div>
+          <span className="bk-step">{m.booking.stepLabel}</span>
+          <h1 className="bk-h1">
+            {interpolate(m.booking.requestTitle, { name: sitter.firstName })}
+          </h1>
+          <p className="bk-lead">{m.booking.noPayment}</p>
         </div>
-      </section>
+      </div>
 
-      <div className="container book-page">
+      <div className="st-wrap book-page">
         <div>
           <BookingForm
+            sitterAvatarUrl={sitter.avatarUrl}
+            sitterInitials={sitter.photoInitials}
+            sitterLastInitial={sitter.lastNameInitial}
+            sitterBadgeLevel={sitter.badgeLevel}
+            sitterNeighbourhood={locale === 'fr-CA' ? sitter.neighbourhoodFr : sitter.neighbourhoodEn}
             locale={locale}
             sitterId={sitter.userId}
             sitterFirstName={sitter.firstName}

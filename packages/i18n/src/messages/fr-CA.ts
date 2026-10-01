@@ -424,6 +424,9 @@ export const frCA = {
   booking: {
     upcoming: 'À venir',
     past: 'Passées',
+    /* Rezervasyon ekrani ust cipi ve ozetteki bakici etiketi */
+    stepLabel: 'Envoi d’une demande',
+    sitterLabel: 'Votre gardien',
     requestTitle: 'Demander une réservation avec {name}',
     groupStay: 'Le séjour',
     dates: 'Dates',

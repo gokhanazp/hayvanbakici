@@ -480,6 +480,9 @@ export const enCA = {
   booking: {
     upcoming: 'Coming up',
     past: 'Past',
+    /* Rezervasyon ekrani ust cipi ve ozetteki bakici etiketi */
+    stepLabel: 'Sending a request',
+    sitterLabel: 'Your sitter',
     requestTitle: 'Request a booking with {name}',
     groupStay: 'The stay',
     dates: 'Dates',

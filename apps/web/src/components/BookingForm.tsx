@@ -7,6 +7,8 @@ import {
   type CommissionConfig, type ProvinceCode, type ServiceType,
 } from '@havre/core';
 import { petLabel } from './PetLine';
+import { Avatar } from '@/components/Avatar';
+import { VerificationBadge, ShieldIcon } from '@/components/VerificationBadge';
 import { Select } from '@/components/ui/Select';
 import { DateRangeField } from '@/components/ui/DateRangeField';
 import { money } from '@/lib/format';
@@ -121,7 +123,8 @@ function QuoteTable({
  */
 export function BookingForm({
   locale, sitterId, sitterFirstName, services, initialService, pets, province, action,
-  commission,
+  commission, sitterAvatarUrl, sitterInitials, sitterLastInitial, sitterBadgeLevel,
+  sitterNeighbourhood,
 }: {
   locale: Locale;
   sitterId: string;
@@ -147,6 +150,13 @@ export function BookingForm({
    */
   commission: CommissionConfig;
   action: (prev: RequestState, form: FormData) => Promise<RequestState>;
+  /* Ozet kutusunun basindaki bakici karti icin — tasarimda
+     "Assigned pet specialist" bloku. Veri zaten sayfada. */
+  sitterAvatarUrl: string | null;
+  sitterInitials: string;
+  sitterLastInitial: string;
+  sitterBadgeLevel: 0 | 1 | 2 | 3 | 4;
+  sitterNeighbourhood: string;
 }) {
   const m = getMessages(locale);
   const [state, formAction, busy] = useActionState<RequestState, FormData>(action, {});
@@ -315,6 +325,23 @@ export function BookingForm({
 
       {/* --- Sag sutun: fiyat, uyari, gonder --- */}
       <aside className="book-aside">
+        {/*
+          ATANAN BAKICI. Tasarimda ozet kutusunun basinda bakicinin
+          karti var ve bu dogru bir fikir: tutari onaylarken "kime"
+          sorusunun cevabi gozden kaybolmamali. Veri zaten sayfada.
+        */}
+        <div className="card card-pad bk-sitter">
+          <span className="bk-sitter-label">{m.booking.sitterLabel}</span>
+          <div className="bk-sitter-row">
+            <Avatar src={sitterAvatarUrl} initials={sitterInitials} size={48} />
+            <div className="bk-sitter-text">
+              <strong>{sitterFirstName} {sitterLastInitial}.</strong>
+              {sitterNeighbourhood && <span>{sitterNeighbourhood}</span>}
+            </div>
+          </div>
+          <VerificationBadge level={sitterBadgeLevel} locale={locale} />
+        </div>
+
         <div className="card card-pad book-summary">
           {quote && (
             <QuoteTable
@@ -359,6 +386,19 @@ export function BookingForm({
         <div className="notice notice-warning">
           <p>{m.booking.noPayment}</p>
         </div>
+
+        {/*
+          GUVENCE SATIRLARI. Tasarimda uc satir var: para iade
+          garantisi, 2 milyon dolarlik veteriner teminati, 7/24
+          destek hatti. UCU DE BIZDE YOK ve yazilmadi. Yerlerinde
+          duran uc satir gercek ve zaten baska sayfalarda da gecen
+          sozler.
+        */}
+        <ul className="bk-assure">
+          <li><ShieldIcon size={15} />{m.footer.trustChecks}</li>
+          <li><ShieldIcon size={15} />{m.footer.trustExpiry}</li>
+          <li><ShieldIcon size={15} />{m.footer.trustData}</li>
+        </ul>
       </aside>
     </form>
   );
