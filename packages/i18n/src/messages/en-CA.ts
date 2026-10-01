@@ -24,6 +24,13 @@ export const enCA = {
     pickLanguage: 'Choose a language',
   },
   nav: {
+    /*
+      ICERIGE ATLA. Her sayfanin ilk odaklanabilir ogesi; klavyeyle
+      gezen kisi basligin 20 baglantisini tek tek gecmek zorunda
+      kalmasin diye. Metin SABIT YAZILMISTI ve Fransizca sayfada da
+      "Skip to content" diyordu.
+    */
+    skipToContent: 'Skip to content',
     search: 'Find a sitter',
     becomeSitter: 'Become a sitter',
     finishApplication: 'Finish your application',

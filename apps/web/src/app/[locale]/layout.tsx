@@ -95,8 +95,17 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${display.variable} ${ui.variable}`}>
       <body>
-        {/* WCAG 2.4.1 — icerige atlama baglantisi */}
-        <a href="#main" className="sr-only">Skip to content</a>
+        {/*
+          WCAG 2.4.1 — icerige atlama baglantisi.
+
+          IKI HATA VARDI. Birincisi `.sr-only` idi ve ODAKLANINCA DA
+          GORUNMUYORDU: ekran okuyucu duyuyordu ama klavyeyle gezen
+          goren bir kisi Tab'a bastiginda odagin nereye gittigini
+          goremiyordu (2.4.7, odak gorunurlugu). Ikincisi metin sabit
+          yazilmisti; Fransizca sayfada da "Skip to content"
+          diyordu.
+        */}
+        <a href="#main" className="skip-link">{getMessages(locale).nav.skipToContent}</a>
         {isDemo() && <DemoNotice locale={locale} />}
         <Header locale={locale} citySlug={citySlug(city, locale)} />
         <main id="main">{children}</main>

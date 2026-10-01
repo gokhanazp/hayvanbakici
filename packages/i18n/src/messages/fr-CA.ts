@@ -20,6 +20,7 @@ export const frCA = {
     pickLanguage: 'Choisissez une langue',
   },
   nav: {
+    skipToContent: 'Aller au contenu',
     search: 'Trouver un gardien',
     becomeSitter: 'Devenir gardien',
     finishApplication: 'Terminer votre candidature',
