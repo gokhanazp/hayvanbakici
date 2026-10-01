@@ -16,6 +16,7 @@ export function SitterCard({
   citySlug,
   distanceLabel,
   favourite,
+  layout = 'grid',
 }: {
   sitter: SitterSummary;
   serviceType: ServiceType;
@@ -34,6 +35,16 @@ export function SitterCard({
    * bunun icin kartin bir FavouriteScope icinde olmasi gerekir.
    */
   favourite?: { path: string; isFavourite?: boolean | undefined } | undefined;
+  /**
+   * 'grid'  — sehir sayfasindaki dikey kart (fotograf ustte).
+   * 'row'   — arama sonucundaki yatay kart (fotograf solda).
+   *
+   * Tasarimda bu iki kart farkli: arama sonucunda satirlar yan yana
+   * daha fazla bakici gosteriyor. Ikinci bir bilesen yazmak yerine
+   * TEK sinif degisiyor; yerlesimi CSS yapiyor, yoksa ayni veriyi iki
+   * yerde cizen iki kopya olurdu ve biri mutlaka geride kalirdi.
+   */
+  layout?: 'grid' | 'row' | undefined;
 }) {
   const m = getMessages(locale);
   const unit = m.unit[SERVICES[serviceType].unit];
@@ -54,7 +65,7 @@ export function SitterCard({
     baglanti adi olarak dinliyordu.
   */
   return (
-    <div className="card card-hover sitter-card">
+    <div className={`card card-hover sitter-card${layout === 'row' ? ' sitter-card-row' : ''}`}>
       {/*
         Fotograf varsa fotograf, yoksa bas harfler. Karti bos bir gri kutuyla
         birakmak, fotograf yuklememis bakicinin aleyhine olurdu.
@@ -110,6 +121,20 @@ export function SitterCard({
             : `${sitter.repeatClients} repeat clients`}
           {distanceLabel && <> · <span className="tabular">{distanceLabel}</span></>}
         </p>
+
+        {/*
+          SATIR KARTTA ALT SATIR. Tasarimin arama kartinda altta bir
+          eylem satiri var ("Message" + "View Profile"). Mesaj dugmesi
+          KONULMADI: mesajlasma giris ve acik bir rezervasyon istegi
+          istiyor, karttan dogrudan mesaj atilamiyor — calismayan bir
+          dugme koymaktansa hic koymamak dogru. Profil dugmesi gercek
+          ve kartin kendi yayilan baglantisiyla ayni yere gidiyor.
+        */}
+        {layout === 'row' && (
+          <p className="sitter-row-foot">
+            <Link href={href} className="st-ghost-btn">{m.searchPage.viewProfile}</Link>
+          </p>
+        )}
       </div>
     </div>
   );

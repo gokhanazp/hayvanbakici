@@ -3,13 +3,17 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
   getMessages, interpolate, localeFromSegment, segmentFor, serviceFromSlug, serviceSlug,
-  type Locale,
+  type Locale, type Messages,
 } from '@havre/i18n';
-import { SERVICES, servicesForPhase, type ServiceType } from '@havre/core';
+import {
+  SERVICES, servicesForPhase, PET_SIZE_STEPS, petSizeForKg,
+  type ServiceType, type PetSizeKey,
+} from '@havre/core';
 import { SearchBar } from '@/components/SearchBar';
 import { SEARCH_PAGE_SIZE } from '@havre/db';
 import { SitterCard } from '@/components/SitterCard';
-import { Select } from '@/components/ui/Select';
+import { Sym } from '@/components/Sym';
+import { SERVICE_SYM } from '@/components/ServiceIcon';
 import {
   cityName, citySlug, countSitters, getLinkableCities, resolvePlace, searchSitters,
   isSearchSort, SEARCH_SORTS, favouriteIds,
@@ -59,6 +63,21 @@ const readPage = (v: string): number => {
   return Number.isInteger(n) && n >= 1 && n <= MAX_PAGE ? n : 1;
 };
 
+/**
+ * EVCIL HAYVAN AGIRLIGI — ARAMA SAYFASI BUNU OKUMUYORDU.
+ *
+ * Anasayfadaki arama kutusunda "Evcil hayvaniniz / kg" alani var ve
+ * formu `weight` olarak gonderiyordu; bu sayfa parametreyi hic
+ * okumuyordu. Yani kullanici kilo yaziyor, hicbir sey degismiyordu —
+ * ustelik arka uc (`petWeightKg`) bastan beri destekliyor ve bakicinin
+ * kabul ettigi boyutlara gore suzuyor. Simdi okunuyor.
+ */
+const MAX_PET_KG = 100;
+const readWeight = (v: string): number => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n <= MAX_PET_KG ? n : 0;
+};
+
 const BADGES = [0, 1, 2, 3, 4] as const;
 const readBadge = (v: string): 0 | 1 | 2 | 3 | 4 => {
   const n = Number(v);
@@ -85,6 +104,7 @@ export default async function SearchPage({
   const end = one(sp.end);
   const radiusKm = readRadius(one(sp.radius));
   const maxPrice = Number(one(sp.price)) || 0;
+  const petWeightKg = readWeight(one(sp.weight));
   const needsCats = one(sp.cats) === '1';
   const requireFencedYard = one(sp.yard) === '1';
   const minBadge = readBadge(one(sp.badge));
@@ -108,6 +128,7 @@ export default async function SearchPage({
       ...(needsCats ? { needsCats: true } : {}),
       ...(requireFencedYard ? { requireFencedYard: true } : {}),
       ...(maxPrice > 0 ? { maxPriceCents: maxPrice * 100 } : {}),
+      ...(petWeightKg > 0 ? { petWeightKg } : {}),
       ...(minBadge > 0 ? { minBadgeLevel: minBadge } : {}),
       sort,
     };
@@ -160,6 +181,7 @@ export default async function SearchPage({
     if (end) q.set('end', end);
     if (radiusKm !== 15) q.set('radius', String(radiusKm));
     if (maxPrice > 0) q.set('price', String(maxPrice));
+    if (petWeightKg > 0) q.set('weight', String(petWeightKg));
     if (needsCats) q.set('cats', '1');
     if (requireFencedYard) q.set('yard', '1');
     if (minBadge > 0) q.set('badge', String(minBadge));
@@ -178,234 +200,293 @@ export default async function SearchPage({
   const cities = await getLinkableCities();
   const placeLabel = place?.label ?? location;
 
+  /*
+    MAHALLE OZETI — sag sutun.
+
+    Tasarimda sagda Toronto haritasi ve uzerinde fiyat igneleri var.
+    Harita henuz yok (MapLibre + kendi karo dosyamiz planlandi), ama o
+    panelin SOYLEDIGI sey haritasiz da verilebilir: sonuclar hangi
+    mahallelerde ve orada fiyat ne. Ikisi de zaten elimizdeki
+    sonuclardan cikiyor, yeni sorgu yok ve uydurma sayi yok.
+  */
+  const hoods = (() => {
+    const by = new Map<string, { count: number; prices: number[] }>();
+    for (const r of results) {
+      const k = r.neighbourhood || placeLabel;
+      const e = by.get(k) ?? { count: 0, prices: [] };
+      e.count += 1;
+      e.prices.push(r.priceCents);
+      by.set(k, e);
+    }
+    return [...by.entries()]
+      .map(([name, e]) => {
+        const sorted = [...e.prices].sort((x, y) => x - y);
+        return { name, count: e.count, median: sorted[Math.floor(sorted.length / 2)] ?? 0 };
+      })
+      .sort((a, b) => b.count - a.count);
+  })();
+
+  const unit = m.unit[SERVICES[service].unit];
+
+  const summary = [
+    { key: 'service', tone: 'sage', sym: SERVICE_SYM[service], label: t.summaryService, value: m.service[service] },
+    { key: 'place', tone: 'coral', sym: 'location' as const, label: t.summaryLocation, value: placeLabel || t.titleEmpty },
+    { key: 'dates', tone: 'gold', sym: 'calendar' as const, label: t.summaryDates, value: start && end ? dateRange(start, end, locale) : t.summaryAnyDates },
+    { key: 'pet', tone: 'sage', sym: 'rabbit' as const, label: t.summaryPet, value: petWeightKg > 0 ? `${petWeightKg} kg` : t.summaryAnyPet },
+  ] as const;
+
   return (
     <>
-      {/* ---- Arama bandi: kullanicinin yazdiklari geri gosterilir ---- */}
-      <section className="band band-blush band-round-b">
-        <div className="container" style={{ paddingBlock: 'var(--space-8) var(--space-10)' }}>
-          <h1 className="text-h1" style={{ marginBottom: 'var(--space-5)' }}>
-            {place
-              ? interpolate(t.title, { place: placeLabel })
-              : t.titleEmpty}
-          </h1>
+      {/* ================= UST OZET CUBUGU ================= */}
+      <section className="sr-top">
+        <div className="st-wrap">
+          <div className="sr-summary">
+            <div className="sr-summary-grid">
+              {summary.map((item) => (
+                <div key={item.key} className="sr-sum">
+                  <span className={`sr-sum-ic sr-sum-${item.tone}`} aria-hidden="true">
+                    <Sym name={item.sym} size={20} />
+                  </span>
+                  <span className="sr-sum-text">
+                    <span className="sr-sum-label">{item.label}</span>
+                    <span className="sr-sum-value">{item.value}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
 
-          <SearchBar
-            locale={locale}
-            /* Sonuc sayfasi: telefonda katlaniyor, masaustunde acik */
-            collapsible
-            defaults={{
-              service: serviceSlug(service, locale),
-              location,
-              start,
-              end,
-            }}
-          />
+            {/*
+              Tasarimda ozet kutulari tiklanabilir ve sagda "Update
+              Filters" dugmesi var; neyi actigi cizilmemis. Bizde aciklik
+              olmali: dugme arama kutusunu aciyor ve o kutu zaten var
+              (SearchBar). <details>, yani JavaScript'siz calisiyor.
+            */}
+            <details className="sr-edit">
+              <summary className="sr-edit-btn">
+                <Sym name="tune" size={18} />
+                {t.editSearch}
+              </summary>
+              <div className="sr-edit-body">
+                <SearchBar
+                  locale={locale}
+                  defaults={{
+                    service: serviceSlug(service, locale),
+                    location,
+                    start,
+                    end,
+                  }}
+                />
+              </div>
+            </details>
+          </div>
         </div>
       </section>
 
-      {/* Ust bosluk .section'dan daha kucuk: arama bandi zaten bir ayirici,
-          uzerine tam bolum boslugu koyunca sonuclar sayfadan kopuyordu. */}
-      <div className="container" style={{ paddingBlock: 'var(--space-8) var(--section-y)' }}>
-        {/* ---- Konum cozulemedi ---- */}
+      <div className="st-wrap sr-body">
+        <h1 className="sr-h1">
+          {place ? interpolate(t.title, { place: placeLabel }) : t.titleEmpty}
+        </h1>
+
         {location && !place && (
-          <div className="notice notice-warning" style={{ marginBottom: 'var(--space-8)' }}>
+          <div className="notice notice-warning" style={{ marginBottom: 'var(--space-6)' }}>
             <p>{interpolate(t.notFound, { query: location })}</p>
           </div>
         )}
 
-        {/* ---- Posta kodu: sehir kesinligi ----
-            Kullaniciya neyin eslestigini SOYLEMEK zorundayiz; sessizce
-            sehir merkezine dusurmek, yanlis mesafeler gostermek olurdu. */}
         {place?.approximate && (
-          <p className="field-hint" style={{ marginBottom: 'var(--space-6)' }}>
+          <p className="field-hint" style={{ marginBottom: 'var(--space-5)' }}>
             {interpolate(t.approximate, { place: placeLabel })}
           </p>
         )}
 
-        {!location && (
-          <p className="text-body-lg muted" style={{ marginBottom: 'var(--space-8)' }}>
-            {t.empty}
-          </p>
-        )}
+        {!location && <p className="text-body-lg muted">{t.empty}</p>}
 
         {place && (
-          <>
-            <Filters
-              locale={locale}
-              service={serviceSlug(service, locale)}
-              location={location}
-              start={start}
-              end={end}
-              radiusKm={radiusKm}
-              maxPrice={maxPrice}
-              needsCats={needsCats}
-              requireFencedYard={requireFencedYard}
-              minBadge={minBadge}
-            />
+          <div className="sr-grid">
+            {/* ---------------- SOL: filtreler + liste ---------------- */}
+            <div className="sr-main">
+              <Filters
+                locale={locale}
+                service={serviceSlug(service, locale)}
+                location={location}
+                start={start}
+                end={end}
+                radiusKm={radiusKm}
+                maxPrice={maxPrice}
+                petWeightKg={petWeightKg}
+                needsCats={needsCats}
+                requireFencedYard={requireFencedYard}
+                minBadge={minBadge}
+                unit={unit}
+              />
 
-            <p className="muted" style={{ margin: 'var(--space-8) 0 var(--space-5)' }}>
-              {total === 1
-                ? t.introOne
-                : interpolate(t.intro, { count: numberFmt(total, locale) })}
-              {/*
-                TARIH SUZGECI ZATEN CALISIYORDU ama kimse bilmiyordu.
-
-                Tarih secildiginde o gunlerde kapali olan bakicilar
-                sonuctan cikiyor (bkz. queries/search.ts). Ekran bunu
-                SOYLEMIYORDU: sahip listedeki bakiciya talep atip
-                reddedilir mi diye tereddut ediyor, ya da listenin
-                kisaldigini gorup "az bakici var" saniyordu. Bir cumle,
-                iki yanlis anlamayi birden cozuyor.
-              */}
-              {start && end && (
-                <> · {interpolate(t.openOnDates, { dates: dateRange(start, end, locale) })}</>
-              )}
-            
-              {/* Sayfa basina 24 gosteriliyor; ekran kacini gosterdigini de
-                  SOYLUYOR, yoksa "43 bakici" yazip 24 kart cizen bir sayfa
-                  cikiyor. */}
-              {pageCount > 1 && (
-                <> · {interpolate(t.showingRange, {
-                  first: numberFmt(first, locale),
-                  last: numberFmt(last, locale),
-                  total: numberFmt(total, locale),
-                })}</>
-              )}
-              {/*
-                ROZETLERE ACIKLAMA KAPISI. Kartlarda "ID verified",
-                "Certified Pro" yan yana duruyor ve hicbiri ne demek
-                oldugunu soylemiyor; aciklamasi olmayan guven rozeti
-                sustur. Kartin kendisi bir baglanti oldugu icin rozetin
-                ICINE baglanti konulamaz (ic ice baglanti) — kapi
-                listenin basinda.
-              */}
-              {results.length > 0 && (
-                <>
-                  {' · '}
-                  <Link href={`/${segmentFor(locale)}/protection/`} style={{ textDecoration: 'underline' }}>
-                    {m.verification.whatTheseMean}
-                  </Link>
-                </>
-              )}
-            </p>
-            {/*
-              SIRALAMA — JS'siz, her secenek bir BAGLANTI.
-
-              Adres parametresi oldugu icin paylasilan bag ayni sirayi
-              aciyor ve geri tusu calisiyor. Diger filtreler korunuyor:
-              siralamayi degistirmek aramayi sifirlamamali.
-
-              SIRALAMA SATILIK DEGIL ve olmayacak — sayfanin kendisi
-              "yerlesim satin alinamaz" diyor, bir odeme terimi
-              eklendigi gun o cumle yalan olur.
-            */}
-            <nav className="sort-row" aria-label={t.sortLabel}>
-              <span className="field-hint">{t.sortLabel}</span>
-              {SEARCH_SORTS.map((option) => (
-                <Link
-                  key={option}
-                  /* Siralama degisince 1. sayfaya: 3. sayfadaki "en ucuz" listesi
-                     kullanicinin beklemedigi bir yer. */
-                  href={queryWith({ sort: option === 'best' ? '' : option, page: '' })}
-                  className={`sort-option${option === sort ? ' is-active' : ''}`}
-                  aria-current={option === sort ? 'true' : undefined}
-                >
-                  {t[`sort.${option}` as keyof typeof t]}
-                </Link>
-              ))}
-            </nav>
-
-            {results.length === 0 ? (
-              <div className="card card-pad" style={{ maxWidth: '42rem' }}>
+              <div className="sr-head">
+                <div className="sr-head-left">
+                  <h2 className="sr-h2">
+                    {total === 1
+                      ? t.resultsHeadingOne
+                      : interpolate(t.resultsHeading, { count: numberFmt(total, locale) })}
+                  </h2>
+                  <span className="sr-head-sub">{placeLabel}</span>
+                </div>
                 {/*
-                  BOS SONUCUN IKI AYRI SEBEBI VAR VE AYNI CUMLE OLAMAZ.
+                  SIRALAMA — JS'siz, her secenek bir BAGLANTI. Tasarimda
+                  bir <select> var; o JavaScript olmadan secim yapsa bile
+                  sayfayi degistiremez. Baglanti ayni isi goruyor,
+                  ustelik paylasilan bag ayni sirayi aciyor.
 
-                  Kapali bir sehirde "bu filtrelere uyan bakici yok"
-                  demek yanlis yone gonderiyor: kullanici yaricapi
-                  buyutur, fiyati acar, tarihi siler ve hicbiri
-                  degismez -- cunku sorun filtreler degil, orada hic
-                  olmayisimiz. Sehir kapaliysa ekran bunu soyluyor.
+                  SIRALAMA SATILIK DEGIL ve olmayacak.
                 */}
-                <h2 className="text-h4">
-                  {place.cityIsLive
-                    ? interpolate(t.noMatches, { radius: String(radiusKm), place: placeLabel })
-                    : interpolate(m.coverage.heading, {
-                      city: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
-                    })}
-                </h2>
-                <p className="muted" style={{ marginTop: 'var(--space-2)' }}>
-                  {place.cityIsLive
-                    ? t.noMatchesHint
-                    : interpolate(m.coverage.lead, {
-                      city: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
-                    })}
-                </p>
-                <p style={{ marginTop: 'var(--space-5)' }}>
-                  <Link
-                    href={`/${segmentFor(locale)}/${place.citySlugEn === '' ? '' : (locale === 'fr-CA' ? place.citySlugFr : place.citySlugEn)}/${serviceSlug(service, locale)}/`}
-                    className="btn btn-secondary"
-                  >
-                    {interpolate(t.resultsFor, {
-                      service: m.service[service],
-                      place: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
-                    })}
-                  </Link>
-                </p>
+                <nav className="sr-sort" aria-label={t.sortLabel}>
+                  <span className="sr-sort-label">{t.sortLabel}</span>
+                  {SEARCH_SORTS.map((option) => (
+                    <Link
+                      key={option}
+                      href={queryWith({ sort: option === 'best' ? '' : option, page: '' })}
+                      className={`sr-sort-opt${option === sort ? ' is-on' : ''}`}
+                      aria-current={option === sort ? 'true' : undefined}
+                    >
+                      {t[`sort.${option}` as keyof typeof t]}
+                    </Link>
+                  ))}
+                </nav>
               </div>
-            ) : (
-              <div className="grid grid-cards">
-                {results.map((s) => (
-                  <SitterCard
-                    key={s.id}
-                    sitter={s}
-                    serviceType={service}
-                    locale={locale}
-                    citySlug={locale === 'fr-CA' ? place.citySlugFr : place.citySlugEn}
-                    distanceLabel={interpolate(t.distance, {
-                      km: (Math.round(s.distanceMeters / 100) / 10).toFixed(1),
-                    })}
-                    favourite={{
-                      isFavourite: favIds.has(s.id),
-                      path: `/${seg}/search/`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
 
-            {pageCount > 1 && (
-              <nav className="pager" aria-label={t.pagination}>
-                {page > 1 ? (
-                  <Link href={pageHref(page - 1)} className="btn btn-secondary" rel="prev">
-                    ← {t.previous}
-                  </Link>
-                ) : <span />}
-                <span className="muted text-body-sm tabular">
-                  {interpolate(t.pageOf, {
-                    page: numberFmt(page, locale),
-                    pages: numberFmt(pageCount, locale),
-                  })}
-                </span>
-                {page < pageCount ? (
-                  <Link href={pageHref(page + 1)} className="btn btn-secondary" rel="next">
-                    {t.next} →
-                  </Link>
-                ) : <span />}
-              </nav>
-            )}
-          </>
+              {start && end && (
+                <p className="sr-note">
+                  {interpolate(t.openOnDates, { dates: dateRange(start, end, locale) })}
+                  {' · '}
+                  <Link href={`/${segmentFor(locale)}/protection/`}>{m.verification.whatTheseMean}</Link>
+                </p>
+              )}
+
+              {results.length === 0 ? (
+                <div className="sr-empty">
+                  {/*
+                    BOS SONUCUN IKI AYRI SEBEBI VAR VE AYNI CUMLE OLAMAZ.
+                    Kapali bir sehirde "bu filtrelere uyan bakici yok"
+                    demek yanlis yone gonderir: kullanici yaricapi
+                    buyutur, fiyati acar, hicbiri degismez -- cunku sorun
+                    filtreler degil, orada hic olmayisimiz.
+                  */}
+                  <h3 className="sr-h3">
+                    {place.cityIsLive
+                      ? interpolate(t.noMatches, { radius: String(radiusKm), place: placeLabel })
+                      : interpolate(m.coverage.heading, {
+                        city: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
+                      })}
+                  </h3>
+                  <p className="muted">
+                    {place.cityIsLive
+                      ? t.noMatchesHint
+                      : interpolate(m.coverage.lead, {
+                        city: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
+                      })}
+                  </p>
+                  <p style={{ marginTop: 'var(--space-5)' }}>
+                    <Link
+                      href={`/${segmentFor(locale)}/${locale === 'fr-CA' ? place.citySlugFr : place.citySlugEn}/${serviceSlug(service, locale)}/`}
+                      className="st-ghost-btn"
+                    >
+                      {interpolate(t.resultsFor, {
+                        service: m.service[service],
+                        place: locale === 'fr-CA' ? place.cityNameFr : place.cityNameEn,
+                      })}
+                    </Link>
+                  </p>
+                </div>
+              ) : (
+                <div className="sr-list">
+                  {results.map((r) => (
+                    <SitterCard
+                      key={r.id}
+                      sitter={r}
+                      serviceType={service}
+                      locale={locale}
+                      layout="row"
+                      citySlug={locale === 'fr-CA' ? place.citySlugFr : place.citySlugEn}
+                      distanceLabel={interpolate(t.distance, {
+                        km: (Math.round(r.distanceMeters / 100) / 10).toFixed(1),
+                      })}
+                      favourite={{ isFavourite: favIds.has(r.id), path: `/${seg}/search/` }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {pageCount > 1 && (
+                <nav className="sr-pager" aria-label={t.pagination}>
+                  {page > 1 ? (
+                    <Link href={pageHref(page - 1)} className="st-ghost-btn" rel="prev">← {t.previous}</Link>
+                  ) : <span />}
+                  <span className="sr-pager-at tabular">
+                    {interpolate(t.pageOf, {
+                      page: numberFmt(page, locale),
+                      pages: numberFmt(pageCount, locale),
+                    })}
+                    {' · '}
+                    {interpolate(t.showingRange, {
+                      first: numberFmt(first, locale),
+                      last: numberFmt(last, locale),
+                      total: numberFmt(total, locale),
+                    })}
+                  </span>
+                  {page < pageCount ? (
+                    <Link href={pageHref(page + 1)} className="st-ghost-btn" rel="next">{t.next} →</Link>
+                  ) : <span />}
+                </nav>
+              )}
+            </div>
+
+            {/* ---------------- SAG: mahalle paneli ---------------- */}
+            <aside className="sr-aside" aria-labelledby="sr-aside-h">
+              <div className="sr-aside-card">
+                <h2 className="sr-aside-h" id="sr-aside-h">{t.asideHeading}</h2>
+                <p className="sr-aside-lead">{t.asideLead}</p>
+                {hoods.length > 0 ? (
+                  <ul className="sr-hoods">
+                    {hoods.map((h) => (
+                      <li key={h.name} className="sr-hood">
+                        <span className="sr-hood-ic" aria-hidden="true"><Sym name="location" size={16} /></span>
+                        <span className="sr-hood-text">
+                          <span className="sr-hood-name">{h.name}</span>
+                          <span className="sr-hood-sub">
+                            {h.count === 1
+                              ? t.asideSittersOne
+                              : interpolate(t.asideSitters, { count: numberFmt(h.count, locale) })}
+                            {h.median > 0 && (
+                              <> · {interpolate(t.asidePrice, { price: money(h.median, locale), unit })}</>
+                            )}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="sr-aside-lead">{t.noMatchesHint}</p>
+                )}
+                <p className="sr-aside-note">{t.asideMapNote}</p>
+              </div>
+
+              <ul className="sr-trust">
+                <li><Sym name="verified" size={18} />{m.home.ribbonChecks}</li>
+                <li><Sym name="shield" size={18} />{m.home.ribbonFees}</li>
+                <li><Sym name="calendar" size={18} />{m.home.ribbonExpiry}</li>
+                <li><Sym name="globe" size={18} />{m.home.ribbonCanada}</li>
+              </ul>
+            </aside>
+          </div>
         )}
 
-        {/* ---- Sehir listesi: hem bos durum hem de yonlendirme ---- */}
         {(!place || results.length === 0) && cities.length > 0 && (
-          <section style={{ marginTop: 'calc(var(--section-y) * 0.8)' }}>
-            <h2 className="text-h3" style={{ marginBottom: 'var(--space-4)' }}>{t.browseCities}</h2>
+          <section className="sr-cities">
+            <h2 className="sr-h3">{t.browseCities}</h2>
             <div className="row">
               {cities.map((c) => (
                 <Link
                   key={c.id}
                   href={`/${segmentFor(locale)}/${citySlug(c, locale)}/${serviceSlug(service, locale)}/`}
-                  className="chip"
+                  className="st-ghost-btn"
                 >
                   {cityName(c, locale)}
                 </Link>
@@ -430,28 +511,31 @@ function dateRange(start: string, end: string, locale: Locale): string {
 }
 
 /**
- * FILTRELER — JS'siz calisan bir GET formu.
+ * FILTRE TEPSISI — tasarimdaki "Refine Sitter Search" karti.
  *
- * Her filtre adresin bir parcasi: sonuc paylasilabilir ve geri tusu
- * beklendigi gibi calisir. Gizli alanlar hizmet/konum/tarihi tasir,
- * aksi halde filtre uygulandiginda arama sifirlanirdi.
+ * JS'siz calisan bir GET formu: her filtre adresin bir parcasi, sonuc
+ * paylasilabilir ve geri tusu beklendigi gibi calisir. Gizli alanlar
+ * konum ve tarihi tasiyor, aksi halde filtre uygulandiginda arama
+ * sifirlanirdi.
  *
- * TELEFONDA KATLANIYOR. 390px'de arama karti ve filtre karti ust uste
+ * FIYAT KAYDIRICI DEGIL, HAP. Tasarimda `<input type="range">` var ve
+ * yaninda "$25 - $45 CAD/hr" yaziyor. O yazi JavaScript'le guncelleniyor;
+ * JavaScript gelmeden kaydiricinin nerede durdugunu kullanici GOREMEZ
+ * (CSS bir range degerini okuyamaz). Haplar ayni araligi veriyor ve
+ * secilen deger her zaman ekranda yaziyor.
+ *
+ * TELEFONDA KATLANIYOR. 390px'de arama kutusu ve filtre karti ust uste
  * duruyordu: tek bir bakici gormeden iki ekran kaydirmak gerekiyordu.
- * Simdi dar ekranda "Filtreler" satirinin arkasinda; genis ekranda
- * eskisi gibi acik duruyor.
- *
  * Acma/kapama JS'siz: gorunmeyen ama odaklanabilir bir onay kutusu ve
- * ona bagli etiket (`:checked ~` seciciyle). Kutunun `name`i yok, yani
- * forma dahil olmuyor. <details> kullanmadik cunku genis ekranda
- * KAPALI bir <details>'i CSS ile acik gostermek tarayicilar arasinda
- * guvenilir degil.
+ * ona bagli etiket. Kutunun `name`i yok, yani forma dahil olmuyor.
+ * <details> kullanmadik: genis ekranda KAPALI bir <details>'i CSS ile
+ * acik gostermek tarayicilar arasinda guvenilir degil.
  *
- * FILTRE UYGULANMISSA ACIK BASLIYOR: sonuclari daraltan bir sey varsa
- * kullanici onu gormeli, kapali bir panelin arkasinda kalmamali.
+ * FILTRE UYGULANMISSA ACIK BASLIYOR.
  */
 function Filters({
-  locale, service, location, start, end, radiusKm, maxPrice, needsCats, requireFencedYard, minBadge,
+  locale, service, location, start, end, radiusKm, maxPrice, petWeightKg,
+  needsCats, requireFencedYard, minBadge, unit,
 }: {
   locale: Locale;
   service: string;
@@ -460,97 +544,161 @@ function Filters({
   end: string;
   radiusKm: number;
   maxPrice: number;
+  petWeightKg: number;
   needsCats: boolean;
   requireFencedYard: boolean;
   minBadge: 0 | 1 | 2 | 3 | 4;
+  unit: string;
 }) {
   const m = getMessages(locale);
   const t = m.searchPage;
   const seg = segmentFor(locale);
 
-  const priceOptions = [0, 30, 45, 60, 80, 120].map((v) => ({
-    value: String(v),
-    label: v === 0 ? t.anyPrice : money(v * 100, locale),
-  }));
-
-  /* Varsayilandan sapan her filtre sayiliyor — etikette gorunuyor. */
   const activeCount = [
-    radiusKm !== 15, maxPrice > 0, needsCats, requireFencedYard, minBadge > 0,
+    radiusKm !== 15, maxPrice > 0, petWeightKg > 0, needsCats, requireFencedYard, minBadge > 0,
   ].filter(Boolean).length;
 
+  /* Secili kilo hangi kademeye dusuyor — hapin isaretli gorunmesi icin */
+  const activeSize = petWeightKg > 0 ? petSizeForKg(petWeightKg) : null;
+
   return (
-    <form method="get" action={`/${seg}/search/`} className="filters">
-      <input type="hidden" name="service" value={service} />
+    <form method="get" action={`/${seg}/search/`} className="sr-filters">
       <input type="hidden" name="location" value={location} />
       {start && <input type="hidden" name="start" value={start} />}
       {end && <input type="hidden" name="end" value={end} />}
 
-      {/* name YOK: forma gonderilmiyor, yalnizca CSS icin durum tasiyor */}
       <input
-        type="checkbox" id="filters-open" className="filters-toggle"
+        type="checkbox" id="filters-open" className="sr-filters-toggle"
         defaultChecked={activeCount > 0}
       />
-      <label htmlFor="filters-open" className="filters-summary">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-          strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-          <path d="M2 4h12M4.5 8h7M7 12h2" />
-        </svg>
-        {t.filters}
-        {activeCount > 0 && <span className="filters-count tabular">{activeCount}</span>}
+      <label htmlFor="filters-open" className="sr-filters-summary">
+        <Sym name="tune" size={20} />
+        <span className="sr-filters-title">{t.refine}</span>
+        {activeCount > 0 && <span className="sr-filters-count tabular">{activeCount}</span>}
       </label>
 
-      <div className="filters-body">
-      <div className="field" style={{ flex: '0 1 11rem' }}>
-        <label htmlFor="radius">{t.radius}</label>
-        <Select
-          id="radius" name="radius" value={String(radiusKm)}
-          options={RADIUS_KM.map((km) => ({ value: String(km), label: `${km} km` }))}
-        />
-      </div>
+      <div className="sr-filters-body">
+        <fieldset className="sr-fset">
+          <legend className="sr-leg">{t.serviceHeading}</legend>
+          <div className="sr-pills">
+            {LIVE_SERVICES.map((sv) => {
+              const slug = serviceSlug(sv, locale);
+              return (
+                <label key={sv} className="sr-pill">
+                  <input type="radio" name="service" value={slug} defaultChecked={slug === service} />
+                  <Sym name={SERVICE_SYM[sv]} size={16} />
+                  <span>{m.service[sv]}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
 
-      <div className="field" style={{ flex: '0 1 11rem' }}>
-        <label htmlFor="price">{t.maxPrice}</label>
-        <Select id="price" name="price" value={String(maxPrice)} options={priceOptions} />
-      </div>
+        <fieldset className="sr-fset">
+          <legend className="sr-leg">{interpolate(t.priceHeading, { unit })}</legend>
+          <div className="sr-pills">
+            {[0, 30, 45, 60, 80, 120].map((v) => (
+              <label key={v} className="sr-pill">
+                <input type="radio" name="price" value={String(v)} defaultChecked={maxPrice === v} />
+                <span>{v === 0 ? t.anyPrice : `≤ ${money(v * 100, locale)}`}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <div className="field" style={{ flex: '0 1 12rem' }}>
-        <label htmlFor="badge">{t.badge}</label>
-        <Select
-          id="badge" name="badge" value={String(minBadge)}
-          options={[
-            { value: '0', label: t.anyBadge },
-            { value: '1', label: m.verification.identity },
-            { value: '2', label: m.verification.criminal },
-            { value: '3', label: m.verification.licence },
-            { value: '4', label: m.verification.certification },
-          ]}
-        />
-      </div>
+        {/*
+          BOYUT HAPLARI KILO GONDERIYOR. Arka uc kiloyu kademeye cevirip
+          bakicinin KABUL ETTIGI boyutlar kumesinde ariyor; gonderilen
+          deger kademenin orta noktasi.
+        */}
+        <fieldset className="sr-fset">
+          <legend className="sr-leg">{t.sizeHeading}</legend>
+          <div className="sr-pills">
+            <label className="sr-pill">
+              <input type="radio" name="weight" value="" defaultChecked={activeSize === null} />
+              <span>{t.anySize}</span>
+            </label>
+            {PET_SIZE_STEPS.map((step) => (
+              <label key={step.key} className="sr-pill">
+                <input
+                  type="radio" name="weight"
+                  value={String(Math.round((step.minKg + step.maxKg) / 2))}
+                  defaultChecked={activeSize === step.key}
+                />
+                <span>{sizeLabel(m, step.key, step)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <label className="filter-check">
-        <input type="checkbox" name="cats" value="1" defaultChecked={needsCats} />
-        {t.cats}
-      </label>
+        <fieldset className="sr-fset">
+          <legend className="sr-leg">{t.radiusHeading}</legend>
+          <div className="sr-pills">
+            {RADIUS_KM.map((km) => (
+              <label key={km} className="sr-pill">
+                <input type="radio" name="radius" value={String(km)} defaultChecked={radiusKm === km} />
+                <span className="tabular">{km} km</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <label className="filter-check">
-        <input type="checkbox" name="yard" value="1" defaultChecked={requireFencedYard} />
-        {t.yard}
-      </label>
+        <fieldset className="sr-fset">
+          <legend className="sr-leg">{t.environmentHeading}</legend>
+          <div className="sr-pills">
+            <label className="sr-pill">
+              <input type="checkbox" name="yard" value="1" defaultChecked={requireFencedYard} />
+              <span>{t.yard}</span>
+            </label>
+            <label className="sr-pill">
+              <input type="checkbox" name="cats" value="1" defaultChecked={needsCats} />
+              <span>{t.cats}</span>
+            </label>
+          </div>
+          <div className="sr-pills">
+            <label className="sr-pill">
+              <input type="radio" name="badge" value="0" defaultChecked={minBadge === 0} />
+              <span>{t.anyBadge}</span>
+            </label>
+            {([
+              [1, m.verification.identity], [2, m.verification.criminal],
+              [3, m.verification.licence], [4, m.verification.certification],
+            ] as const).map(([lvl, label]) => (
+              <label key={lvl} className="sr-pill">
+                <input type="radio" name="badge" value={String(lvl)} defaultChecked={minBadge === lvl} />
+                <Sym name="verified" size={16} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <button type="submit" className="btn btn-secondary">{t.apply}</button>
-
-      {activeCount > 0 && (
-        <Link
-          className="btn btn-ghost"
-          href={`/${seg}/search/?service=${encodeURIComponent(service)}&location=${encodeURIComponent(location)}${start ? `&start=${start}` : ''}${end ? `&end=${end}` : ''}`}
-        >
-          {t.clear}
-        </Link>
-      )}
+        <div className="sr-filters-foot">
+          <button type="submit" className="sr-apply">{t.apply}</button>
+          {activeCount > 0 && (
+            <Link
+              className="sr-reset"
+              href={`/${seg}/search/?service=${encodeURIComponent(service)}&location=${encodeURIComponent(location)}${start ? `&start=${start}` : ''}${end ? `&end=${end}` : ''}`}
+            >
+              {t.resetAll}
+            </Link>
+          )}
+        </div>
       </div>
     </form>
   );
 }
 
-void (undefined as unknown as typeof SERVICES);
-void servicesForPhase;
+/** V1 hizmetleri — filtre tepsisindeki hap grubu */
+const LIVE_SERVICES = servicesForPhase('v1');
+
+/** Bakici profilindeki ile AYNI metin: "7 kg'a kadar", "18-45 kg" */
+function sizeLabel(
+  m: Messages,
+  key: PetSizeKey,
+  step: { minKg: number; maxKg: number },
+): string {
+  if (key === 'small') return interpolate(m.sitter['pets.sizeSmall'], { max: step.maxKg });
+  if (key === 'giant') return interpolate(m.sitter['pets.sizeGiant'], { min: step.minKg });
+  return interpolate(m.sitter['pets.sizeBand'], { min: step.minKg, max: step.maxKg });
+}
