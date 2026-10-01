@@ -305,7 +305,19 @@ export default async function SearchPage({
       </section>
 
       <div className="st-wrap sr-body">
-        <h1 className="sr-h1">
+        {/*
+          BASLIK GORSEL OLARAK GIZLI.
+
+          Referansta sayfanin ustunde ayri bir baslik YOK: ozet cubugu
+          neyin arandigini zaten soyluyor ve gorunen baslik sonuc
+          satiri ("42 dogrulanmis bakici"). Bizde ustte ikinci bir
+          baslik duruyordu ve ayni bilgiyi iki kez yaziyordu.
+
+          Etiket SILINMEDI, yalnizca gizlendi: her sayfanin bir h1'i
+          olmali (ekran okuyucu sayfa basligini oradan okuyor) ve
+          sonuc satiri bir h2.
+        */}
+        <h1 className="sr-only">
           {place ? interpolate(t.title, { place: placeLabel }) : t.titleEmpty}
         </h1>
 
