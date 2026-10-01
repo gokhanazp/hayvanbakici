@@ -5985,3 +5985,201 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   nefes olsun diye.
 */
 .wizard-head > .st-eyebrow-pill { margin-inline-start: 0.5rem; }
+
+/* ==========================================================================
+   SIHIRBAZ FORM KONTROLLERI — REFERANS TASARIMIN DILI
+
+   Bu blok gorunumu degistiriyor, yerlesimi degil. Oncesinde alanlar
+   sitenin ESKI dilindeydi: beyaz zemin, 2 piksel cerceve, 11 piksellik
+   BUYUK HARF soluk etiket. Referans tasarimda ayni alanlar
+   cerceves iz, BOYALI zeminde (#FFF1E7 — bizde `surface-sunken`,
+   tasarimda `surface-container-low`; ayni deger), 12 piksel kose,
+   48 piksel yuksek ve ic golgeli; etiket ise 14 piksel KALIN ve KOYU.
+
+   Neden bu daha iyi: beyaz kart icinde beyaz alanlar yalnizca
+   cerceveyle ayirt ediliyordu. Boyali dolgu alani "yazilacak yer"
+   olarak kendisi gosteriyor, cerceve gurultusu kalkiyor.
+
+   Kapsam `.wiz-form` ile sinirli: arama ve rezervasyon formlari
+   henuz bu dile gecmedi, onlari buradan degistirmek goruntuyu
+   karistirir.
+   ========================================================================== */
+.wiz-form .field > label,
+.wiz-form .field > .field-label-static,
+.wiz-form .field-block > label,
+.wiz-form .field-legend {
+  font-size: 0.875rem; font-weight: 700; letter-spacing: 0;
+  text-transform: none; color: var(--color-ink);
+  margin-bottom: 0.125rem;
+}
+
+/*
+  TURLERI TEK TEK SAYMAK YANLISTI: `type` yazilmamis bir <input>
+  varsayilan olarak metin alanidir ama `input[type="text"]`
+  seciciyle ESLESMEZ. Formdaki "Adiniz" ve "Soyad bas harfi" tam
+  olarak boyleydi ve eski gorunumde kaliyordu. Dogrusu, bicimi
+  BASKA olan turleri dislamak.
+*/
+.wiz-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+.wiz-form textarea,
+.wiz-form select,
+.wiz-form .select-trigger {
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--color-surface-sunken);
+  box-shadow: inset 0 2px 4px rgba(83, 72, 62, 0.06);
+  color: var(--color-ink);
+}
+.wiz-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+.wiz-form select,
+.wiz-form .select-trigger {
+  height: 3rem; min-height: 3rem; padding-block: 0; padding-inline: 1rem;
+}
+/* Acilir listenin kendi hover kenarligi yok artik: zemin koyulasiyor. */
+.wiz-form .select-trigger:hover { background: var(--color-surface-container); }
+.wiz-form textarea { padding: 1rem; line-height: 1.625; }
+
+/* Odak: cerceve yok, halka var — tasarimdaki `ring-2 ring-primary`. */
+.wiz-form :is(input, textarea, select, .select-trigger):focus,
+.wiz-form :is(input, textarea, select, .select-trigger):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent), inset 0 2px 4px rgba(83, 72, 62, 0.06);
+}
+/* Hatali alan: halka kirmizi — renk TEK basina tasimasin diye metin de var. */
+.wiz-form :is(input, textarea)[aria-invalid='true'] {
+  box-shadow: 0 0 0 2px var(--color-danger), inset 0 2px 4px rgba(83, 72, 62, 0.06);
+}
+
+/* ---------- Bolum basligi: numarali daire + buyuk baslik ---------- */
+.wiz-form .step-group-title {
+  font-size: 1.25rem; font-weight: 700; color: var(--color-ink);
+}
+.wiz-form .step-group-title::before {
+  width: 2rem; height: 2rem; font-size: 0.875rem;
+  background: var(--color-accent-subtle); color: var(--color-accent-hover);
+}
+
+/* ==========================================================================
+   HIZMET SATIRI — REFERANS TASARIMIN BICIMI
+
+   Referansta satir: boyali zemin, 16 piksel kose, CERCEVESIZ; solda
+   48 piksellik beyaz ikon karosu, ortada ad + aciklama, sagda fiyat
+   kutusu ve anahtar. Bizde beyaz bir kutu, 2 piksel cerceve ve ciplak
+   bir onay kutusu vardi.
+   ========================================================================== */
+.service-card {
+  border: 0;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--color-surface-sunken);
+  box-shadow: none;
+  transition: background-color var(--duration-standard) var(--easing-standard);
+}
+.service-card:hover { background: var(--color-surface-container); }
+/*
+  SECILI SATIR: solda renkli serit. Tasarim secili satiri yalnizca
+  anahtarin rengiyle ayirt ediyor; anahtar satirin en sagindaki
+  44 piksellik oge ve dort satiri tarayan goz onu kacirabiliyor.
+  Serit, "bu satir acik" bilgisini satirin BASINDA veriyor.
+*/
+.service-card-on {
+  background: var(--color-surface-container);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.service-head {
+  display: flex; align-items: center; gap: 1rem;
+}
+.service-tile {
+  display: grid; place-items: center; flex: 0 0 auto;
+  width: 3rem; height: 3rem; border-radius: 0.875rem;
+  background: var(--color-surface); color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(83, 72, 62, 0.08);
+}
+.service-head-text { display: grid; gap: 0.125rem; flex: 1 1 10rem; min-width: 0; }
+.service-name {
+  font-size: 1.0625rem; line-height: 1.5rem; font-weight: 700;
+  color: var(--color-ink); cursor: pointer;
+}
+.service-desc { font-size: 0.8125rem; line-height: 1.125rem; color: var(--color-ink-secondary); }
+.service-rate { font-size: 0.75rem; line-height: 1rem; color: var(--color-ink-muted); }
+
+.service-controls { display: flex; align-items: center; gap: 1rem; flex: 0 0 auto; }
+
+/* Fiyat kutusu: beyaz, ic golgeli, ortalanmis sayi — tasarimdaki gibi. */
+.service-price {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.5rem 0.75rem; border-radius: 0.75rem;
+  background: var(--color-surface);
+  box-shadow: inset 0 2px 4px rgba(83, 72, 62, 0.07);
+}
+.service-price > input {
+  width: 3.25rem; height: auto; padding: 0; border: 0; background: none;
+  box-shadow: none !important;
+  font: inherit; font-size: 1.125rem; font-weight: 700; text-align: center;
+  color: var(--color-ink); font-variant-numeric: tabular-nums;
+}
+.service-price > input:focus { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 0.375rem; }
+.service-price > span { font-size: 0.75rem; font-weight: 700; color: var(--color-ink-muted); }
+/*
+  BIRIM METNI SABIT GENISLIKTE: "/ gece", "/ ziyaret", "/ yuruyus"
+  farkli uzunlukta ve fiyat kutusu onlarla birlikte buyuyordu, bu
+  yuzden dort satirin anahtari dort farkli yerde duruyordu. Referansta
+  sag kenar tek bir cizgi.
+*/
+.service-unit { white-space: nowrap; min-width: 4rem; }
+/* Hizmet kapaliyken kutu duruyor ama sonuk: ne yazilacagi gorunsun. */
+.service-price.is-off { opacity: 0.55; }
+.service-price.is-off > input { cursor: not-allowed; }
+
+/*
+  ANAHTAR. Gorsel bir kabuk; altinda GERCEK bir onay kutusu var —
+  klavye, ekran okuyucu ve JavaScript'siz form gonderimi aynen
+  calisiyor. 44x24: WCAG 2.5.8'in 24 piksel esiginin ustunde.
+*/
+.switch { position: relative; display: inline-flex; flex: 0 0 auto; cursor: pointer; }
+.switch > input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  margin: 0; opacity: 0; cursor: pointer;
+}
+.switch-track {
+  display: block; width: 2.75rem; height: 1.5rem; border-radius: var(--radius-full);
+  background: var(--color-surface-highest);
+  transition: background-color var(--duration-standard) var(--easing-standard);
+}
+.switch-track::after {
+  content: ''; position: absolute; top: 2px; inset-inline-start: 2px;
+  width: 1.25rem; height: 1.25rem; border-radius: var(--radius-full);
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(83, 72, 62, 0.25);
+  transition: transform var(--duration-standard) var(--easing-standard);
+}
+.switch > input:checked + .switch-track { background: var(--color-accent); }
+.switch > input:checked + .switch-track::after { transform: translateX(1.25rem); }
+.switch > input:focus-visible + .switch-track {
+  outline: 2px solid var(--color-accent); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch-track, .switch-track::after { transition: none; }
+}
+
+@media (max-width: 719px) {
+  /*
+    Telefonda fiyat + anahtar satira sigmiyor: ikon ve metin ustte,
+    denetimler altta kendi satirinda, aralari acik.
+  */
+  .service-head { flex-wrap: wrap; }
+  .service-controls { flex: 1 1 100%; justify-content: space-between; }
+}
+
+/*
+  Hizmet satirindaki fiyat girdisi YUKARIDAKI genel kuralin DISINDA:
+  kendi beyaz kutusunun icinde seffaf duruyor, 48 piksel yuksekligi
+  ve boyali dolgusu olmamali.
+*/
+.wiz-form .service-price > input {
+  height: auto; padding-inline: 0; background: none;
+  border-radius: 0.375rem;
+}
+/* Anahtarin gorunmez onay kutusu da genel kuraldan etkilenmesin. */
+.wiz-form .switch > input { height: 100%; }

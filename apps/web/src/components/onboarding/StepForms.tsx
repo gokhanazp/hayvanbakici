@@ -467,76 +467,98 @@ export function ServicesForm({
                 Simdi ikon + ne oldugu + cevredeki tipik fiyat. Ikon ana
                 sayfadakiyle AYNI kaynaktan (components/ServiceIcon).
               */}
-              <div className="checkbox-row service-head">
-                <input
-                  id={`svc-${type}`}
-                  type="checkbox"
-                  name="service"
-                  value={type}
-                  checked={d.on}
-                  onChange={(e) => patch(type, { on: e.target.checked })}
-                />
-                <span className="service-head-text">
-                  <span className="row" style={{ gap: 'var(--space-3)', alignItems: 'center' }}>
-                    <span className={`tile tile-sm ${SERVICE_TILE[i % SERVICE_TILE.length]}`}>
-                      <ServiceIcon service={type as ServiceType} size={20} />
-                    </span>
-                    <label htmlFor={`svc-${type}`} className="text-h4">{label}</label>
-                  </span>
-                  <span className="field-hint" style={{ display: 'block' }}>
-                    {m.serviceDescription[type as ServiceType]}
-                  </span>
+              {/*
+                SATIRIN BICIMI REFERANS TASARIMDAN.
+
+                Once beyaz bir kutu, solda ciplak bir onay kutusu ve
+                sagi bombos duruyordu. Referansta ayni satir BOYALI
+                zeminde, solda 48 piksellik ikon karosu, ortada ad ve
+                aciklama, sagda FIYAT KUTUSU ve bir ANAHTAR (toggle).
+
+                UC GERCEK DEGISIKLIK:
+
+                1. Onay kutusu -> anahtar. "Bu hizmeti veriyor musun"
+                   bir acma/kapama; anahtar bunu kutudan daha dogru
+                   anlatiyor. Altta yine gercek bir <input
+                   type="checkbox"> var (gorsel yalnizca kabuk), yani
+                   klavye, ekran okuyucu ve JS'siz gonderim aynen
+                   calisiyor.
+
+                2. Fiyat kutusu SATIRIN ICINDE ve her zaman gorunur.
+                   Onceden fiyat ancak hizmet secildikten sonra
+                   aciliyordu; bakici "ne yazacagim" sorusunu
+                   goremeden secim yapiyordu. Kapaliyken kutu pasif.
+
+                3. Tasarimdaki "High Demand" / "Most Profitable"
+                   rozetleri ALINMADI: ikisi de bizde olmayan bir
+                   veriye dayaniyor ve ekranda duran her rozet bir
+                   iddiadir. Yerine, elimizde GERCEK veri varsa
+                   cevredeki tipik fiyat yaziliyor.
+              */}
+              <div className="service-head">
+                <span className={`service-tile ${SERVICE_TILE[i % SERVICE_TILE.length]}`} aria-hidden="true">
+                  <ServiceIcon service={type as ServiceType} size={24} />
                 </span>
 
-                {/*
-                  TIPIK FIYAT — YALNIZCA SATIR KAPALIYKEN.
+                <span className="service-head-text">
+                  <label htmlFor={`svc-${type}`} className="service-name">{label}</label>
+                  <span className="service-desc">
+                    {m.serviceDescription[type as ServiceType]}
+                  </span>
+                  {r && r.count >= MIN_RANGE_SAMPLE && (
+                    <span className="service-rate">{rangeHint(m, locale, r)}</span>
+                  )}
+                </span>
 
-                  Bu satir bir kez kaldirilmisti, cunku ayni bilgi fiyat
-                  alaninin altinda da yaziyordu. Ama o ipucu satir
-                  ACIKKEN cikiyor; kapaliyken bakici "drop-in ne eder"
-                  bilmeden secim yapiyordu. Yani tekrar degil, tek
-                  gorundugu yer. Satir acilinca buradan kalkiyor.
+                <span className="service-controls">
+                  <span className={`service-price${d.on ? '' : ' is-off'}`}>
+                    <span aria-hidden="true">$</span>
+                    <input
+                      id={`price-${type}`}
+                      name={`price.${type}`}
+                      type="number"
+                      min={MIN_PRICE_CENTS / 100}
+                      max={MAX_PRICE_CENTS / 100}
+                      step="1"
+                      inputMode="decimal"
+                      value={d.price}
+                      onChange={(e) => patch(type, { price: e.target.value })}
+                      placeholder={suggestion(ranges[type])}
+                      disabled={!d.on}
+                      required={d.on}
+                      aria-label={`${label} — ${m.onboarding['services.price']}`}
+                      aria-describedby={`price-hint-${type}`}
+                    />
+                    {/* m.unit[...] — ham anahtar Ingilizce: FR ekranda "/ night" yaziyordu */}
+                    <span className="service-unit">
+                      / {m.unit[SERVICES[type as ServiceType].unit]}
+                    </span>
+                  </span>
 
-                  YETERLI ORNEK YOKSA HIC CIZILMIYOR. rangeHint veri
-                  azken "Zorunlu. Istediginiz zaman degistirebilirsiniz."
-                  cumlesine dusuyor; o cumle fiyat alaninin altinda
-                  dogru, ama buradaki hapta fiyat bekleyen bir yerde
-                  fiyat olmayan bir sey yazmak demek. Yeni bir sehirde
-                  dort satirin dordunde ayni cumle tekrarliyordu.
-
-                  aria-hidden DEGIL: ekran okuyucu da ayni karari
-                  verebilmeli.
-                */}
-                {!d.on && r && r.count >= MIN_RANGE_SAMPLE && (
-                  <span className="service-rate">{rangeHint(m, locale, r)}</span>
-                )}
+                  <label className="switch">
+                    <input
+                      id={`svc-${type}`}
+                      type="checkbox"
+                      name="service"
+                      value={type}
+                      checked={d.on}
+                      onChange={(e) => patch(type, { on: e.target.checked })}
+                    />
+                    <span className="switch-track" aria-hidden="true"></span>
+                    <span className="sr-only">{label}</span>
+                  </label>
+                </span>
               </div>
 
               {d.on && (
                 <div className="service-detail">
+                  {/*
+                    FIYAT ALANI SATIRA TASINDI (yukari bak). Burada
+                    yalnizca ONA AIT aciklamalar kaldi: zorunluluk
+                    ipucu (fiyat girdisi aria-describedby ile buraya
+                    bagli), net kazanc dokumu ve hata metni.
+                  */}
                   <div className="field-block">
-                    <label htmlFor={`price-${type}`}>{m.onboarding['services.price']}</label>
-                    <span className="price-input">
-                      <span aria-hidden="true">$</span>
-                      <input
-                        id={`price-${type}`}
-                        name={`price.${type}`}
-                        type="number"
-                        min={MIN_PRICE_CENTS / 100}
-                        max={MAX_PRICE_CENTS / 100}
-                        step="1"
-                        inputMode="decimal"
-                        value={d.price}
-                        onChange={(e) => patch(type, { price: e.target.value })}
-                        placeholder={suggestion(ranges[type])}
-                        required
-                        aria-describedby={`price-hint-${type}`}
-                      />
-                      {/* m.unit[...] — ham anahtar Ingilizce: FR ekranda "/ night" yaziyordu */}
-                      <span className="dim text-body-sm">
-                        / {m.unit[SERVICES[type as ServiceType].unit]}
-                      </span>
-                    </span>
                     {/*
                       ZORUNLULUK YAZIYOR. Bos birakip kaydete basinca alan
                       kirmizi cerceve aliyordu ama NE oldugunu soyleyen bir
