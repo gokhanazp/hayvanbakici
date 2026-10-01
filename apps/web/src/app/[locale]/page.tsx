@@ -1,41 +1,51 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getMessages, interpolate, localeFromSegment, segmentFor, serviceSlug } from '@havre/i18n';
-import { servicesForPhase, SERVICES, type ServiceType } from '@havre/core';
-import { SearchBar } from '@/components/SearchBar';
-import { ServiceIcon, SERVICE_TILE } from '@/components/ServiceIcon';
+import {
+  getMessages, interpolate, localeFromSegment, segmentFor, serviceSlug,
+} from '@havre/i18n';
+import { servicesForPhase, SERVICES } from '@havre/core';
+import { Sym, type SymName } from '@/components/Sym';
 import { Photo } from '@/components/Photo';
 import { Avatar } from '@/components/Avatar';
-import { ShieldIcon } from '@/components/VerificationBadge';
 import {
   cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData,
 } from '@/lib/data';
 import { money, numberFmt } from '@/lib/format';
 
 /**
- * ANASAYFA — "Warm Paw" yerlesimi.
+ * ANASAYFA — Stitch tasariminin birebir karsiligi.
  *
- * Tasarim Stitch'te uretildi (stitch_evcil_hayvan_bak_c_platformu/
- * home_discovery_pawpal_canada). YERLESIM oradan birebir alindi;
- * METINLER bizim, cunku tasarimin metinleri bu urunun yapmadigi
- * seyleri soyluyordu:
+ * Kaynak: stitch_evcil_hayvan_bak_c_platformu/home_discovery_pawpal_canada.
+ * Bolum sirasi, kutu olculeri, kose yaricaplari, golgeler ve tipografi
+ * kademeleri oradan alindi. Iki yerde ayrilma var, ikisi de kasitli:
  *
- *   "4.96 / 5.0 — 45.000+ tail-wags"   -> uydurma sayi
- *   "12.840 Active Sitters"            -> uydurma sayi
- *   "100% RCMP Screened"               -> RCMP federal polis; taramayi
- *                                         bir saglayici yapiyor
- *   "$2,000,000 CAD Vet Coverage"      -> sigortamiz yok
- *   "24/7 Canadian Vet Line"           -> yok
- *   "Daily GPS & Live Photo Updates"   -> yok
- *   "Toronto, Vancouver, Calgary..."   -> yalnizca Toronto acik
- *   Isimli musteri yorumlari           -> uydurma
+ *  1. IKONLAR satir ici SVG (components/Sym.tsx). Tasarim Material
+ *     Symbols kullaniyor; o, Google Fonts'tan gelen bir ikon FONTU.
+ *     Yazi tiplerini self-host etme kararimizi (Law 25: Google'a sinir
+ *     otesi istek yok) bir ikon fontu icin bozmak anlamsizdi.
+ *  2. METINLER bizim. Tasarimin yazdiklari bu urunun yapmadigi
+ *     seylerdi: uydurma puan ve bakici sayilari, "RCMP taramasi",
+ *     iki milyon dolarlik veteriner teminati, 7/24 veteriner hatti,
+ *     GPS takibi, dort sehir, "ayda 3.200 dolar kazan" ve isimli
+ *     sahte yorumlar. Her kutuya kodun gercekten yaptigi sey yazildi;
+ *     sayilar veritabanindan geliyor.
  *
- * Her kutunun yerine kodun GERCEKTEN yaptigi sey yazildi; sayilar
- * veritabanindan geliyor. Bos kalan yerler yer tutucu, uydurma degil.
- *
- * ISR: bakici sayisi ve medyan fiyat degisiyor, saatte bir tazeleniyor.
+ * ARAMA KUTUSU JAVASCRIPT'SIZ: hizmet sekmeleri radio + CSS
+ * (:has(input:checked)). Tasarimdaki JS'li sekme ayni gorunuyor ama
+ * JS yuklenene kadar calismiyordu. Form duz bir GET -- adres
+ * paylasilabilir, geri tusu calisir.
  */
 export const revalidate = 3600;
+
+/** Hizmet kutucuklarinin tasarimdaki ton sirasi */
+const SERVICE_TONE = ['sage', 'coral', 'gold', 'sage'] as const;
+const SERVICE_SYM: Record<string, SymName> = {
+  boarding: 'night',
+  house_sitting: 'house',
+  drop_in: 'cat',
+  dog_walking: 'walk',
+  day_care: 'sun',
+};
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: seg } = await params;
@@ -43,354 +53,423 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (!locale) notFound();
 
   const m = getMessages(locale);
+  const s = segmentFor(locale);
   const services = servicesForPhase('v1');
   const city = await getDefaultCity();
 
-  /*
-    DORT HIZMETIN DE KENDI FIYAT ARALIGI VAR.
-
-    Hizmet kartlarinda "su fiyattan baslar" yaziyor ve bu dort ayri
-    sorgu demek. Sayfa ISR ile saatte bir uretildigi icin bedeli
-    saatte dort sorgu; karsiliginda kartlar TEK bir ortalamayi dort
-    kez tekrarlamiyor.
-  */
   const [landings, reviews] = await Promise.all([
-    Promise.all(services.map((s) => getLandingData(city, s, locale))),
+    Promise.all(services.map((sv) => getLandingData(city, sv, locale))),
     getFeaturedReviews(3),
   ]);
   const boarding = landings[0]!;
-  const byService = new Map(services.map((s, i) => [s, landings[i]!]));
+  const byService = new Map(services.map((sv, i) => [sv, landings[i]!]));
 
   const cityLabel = cityName(city, locale);
   const slug = citySlug(city, locale);
-
-  /*
-    BASLIKTAKI VURGULU KELIME. Tasarimda bir kelimenin altinda dalgali
-    bir cizgi var. Kelime ayri bir anahtar cunku Fransizcada cumledeki
-    yeri degisiyor; baslik {accent} yer tutucusunu nereye koyarsa
-    vurgu oraya dusuyor.
-  */
   const [titleBefore, titleAfter] = m.home.heroTitle.split('{accent}');
+  const sitterCount = numberFmt(boarding.sitterCount, locale);
 
   return (
     <>
-      {/* ================= KAHRAMAN ================= */}
-      <section className="hp-hero">
-        <div className="hp-hero-glow hp-hero-glow-a" aria-hidden="true"></div>
-        <div className="hp-hero-glow hp-hero-glow-b" aria-hidden="true"></div>
+      {/* ===================== KAHRAMAN ===================== */}
+      <section className="st-hero">
+        <div className="st-blob st-blob-a" aria-hidden="true"></div>
+        <div className="st-blob st-blob-b" aria-hidden="true"></div>
 
-        <div className="container hp-hero-inner">
-          <div className="hp-hero-grid">
-            <div className="hp-hero-copy">
-              <span className="hp-eyebrow">
-                <ShieldIcon size={14} />
+        <div className="st-wrap st-hero-inner">
+          <div className="st-hero-grid">
+            <div className="st-hero-copy">
+              <span className="st-eyebrow-pill">
+                <Sym name="location" size={16} />
                 {m.home.heroBadge}
               </span>
 
-              <h1 className="hp-hero-title">
+              <h1 className="st-h1">
                 {titleBefore}
-                <span className="hp-underline">{m.home.heroAccent}</span>
+                <span className="st-h1-accent">{m.home.heroAccent}</span>
                 {titleAfter}
               </h1>
 
-              <p className="hp-hero-lead">{m.home.heroSubtitle}</p>
+              <p className="st-hero-lead">{m.home.heroSubtitle}</p>
 
-              <div className="hp-hero-pills">
-                <span className="hp-pill">
-                  <strong className="tabular">{numberFmt(boarding.sitterCount, locale)}</strong>
-                  {interpolate(m.home.statSittersIn, { city: cityLabel }).replace(
-                    String(numberFmt(boarding.sitterCount, locale)), '',
-                  ).trim()}
-                </span>
-                <span className="hp-pill hp-pill-sage">
-                  <ShieldIcon size={14} />
+              <div className="st-hero-pills">
+                {/*
+                  PUAN ROZETI YALNIZCA GERCEK YORUM VARSA. Tasarimda
+                  sabit "4.96 / 5.0 — 45.000+ tail-wags" yaziyordu.
+                */}
+                {boarding.reviewCount > 0 && (
+                  <span className="st-stat-pill">
+                    <span className="st-stars" aria-hidden="true">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <Sym key={i} name="star" size={17} filled />
+                      ))}
+                    </span>
+                    <strong className="tabular">{boarding.avgRating.toFixed(2)}</strong>
+                    <span className="st-stat-sub">
+                      {interpolate(m.home.reviewsFrom, {
+                        count: numberFmt(boarding.reviewCount, locale),
+                      })}
+                    </span>
+                  </span>
+                )}
+                <span className="st-stat-pill st-stat-pill-sage">
+                  <Sym name="verified" size={17} />
                   {m.home.heroPillChecks}
                 </span>
               </div>
             </div>
 
-            {/*
-              FOTOGRAF + USTUNE BINEN KART.
-
-              Tasarimda buraya bir bakici fotografi ve uzerine iki yuzen
-              rozet geliyor. Rozetlerden biri uydurma bir sayiydi
-              ("12.840 Active Sitters"); yerine bu sehrin GERCEK bakici
-              sayisi ve medyan fiyati kondu.
-            */}
-            <div className="hp-hero-art">
-              <div className="hp-hero-photo">
+            {/* ---- Fotograf + uzerine binen iki kart ---- */}
+            <div className="st-hero-art">
+              <div className="st-hero-photo">
                 <Photo id="sitter-banner" locale={locale} alt={m.home.heroPhotoAlt} priority />
               </div>
 
-              <div className="hp-float hp-float-stats">
-                <div className="hp-float-icon" aria-hidden="true">
-                  <ServiceIcon service="boarding" size={22} />
-                </div>
-                <div>
-                  <p className="hp-float-value tabular">
-                    {numberFmt(boarding.sitterCount, locale)}
-                  </p>
-                  <p className="hp-float-label">
-                    {interpolate(m.home.statSittersIn, { city: cityLabel }).replace(
-                      String(numberFmt(boarding.sitterCount, locale)), '',
-                    ).trim()}
-                  </p>
-                </div>
+              <div className="st-badge-float">
+                <span className="st-badge-tile" aria-hidden="true">
+                  <Sym name="pets" size={26} />
+                </span>
+                <span>
+                  <strong className="st-badge-value">
+                    {interpolate(m.home.heroSitterCount, { city: cityLabel, count: sitterCount })}
+                  </strong>
+                  <span className="st-badge-sub">{m.home.heroBadgeSub}</span>
+                </span>
               </div>
 
               {boarding.medianPriceCents > 0 && (
-                <div className="hp-float hp-float-price">
-                  <span className="hp-float-value tabular">
-                    {money(boarding.medianPriceCents, locale)}
-                  </span>
-                  <span className="hp-float-label">{m.home.statPrice}</span>
-                </div>
+                <span className="st-badge-chip">
+                  <Sym name="verified" size={16} />
+                  {interpolate(m.home.heroMedian, {
+                    price: money(boarding.medianPriceCents, locale),
+                    unit: m.unit[SERVICES.boarding.unit],
+                  })}
+                </span>
               )}
             </div>
           </div>
 
-          {/* ---- Yuzen arama kutusu ---- */}
-          <div className="hp-search">
-            <SearchBar locale={locale} />
-            <ul className="hp-ribbon">
-              <li>
-                <CheckMark />
-                {m.home.ribbonFees}
-              </li>
-              <li>
-                <CheckMark />
-                {m.home.ribbonExpiry}
-              </li>
-              <li>
-                <CheckMark />
-                {m.home.ribbonCanada}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= HIZMETLER ================= */}
-      <section className="container hp-section">
-        <h2 className="hp-h2">{m.home.servicesHeading}</h2>
-        <p className="hp-lead">{m.home.servicesLead}</p>
-
-        <div className="hp-services">
-          {services.map((s, i) => {
-            const tile = SERVICE_TILE[i % SERVICE_TILE.length]!;
-            const d = byService.get(s);
-            const from = d && d.p25PriceCents > 0 ? d.p25PriceCents : 0;
-            return (
-              <Link
-                key={s}
-                href={`/${segmentFor(locale)}/${slug}/${serviceSlug(s, locale)}/`}
-                className="hp-service"
-              >
-                <span
-                  className="hp-service-tile"
-                  style={{
-                    background: `var(--color-${tile})`,
-                    color: `var(--color-${tile}-ink)`,
-                  }}
-                  aria-hidden="true"
-                >
-                  <ServiceIcon service={s} size={24} />
-                </span>
-                <span className="hp-service-name">{m.service[s]}</span>
-                <span className="hp-service-body">{m.serviceDescription[s]}</span>
-                <span className="hp-service-price">
-                  {from > 0
-                    ? interpolate(m.home.serviceFrom, { price: money(from, locale) })
-                    : m.home.serviceNoPrice}
-                  {from > 0 && (
-                    <span className="hp-service-unit"> / {m.unit[SERVICES[s].unit]}</span>
-                  )}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ================= BAKICILAR ================= */}
-      {boarding.sitters.length > 0 && (
-        <section className="container hp-section">
-          <div className="hp-section-head">
-            <div>
-              <h2 className="hp-h2">
-                {interpolate(m.home.sittersHeading, { city: cityLabel })}
-              </h2>
-              <p className="hp-lead">{m.home.sittersLead}</p>
+          {/* ---- Arama kutusu ---- */}
+          <form className="st-search" action={`/${s}/search/`} method="get">
+            <div className="st-tabs">
+              {services.map((sv, i) => (
+                <label key={sv} className="st-tab">
+                  <input
+                    type="radio"
+                    name="service"
+                    value={serviceSlug(sv, locale)}
+                    defaultChecked={i === 0}
+                  />
+                  <Sym name={SERVICE_SYM[sv] ?? 'pets'} size={18} />
+                  <span>{m.service[sv]}</span>
+                </label>
+              ))}
             </div>
-            <Link
-              href={`/${segmentFor(locale)}/${slug}/${serviceSlug('boarding', locale)}/`}
-              className="btn btn-secondary"
-            >
-              {m.home.sittersAll}
-            </Link>
+
+            <div className="st-fields">
+              <div className="st-field st-field-wide">
+                <label htmlFor="hs-where">{m.search.location}</label>
+                <div className="st-field-row">
+                  <Sym name="location" size={20} className="st-ic-sage" />
+                  <input
+                    id="hs-where"
+                    name="location"
+                    type="text"
+                    placeholder={interpolate(m.home.searchWherePlaceholder, { city: cityLabel })}
+                  />
+                </div>
+              </div>
+
+              <div className="st-field">
+                <label htmlFor="hs-start">{m.search.dates}</label>
+                <div className="st-field-row">
+                  <Sym name="calendar" size={20} className="st-ic-coral" />
+                  <input id="hs-start" name="start" type="date" />
+                  <span className="st-dash" aria-hidden="true">–</span>
+                  <input name="end" type="date" aria-label={m.search.dates} />
+                </div>
+              </div>
+
+              <div className="st-field">
+                <label htmlFor="hs-pet">{m.search.pet}</label>
+                <div className="st-field-row">
+                  <Sym name="pets" size={20} className="st-ic-gold" />
+                  <input
+                    id="hs-pet"
+                    name="weight"
+                    type="number"
+                    min={1}
+                    max={100}
+                    placeholder={m.home.searchPetPlaceholder}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="st-search-btn">
+                <Sym name="search" size={22} />
+                <span>{m.search.submit}</span>
+              </button>
+            </div>
+
+            <ul className="st-ribbon">
+              <li><Sym name="verified" size={18} />{m.home.ribbonChecks}</li>
+              <li><Sym name="shield" size={18} />{m.home.ribbonFees}</li>
+              <li><Sym name="calendar" size={18} />{m.home.ribbonExpiry}</li>
+              <li className="st-ribbon-accent"><Sym name="globe" size={18} />{m.home.ribbonCanada}</li>
+            </ul>
+          </form>
+        </div>
+      </section>
+
+      {/* ===================== HIZMETLER ===================== */}
+      <section className="st-section">
+        <div className="st-wrap">
+          <div className="st-head">
+            <div>
+              <span className="st-eyebrow">{m.home.servicesEyebrow}</span>
+              <h2 className="st-h2">{m.home.servicesHeading}</h2>
+            </div>
+            <p className="st-head-note">{m.home.servicesLead}</p>
           </div>
 
-          <div className="hp-sitters">
-            {boarding.sitters.slice(0, 3).map((s) => (
-              <article key={s.id} className="hp-sitter">
-                <div className="hp-sitter-photo">
-                  <Avatar initials={s.photoInitials} src={s.avatarUrl} size={96} />
-                </div>
-                <div className="hp-sitter-body">
-                  <div className="hp-sitter-row">
-                    <h3 className="hp-sitter-name">
-                      {s.firstName} {s.lastNameInitial}.
-                    </h3>
-                    <span className="hp-sitter-price tabular">
-                      {money(s.priceCents, locale)}
-                      <span className="hp-sitter-unit">
-                        {' '}/ {m.unit[SERVICES.boarding.unit]}
-                      </span>
-                    </span>
-                  </div>
-                  <p className="hp-sitter-hood">{s.neighbourhood}</p>
+          <div className="st-grid-4">
+            {services.map((sv, i) => {
+              const d = byService.get(sv);
+              const from = d && d.p25PriceCents > 0 ? d.p25PriceCents : 0;
+              return (
+                <Link
+                  key={sv}
+                  href={`/${s}/${slug}/${serviceSlug(sv, locale)}/`}
+                  className={`st-svc st-tone-${SERVICE_TONE[i % SERVICE_TONE.length]}`}
+                >
+                  <span className="st-svc-tile" aria-hidden="true">
+                    <Sym name={SERVICE_SYM[sv] ?? 'pets'} size={30} />
+                  </span>
+                  <h3 className="st-svc-name">{m.service[sv]}</h3>
+                  <p className="st-svc-body">{m.serviceDescription[sv]}</p>
+                  <span className="st-svc-foot">
+                    {from > 0 ? (
+                      <>
+                        <span className="st-svc-from">{m.home.serviceFromLabel}</span>
+                        <span className="st-svc-price tabular">
+                          {money(from, locale)}
+                          <span className="st-svc-unit"> / {m.unit[SERVICES[sv].unit]}</span>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="st-svc-from">{m.home.serviceNoPrice}</span>
+                    )}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-                  <div className="hp-sitter-tags">
-                    {s.acceptsCats && <span className="hp-tag">{m.onboarding['services.cats']}</span>}
-                    {s.yardFenced && <span className="hp-tag">{m.searchPage.yard}</span>}
-                    {/*
-                      YORUM SAYISI SIFIRSA YILDIZ YOK. Tasarimda her kartta
-                      "5.0 (42)" yaziyordu; yorumu olmayan bir bakiciyi
-                      besyildizli gostermek, kazanilmamis bir itibar.
-                    */}
-                    {s.reviewCount > 0 && (
-                      <span className="hp-tag hp-tag-rating tabular">
-                        ★ {s.rating.toFixed(1)} ({numberFmt(s.reviewCount, locale)})
+      {/* ===================== BAKICILAR ===================== */}
+      {boarding.sitters.length > 0 && (
+        <section className="st-section st-section-tint">
+          <div className="st-wrap">
+            <div className="st-head">
+              <div>
+                <span className="st-eyebrow st-eyebrow-live">
+                  <span className="st-dot" aria-hidden="true"></span>
+                  {m.home.sittersEyebrow}
+                </span>
+                <h2 className="st-h2">{interpolate(m.home.sittersHeading, { city: cityLabel })}</h2>
+              </div>
+              <Link href={`/${s}/${slug}/${serviceSlug('boarding', locale)}/`} className="st-pill-link">
+                {interpolate(m.home.sittersAllCount, { count: sitterCount })}
+              </Link>
+            </div>
+
+            <div className="st-grid-3">
+              {boarding.sitters.slice(0, 3).map((sit) => (
+                <article key={sit.id} className="st-sitter">
+                  <div className="st-sitter-photo">
+                    <Avatar initials={sit.photoInitials} src={sit.avatarUrl} size={120} />
+                    {sit.reviewCount > 0 && (
+                      <span className="st-ov st-ov-rating">
+                        <Sym name="star" size={16} filled />
+                        <strong className="tabular">{sit.rating.toFixed(1)}</strong>
+                        <span>
+                          {interpolate(m.home.reviewsFrom, {
+                            count: numberFmt(sit.reviewCount, locale),
+                          })}
+                        </span>
                       </span>
                     )}
+                    <span className="st-ov st-ov-place">
+                      <Sym name="location" size={14} />
+                      {sit.neighbourhood}
+                    </span>
                   </div>
 
-                  <Link
-                    href={`/${segmentFor(locale)}/${slug}/sitter/${s.slug}/`}
-                    className="hp-sitter-link"
-                  >
-                    {m.home.sitterViewProfile}
-                  </Link>
-                </div>
-              </article>
-            ))}
+                  <div className="st-sitter-top">
+                    <div>
+                      <h3 className="st-sitter-name">{sit.firstName} {sit.lastNameInitial}.</h3>
+                      <p className="st-sitter-sub">
+                        {interpolate(m.home.sitterReplies, {
+                          hours: String(Math.max(1, Math.round(sit.responseMinutes / 60))),
+                        })}
+                      </p>
+                    </div>
+                    <div className="st-sitter-pricebox">
+                      <span className="st-sitter-price tabular">{money(sit.priceCents, locale)}</span>
+                      <span className="st-sitter-unit">/ {m.unit[SERVICES.boarding.unit]}</span>
+                    </div>
+                  </div>
+
+                  <div className="st-traits">
+                    <span className="st-trait st-trait-key">
+                      <Sym name="verified" size={14} />
+                      {m.home.traitChecked}
+                    </span>
+                    {sit.yardFenced && <span className="st-trait">{m.searchPage.yard}</span>}
+                    {sit.acceptsCats && <span className="st-trait">{m.searchPage.cats}</span>}
+                  </div>
+
+                  <div className="st-sitter-foot">
+                    <span className="st-sitter-verified">
+                      <Sym name="shield" size={16} />
+                      {m.home.traitIdentity}
+                    </span>
+                    <Link href={`/${s}/${slug}/sitter/${sit.slug}/`} className="st-ghost-btn">
+                      {m.home.sitterViewProfile}
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* ================= UC ADIM ================= */}
-      <section className="hp-band">
-        <div className="container hp-section">
-          <h2 className="hp-h2">{m.home.stepsHeading}</h2>
-          <p className="hp-lead">{m.home.stepsLead}</p>
+      {/* ===================== UC ADIM ===================== */}
+      <section className="st-section">
+        <div className="st-wrap">
+          <div className="st-head-centre">
+            <span className="st-eyebrow">{m.home.stepsEyebrow}</span>
+            <h2 className="st-h2">{m.home.stepsHeading}</h2>
+            <p className="st-head-note">{m.home.stepsLead}</p>
+          </div>
 
-          <ol className="hp-steps">
+          <ol className="st-steps">
             {([
-              [m.home.step1Title, m.home.step1Body],
-              [m.home.step2Title, m.home.step2Body],
-              [m.home.step3Title, m.home.step3Body],
-            ] as const).map(([title, body], i) => (
-              <li key={title} className="hp-step">
-                <span className="hp-step-num" aria-hidden="true">{i + 1}</span>
-                <h3 className="hp-step-title">{title}</h3>
-                <p className="hp-step-body">{body}</p>
+              [m.home.step1Title, m.home.step1Body, m.home.step1Tag, 'verified', 'sage'],
+              [m.home.step2Title, m.home.step2Body, m.home.step2Tag, 'handshake', 'coral'],
+              [m.home.step3Title, m.home.step3Body, m.home.step3Tag, 'chat', 'gold'],
+            ] as const).map(([title, body, tag, icon, tone], i) => (
+              <li key={title} className={`st-step st-tone-${tone}`}>
+                <span className="st-step-num" aria-hidden="true">{i + 1}</span>
+                <h3 className="st-step-title">{title}</h3>
+                <p className="st-step-body">{body}</p>
+                <span className="st-step-tag">
+                  <Sym name={icon as SymName} size={18} />
+                  {tag}
+                </span>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      {/* ================= GUVEN PANELI ================= */}
-      <section className="container hp-section">
-        <div className="hp-shield">
-          <div className="hp-shield-head">
-            <h2 className="hp-shield-title">{m.home.shieldHeading}</h2>
-            <p className="hp-shield-lead">{m.home.shieldLead}</p>
-          </div>
-
-          <div className="hp-pillars">
-            {([
-              [m.home.shield1Title, m.home.shield1Body],
-              [m.home.shield2Title, m.home.shield2Body],
-              [m.home.shield3Title, m.home.shield3Body],
-              [m.home.shield4Title, m.home.shield4Body],
-            ] as const).map(([title, body]) => (
-              <div key={title} className="hp-pillar">
-                <h3 className="hp-pillar-title">{title}</h3>
-                <p className="hp-pillar-body">{body}</p>
+      {/* ===================== GUVEN PANELI ===================== */}
+      <section className="st-section st-section-container">
+        <div className="st-wrap">
+          <div className="st-shield">
+            <div className="st-shield-blob" aria-hidden="true"></div>
+            <div className="st-shield-grid">
+              <div className="st-shield-copy">
+                <span className="st-shield-eyebrow">
+                  <Sym name="shield" size={18} />
+                  {m.home.shieldEyebrow}
+                </span>
+                <h2 className="st-shield-title">{m.home.shieldHeading}</h2>
+                <p className="st-shield-lead">{m.home.shieldLead}</p>
               </div>
-            ))}
-          </div>
 
-          {/*
-            SIGORTA DEGIL. Tasarim buraya "$2,000,000 CAD Vet Coverage"
-            yaziyordu. Boyle bir policemiz yok ve koruma sayfamiz zaten
-            bunun bir SIRKET GARANTISI oldugunu soyluyor; ayni cumle
-            burada da duruyor, kucuk puntoda saklanmiyor.
-          */}
-          <p className="hp-shield-note">{m.home.shieldNotInsurance}</p>
+              <div className="st-pillars">
+                {([
+                  ['health', m.home.shield1Title, m.home.shield1Body],
+                  ['verified', m.home.shield2Title, m.home.shield2Body],
+                  ['lock', m.home.shield3Title, m.home.shield3Body],
+                  ['globe', m.home.shield4Title, m.home.shield4Body],
+                ] as const).map(([icon, title, body]) => (
+                  <div key={title} className="st-pillar">
+                    <Sym name={icon as SymName} size={28} className="st-pillar-icon" />
+                    <h3 className="st-pillar-title">{title}</h3>
+                    <p className="st-pillar-body">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="st-shield-note">{m.home.shieldNotInsurance}</p>
+          </div>
         </div>
       </section>
 
-      {/* ================= YORUMLAR ================= */}
+      {/* ===================== YORUMLAR ===================== */}
       {reviews.length > 0 && (
-        <section className="container hp-section">
-          <h2 className="hp-h2">{m.home.reviewsHeading}</h2>
-          <p className="hp-lead">{m.home.reviewsLead}</p>
+        <section className="st-section">
+          <div className="st-wrap">
+            <div className="st-head">
+              <div>
+                <span className="st-eyebrow">{m.home.reviewsEyebrow}</span>
+                <h2 className="st-h2">{m.home.reviewsHeading}</h2>
+              </div>
+              <span className="st-chip">
+                <Sym name="verified" size={18} />
+                {m.home.reviewsLead}
+              </span>
+            </div>
 
-          <div className="hp-reviews">
-            {reviews.map((r) => (
-              <figure key={r.id} className="hp-review">
-                <div className="hp-review-stars" aria-label={`${r.rating} / 5`}>
-                  {'★'.repeat(Math.round(r.rating))}
-                </div>
-                <blockquote className="hp-review-body">{r.body}</blockquote>
-                <figcaption className="hp-review-by">
-                  <Avatar
-                    initials={`${r.authorFirstName.charAt(0)}${r.authorInitial}`}
-                    src={r.authorAvatarUrl}
-                    size={36}
-                  />
-                  <span>
-                    <span className="hp-review-name">
-                      {r.authorFirstName} {r.authorInitial}.
-                    </span>
-                    <span className="hp-review-meta">{r.sitterFirstName}</span>
+            <div className="st-grid-3">
+              {reviews.map((r) => (
+                <figure key={r.id} className="st-review">
+                  <span className="st-stars" aria-label={`${r.rating} / 5`}>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Sym key={i} name="star" size={18} filled={i < Math.round(r.rating)} />
+                    ))}
                   </span>
-                </figcaption>
-              </figure>
-            ))}
+                  <blockquote className="st-review-body">{r.body}</blockquote>
+                  <figcaption className="st-review-by">
+                    <Avatar
+                      initials={`${r.authorFirstName.charAt(0)}${r.authorInitial}`}
+                      src={r.authorAvatarUrl}
+                      size={40}
+                    />
+                    <span>
+                      <span className="st-review-name">{r.authorFirstName} {r.authorInitial}.</span>
+                      <span className="st-review-meta">
+                        {interpolate(m.home.reviewFor, { sitter: r.sitterFirstName })}
+                      </span>
+                    </span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* ================= BAKICI DAVETI ================= */}
-      <section className="container hp-section">
-        <div className="hp-cta">
-          <div>
-            <h2 className="hp-cta-title">{m.home.sitterCtaHeading}</h2>
-            <p className="hp-cta-body">{m.home.sitterCtaBody}</p>
+      {/* ===================== BAKICI DAVETI ===================== */}
+      <section className="st-section st-section-last">
+        <div className="st-wrap">
+          <div className="st-cta">
+            <div className="st-cta-copy">
+              <span className="st-cta-eyebrow">{m.home.sitterCtaEyebrow}</span>
+              <h2 className="st-cta-title">{m.home.sitterCtaHeading}</h2>
+              <p className="st-cta-body">{m.home.sitterCtaBody}</p>
+            </div>
+            <Link href={`/${s}/become-a-sitter/`} className="st-cta-btn">
+              <span>{m.nav.becomeSitter}</span>
+              <Sym name="arrow-right" size={22} />
+            </Link>
           </div>
-          <Link href={`/${segmentFor(locale)}/become-a-sitter/`} className="hp-cta-btn">
-            {m.nav.becomeSitter}
-          </Link>
         </div>
       </section>
     </>
-  );
-}
-
-/** Serit ve liste isaretleri — ayni cizim uc yerde kullaniliyor */
-function CheckMark() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="m5 12.5 4.5 4.5L19 7.5"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

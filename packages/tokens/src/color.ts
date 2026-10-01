@@ -42,10 +42,10 @@ export const palette = {
   primary50:  '#FDEEE9',
   primary100: '#FAD9CE',
   /* Tasarimin parlak mercani: YUZEY olarak kullaniliyor, yazi rengi olarak degil */
-  primary300: '#F37B5C',
-  primary500: '#BF4426',
-  primary600: '#A83A1F',
-  primary700: '#8E3019',
+  primary300: '#FD8363',
+  primary500: '#A23E24',
+  primary600: '#8C341C',
+  primary700: '#721C05',
   primary900: '#4A180B',
 
   // Aksan — "Adacayi yesili". DESTEK ve GUVEN rengi.
@@ -80,12 +80,12 @@ export const palette = {
     zeminde duruyor. Sayfanin geri kalani acik kaliyor: koyuluk tek bir
     bloga hapsedilmis durumda.
   */
-  panel:          '#1E4F42',
-  panelRaised:    '#2A6355',
+  panel:          '#226150',
+  panelRaised:    '#3D7A68',
   panelInk:       '#FFF8F4',
   panelInkMuted:  '#BFD9CE',
   panelPrimary:   '#FFB4A2',
-  panelAccent:    '#95D3BE',
+  panelAccent:    '#B0F0D9',
 
   // PASTEL KUTUCUKLAR — hizmet kartlarindaki ikon zeminleri
   tileRose:   '#FDEEE9',
@@ -96,6 +96,25 @@ export const palette = {
   tileSageInk:    '#1A4F41',
   tileApricotInk: '#8A5A0B',
   tilePeriInk:    '#2F4F7A',
+
+  /*
+    YUZEY MERDIVENI — tasarimin surface-container-* kademeleri.
+
+    Tasarim tek bir "kart zemini" kullanmiyor: beyaz kart, acik krem
+    bolum, biraz daha koyu bir cip ve en koyu kenarlik ayri ayri
+    tanimli. Bu dort ton olmadan sayfa duzlesiyor.
+  */
+  surfaceContainer:  '#FCEBDD',
+  surfaceHigh:       '#F6E5D7',
+  surfaceHighest:    '#F0E0D2',
+  outline:           '#707975',
+
+  /* Pastel yesil rozet zemini ve uzerindeki koyu yesil yazi */
+  primaryFixed:      '#B0F0D9',
+  onPrimaryFixed:    '#0A5040',
+  /* Yildizlarin bal sarisi ve uzerinde okunacak koyu ton */
+  gold:              '#FDBB49',
+  goldInk:           '#6B4405',
 
   // Guven rozetleri — bilincli olarak marka renginden ayri
   verifyId:      '#2C5F8A',
@@ -118,6 +137,12 @@ export const lightTheme = {
   'primary-hover':   palette.primary600,
   'primary-active':  palette.primary700,
   'primary-subtle':  palette.primary50,
+  /*
+    Tasarimin parlak mercani. YUZEY rengi: uzerine koyu mercan yazi
+    gelir (primary-active, 4,6:1). Beyaz yazi ile kullanilmaz --
+    o cift 2,7:1 ve AA'nin altinda.
+  */
+  'primary-bright':  palette.primary300,
   'primary-on':      '#FFFFFF',
   'accent':          palette.accent500,
   'accent-hover':    palette.accent600,
@@ -157,6 +182,14 @@ export const lightTheme = {
   'tile-apricot-ink':palette.tileApricotInk,
   'tile-peri':       palette.tilePeri,
   'tile-peri-ink':   palette.tilePeriInk,
+  'surface-container': palette.surfaceContainer,
+  'surface-high':      palette.surfaceHigh,
+  'surface-highest':   palette.surfaceHighest,
+  'outline':           palette.outline,
+  'primary-fixed':     palette.primaryFixed,
+  'on-primary-fixed':  palette.onPrimaryFixed,
+  'gold':              palette.gold,
+  'gold-ink':          palette.goldInk,
 } as const;
 
 /**
@@ -216,6 +249,17 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'tile-apricot-ink':'#DFA96A',
   'tile-peri':       '#1E1D33',
   'tile-peri-ink':   '#A7A3E0',
+  /* Yeni anahtarlarin koyu tema karsiliklari — koyu tema hala onaylanmadi,
+     yalnizca butunluk testi gecsin ve [data-theme=dark] kirilmasin diye. */
+  'primary-bright':    '#7A3426',
+  'surface-container': '#2B1F29',
+  'surface-high':      '#33262F',
+  'surface-highest':   '#3B2D36',
+  'outline':           '#8C8089',
+  'primary-fixed':     '#1F4A3E',
+  'on-primary-fixed':  '#B0F0D9',
+  'gold':              '#5A3C06',
+  'gold-ink':          '#FDD089',
 };
 
 export type ThemeToken = keyof typeof lightTheme;

@@ -48,57 +48,74 @@ export const enCA = {
     statPrice: 'median price',
     statBookings: 'completed bookings',
 
-    /* --- Yeni anasayfa (Warm Paw yerlesimi) --- */
+    /* --- Anasayfa: Stitch yerlesimi --- */
     /*
-      Basligin bir kelimesi dalgali cizgiyle vurgulaniyor. Kelimeyi
-      ayri bir anahtar olarak tutuyoruz cunku Fransizcada cumledeki
-      YERI degisiyor: baslik metni {accent} yer tutucusunu nereye
-      koyarsa vurgu oraya dusuyor.
+      Basligin bir kelimesi dalgali cizgiyle vurgulaniyor. Kelime ayri
+      bir anahtar cunku Fransizcada cumledeki YERI degisiyor.
     */
-    heroTitle: 'Loving pet care, right in your {accent}',
-    heroAccent: 'neighbourhood',
-    heroBadge: 'Every sitter background-checked',
-    heroPillChecks: 'Enhanced record and identity check',
+    heroTitle: 'Loving, verified pet sitters in your {accent}',
+    heroAccent: 'Toronto',
+    heroBadge: 'Open in Toronto today',
+    heroPillChecks: 'Record and identity checked',
     heroPhotoAlt: 'A sitter outdoors with a dog',
-    /* Arama kutusunun altindaki ince serit — hepsi kodun gercekten yaptigi sey */
-    ribbonFees: 'Every fee shown before you book',
-    ribbonExpiry: 'A request nobody answers expires in 36 hours',
-    ribbonCanada: 'Data stays in Canada',
+    heroBadgeSub: 'Accepting bookings now',
+    heroSitterCount: '{count} verified sitters in {city}',
+    heroMedian: 'Median {price} / {unit}',
+    reviewsFrom: 'from {count} reviews',
 
+    searchWherePlaceholder: 'Neighbourhood or postal code in {city}',
+    searchPetPlaceholder: 'Weight in kg',
+    ribbonChecks: 'Record and identity checked',
+    ribbonFees: 'Every fee before you book',
+    ribbonExpiry: 'Unanswered requests expire in 36 h',
+    ribbonCanada: 'Built and hosted in Canada',
+
+    servicesEyebrow: 'What we do',
     servicesHeading: 'Care shaped around your animal',
-    servicesLead: 'Four services today. You set the dates, the sitter sets the price, and the total you see is the total you pay.',
-    serviceFrom: 'From {price}',
+    servicesLead: 'Four services today. You pick the dates, the sitter sets the price, and the total you see is the total you pay.',
+    serviceFromLabel: 'From',
     serviceNoPrice: 'Prices set by each sitter',
 
+    sittersEyebrow: 'Taking bookings now',
     sittersHeading: 'Sitters in {city}',
-    sittersLead: 'Ranked on how well they match you — never on what they pay us.',
-    sittersAll: 'See all sitters',
+    sittersAllCount: 'See all {count}',
     sitterViewProfile: 'View profile',
+    sitterReplies: 'Usually replies within {hours} h',
+    traitChecked: 'Record checked',
+    traitIdentity: 'Identity verified',
 
+    stepsEyebrow: 'Simple and transparent',
     stepsHeading: 'Three steps, no surprises',
-    stepsLead: 'From first message to homecoming.',
+    stepsLead: 'From the first message to the moment they are back home.',
     step1Title: 'Browse verified sitters',
-    step1Body: 'Read full profiles, see what each sitter accepts and what they charge. Every price on screen already includes our fee.',
+    step1Body: 'Read full profiles, see exactly what each sitter accepts and what they charge. Every price already includes our fee.',
+    step1Tag: 'Record and identity checked',
     step2Title: 'Meet before you commit',
-    step2Body: 'Message the sitter and arrange to meet. Nothing is charged until they accept the booking.',
+    step2Body: 'Message the sitter and arrange to meet, at your place or a nearby park. Nothing is charged until they accept.',
+    step2Tag: 'Always free',
     step3Title: 'Book and stay in touch',
-    step3Body: 'Message your sitter during the stay. A request nobody answers expires on its own in 36 hours.',
+    step3Body: 'Message your sitter during the stay. A request nobody answers expires on its own after 36 hours.',
+    step3Tag: 'Messaging included',
 
+    shieldEyebrow: 'The Havre Protection programme',
     shieldHeading: 'What we actually check',
-    shieldLead: 'Four promises, and the code behind each one.',
+    shieldLead: 'Four promises, and the code behind each one. Nothing here is aspirational.',
     shield1Title: 'Enhanced record check',
-    shield1Body: 'Criminal record check plus biometric identity verification, before a sitter can take a first booking.',
+    shield1Body: 'Criminal record check and biometric identity verification, before a sitter can take a first booking.',
     shield2Title: 'Every fee, before you book',
     shield2Body: 'Extra-pet fee, holiday rate and cancellation terms are on the sitter card, not in a footnote.',
     shield3Title: 'The sitter keeps most of it',
     shield3Body: 'Nothing on clients a sitter brought themselves, 10% on repeat bookings, 18% on a client we found.',
     shield4Title: 'Your data stays in Canada',
     shield4Body: 'Stored in Montréal. Bilingual by default, in English and French.',
-    shieldNotInsurance: 'This is a company guarantee, not an insurance product, and it does not replace your own insurance.',
+    shieldNotInsurance: 'The Havre Protection programme is a company guarantee, not an insurance product, and it does not replace your own insurance.',
 
+    reviewsEyebrow: 'From the people who booked',
     reviewsHeading: 'What owners wrote',
-    reviewsLead: 'Only from people who finished a booking. We never write or edit them.',
+    reviewsLead: 'Only after a finished booking',
+    reviewFor: 'stayed with {sitter}',
 
+    sitterCtaEyebrow: 'Sitter community',
     sitterCtaHeading: 'You set the price. You keep most of it.',
     sitterCtaBody: 'Bring your own client and we take nothing, ever. Applications are open in every city — your profile goes live the day we open yours.',
   },
