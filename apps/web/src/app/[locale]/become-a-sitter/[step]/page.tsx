@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
-  completedSteps, isOnboardingStep, missingRequiredSteps, ONBOARDING_STEPS, photoTotal,
+  completedSteps, isOnboardingStep, missingRequiredSteps, ONBOARDING_STEPS, photoTotal, stepIndex,
   type OnboardingStep, type ProvinceCode,
 } from '@havre/core';
-import { getMessages, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
+import { getMessages, interpolate, localeFromSegment, segmentFor, type Messages } from '@havre/i18n';
 import {
   getDb, getOnboardingState, listCities, listNeighbourhoods, listSitterPhotos,
   servicePriceRanges, MAX_SITTER_PHOTOS, MAX_PET_PHOTOS,
@@ -80,13 +80,25 @@ export default async function OnboardingStepPage({
         </div>
 
         <div className="st-wrap pg-hero-inner wizard-head">
-          <Link href={`/${seg}/become-a-sitter/`} className="text-body-sm muted">
-            ← {m.onboarding.backToStart}
+          <Link href={`/${seg}/become-a-sitter/`} className="wizard-back">
+            <span aria-hidden="true">&larr;</span> {m.onboarding.backToStart}
           </Link>
-          <h1 className="text-h1">{heading}</h1>
-          <p className="text-body-lg muted" style={{ marginTop: 'var(--space-3)', maxWidth: '38rem' }}>
-            {key(`intro.${step}`)}
-          </p>
+
+          {/*
+            ADIM NUMARASI HAPTA, BASLIKTA DEGIL.
+
+            Baslik "Neler sunuyorsun" diyordu ve kac adim kaldigi ancak
+            asagidaki ilerleme kartinda goruluyordu. Sitenin geri
+            kalaninda her sayfanin ustunde bir hap var; burada o hapin
+            tasiyacagi en degerli bilgi adimin kendisi.
+          */}
+          <span className="st-eyebrow-pill">
+            {interpolate(m.onboarding.stepOf, { current: stepIndex(step as OnboardingStep) + 1, total: ONBOARDING_STEPS.length })}
+          </span>
+
+          <h1 className="pg-h1">{heading}</h1>
+          <p className="pg-lead">{key(`intro.${step}`)}</p>
+
           <Progress locale={locale} current={step as OnboardingStep} completed={done} />
         </div>
       </section>

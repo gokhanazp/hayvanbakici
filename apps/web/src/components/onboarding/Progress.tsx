@@ -58,13 +58,23 @@ export function Progress({
       </div>
 
       {/*
-        Dolgu cubugu. Noktalar zaten nerede oldugunu soyluyor ama
-        "ne kadar kaldi" sorusunu bir cubuk tek bakista cevapliyor.
-        Ekran okuyucu icin role="progressbar": gorsel cubuk tek
-        basina bir sey anlatmaz.
+        CUBUK ARTIK GORUNMEZ — AMA DURUYOR.
+
+        Onceden iki ayri sey ciziliyordu: ustte ince bir dolgu cubugu,
+        altinda noktali bir durak sirasi. Ayni bilgiyi iki kez, iki
+        farkli olcekte anlatiyorlardi ve karti gereksiz uzatiyorlardi.
+        Referans tasarimda tek bir kalin ray var ve duraklar ONUN
+        UZERINDE oturuyor; dolu kisim nerede bittiyse icinde bulunulan
+        durak orada.
+
+        Goruntuyu artik duraklari birlestiren cizgi tasiyor (CSS,
+        .wizard-node::before). Bu oge ise EKRAN OKUYUCU icin kaliyor:
+        yedi madde isareti dinlemek "yuzde 43" duymakla ayni sey degil.
+        Silinemez, cunku o zaman ilerleme yalnizca GORSEL olarak
+        anlatilmis olurdu.
       */}
       <div
-        className="wizard-bar"
+        className="wizard-bar sr-only"
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}

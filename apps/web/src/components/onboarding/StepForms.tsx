@@ -212,7 +212,7 @@ export function AboutForm({
   const [v, set] = useFields(initial);
 
   return (
-    <form action={formAction} className="auth-form">
+    <form action={formAction} className="wiz-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
       {/* Ad ve bas harf ayni satirda: ikisi tek bir bilgi (isim) ve alt
@@ -301,7 +301,7 @@ export function LocationForm({
   const hoods = neighbourhoods.filter((h) => h.cityId === v.cityId);
 
   return (
-    <form action={formAction} className="auth-form">
+    <form action={formAction} className="wiz-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
       <Field id="cityId" label={m.onboarding['location.city']} error={err(m, state.errors.cityId)}>
@@ -445,7 +445,7 @@ export function ServicesForm({
   }
 
   return (
-    <form action={formAction} className="auth-form">
+    <form action={formAction} className="wiz-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
       <p className="notice">{m.onboarding['services.priceNote']}</p>
@@ -486,15 +486,30 @@ export function ServicesForm({
                   <span className="field-hint" style={{ display: 'block' }}>
                     {m.serviceDescription[type as ServiceType]}
                   </span>
-                  {/*
-                    TIPIK FIYAT SATIRI KALDIRILDI.
-                    Ayni bilgi fiyat alaninin ALTINDA, hem aralik hem
-                    medyan olarak zaten yaziyordu: "Sitters near you
-                    charge $45-$60 - median $55". Iki farkli cumleyle
-                    ayni seyi iki kez soylemek, karti kalabaliklastiran
-                    seylerden biriydi.
-                  */}
                 </span>
+
+                {/*
+                  TIPIK FIYAT — YALNIZCA SATIR KAPALIYKEN.
+
+                  Bu satir bir kez kaldirilmisti, cunku ayni bilgi fiyat
+                  alaninin altinda da yaziyordu. Ama o ipucu satir
+                  ACIKKEN cikiyor; kapaliyken bakici "drop-in ne eder"
+                  bilmeden secim yapiyordu. Yani tekrar degil, tek
+                  gorundugu yer. Satir acilinca buradan kalkiyor.
+
+                  YETERLI ORNEK YOKSA HIC CIZILMIYOR. rangeHint veri
+                  azken "Zorunlu. Istediginiz zaman degistirebilirsiniz."
+                  cumlesine dusuyor; o cumle fiyat alaninin altinda
+                  dogru, ama buradaki hapta fiyat bekleyen bir yerde
+                  fiyat olmayan bir sey yazmak demek. Yeni bir sehirde
+                  dort satirin dordunde ayni cumle tekrarliyordu.
+
+                  aria-hidden DEGIL: ekran okuyucu da ayni karari
+                  verebilmeli.
+                */}
+                {!d.on && r && r.count >= MIN_RANGE_SAMPLE && (
+                  <span className="service-rate">{rangeHint(m, locale, r)}</span>
+                )}
               </div>
 
               {d.on && (
@@ -816,7 +831,7 @@ export function HomeForm({
   const skip = m.onboarding['home.unanswered'];
 
   return (
-    <form action={formAction} className="auth-form">
+    <form action={formAction} className="wiz-form">
       <input type="hidden" name="locale" value={segmentFor(locale)} />
 
       {/*
@@ -1038,7 +1053,7 @@ export function ScreeningForm({
       : 'screening.error';
 
     return (
-      <div className="auth-form">
+      <div className="wiz-form">
         <p className={`alert ${status === 'passed' ? 'alert-ok' : 'alert-error'}`} role="status">
           {m.onboarding[key as keyof Messages['onboarding']] as string}
         </p>
@@ -1053,7 +1068,7 @@ export function ScreeningForm({
   }
 
   return (
-    <form action={formAction} className="auth-form">
+    <form action={formAction} className="wiz-form">
       <input type="hidden" name="locale" value={seg} />
 
       <p>{m.onboarding['screening.body']}</p>
@@ -1176,7 +1191,7 @@ export function ReviewForm({
   ];
 
   return (
-    <form action={formAction} className="auth-form">
+    <form action={formAction} className="wiz-form">
       <input type="hidden" name="locale" value={seg} />
 
       <dl className="review-list">

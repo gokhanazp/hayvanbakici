@@ -1205,6 +1205,7 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 /* Ilk baslik formun en ustunde: cizgiye de bosluga da gerek yok */
 .auth-form > .step-group-title:first-of-type,
+.wiz-form > .step-group-title:first-of-type,
 .book-fields > .step-group-title:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
 /*
   Rezervasyon formunda ilk baslik hata kutusundan SONRA gelebiliyor,
@@ -1217,7 +1218,12 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .step-group-lead { margin: calc(var(--space-3) * -1) 0 0; }
 
 .checkbox-row { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; }
-.checkbox-row input { width: 20px; height: 20px; margin-top: 2px; }
+/*
+  24 PIKSEL (WCAG 2.5.8, AA). Kutular 20 pikseldi. Etiket tiklanabilir
+  olsa da hedef olarak olculen sey kutunun KENDISI; sihirbazin dort
+  ayri adiminda ayni kutu cikiyor.
+*/
+.checkbox-row input { width: 24px; height: 24px; margin-top: 0; flex: 0 0 auto; }
 
 /*
   ONAY KUTULARI MARKA RENGINDE.
@@ -1236,13 +1242,28 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
    oldugunu, ne kadar kaldigini ve neden soruldugunu soyleyen hicbir sey
    yoktu. Simdi renkli baslik bandi + form karti + "neden soruyoruz"
    sutunu. */
-.wizard-head { padding-block: var(--space-8) var(--space-10); }
+/*
+  Alt dolgu --space-10'du. Ilerleme karti zaten bu blogun son ogesi ve
+  altinda hem kahramanin kendi dolgusu hem de formun ust boslugu
+  vardi: uc bosluk ust uste binip ~145 piksellik bos bir serit
+  birakti. Sihirbazda kullanici tam da o iki sey arasinda gidip
+  geliyor.
+*/
+.wizard-head { padding-block: var(--space-6) var(--space-4); }
 .wizard-head h1 { margin: var(--space-3) 0 0; }
+/* Ilerleme karti basligin hemen altinda; kendi ust boslugu yeterli. */
+.wizard-head > .wizard-progress { margin-top: var(--space-5); }
 
 .wizard-body {
   display: grid; gap: var(--space-8);
   grid-template-columns: minmax(0, 1fr);
-  padding-block: calc(var(--section-y) * 0.7) var(--section-y);
+  /*
+    USTTEKI BOSLUK KUCULDU. `--section-y`'nin %70'i 1440 pikselde
+    ~145 piksel ediyordu ve ilerleme karti ile formun arasinda
+    bombos bir serit birakiyordu — sihirbazda kullanici tam da
+    o iki sey arasinda gidip geliyor.
+  */
+  padding-block: var(--space-7) var(--section-y);
   align-items: start;
 }
 @media (min-width: 960px) {
@@ -1302,13 +1323,27 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .wizard-node { position: relative; flex: 1 1 0; min-width: 0; text-align: center; }
 /* Duraklari birlestiren cizgi — noktanin arkasindan gecer */
+/*
+  RAY KALIN. Referansta duraklar ince bir cizgi uzerinde degil, kalin
+  bir rayin UZERINDE oturuyor; ayri bir dolgu cubugu yok. 6 piksel,
+  noktanin tam ortasindan geciyor (nokta 32 piksel -> merkez 16;
+  rayin ustu 16 - 3 = 13).
+*/
 .wizard-node::before {
-  content: ''; position: absolute; top: 15px; right: 50%; width: 100%; height: 2px;
-  background: var(--color-border-strong);
+  content: ''; position: absolute; top: 13px; right: 50%; width: 100%; height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-highest);
 }
 .wizard-node:first-child::before { display: none; }
-.wizard-node.is-done::before,
-.wizard-node.is-current::before { background: var(--color-primary); }
+/*
+  RAY YALNIZCA TAMAMLANMIS ADIMLARI DOLDURUR.
+
+  Once `.is-current` de doluyordu: hicbir adim bitmemisken 4. adimda
+  duran birine ray "ilk ucu bitirdin" diyordu, kartin ustunde ise
+  "ilerleme: %0" yaziyordu. Ayni kart iki farkli sey soyluyordu.
+  Bir adima GELMEK onu BITIRMEK degil.
+*/
+.wizard-node.is-done::before { background: var(--color-accent); }
 .wizard-node > a,
 .wizard-node > span {
   position: relative; z-index: 1;
@@ -4586,7 +4621,17 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   font-size: 0.6875rem; font-weight: 600;
 }
 @media (min-width: 1280px) { .hd-chip { display: inline-flex; } }
-.hd-chip a { color: inherit; text-decoration: none; }
+/*
+  EN / FR baglantilari 13-15 piksel GENISLIGINDEYDI — sitedeki en
+  kucuk dokunma hedefi ve iki dilli bir Kanada sitesinde en cok
+  aranan dugmelerden biri. Yatay dolgu ile 24 pikselin ustune cikiyor;
+  hapin kendi yuksekligi zaten yeterli.
+*/
+.hd-chip a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.5rem; min-height: 1.5rem; padding-inline: 0.25rem;
+  color: inherit; text-decoration: none;
+}
 .hd-chip a:hover { color: var(--color-ink); }
 .hd-chip .is-on { color: var(--color-ink); font-weight: 700; }
 .hd-chip-sep { color: var(--color-outline); }
@@ -4640,7 +4685,20 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .hd-panel-title { font-size: 0.9375rem; font-weight: 700; color: var(--color-ink); }
 .hd-panel-sub { font-size: 0.75rem; color: var(--color-ink-muted); }
 
-.hd-right { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
+/*
+  SAG KUME KUCULEBILIR OLMALI.
+
+  `flex: 0 0 auto` idi ve icindeki hesap cipi de kuculemiyordu: Fransizca
+  gezinme adlari daha uzun oldugu icin 1440 pikselde cip, cubugun sag
+  kenarini 76 piksel asiyordu ve sayfa yatay kayiyordu. Imzalanmamis
+  halde cip dar oldugu icin bu yalnizca GIRIS YAPMIS Fransizca
+  kullanicida goruluyordu — yani ancak oturum acarak olculebilirdi.
+
+  Cozum sabit bir kirilma noktasi degil: kume ve icindeki cip
+  kuculebiliyor, ad ve e-posta nokta nokta kesiliyor. Boylece her
+  genislikte ve her dilde calisiyor.
+*/
+.hd-right { display: flex; align-items: center; gap: 0.5rem; flex: 0 1 auto; min-width: 0; }
 @media (min-width: 1180px) { .hd-right { gap: 1rem; } }
 
 /*
@@ -4693,9 +4751,10 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   tetikleyicisi: tasarimda tiklanabilir duruyor ama menusu cizilmemis,
   bizde icinde CIKIS olmak zorunda (baska yerde yok).
 */
-.hd-user { position: relative; }
+.hd-user { position: relative; min-width: 0; }
 .hd-user-chip {
   display: inline-flex; align-items: center; gap: 0.5rem;
+  min-width: 0; max-width: 100%;
   padding: 0.25rem 1rem 0.25rem 0.25rem; border-radius: var(--radius-full);
   background: var(--color-surface-container);
   border: 1px solid var(--color-surface-highest);
@@ -4711,12 +4770,14 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .hd-user-name {
   font-size: 0.75rem; font-weight: 700; line-height: 1.05rem;
   color: var(--color-ink); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
 }
 /* E-posta uzun olabilir: hapi buyutmesin, nokta nokta kesilsin. */
 .hd-user-sub {
   font-size: 0.6875rem; font-weight: 500; line-height: 0.9rem;
   color: var(--color-accent);
-  max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 11rem; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* Giris yapilmamis hal: ayni hap, avatar yerine silueti, tek satir */
 .hd-user-guest { padding: 0.5rem 1rem; gap: 0.375rem; }
@@ -5775,3 +5836,152 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: no-preference) {
   .skip-link { transition: transform 120ms ease-out; }
 }
+
+/* ==========================================================================
+   BAKICI BASVURU SIHIRBAZI — FORM (.wiz-*)
+
+   Adim formlari `.auth-form` kullaniyordu. O sinif GIRIS EKRANI icin
+   yazilmis ve `max-width: 34rem` tasiyor — dogru olan da bu, bir
+   e-posta/sifre formu genis ekranda sayfanin ortasinda dar bir sutun
+   olmali. Ama sihirbazda ayni sinif 940 piksellik kartin icinde 544
+   piksellik bir sutun cizdiriyordu: kartin YARISI bostu ve "Ev tipi"
+   acilir kutusu ile dort satirlik bir metin alani ayni genislikteydi.
+
+   Buradaki form kartin tamamini kullanir ve alanlar ICERIGINE gore
+   boyutlanir.
+   ========================================================================== */
+.wiz-form { display: grid; gap: var(--space-5); }
+
+/*
+  ALAN SIRALARI. Varsayilan: alanlar yan yana akar, en az 14 rem,
+  sigmayinca alta sarar. Boylece "Ad" + "Soyad bas harfi" bir satirda,
+  tek basina duran bir metin alani tam genislikte.
+*/
+.wiz-form .field-row { gap: var(--space-5); }
+.wiz-form .field-row > * { flex: 1 1 14rem; }
+
+/*
+  ICERIGINE GORE GENISLIK. Bir "kac ay" ya da "kac saat" alani 544
+  piksel genis olmamali; sayinin kendisi uc hane. Dar alanlar
+  buyumeye calismaz.
+*/
+.wiz-form .field-narrow { flex: 0 0 auto; }
+.wiz-form .field-narrow input { width: 7rem; }
+/* Metin alanlari her zaman tam genislik — okuma sutunu kendi icinde. */
+.wiz-form textarea { width: 100%; }
+.wiz-form .field-full { flex: 1 1 100%; }
+
+/*
+  ACIKLAMA/UYARI KUTULARI tam genislik: form iki sutuna acilinca
+  bunlar yarim satirda asili kaliyordu.
+*/
+.wiz-form > .alert,
+.wiz-form > .notice,
+.wiz-form > .wiz-note { width: 100%; }
+
+/*
+  BOLUM BASLIGI NUMARALI — referanstaki "1 / Services You Want to
+  Offer" basligi. Numara, uzun bir formda kullanicinin nerede
+  oldugunu baslik metnini okumadan soyluyor. Sayac CSS'ten geliyor:
+  bir bolum eklenip silindiginde elle yazilmis numaralar bozulurdu.
+*/
+.wiz-form { counter-reset: wiz-sec; }
+.wiz-form .step-group-title {
+  display: flex; align-items: center; gap: 0.75rem;
+  counter-increment: wiz-sec;
+}
+.wiz-form .step-group-title::before {
+  content: counter(wiz-sec);
+  display: grid; place-items: center; flex: 0 0 auto;
+  width: 1.75rem; height: 1.75rem; border-radius: var(--radius-full);
+  background: var(--color-accent-subtle); color: var(--color-accent-hover);
+  font-size: 0.8125rem; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+
+/* Kaydet/geri satiri: dugme solda, "geri" yaninda, ustte ince cizgi. */
+.wiz-form .wizard-actions { margin-top: var(--space-4); }
+
+/* ---------- Ozet ekrani (.review-*) ----------
+   Bu uc sinif stil sayfasinda HIC YOKTU: ozet, cipciplak bir <dl>
+   olarak ciziliyordu — etiket, deger ve "Duzenle" alt alta, aralarinda
+   hicbir ayrim olmadan. On bes dakikalik bir formun son ekrani.
+*/
+.review-list {
+  display: grid; gap: 0.5rem; margin: 0;
+  border: 1px solid var(--color-outline-variant); border-radius: 1rem;
+  padding: 0.5rem; background: var(--color-surface-sunken);
+}
+.review-row {
+  display: grid; gap: 0.125rem 1rem; align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.75rem 1rem; border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+.review-row > dt {
+  grid-column: 1; font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted);
+}
+.review-row > dd {
+  grid-column: 1; grid-row: 2; margin: 0;
+  font-size: 0.9375rem; color: var(--color-ink);
+}
+.review-edit {
+  grid-column: 2; grid-row: 1 / span 2;
+  display: inline-flex; align-items: center; min-height: 1.5rem;
+  padding: 0.25rem 0.75rem; border-radius: var(--radius-full);
+  background: var(--color-surface-high); color: var(--color-primary);
+  font-size: 0.8125rem; font-weight: 600; text-decoration: none;
+}
+.review-edit:hover { background: var(--color-primary-subtle); }
+
+/*
+  HIZMET SATIRI — KAPALIYKEN TEK SATIR.
+
+  Kapali kart 940 piksellik kartin icinde yuksek bir beyaz kutuydu ve
+  sag yarisi bombostu: solda onay kutusu, ikon, ad ve bir cumlelik
+  aciklama, sagda hicbir sey. Referans tasarimda bu satirin saginda
+  fiyat duruyor. Bizde fiyat ancak hizmet secilince aciliyor (ki
+  dogrusu bu), o yuzden sag tarafa cevredeki TIPIK fiyat yaziliyor:
+  bakicinin o secimi yaparken ihtiyaci olan tek sayi.
+*/
+.service-head { display: flex; gap: var(--space-3); align-items: start; }
+/*
+  Metin blogu KUCULEBILIR olmali (min-width: 0). Aksi halde kendi
+  en-az-icerik genisligini dayatiyor ve telefonda onay kutusunu
+  tek basina bir satira itiyordu.
+*/
+.service-head-text { flex: 1 1 10rem; min-width: 0; }
+.service-rate {
+  flex: 0 0 auto; align-self: center; max-width: 16rem;
+  padding: 0.4375rem 0.875rem; border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+  font-size: 0.75rem; line-height: 1rem; color: var(--color-ink-secondary);
+  text-align: end;
+}
+@media (max-width: 719px) {
+  /*
+    Telefonda fiyat hapi yan yana sigmaz: ALT SATIRA, tam genislikte.
+    Sarmayi yalnizca hap yapiyor (flex-basis: 100%); onay kutusu ile
+    metin ayni satirda kaliyor.
+  */
+  .service-head { flex-wrap: wrap; }
+  .service-rate { flex: 1 1 100%; max-width: none; text-align: start; }
+}
+
+/*
+  SIHIRBAZ — GERI BAGLANTISI VE EKSIK ADIM LISTESI.
+  Ikisi de kendi satirinda duran, cumle ICINDE olmayan baglantilar;
+  2.5.8'in satir ici istisnasi gecerli degil (olculen: 181x19 ve 67x18).
+*/
+.wizard-back {
+  display: inline-flex; align-items: center; gap: 0.25rem; min-height: 1.5rem;
+  font-size: 0.875rem; color: var(--color-ink-secondary); text-decoration: none;
+}
+.wizard-back:hover { color: var(--color-primary); }
+.alert ul a { display: inline-flex; align-items: center; min-height: 1.5rem; }
+
+/*
+  Baslikta geri baglantisi ile adim hapi ayni satirda; aralarinda
+  nefes olsun diye.
+*/
+.wizard-head > .st-eyebrow-pill { margin-inline-start: 0.5rem; }
