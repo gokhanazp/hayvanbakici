@@ -129,7 +129,7 @@ export function Header({ locale, citySlug: city }: { locale: Locale; citySlug: s
               <Sym name="help" size={22} />
             </Link>
             <Link
-              href={`/${seg}/account/favourites/`}
+              href={`/${seg}/favourites/`}
               className="hd-icon"
               title={m.favourites.tab}
               aria-label={m.favourites.tab}

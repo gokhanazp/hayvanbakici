@@ -6,6 +6,7 @@ import {
 import { servicesForPhase, SERVICES } from '@havre/core';
 import { Sym, type SymName } from '@/components/Sym';
 import { Photo } from '@/components/Photo';
+import { SERVICE_SYM } from '@/components/ServiceIcon';
 import { Avatar } from '@/components/Avatar';
 import {
   cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData,
@@ -39,13 +40,6 @@ export const revalidate = 3600;
 
 /** Hizmet kutucuklarinin tasarimdaki ton sirasi */
 const SERVICE_TONE = ['sage', 'coral', 'gold', 'sage'] as const;
-const SERVICE_SYM: Record<string, SymName> = {
-  boarding: 'night',
-  house_sitting: 'house',
-  drop_in: 'cat',
-  dog_walking: 'walk',
-  day_care: 'sun',
-};
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: seg } = await params;
@@ -160,7 +154,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     value={serviceSlug(sv, locale)}
                     defaultChecked={i === 0}
                   />
-                  <Sym name={SERVICE_SYM[sv] ?? 'pets'} size={18} />
+                  <Sym name={SERVICE_SYM[sv]} size={18} />
                   <span>{m.service[sv]}</span>
                 </label>
               ))}
@@ -193,7 +187,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <div className="st-field">
                 <label htmlFor="hs-pet">{m.search.pet}</label>
                 <div className="st-field-row">
-                  <Sym name="pets" size={20} className="st-ic-gold" />
+                  <Sym name="rabbit" size={20} className="st-ic-gold" />
                   <input
                     id="hs-pet"
                     name="weight"
@@ -243,7 +237,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   className={`st-svc st-tone-${SERVICE_TONE[i % SERVICE_TONE.length]}`}
                 >
                   <span className="st-svc-tile" aria-hidden="true">
-                    <Sym name={SERVICE_SYM[sv] ?? 'pets'} size={30} />
+                    <Sym name={SERVICE_SYM[sv]} size={30} />
                   </span>
                   <h3 className="st-svc-name">{m.service[sv]}</h3>
                   <p className="st-svc-body">{m.serviceDescription[sv]}</p>
@@ -358,7 +352,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <ol className="st-steps">
             {([
               [m.home.step1Title, m.home.step1Body, m.home.step1Tag, 'verified', 'sage'],
-              [m.home.step2Title, m.home.step2Body, m.home.step2Tag, 'handshake', 'coral'],
+              [m.home.step2Title, m.home.step2Body, m.home.step2Tag, 'people', 'coral'],
               [m.home.step3Title, m.home.step3Body, m.home.step3Tag, 'chat', 'gold'],
             ] as const).map(([title, body, tag, icon, tone], i) => (
               <li key={title} className={`st-step st-tone-${tone}`}>

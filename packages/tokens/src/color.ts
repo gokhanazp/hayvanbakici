@@ -1,18 +1,28 @@
 /**
  * Renk paleti — "Warm Paw".
  *
- * KAYNAK: Stitch'te uretilen tasarim sisteminin (warm_paw_companion)
- * token'lari. Oradan AYNEN alinmadi; iki yerde bilerek ayrildi ve ikisi
- * de kontrast yuzunden (contrast.test.ts hepsini olcuyor):
+ * KAYNAK: tasarimin kendi renk tablosu (home_discovery/code.html
+ * icindeki tailwind.config). Tonlar oradan BIRE BIR alindi; yalnizca
+ * bir yerde ayrildik ve o da kontrast yuzunden (contrast.test.ts
+ * hepsini olcuyor):
  *
- *  1. EYLEM RENGI KOYULASTIRILDI. Tasarimda dolgulu dugmeler parlak
- *     mercan (#F37B5C) ve uzerinde beyaz yazi var; o cift 2,7:1 veriyor
- *     ve AA'nin cok altinda. Parlak mercan artik bir YUZEY rengi
- *     (band-blush, primary-300) ve uzerine koyu murekkep yaziliyor;
- *     dolgulu dugmeler #BF4426 ile ciziliyor (beyaz yazi 5,0:1).
- *     Ekranda fark neredeyse gorunmuyor, okunurluk farki buyuk.
- *  2. SOLUK METIN KOYULASTIRILDI. Tasarimin "Neutral Muted" tonu
- *     (#84776D) krem zeminde 4,2'de kaliyordu.
+ *  EN SOLUK METIN KOYULASTIRILDI. Tasarimda ikincil metin
+ *  (on-surface-variant #404945) ile ayirici cizgi arasinda ucuncu bir
+ *  basamak yok; en soluk yazilar dogrudan outline (#707975) ile
+ *  ciziliyor ve o krem zeminde 4,3:1, govde metni icin AA'nin altinda.
+ *  inkMuted bu yuzden ayni tonun 5,4:1'lik hali (#616865) — aile ayni,
+ *  yalnizca bir tik koyu.
+ *
+ * DOLGULU DUGMELER tasarimdaki renkte: parlak mercan zeminli dugmelerde
+ * yazi beyaz degil koyu mercan (#721C05, 4,6:1) — bu cift tasarimin
+ * kendi tablosunda zaten secondary-container / on-secondary-container
+ * olarak tanimli. Koyu mercan zeminli dugmelerde (#A23E24) yazi beyaz
+ * kaliyor, 6,4:1.
+ *
+ * ADLANDIRMA NOTU: tasarim yesile "primary", mercana "secondary" diyor.
+ * Bizde tam tersi — mercan EYLEM (primary), yesil GUVEN (accent). Ton
+ * degerleri ayni, yalnizca isimler farkli; esleme asagida her tokenin
+ * yaninda yazili.
  *
  * ROL DAGILIMI: mercan EYLEM (ara, rezerve et, bakici ol), adacayi
  * yesili DESTEK ve GUVEN (dogrulanmis rozeti, aktif gezinme, koyu
@@ -28,15 +38,27 @@ export const palette = {
   // Sicak notr omurga — "warm vanilla"
   canvas:        '#FFF8F4',
   surface:       '#FFFFFF',
-  surfaceSunken: '#FBF0E7',
+  /* Tasarimin surface-container-low'u: #FFF1E7 */
+  surfaceSunken: '#FFF1E7',
   border:        '#EFE7DE',
   borderStrong:  '#DCCFC2',
 
   // Murekkep (metin) — espresso tonlu, saf siyah degil
   ink:          '#221A12',
-  inkSecondary: '#53483E',
-  /* Tasarimin #84776D tonu krem zeminde 4,2'de kaliyordu. */
-  inkMuted:     '#70645A',
+  /*
+    on-surface-variant. Tasarimda bu ton SERIN bir gri-yesil (#404945),
+    sicak kahve degil. Tasarimda en cok kullanilan ikinci metin rengi
+    (72 yer): yanlis aile sectigimizde sayfanin tamami kayiyor.
+    Krem zeminde 8,9:1.
+  */
+  inkSecondary: '#404945',
+  /*
+    Tasarimda ikincil ile outline arasinda bir basamak YOK; en soluk
+    metin dogrudan outline (#707975) ve o krem zeminde 4,3:1, govde
+    metni icin AA'nin altinda. Bu yuzden outline'in TONU korunup
+    5,4:1'e kadar karartildi — serin aile ayni kaliyor.
+  */
+  inkMuted:     '#616865',
 
   // Birincil — "Mercan". EYLEM rengi.
   primary50:  '#FDEEE9',
@@ -108,6 +130,8 @@ export const palette = {
   surfaceHigh:       '#F6E5D7',
   surfaceHighest:    '#F0E0D2',
   outline:           '#707975',
+  /* Serin ayirici cizgi — tasarimin outline-variant'i */
+  outlineVariant:    '#BFC9C3',
 
   /* Pastel yesil rozet zemini ve uzerindeki koyu yesil yazi */
   primaryFixed:      '#B0F0D9',
@@ -115,6 +139,20 @@ export const palette = {
   /* Yildizlarin bal sarisi ve uzerinde okunacak koyu ton */
   gold:              '#FDBB49',
   goldInk:           '#6B4405',
+
+  /*
+    UCUNCUL (okra) ailesi. Tasarimda yildiz sarisinin yanibasinda ayri
+    bir okra ailesi var ve arama kutusundaki "evcil hayvan" ikonu bu
+    renkte. Sari ile ayni degil: sari bir YUZEY, okra bir CIZGI rengi.
+  */
+  tertiary:            '#754F00',
+  tertiaryContainer:   '#956600',
+  onTertiaryContainer: '#FFF1E3',
+  tertiaryFixed:       '#FFDDAE',
+  /* Mercan ailesinin en acik basamagi — yumusak rozet zeminleri */
+  secondaryFixed:      '#FFDBD2',
+  /* Koyu yesil panel uzerinde okunan en acik yesil */
+  onPrimaryContainer:  '#CAFFEB',
 
   // Guven rozetleri — bilincli olarak marka renginden ayri
   verifyId:      '#2C5F8A',
@@ -190,6 +228,13 @@ export const lightTheme = {
   'on-primary-fixed':  palette.onPrimaryFixed,
   'gold':              palette.gold,
   'gold-ink':          palette.goldInk,
+  'outline-variant':      palette.outlineVariant,
+  'tertiary':             palette.tertiary,
+  'tertiary-container':   palette.tertiaryContainer,
+  'on-tertiary-container':palette.onTertiaryContainer,
+  'tertiary-fixed':       palette.tertiaryFixed,
+  'secondary-fixed':      palette.secondaryFixed,
+  'on-primary-container': palette.onPrimaryContainer,
 } as const;
 
 /**
@@ -260,6 +305,13 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   'on-primary-fixed':  '#B0F0D9',
   'gold':              '#5A3C06',
   'gold-ink':          '#FDD089',
+  'outline-variant':      '#4A5450',
+  'tertiary':             '#E0BC72',
+  'tertiary-container':   '#5A3C06',
+  'on-tertiary-container':'#FFDDAE',
+  'tertiary-fixed':       '#3A2800',
+  'secondary-fixed':      '#45201A',
+  'on-primary-container': '#CAFFEB',
 };
 
 export type ThemeToken = keyof typeof lightTheme;

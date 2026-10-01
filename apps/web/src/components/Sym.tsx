@@ -17,7 +17,8 @@ export type SymName =
   | 'walk' | 'night' | 'sun' | 'home-pin' | 'pets' | 'cat'
   | 'house' | 'location' | 'calendar' | 'search' | 'verified' | 'shield'
   | 'health' | 'lock' | 'support' | 'bolt' | 'star' | 'arrow-right'
-  | 'globe' | 'heart' | 'chat' | 'help' | 'tune' | 'camera' | 'handshake';
+  | 'globe' | 'heart' | 'chat' | 'help' | 'tune' | 'camera' | 'people'
+  | 'user' | 'rabbit';
 
 const BOX = { viewBox: '0 0 24 24', fill: 'none' } as const;
 
@@ -226,13 +227,45 @@ export function Sym({
           <circle cx="12" cy="13.6" r="3.2" {...stroke} />
         </svg>
       );
-    case 'handshake':
+    /*
+      IKI KISI. Tasarimda bu yerde el sikisma (handshake) var; o cizim
+      18 pikselde KONTUR olarak okunmuyor — denenen dort varyantin
+      hepsi papyona ya da zikzaga benzedi. (Material'in kendi glifi
+      DOLU cizildigi icin o boyutta tutuyor; bizim set bastan sona
+      konturlu ve tek bir ikonu dolduramayiz.) Anlam korunuyor:
+      tanisma. Iki bas + iki omuz 18 pikselde tek bakista okunuyor.
+    */
+    case 'people':
       return (
         <svg {...common}>
-          <path d="m8.6 12.4 2.3-2.3a1.6 1.6 0 0 1 2.2 0l3.6 3.6" {...stroke} />
-          <path d="m3.4 10.6 3.6-3.6h4l2 2" {...stroke} />
-          <path d="M20.6 10.6 17 7h-3" {...stroke} />
-          <path d="m11 17.4 1.6 1.6a1.6 1.6 0 0 0 2.3-2.3M8.7 15.1l1.6 1.6a1.6 1.6 0 0 0 2.3-2.3" {...stroke} />
+          <circle cx="8.4" cy="8.2" r="2.9" {...stroke} />
+          <circle cx="15.6" cy="8.2" r="2.9" {...stroke} />
+          <path d="M3.4 19.2a5 5 0 0 1 10 0" {...stroke} />
+          <path d="M13.4 14.4a5 5 0 0 1 7.2 4.8" {...stroke} />
+        </svg>
+      );
+    /*
+      Tasarimda arama kutusundaki "evcil hayvaniniz" alani pati degil
+      TAVSAN cizimi kullaniyor (cruelty_free). Nedeni acik: pati zaten
+      hizmet kartlarinda duruyor, bu alan ise "hangi hayvan" diye
+      soruyor ve tavsan koepek-kedi disini de kapsiyor.
+    */
+    case 'rabbit':
+      return (
+        <svg {...common}>
+          <path d="M9.1 9.4 7.4 4.3a1.3 1.3 0 0 1 2.2-1.2l3 4.3" {...stroke} />
+          <path d="M14.9 9.4l1.7-5.1a1.3 1.3 0 0 0-2.2-1.2l-1.8 2.6" {...stroke} />
+          <path d="M12 8.6c3 0 5.4 2.5 5.4 5.6 0 3.1-2.4 5.4-5.4 5.4s-5.4-2.3-5.4-5.4c0-3.1 2.4-5.6 5.4-5.6Z" {...stroke} />
+          <path d="M10.4 13.6h.01M13.6 13.6h.01" {...stroke} />
+          <path d="M12 15.6v1.2" {...stroke} />
+        </svg>
+      );
+    /* Giris yapilmamisken hesap hapinda duran silueti */
+    case 'user':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8.4" r="3.6" {...stroke} />
+          <path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0" {...stroke} />
         </svg>
       );
     default:
