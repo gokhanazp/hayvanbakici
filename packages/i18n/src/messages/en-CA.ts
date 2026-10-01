@@ -36,8 +36,7 @@ export const enCA = {
     signUp: 'Sign up',
   },
   home: {
-    heroTitle: 'Loving pet care, right in your neighbourhood',
-    heroSubtitle: 'Background-checked sitters across Canada, covered by the Havre Protection programme. You see every fee before you book.',
+    heroSubtitle: 'Background-checked sitters a few streets away, in Toronto. You see every fee before you book — including what the sitter keeps.',
     searchCta: 'Search sitters',
     trustStripSitters: '{count} verified sitters in {city}',
     trustStripPrice: 'Median ${price}/{unit}',
@@ -48,6 +47,60 @@ export const enCA = {
     statSittersIn: 'verified sitters in {city}',
     statPrice: 'median price',
     statBookings: 'completed bookings',
+
+    /* --- Yeni anasayfa (Warm Paw yerlesimi) --- */
+    /*
+      Basligin bir kelimesi dalgali cizgiyle vurgulaniyor. Kelimeyi
+      ayri bir anahtar olarak tutuyoruz cunku Fransizcada cumledeki
+      YERI degisiyor: baslik metni {accent} yer tutucusunu nereye
+      koyarsa vurgu oraya dusuyor.
+    */
+    heroTitle: 'Loving pet care, right in your {accent}',
+    heroAccent: 'neighbourhood',
+    heroBadge: 'Every sitter background-checked',
+    heroPillChecks: 'Enhanced record and identity check',
+    heroPhotoAlt: 'A sitter outdoors with a dog',
+    /* Arama kutusunun altindaki ince serit — hepsi kodun gercekten yaptigi sey */
+    ribbonFees: 'Every fee shown before you book',
+    ribbonExpiry: 'A request nobody answers expires in 36 hours',
+    ribbonCanada: 'Data stays in Canada',
+
+    servicesHeading: 'Care shaped around your animal',
+    servicesLead: 'Four services today. You set the dates, the sitter sets the price, and the total you see is the total you pay.',
+    serviceFrom: 'From {price}',
+    serviceNoPrice: 'Prices set by each sitter',
+
+    sittersHeading: 'Sitters in {city}',
+    sittersLead: 'Ranked on how well they match you — never on what they pay us.',
+    sittersAll: 'See all sitters',
+    sitterViewProfile: 'View profile',
+
+    stepsHeading: 'Three steps, no surprises',
+    stepsLead: 'From first message to homecoming.',
+    step1Title: 'Browse verified sitters',
+    step1Body: 'Read full profiles, see what each sitter accepts and what they charge. Every price on screen already includes our fee.',
+    step2Title: 'Meet before you commit',
+    step2Body: 'Message the sitter and arrange to meet. Nothing is charged until they accept the booking.',
+    step3Title: 'Book and stay in touch',
+    step3Body: 'Message your sitter during the stay. A request nobody answers expires on its own in 36 hours.',
+
+    shieldHeading: 'What we actually check',
+    shieldLead: 'Four promises, and the code behind each one.',
+    shield1Title: 'Enhanced record check',
+    shield1Body: 'Criminal record check plus biometric identity verification, before a sitter can take a first booking.',
+    shield2Title: 'Every fee, before you book',
+    shield2Body: 'Extra-pet fee, holiday rate and cancellation terms are on the sitter card, not in a footnote.',
+    shield3Title: 'The sitter keeps most of it',
+    shield3Body: 'Nothing on clients a sitter brought themselves, 10% on repeat bookings, 18% on a client we found.',
+    shield4Title: 'Your data stays in Canada',
+    shield4Body: 'Stored in Montréal. Bilingual by default, in English and French.',
+    shieldNotInsurance: 'This is a company guarantee, not an insurance product, and it does not replace your own insurance.',
+
+    reviewsHeading: 'What owners wrote',
+    reviewsLead: 'Only from people who finished a booking. We never write or edit them.',
+
+    sitterCtaHeading: 'You set the price. You keep most of it.',
+    sitterCtaBody: 'Bring your own client and we take nothing, ever. Applications are open in every city — your profile goes live the day we open yours.',
   },
   /*
     HENUZ ACILMAMIS SEHIR.

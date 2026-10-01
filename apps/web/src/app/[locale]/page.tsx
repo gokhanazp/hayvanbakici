@@ -1,20 +1,40 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getMessages, localeFromSegment, segmentFor } from '@havre/i18n';
-import { servicesForPhase, calculateCommission, compareToRover, dollars, SERVICES } from '@havre/core';
+import { getMessages, interpolate, localeFromSegment, segmentFor, serviceSlug } from '@havre/i18n';
+import { servicesForPhase, SERVICES, type ServiceType } from '@havre/core';
 import { SearchBar } from '@/components/SearchBar';
-import { TrustStrip } from '@/components/TrustStrip';
-import { ServiceTiles } from '@/components/ServiceTiles';
-import { SitterStrip } from '@/components/SitterStrip';
-import { Testimonials } from '@/components/Testimonials';
-import { FeatureCards } from '@/components/FeatureCards';
+import { ServiceIcon, SERVICE_TILE } from '@/components/ServiceIcon';
 import { Photo } from '@/components/Photo';
 import { Avatar } from '@/components/Avatar';
-import { HeroDoodles, SectionDoodles } from '@/components/Doodles';
 import { ShieldIcon } from '@/components/VerificationBadge';
-import { cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData } from '@/lib/data';
+import {
+  cityName, citySlug, getDefaultCity, getFeaturedReviews, getLandingData,
+} from '@/lib/data';
 import { money, numberFmt } from '@/lib/format';
 
+/**
+ * ANASAYFA — "Warm Paw" yerlesimi.
+ *
+ * Tasarim Stitch'te uretildi (stitch_evcil_hayvan_bak_c_platformu/
+ * home_discovery_pawpal_canada). YERLESIM oradan birebir alindi;
+ * METINLER bizim, cunku tasarimin metinleri bu urunun yapmadigi
+ * seyleri soyluyordu:
+ *
+ *   "4.96 / 5.0 — 45.000+ tail-wags"   -> uydurma sayi
+ *   "12.840 Active Sitters"            -> uydurma sayi
+ *   "100% RCMP Screened"               -> RCMP federal polis; taramayi
+ *                                         bir saglayici yapiyor
+ *   "$2,000,000 CAD Vet Coverage"      -> sigortamiz yok
+ *   "24/7 Canadian Vet Line"           -> yok
+ *   "Daily GPS & Live Photo Updates"   -> yok
+ *   "Toronto, Vancouver, Calgary..."   -> yalnizca Toronto acik
+ *   Isimli musteri yorumlari           -> uydurma
+ *
+ * Her kutunun yerine kodun GERCEKTEN yaptigi sey yazildi; sayilar
+ * veritabanindan geliyor. Bos kalan yerler yer tutucu, uydurma degil.
+ *
+ * ISR: bakici sayisi ve medyan fiyat degisiyor, saatte bir tazeleniyor.
+ */
 export const revalidate = 3600;
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -23,315 +43,354 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (!locale) notFound();
 
   const m = getMessages(locale);
-  const fr = locale === 'fr-CA';
   const services = servicesForPhase('v1');
   const city = await getDefaultCity();
-  const [data, reviews] = await Promise.all([
-    getLandingData(city, 'boarding', locale),
+
+  /*
+    DORT HIZMETIN DE KENDI FIYAT ARALIGI VAR.
+
+    Hizmet kartlarinda "su fiyattan baslar" yaziyor ve bu dort ayri
+    sorgu demek. Sayfa ISR ile saatte bir uretildigi icin bedeli
+    saatte dort sorgu; karsiliginda kartlar TEK bir ortalamayi dort
+    kez tekrarlamiyor.
+  */
+  const [landings, reviews] = await Promise.all([
+    Promise.all(services.map((s) => getLandingData(city, s, locale))),
     getFeaturedReviews(3),
   ]);
+  const boarding = landings[0]!;
+  const byService = new Map(services.map((s, i) => [s, landings[i]!]));
 
-  /**
-   * Ucret seffafligi bolumu icin canli karsilastirma.
-   *
-   * COMPETITION ACT (yol haritasi §8.6): reklam iddialari ISPATLANABILIR olmali.
-   * Karsilastirma Rover'in KANADA GENELINDE gecerli STANDART orani (%20) uzerinden
-   * yapilir; Tier 1 (%30) yalnizca 7 sehirde pilot ve Toronto/Montreal'de gecerli degil.
-   */
-  const sample = dollars(500);
-  const ours = calculateCommission({ subtotalCents: sample, attribution: 'sitter_referral' });
-  const vsRover = compareToRover(sample, ours, 'standard');
-  const zero = ours.sitterPct;
+  const cityLabel = cityName(city, locale);
+  const slug = citySlug(city, locale);
+
+  /*
+    BASLIKTAKI VURGULU KELIME. Tasarimda bir kelimenin altinda dalgali
+    bir cizgi var. Kelime ayri bir anahtar cunku Fransizcada cumledeki
+    yeri degisiyor; baslik {accent} yer tutucusunu nereye koyarsa
+    vurgu oraya dusuyor.
+  */
+  const [titleBefore, titleAfter] = m.home.heroTitle.split('{accent}');
 
   return (
     <>
-      {/*
-        ---- Kahraman ----
-        BANT: sayfanin geri kalanindan farkli bir sicaklikta (blush -> kayisi).
-        Tek krem zeminde kahraman ile govde birbirine giriyordu; renkli bant
-        sayfanin ilk ekranini kendi basina bir yer haline getiriyor.
-        Alt kose kavisi, arama kartinin banda binmesiyle birlikte bolum
-        gecisini yumusatiyor.
-      */}
-      <section className="band band-blush band-round-b hero-band">
-        <div className="container hero">
-          <HeroDoodles />
+      {/* ================= KAHRAMAN ================= */}
+      <section className="hp-hero">
+        <div className="hp-hero-glow hp-hero-glow-a" aria-hidden="true"></div>
+        <div className="hp-hero-glow hp-hero-glow-b" aria-hidden="true"></div>
 
-          <div className="hero-grid">
-            <div className="hero-copy">
-              <span className="badge hero-in hero-in-1" style={{
-                background: 'var(--color-surface)',
-                color: 'var(--color-accent-hover)',
-                gap: 'var(--space-2)',
-              }}>
-                <ShieldIcon size={13} />
-                {fr ? 'Antécédents vérifiés pour chaque gardien' : 'Every sitter background-checked'}
+        <div className="container hp-hero-inner">
+          <div className="hp-hero-grid">
+            <div className="hp-hero-copy">
+              <span className="hp-eyebrow">
+                <ShieldIcon size={14} />
+                {m.home.heroBadge}
               </span>
 
-              {/*
-                LCP ADAYI: SOLUKLANMA YOK, yalnizca kayma.
-
-                opacity: 0 ile baslayan bir oge tarayici tarafindan
-                "boyanmis" sayilmaz; basligi solduraraak getirmek LCP'yi
-                animasyon suresi kadar geriye atiyor. Sayfanin en buyuk
-                iki ogesi (baslik ve ilk fotograf) bu yuzden yalnizca
-                transform ile geliyor — ilk karede gorunurler.
-              */}
-              <h1 className="text-display hero-in-solid hero-in-2"
-                  style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
-                {m.home.heroTitle}
+              <h1 className="hp-hero-title">
+                {titleBefore}
+                <span className="hp-underline">{m.home.heroAccent}</span>
+                {titleAfter}
               </h1>
-              <p className="text-body-lg muted hero-in hero-in-3"
-                 style={{ textWrap: 'pretty', maxWidth: '32rem' }}>
-                {m.home.heroSubtitle}
-              </p>
 
-              {/*
-                Uc madde, ucu de sitede KARSILIGI OLAN iddialar: adli sicil
-                kontrolu (screening), tam fiyat (drip pricing yasagi), konaklama
-                sirasindaki mesaj/fotograf. "7/24 destek" gibi henuz kurmadigimiz
-                bir sey yazmiyoruz — Competition Act, iddianin ispatlanabilir
-                olmasini istiyor.
-              */}
-              <ul className="hero-points hero-in hero-in-4">
-                {(fr
-                  ? ['Vérification approfondie des antécédents et de l’identité',
-                     'Tous les frais affichés avant la réservation',
-                     'Messagerie avec votre gardien, avant et pendant']
-                  : ['Enhanced criminal record and identity checks',
-                     'Every fee shown before you book',
-                     'Message your sitter, before and during']
-                ).map((t) => (
-                  <li key={t}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"
-                         fill="none" stroke="var(--color-accent-hover)" strokeWidth="2"
-                         strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m3 8.4 3.2 3.2L13 4.8" />
-                    </svg>
-                    {t}
-                  </li>
-                ))}
-              </ul>
+              <p className="hp-hero-lead">{m.home.heroSubtitle}</p>
+
+              <div className="hp-hero-pills">
+                <span className="hp-pill">
+                  <strong className="tabular">{numberFmt(boarding.sitterCount, locale)}</strong>
+                  {interpolate(m.home.statSittersIn, { city: cityLabel }).replace(
+                    String(numberFmt(boarding.sitterCount, locale)), '',
+                  ).trim()}
+                </span>
+                <span className="hp-pill hp-pill-sage">
+                  <ShieldIcon size={14} />
+                  {m.home.heroPillChecks}
+                </span>
+              </div>
             </div>
 
-            <div className="hero-media">
-              {/*
-                Fotograf kolaji. Metin fotografin UZERINDE DEGIL yaninda:
-                hangi fotograf gelirse gelsin basligin kontrasti degismiyor.
-                Ilk fotograf `priority` — LCP ogesi bu (yol haritasi §7).
-              */}
-              <div className="hero-photos">
-                {/* Ilk fotograf da LCP adayi — o da yalnizca transform ile geliyor. */}
-                <div className="photo-frame hero-in-solid hero-in-2">
-                  <Photo id="hero-primary" locale={locale} priority
-                         sizes="(min-width: 1100px) 24rem, (min-width: 900px) 15rem, 55vw" />
+            {/*
+              FOTOGRAF + USTUNE BINEN KART.
+
+              Tasarimda buraya bir bakici fotografi ve uzerine iki yuzen
+              rozet geliyor. Rozetlerden biri uydurma bir sayiydi
+              ("12.840 Active Sitters"); yerine bu sehrin GERCEK bakici
+              sayisi ve medyan fiyati kondu.
+            */}
+            <div className="hp-hero-art">
+              <div className="hp-hero-photo">
+                <Photo id="sitter-banner" locale={locale} alt={m.home.heroPhotoAlt} priority />
+              </div>
+
+              <div className="hp-float hp-float-stats">
+                <div className="hp-float-icon" aria-hidden="true">
+                  <ServiceIcon service="boarding" size={22} />
                 </div>
-                <div className="photo-frame hero-in hero-in-3">
-                  <Photo id="hero-side-a" locale={locale} sizes="(min-width: 1100px) 15rem, (min-width: 900px) 11rem, 40vw" />
-                </div>
-                <div className="photo-frame hero-in hero-in-4">
-                  <Photo id="hero-side-b" locale={locale} sizes="(min-width: 1100px) 15rem, (min-width: 900px) 11rem, 40vw" />
+                <div>
+                  <p className="hp-float-value tabular">
+                    {numberFmt(boarding.sitterCount, locale)}
+                  </p>
+                  <p className="hp-float-label">
+                    {interpolate(m.home.statSittersIn, { city: cityLabel }).replace(
+                      String(numberFmt(boarding.sitterCount, locale)), '',
+                    ).trim()}
+                  </p>
                 </div>
               </div>
 
-              {/*
-                Canli veri — uydurma "10.000 mutlu musteri" degil, sorgudan
-                gelen sayi.
-
-                BAKICI YOKSA HIC CIZILMIYOR. Veritabani bosaltilip site
-                gezilince bu kutu "0 verified sitters in Toronto" diyordu ve
-                yanindaki avatar siarasi bombostu. Rakam dogruydu ama
-                kahramanin ustune yapistirilmis "sifir bakici" rozeti,
-                urunu olu gosteriyor. Ayni kural seritte de var
-                (components/TrustStrip.tsx): olcuyu atlamak bir sey
-                gizlemek degil, olmayan bir basariyi ilan etmemek.
-              */}
-              {data.sitterCount > 0 && (
-                <div className="hero-float hero-in hero-in-5">
-                  <span className="avatar-stack">
-                    {data.sitters.slice(0, 3).map((s) => (
-                      <Avatar key={s.id} src={s.avatarUrl} initials={s.photoInitials} size={30} />
-                    ))}
+              {boarding.medianPriceCents > 0 && (
+                <div className="hp-float hp-float-price">
+                  <span className="hp-float-value tabular">
+                    {money(boarding.medianPriceCents, locale)}
                   </span>
-                  <span className="text-body-sm" style={{ lineHeight: '1.1rem' }}>
-                    <strong className="tabular">{numberFmt(data.sitterCount, locale)}</strong>{' '}
-                    {fr ? `gardiens vérifiés à ${cityName(city, locale)}` : `verified sitters in ${cityName(city, locale)}`}
-                  </span>
+                  <span className="hp-float-label">{m.home.statPrice}</span>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ---- Kahramanin altina binen arama karti ---- */}
-      <section className="container hero-search">
-        <SearchBar locale={locale} />
-        {/* Serit dar ekranda TAM GENISLIK: `row` iceriginin genisligi
-            kadar daraltip ortaliyordu ve arama kartiyla hizalanmiyordu. */}
-        <div className="trust-strip-wrap">
-          {/* Veri konaklama hizmetinden geliyor (yukarida getLandingData) —
-              birim de ondan; sabit "/gece" yazmak baska bir hizmette yalan olur. */}
-          <TrustStrip
-            locale={locale}
-            cityName={cityName(city, locale)}
-            sitterCount={data.sitterCount}
-            medianPriceCents={data.medianPriceCents}
-            bookingCount={data.bookingCount}
-            unit={SERVICES.boarding.unit}
-          />
-        </div>
-      </section>
-
-      {/* ---- Hizmetler ---- */}
-      <section className="container section has-doodles">
-        <SectionDoodles set="services" />
-        <div className="section-head">
-          <h2 className="text-h2">{fr ? 'De quoi avez-vous besoin?' : 'What do you need?'}</h2>
-        </div>
-        <ServiceTiles locale={locale} services={services} citySlug={citySlug(city, locale)} />
-      </section>
-
-      {/* ---- Ne yapiyoruz — adacayi bant ---- */}
-      <section className="band band-sage band-round-t band-round-b has-doodles">
-        <SectionDoodles set="features" />
-        <FeatureCards locale={locale} />
-      </section>
-
-      {/* ---- Bakici seridi: gercek profiller, gercek fotograflar ---- */}
-      <SitterStrip
-        locale={locale}
-        sitters={data.sitters}
-        citySlug={citySlug(city, locale)}
-        cityName={cityName(city, locale)}
-      />
-
-      {/* ---- Referanslar: sitede yazilmis yorumlardan ---- */}
-      <Testimonials locale={locale} reviews={reviews} />
-
-      {/* ---- Bakici banneri: urunun en guclu hamlesi ---- */}
-      <section className="container section">
-        <div className="banner-photo">
-          <span className="photo-fill" aria-hidden="true">
-            <Photo id="sitter-banner" locale={locale} decorative sizes="100vw" />
-          </span>
-
-          <div className="banner-card">
-            <span className="badge" style={{
-              background: 'var(--color-accent-subtle)', color: 'var(--color-accent-hover)',
-            }}>
-              {fr ? 'Pour les gardiens' : 'For sitters'}
-            </span>
-
-            {/*
-              BASLIK DUYGUSAL, KANIT HEMEN ALTINDA.
-
-              Once baslik da "kendi musterini getir" diyordu; o cumle
-              ZATEN bakicilik yapan kisiye yazilmis ve ana sayfaya
-              yeni gelen birine hicbir sey soylemiyordu. Ana sayfa
-              huninin ustu: isi TIKLATMAK. Ikna etme isi davet
-              sayfasinin kahramaninda, orada ekonomik cumle duruyor.
-
-              Ama duygusal cumle tek basina birakilmadi: "hayvanlarla
-              gecir" yaninda "kazandigin sende kalsin" var ve %100
-              iddiasi hemen altindaki cumlede, rakam yine vurgulu.
-              Rakibin de kurabilecegi bir cumleyle yetinmiyoruz.
-
-              RAKAM HALA MOTORDAN: {100 - zero} elle yazilmis bir sayi
-              degil, calculateCommission()'in dondurdugu oran.
-            */}
-            <h2 className="text-h1" style={{ margin: 'var(--space-4) 0 0' }}>
-              {fr ? 'Passez vos journées avec des animaux.' : 'Spend your days with animals.'}
-              <br />
-              {fr ? 'Gardez ce que vous gagnez.' : 'Keep what you earn.'}
-            </h2>
-
-            <p className="text-body-lg muted" style={{ marginTop: 'var(--space-4)' }}>
-              {fr ? 'Fixez votre prix et n’acceptez que les réservations que vous voulez. Amenez un client vous-même et vous gardez ' : 'Set your own price and take only the bookings you want. Bring a client yourself and you keep '}
-              <strong style={{ color: 'var(--color-primary)' }}>{100 - zero}%</strong>
-              {fr
-                ? ' de ce qu’il paie — de façon permanente, pas pour un mois d’essai.'
-                : ' of what they pay — permanently, not for a trial month.'}
-            </p>
-
-            <div className="row" style={{ marginTop: 'var(--space-6)' }}>
-              <Link href={`/${seg}/become-a-sitter/`} className="btn btn-primary">
-                {m.nav.becomeSitter}
-              </Link>
-              <Link href={`/${seg}/pricing/`} className="btn btn-secondary">
-                {fr ? 'Voir nos frais' : 'See how our fees work'}
-              </Link>
-            </div>
-
-            {/*
-              YENI BASLAYANA TEK SATIR.
-
-              Bu bandin butun cumleleri ZATEN bakicilik yapan kisiye
-              yazilmis ("kendi musterini getir"). Hic yapmamis kisiye
-              soylenen tek sey bu satir: onu davet sayfasindaki tarif
-              bolumune, kaydirmadan, dogrudan goturuyor. Ayri bir bolum
-              acmak ana sayfayi uzatir ve ayni icerigi iki yerde
-              tekrarlardi.
-            */}
-            <p className="text-body-sm" style={{ marginTop: 'var(--space-4)' }}>
-              <Link href={`/${seg}/become-a-sitter/#what-sitting-is`} className="link-underline">
-                {fr ? 'Vous débutez ? En quoi consiste la garde' : 'New to this? What sitting involves'}
-              </Link>
-              {' \u2192'}
-            </p>
-
-            {/*
-              Rakamla desteklenen iddia. Competition Act: dayanak
-              packages/core/commission.ts icindeki compareToRover().
-            */}
-            <p className="text-body-sm dim" style={{ marginTop: 'var(--space-5)' }}>
-              {fr
-                ? `Sur une réservation de ${money(sample, locale)}, un gardien garde jusqu’à ${money(vsRover.sitterSavesCents, locale)} de plus qu’ailleurs.`
-                : `On a ${money(sample, locale)} booking, a sitter keeps up to ${money(vsRover.sitterSavesCents, locale)} more than elsewhere.`}
-            </p>
+          {/* ---- Yuzen arama kutusu ---- */}
+          <div className="hp-search">
+            <SearchBar locale={locale} />
+            <ul className="hp-ribbon">
+              <li>
+                <CheckMark />
+                {m.home.ribbonFees}
+              </li>
+              <li>
+                <CheckMark />
+                {m.home.ribbonExpiry}
+              </li>
+              <li>
+                <CheckMark />
+                {m.home.ribbonCanada}
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* ---- Ucret defteri: uc oran, tek tabloda ---- */}
-      <section className="container section has-doodles" style={{ paddingTop: 0 }}>
-        <SectionDoodles set="fees" />
-        <div className="section-head">
-          <h2 className="text-h2">{fr ? 'Trois taux, publiés.' : 'Three rates, published.'}</h2>
-          <p className="muted">
-            {fr
-              ? 'C’est toute la page de tarification. Aucun frais caché, ni pour vous ni pour le gardien.'
-              : 'That is the whole pricing page. No hidden fees, for you or your sitter.'}
-          </p>
-        </div>
+      {/* ================= HIZMETLER ================= */}
+      <section className="container hp-section">
+        <h2 className="hp-h2">{m.home.servicesHeading}</h2>
+        <p className="hp-lead">{m.home.servicesLead}</p>
 
-        <div className="grid grid-3">
-          {(['platform', 'sitter_referral', 'repeat'] as const).map((a) => {
-            const c = calculateCommission({ subtotalCents: sample, attribution: a });
-            const highlighted = a === 'sitter_referral';
+        <div className="hp-services">
+          {services.map((s, i) => {
+            const tile = SERVICE_TILE[i % SERVICE_TILE.length]!;
+            const d = byService.get(s);
+            const from = d && d.p25PriceCents > 0 ? d.p25PriceCents : 0;
             return (
-              <div
-                key={a}
-                className={highlighted ? 'panel card-pad' : 'card card-pad'}
-                style={highlighted ? { borderRadius: 'var(--radius-lg)' } : undefined}
+              <Link
+                key={s}
+                href={`/${segmentFor(locale)}/${slug}/${serviceSlug(s, locale)}/`}
+                className="hp-service"
               >
-                <div
-                  className="text-h1 tabular"
+                <span
+                  className="hp-service-tile"
                   style={{
-                    color: highlighted ? 'var(--color-panel-primary)' : 'var(--color-primary)',
-                    marginBottom: 'var(--space-3)',
+                    background: `var(--color-${tile})`,
+                    color: `var(--color-${tile}-ink)`,
                   }}
+                  aria-hidden="true"
                 >
-                  {c.sitterPct}%
-                </div>
-                <p className="text-body-sm" style={highlighted ? { fontWeight: 500 } : { color: 'var(--color-ink-secondary)' }}>
-                  {m.commission[a]}
-                </p>
-              </div>
+                  <ServiceIcon service={s} size={24} />
+                </span>
+                <span className="hp-service-name">{m.service[s]}</span>
+                <span className="hp-service-body">{m.serviceDescription[s]}</span>
+                <span className="hp-service-price">
+                  {from > 0
+                    ? interpolate(m.home.serviceFrom, { price: money(from, locale) })
+                    : m.home.serviceNoPrice}
+                  {from > 0 && (
+                    <span className="hp-service-unit"> / {m.unit[SERVICES[s].unit]}</span>
+                  )}
+                </span>
+              </Link>
             );
           })}
         </div>
       </section>
+
+      {/* ================= BAKICILAR ================= */}
+      {boarding.sitters.length > 0 && (
+        <section className="container hp-section">
+          <div className="hp-section-head">
+            <div>
+              <h2 className="hp-h2">
+                {interpolate(m.home.sittersHeading, { city: cityLabel })}
+              </h2>
+              <p className="hp-lead">{m.home.sittersLead}</p>
+            </div>
+            <Link
+              href={`/${segmentFor(locale)}/${slug}/${serviceSlug('boarding', locale)}/`}
+              className="btn btn-secondary"
+            >
+              {m.home.sittersAll}
+            </Link>
+          </div>
+
+          <div className="hp-sitters">
+            {boarding.sitters.slice(0, 3).map((s) => (
+              <article key={s.id} className="hp-sitter">
+                <div className="hp-sitter-photo">
+                  <Avatar initials={s.photoInitials} src={s.avatarUrl} size={96} />
+                </div>
+                <div className="hp-sitter-body">
+                  <div className="hp-sitter-row">
+                    <h3 className="hp-sitter-name">
+                      {s.firstName} {s.lastNameInitial}.
+                    </h3>
+                    <span className="hp-sitter-price tabular">
+                      {money(s.priceCents, locale)}
+                      <span className="hp-sitter-unit">
+                        {' '}/ {m.unit[SERVICES.boarding.unit]}
+                      </span>
+                    </span>
+                  </div>
+                  <p className="hp-sitter-hood">{s.neighbourhood}</p>
+
+                  <div className="hp-sitter-tags">
+                    {s.acceptsCats && <span className="hp-tag">{m.onboarding['services.cats']}</span>}
+                    {s.yardFenced && <span className="hp-tag">{m.searchPage.yard}</span>}
+                    {/*
+                      YORUM SAYISI SIFIRSA YILDIZ YOK. Tasarimda her kartta
+                      "5.0 (42)" yaziyordu; yorumu olmayan bir bakiciyi
+                      besyildizli gostermek, kazanilmamis bir itibar.
+                    */}
+                    {s.reviewCount > 0 && (
+                      <span className="hp-tag hp-tag-rating tabular">
+                        ★ {s.rating.toFixed(1)} ({numberFmt(s.reviewCount, locale)})
+                      </span>
+                    )}
+                  </div>
+
+                  <Link
+                    href={`/${segmentFor(locale)}/${slug}/sitter/${s.slug}/`}
+                    className="hp-sitter-link"
+                  >
+                    {m.home.sitterViewProfile}
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ================= UC ADIM ================= */}
+      <section className="hp-band">
+        <div className="container hp-section">
+          <h2 className="hp-h2">{m.home.stepsHeading}</h2>
+          <p className="hp-lead">{m.home.stepsLead}</p>
+
+          <ol className="hp-steps">
+            {([
+              [m.home.step1Title, m.home.step1Body],
+              [m.home.step2Title, m.home.step2Body],
+              [m.home.step3Title, m.home.step3Body],
+            ] as const).map(([title, body], i) => (
+              <li key={title} className="hp-step">
+                <span className="hp-step-num" aria-hidden="true">{i + 1}</span>
+                <h3 className="hp-step-title">{title}</h3>
+                <p className="hp-step-body">{body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ================= GUVEN PANELI ================= */}
+      <section className="container hp-section">
+        <div className="hp-shield">
+          <div className="hp-shield-head">
+            <h2 className="hp-shield-title">{m.home.shieldHeading}</h2>
+            <p className="hp-shield-lead">{m.home.shieldLead}</p>
+          </div>
+
+          <div className="hp-pillars">
+            {([
+              [m.home.shield1Title, m.home.shield1Body],
+              [m.home.shield2Title, m.home.shield2Body],
+              [m.home.shield3Title, m.home.shield3Body],
+              [m.home.shield4Title, m.home.shield4Body],
+            ] as const).map(([title, body]) => (
+              <div key={title} className="hp-pillar">
+                <h3 className="hp-pillar-title">{title}</h3>
+                <p className="hp-pillar-body">{body}</p>
+              </div>
+            ))}
+          </div>
+
+          {/*
+            SIGORTA DEGIL. Tasarim buraya "$2,000,000 CAD Vet Coverage"
+            yaziyordu. Boyle bir policemiz yok ve koruma sayfamiz zaten
+            bunun bir SIRKET GARANTISI oldugunu soyluyor; ayni cumle
+            burada da duruyor, kucuk puntoda saklanmiyor.
+          */}
+          <p className="hp-shield-note">{m.home.shieldNotInsurance}</p>
+        </div>
+      </section>
+
+      {/* ================= YORUMLAR ================= */}
+      {reviews.length > 0 && (
+        <section className="container hp-section">
+          <h2 className="hp-h2">{m.home.reviewsHeading}</h2>
+          <p className="hp-lead">{m.home.reviewsLead}</p>
+
+          <div className="hp-reviews">
+            {reviews.map((r) => (
+              <figure key={r.id} className="hp-review">
+                <div className="hp-review-stars" aria-label={`${r.rating} / 5`}>
+                  {'★'.repeat(Math.round(r.rating))}
+                </div>
+                <blockquote className="hp-review-body">{r.body}</blockquote>
+                <figcaption className="hp-review-by">
+                  <Avatar
+                    initials={`${r.authorFirstName.charAt(0)}${r.authorInitial}`}
+                    src={r.authorAvatarUrl}
+                    size={36}
+                  />
+                  <span>
+                    <span className="hp-review-name">
+                      {r.authorFirstName} {r.authorInitial}.
+                    </span>
+                    <span className="hp-review-meta">{r.sitterFirstName}</span>
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ================= BAKICI DAVETI ================= */}
+      <section className="container hp-section">
+        <div className="hp-cta">
+          <div>
+            <h2 className="hp-cta-title">{m.home.sitterCtaHeading}</h2>
+            <p className="hp-cta-body">{m.home.sitterCtaBody}</p>
+          </div>
+          <Link href={`/${segmentFor(locale)}/become-a-sitter/`} className="hp-cta-btn">
+            {m.nav.becomeSitter}
+          </Link>
+        </div>
+      </section>
     </>
+  );
+}
+
+/** Serit ve liste isaretleri — ayni cizim uc yerde kullaniliyor */
+function CheckMark() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="m5 12.5 4.5 4.5L19 7.5"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
