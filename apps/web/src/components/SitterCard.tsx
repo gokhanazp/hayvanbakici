@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { getMessages, segmentFor, type Locale } from '@havre/i18n';
+import { getMessages, interpolate, segmentFor, type Locale } from '@havre/i18n';
 import { SERVICES, type ServiceType } from '@havre/core';
 import type { SitterSummary } from '@/lib/data';
 import { money, responseTime } from '@/lib/format';
@@ -75,6 +75,24 @@ export function SitterCard({
         {photo
           ? <Image src={photo} alt="" width={516} height={387} sizes="(min-width: 700px) 258px, 50vw" />
           : sitter.photoInitials}
+        {/*
+          Tasarimda arama kartinda puan FOTOGRAFIN UZERINDE, sol ustte
+          duruyor. Yalnizca satir kartta: dikey kartta fotograf zaten
+          dar ve rozet adi orterdi.
+
+          Puan ROZET DEGIL, VERI: yorum sayisi da yaninda, cunku "5,0"
+          tek basina iki yorumdan mi altmis yorumdan mi geldigini
+          soylemiyor.
+        */}
+        {layout === 'row' && sitter.reviewCount > 0 && (
+          <span className="sitter-rate" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8Z" />
+            </svg>
+            <span className="tabular">{sitter.rating.toFixed(1)}</span>
+            <span className="sitter-rate-n tabular">({sitter.reviewCount})</span>
+          </span>
+        )}
       </div>
 
       {favourite && (
@@ -100,27 +118,53 @@ export function SitterCard({
                 {sitter.firstName} {sitter.lastNameInitial}.
               </Link>
             </h3>
-            <p className="dim text-body-sm">{sitter.neighbourhood}</p>
+            <p className="dim text-body-sm">
+              {sitter.neighbourhood}
+              {layout === 'row' && distanceLabel && <> · <span className="tabular">{distanceLabel}</span></>}
+            </p>
           </div>
           {/* Drip pricing yasagi: gosterilen fiyat TAM fiyattir */}
           <div className="tabular" style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontWeight: 600 }}>{money(sitter.priceCents, locale)}</div>
+            <div className={layout === 'row' ? 'sitter-price' : undefined} style={layout === 'row' ? undefined : { fontWeight: 600 }}>
+              {money(sitter.priceCents, locale)}
+            </div>
             <div className="dim text-body-sm">/ {unit}</div>
           </div>
         </div>
 
-        <p className="muted text-body-sm tabular">
-          ★ {sitter.rating.toFixed(1)} ({sitter.reviewCount}) · {responseTime(sitter.responseMinutes, locale)}
-        </p>
-
-        <div><VerificationBadge level={sitter.badgeLevel} locale={locale} /></div>
-
-        <p className="dim text-body-sm">
-          {locale === 'fr-CA'
-            ? `${sitter.repeatClients} clients réguliers`
-            : `${sitter.repeatClients} repeat clients`}
-          {distanceLabel && <> · <span className="tabular">{distanceLabel}</span></>}
-        </p>
+        {layout === 'row' ? (
+          /*
+            OZELLIK HAPLARI. Tasarimda kartta uc kucuk hap var
+            ("Positive Trainer", "Fenced Yard", "Live GPS Walks").
+            Bizdekiler UYDURMA DEGIL, bakicinin profilinden geliyor:
+            dogrulama kademesi, cit, kedi, ev tipi. Olmayan bir ozellik
+            hap da uretmiyor — bos birakmak, olmayan bir seyi yazmaktan
+            iyidir.
+          */
+          <div className="sitter-traits">
+            <VerificationBadge level={sitter.badgeLevel} locale={locale} />
+            {sitter.yardFenced && <span className="sitter-trait">{m.searchPage.yard}</span>}
+            {sitter.acceptsCats && <span className="sitter-trait">{m.searchPage.cats}</span>}
+            {sitter.repeatClients > 0 && (
+              <span className="sitter-trait tabular">
+                {interpolate(m.searchPage.repeatClients, { count: String(sitter.repeatClients) })}
+              </span>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="muted text-body-sm tabular">
+              ★ {sitter.rating.toFixed(1)} ({sitter.reviewCount}) · {responseTime(sitter.responseMinutes, locale)}
+            </p>
+            <div><VerificationBadge level={sitter.badgeLevel} locale={locale} /></div>
+            <p className="dim text-body-sm">
+              {locale === 'fr-CA'
+                ? `${sitter.repeatClients} clients réguliers`
+                : `${sitter.repeatClients} repeat clients`}
+              {distanceLabel && <> · <span className="tabular">{distanceLabel}</span></>}
+            </p>
+          </>
+        )}
 
         {/*
           SATIR KARTTA ALT SATIR. Tasarimin arama kartinda altta bir
@@ -131,9 +175,16 @@ export function SitterCard({
           ve kartin kendi yayilan baglantisiyla ayni yere gidiyor.
         */}
         {layout === 'row' && (
-          <p className="sitter-row-foot">
-            <Link href={href} className="st-ghost-btn">{m.searchPage.viewProfile}</Link>
-          </p>
+          <div className="sitter-row-foot">
+            <span className="sitter-reply">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M13.4 2.8 5.2 13.3h5.3l-.9 7.9 8.2-10.5h-5.3Z" />
+              </svg>
+              {responseTime(sitter.responseMinutes, locale)}
+            </span>
+            <Link href={href} className="sitter-view">{m.searchPage.viewProfile}</Link>
+          </div>
         )}
       </div>
     </div>
