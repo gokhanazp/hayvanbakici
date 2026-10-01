@@ -11,7 +11,7 @@ import {
   type Locale, type Messages,
 } from '@havre/i18n';
 import {
-  VerificationBadge, VerificationExplainer, ShieldIcon,
+  VerificationBadge, ShieldIcon,
 } from '@/components/VerificationBadge';
 import { isDemo } from '@/lib/demo';
 import { Avatar } from '@/components/Avatar';
@@ -20,7 +20,7 @@ import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { RatingBreakdown } from '@/components/RatingBreakdown';
 import { ServiceIcon } from '@/components/ServiceIcon';
-import { Sym } from '@/components/Sym';
+import { Sym, type SymName } from '@/components/Sym';
 import { HomeIcon, DogSilhouette, VetIcon, type HomeIconName } from '@/components/HomeIcon';
 import { NoIcon } from '@/components/InfoIcons';
 import { AskInChat } from '@/components/chat/AskInChat';
@@ -45,6 +45,20 @@ const V1_SERVICES = new Set(servicesForPhase('v1'));
   yaziliyor. Iki ayri yerde kurulan cumleler kaymisti: biri "0-18 kg"
   derken digeri "18 kg'a kadar" diyordu. Ayni veri, ayni cumle.
 */
+/**
+ * BOLUM BASLIGI — tasarimda her bolum bir ikon + kalin baslikla
+ * basliyor. Ikon DEKORATIF: basligin kendisi zaten ne oldugunu
+ * soyluyor, bu yuzden Sym aria-hidden ciziyor.
+ */
+function SecHead({ icon, children }: { icon: SymName; children: React.ReactNode }) {
+  return (
+    <div className="sp-sec-h">
+      <Sym name={icon} size={22} />
+      <h2>{children}</h2>
+    </div>
+  );
+}
+
 function sizeLabel(
   m: Messages,
   key: PetSizeKey,
@@ -474,9 +488,46 @@ export default async function SitterPage({
           {/* Ev fotograflari — sahiplerin ilk sorusu "kopegim nerede kalacak" */}
           <SitterGallery locale={locale} photos={sitter.photos} name={sitter.firstName} />
 
+          {/*
+            GUVEN VE GUVENLIK LISTESI.
+
+            Tasarimda dort maddelik bir izgara var ve her maddenin
+            altinda ne kapsadigi yaziyor. Bizde bu metinler ZATEN
+            yazilmisti (verification.explain.*) ama yalnizca
+            rezervasyon kutusunda, tek satir halinde duruyordu.
+
+            YALNIZCA GECILEN ADIMLAR cizili: bakicinin almadigi bir
+            dogrulamayi listeye koyup "yok" demek, listeyi bir eksikler
+            tablosuna cevirir ve rozetin anlamini bulandirir. Hicbiri
+            yoksa bolum HIC cizilmiyor.
+          */}
+          {sitter.badgeLevel > 0 && (
+            <section className="card card-pad sitter-block">
+              <SecHead icon="shield">{m.verification.heading}</SecHead>
+              <ul className="sp-vet">
+                {([
+                  [1, m.verification.identity, m.verification['explain.identity']],
+                  [2, m.verification.criminal, m.verification['explain.criminal']],
+                  [3, m.verification.licence, m.verification['explain.licence']],
+                  [4, m.verification.certification, m.verification['explain.certification']],
+                ] as const)
+                  .filter(([lvl]) => sitter.badgeLevel >= lvl)
+                  .map(([lvl, title, body]) => (
+                    <li key={lvl}>
+                      <span className="sp-vet-ic" aria-hidden="true"><Sym name="verified" size={20} /></span>
+                      <span className="sp-vet-text">
+                        <strong>{title}</strong>
+                        <span>{body}</span>
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          )}
+
           {sitter.bio && (
             <section className="card card-pad sitter-block">
-              <h2 className="text-h2">{interpolate(m.sitter.aboutHeading, { name: sitter.firstName })}</h2>
+              <SecHead icon="heart">{interpolate(m.sitter.aboutHeading, { name: sitter.firstName })}</SecHead>
               <p className="text-body-lg own-words-body" style={{ maxWidth: '40rem' }}>
                 {sitter.bio}
               </p>
@@ -498,9 +549,9 @@ export default async function SitterPage({
           */}
           {(sitter.scheduleText || sitter.typicalDayText) && (
             <section className="card card-pad sitter-block">
-              <h2 className="text-h2">
+              <SecHead icon="calendar">
                 {interpolate(m.sitter.routineHeading, { name: sitter.firstName })}
-              </h2>
+              </SecHead>
               <p className="field-hint own-words-note">
                 {interpolate(m.sitter.ownWordsNote, { name: sitter.firstName })}
               </p>
@@ -524,15 +575,25 @@ export default async function SitterPage({
           )}
 
           {/* --- Hizmetler ve fiyatlar --- */}
-          <section>
-            <h2 className="text-h2" style={{ marginBottom: 'var(--space-5)' }}>
-              {interpolate(m.sitter.servicesHeading, { name: sitter.firstName })}
-            </h2>
-            <div className="grid" style={{ gap: 'var(--space-3)' }}>
+          <section className="card card-pad sitter-block">
+            <div className="sp-sec-top">
+              <SecHead icon="verified">
+                {interpolate(m.sitter.servicesHeading, { name: sitter.firstName })}
+              </SecHead>
+              <span className="sp-sec-note">{m.sitter.feeNote}</span>
+            </div>
+            <div className="sp-svc-grid">
               {bookable.map((s) => (
-                <article key={s.serviceType} className="card card-pad sitter-service">
+                <article key={s.serviceType} className="sp-svc">
                   <div>
-                    <h3 className="text-h4">{m.service[s.serviceType]}</h3>
+                    {/* Tasarimda ad solda, fiyat AYNI SATIRDA sagda ve yesil */}
+                    <div className="sp-svc-top">
+                      <h3 className="sp-svc-name">{m.service[s.serviceType]}</h3>
+                      <span className="sp-svc-price tabular">
+                        {money(s.priceCents, locale)}
+                        <span className="sp-svc-unit"> / {m.unit[SERVICES[s.serviceType].unit]}</span>
+                      </span>
+                    </div>
                     <p className="text-body-sm muted" style={{ marginTop: 'var(--space-1)' }}>
                       {m.serviceDescription[s.serviceType]}
                     </p>
@@ -592,9 +653,7 @@ export default async function SitterPage({
 
                   {/* Drip pricing yasagi: gosterilen rakam bakicinin ucreti,
                       toplam ucret rezervasyon ekraninda kalem kalem acilir. */}
-                  <div className="sitter-price">
-                    <span className="text-h3 tabular">{money(s.priceCents, locale)}</span>
-                    <span className="dim text-body-sm">/ {m.unit[SERVICES[s.serviceType].unit]}</span>
+                  <div className="sp-svc-foot">
                     {/*
                       HER HIZMETIN KENDI REZERVASYON BAGLANTISI.
 
@@ -605,7 +664,7 @@ export default async function SitterPage({
                     */}
                     <Link
                       href={bookHref(s.serviceType)}
-                      className="btn btn-secondary btn-sm"
+                      className="sp-svc-btn"
                       aria-label={interpolate(m.sitter.bookServiceAria, {
                         service: m.service[s.serviceType], name: sitter.firstName,
                       })}
@@ -633,9 +692,9 @@ export default async function SitterPage({
             reddedildikten SONRA — ogreniliyordu.
           */}
           <section className="card card-pad sitter-block">
-            <h2 className="text-h2">
+            <SecHead icon="pets">
               {interpolate(m.sitter.petsHeading, { name: sitter.firstName })}
-            </h2>
+            </SecHead>
 
             {sizeSteps.length > 0 ? (
               <>
@@ -684,9 +743,14 @@ export default async function SitterPage({
 
           {/* --- Ev, kurallar, guvenlik --- */}
           <section className="card card-pad sitter-block">
-            <h2 className="text-h2">{m.sitter.homeHeading}</h2>
+            <SecHead icon="house">{m.sitter.homeHeading}</SecHead>
 
-            <ul className="home-facts">
+            {/*
+              EV OZELLIKLERI KUTUCUK IZGARASI. Tasarimda bu bolum dort
+              sutunluk bir "bento": her ozellik kendi kutusunda, ikon
+              ustte. Duz bir liste olarak sekiz madde okunmuyordu.
+            */}
+            <ul className="sp-bento">
               {homeFacts.map((f) => (
                 <li key={f.text}>
                   <HomeIcon name={f.icon} slashed={f.slashed ?? false} />
@@ -893,17 +957,16 @@ export default async function SitterPage({
             </ul>
 
             {/*
-              ROZET BURADA ACIKLANIYOR. Kimlik blogundaki rozet tek
-              basina "Certified Pro" diyor; ne kapsadigini — ve neyi
-              KAPSAMADIGINI — soyleyen satir rezervasyon kutusunda,
-              karar verilen yerde.
+              ROZETIN KISA NOTU. Her kademenin TAM aciklamasi artik
+              sayfadaki "Her rozet neyi kapsiyor" bolumunde duruyor;
+              burada ayni metni ikinci kez yazmak kutuyu sisiriyordu.
+              Kalan sey tek satirlik uyari ve ayrintiya giden bag.
             */}
             <div>
               <p className="field-hint" style={{ display: 'flex', gap: 'var(--space-2)' }}>
                 <span style={{ color: 'var(--color-primary)', flex: '0 0 auto' }}><ShieldIcon size={13} /></span>
                 {m.verification.disclaimer}
               </p>
-              <VerificationExplainer level={sitter.badgeLevel} locale={locale} />
               <Link href={`/${seg}/protection/`} className="field-hint" style={{ textDecoration: 'underline' }}>
                 {m.verification.whatTheseMean}
               </Link>

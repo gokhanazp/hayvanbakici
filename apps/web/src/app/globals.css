@@ -5956,3 +5956,67 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .sitter-page .sitter-block > h2 {
   font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; color: var(--color-ink);
 }
+
+/* ---- Profil bolumleri: tasarimdaki baslik + izgaralar ---- */
+.sp-sec-h { display: flex; align-items: center; gap: 0.5rem; }
+.sp-sec-h svg { color: var(--color-accent); flex: 0 0 auto; }
+.sp-sec-h h2 {
+  margin: 0; font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; color: var(--color-ink);
+}
+.sp-sec-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.sp-sec-note { font-size: 0.6875rem; color: var(--color-ink-muted); }
+
+/* Guven listesi — iki sutun, her madde kendi acik kutusunda */
+.sp-vet { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+@media (max-width: 639px) { .sp-vet { grid-template-columns: 1fr; } }
+.sp-vet li { display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.75rem; border-radius: 0.75rem; background: var(--color-surface-sunken); }
+.sp-vet-ic { color: var(--color-accent); flex: 0 0 auto; margin-top: 1px; }
+.sp-vet-text { display: grid; gap: 0.125rem; min-width: 0; }
+.sp-vet-text strong { font-size: 0.875rem; font-weight: 700; color: var(--color-ink); }
+.sp-vet-text span { font-size: 0.75rem; line-height: 1.125rem; color: var(--color-ink-secondary); }
+
+/* Hizmetler — iki sutunlu kutucuk izgarasi */
+.sp-svc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+@media (max-width: 859px) { .sp-svc-grid { grid-template-columns: 1fr; } }
+.sp-svc {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;
+  padding: 1rem; border-radius: 0.75rem; background: var(--color-surface-sunken);
+  transition: box-shadow var(--duration-standard) var(--easing-standard);
+}
+.sp-svc:hover { box-shadow: 0 10px 24px -6px rgba(83, 72, 62, 0.14); }
+.sp-svc-top { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.sp-svc-name { margin: 0; font-size: 1.0625rem; line-height: 1.5rem; font-weight: 700; color: var(--color-ink); }
+.sp-svc-price { font-size: 1.25rem; line-height: 1.75rem; font-weight: 800; color: var(--color-accent); white-space: nowrap; }
+.sp-svc-unit { font-size: 0.6875rem; font-weight: 400; color: var(--color-ink-muted); }
+.sp-svc-foot { display: flex; justify-content: flex-end; }
+.sp-svc-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 2.25rem; padding-inline: 1rem; border-radius: var(--radius-full);
+  background: var(--color-accent); color: var(--color-primary-on);
+  font-size: 0.75rem; font-weight: 700; text-decoration: none;
+}
+.sp-svc-btn:hover { background: var(--color-accent-hover); text-decoration: none; }
+
+/* Ev ozellikleri — dort sutunluk bento */
+.sp-bento { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+@media (max-width: 859px) { .sp-bento { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 559px) { .sp-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sp-bento li {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  gap: 0.375rem; padding: 0.75rem 0.5rem; border-radius: 0.75rem; text-align: center;
+  background: var(--color-surface-container);
+}
+.sp-bento li > span { font-size: 0.75rem; line-height: 1.0625rem; font-weight: 600; color: var(--color-ink); }
+.sp-bento svg { color: var(--color-accent); }
+
+/*
+  GALERI MOZAIGI. Tasarimda ilk fotograf buyuk, yanindakiler kucuk.
+  Esit uc kare, bakicinin en iyi karesini de diger ikisi kadar kucuk
+  gosteriyordu.
+*/
+@media (min-width: 700px) {
+  .sitter-page .sitter-gallery[data-count="3"] {
+    display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: repeat(2, 1fr); gap: 0.5rem;
+  }
+  .sitter-page .sitter-gallery[data-count="3"] > :first-child { grid-row: span 2; }
+}
