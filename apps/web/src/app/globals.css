@@ -395,73 +395,9 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   overflow: hidden;
 }
 .panel .muted { color: var(--color-panel-ink-muted); }
-
-/* ---------- Hero ---------- */
-/*
-  KREM KAHRAMAN.
-  Onceki surum koyu bir panel + karartma katmaniydi; karartma, fotografin ne
-  oldugundan bagimsiz kontrast garantisi veriyordu. Yeni yon sayfanin kendi
-  krem zeminini kahramanda da surduruyor: fotograf KESILMIS (arka plani
-  silinmis) olarak zemine oturuyor, dolayisiyla metnin arkasinda hic fotograf
-  olmuyor ve karartmaya gerek kalmiyor.
-*/
-/* ---------- KAHRAMAN ---------- */
-/*
-  ARKA PLAN: TEK DUZ GECIS DEGIL, USTUSTE YUMUSAK ISIKLAR.
-
-  Once tek bir dogrusal gecis (blush -> kayisi) ve bir beyaz radyal
-  vardi; genis bir ekranda duz bir zemin gibi duruyordu. Uc yumusak
-  isik kaynagi eklendi — sol ustte marka pembesi, sag ustte beyaz, sag
-  altta adacayi — ve bunlar cok yavas suzuluyor. Isiklar AYRI BIR
-  KATMANDA (::before): zeminin kendisini animasyonlamak her karede
-  yeniden boyama demek, ayri katman yalnizca bilesikleme.
-
-  Metnin arkasindaki bolge ACILIYOR (beyaz isik sol ustte degil sag
-  ustte duruyor, sol ust marka pembesi %10): koyu murekkep ile zemin
-  arasindaki kontrast dusmuyor.
-*/
-.hero-band::before {
-  content: '';
-  position: absolute; inset: -20%;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 46% at 18% 22%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 70%),
-    radial-gradient(46% 52% at 88% 8%, rgba(255,255,255,.42) 0%, transparent 68%),
-    radial-gradient(40% 44% at 76% 92%, color-mix(in srgb, var(--color-accent) 14%, transparent) 0%, transparent 72%);
-  animation: hero-glow 26s var(--easing-standard) infinite;
-}
 @keyframes hero-glow {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50%      { transform: translate3d(1.5%, -1.5%, 0) scale(1.06); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-band::before { animation: none; }
-}
-/*
-  TAM GENISLIK, TAM EKRAN.
-
-  Once hero 1180 piksellik konteynerin icinde duruyordu: 1440px'te
-  fotograf sutununun sagi ile ekranin kenari arasinda 162 piksel bos
-  bant kaliyordu ve bolum ekranin yalnizca ucte ikisini dolduruyordu
-  (602 / 900). Ilk ekran bir sayfanin en pahali yeri; yarisini bos
-  birakmak onu harcamak.
-
-  Metin sutunu konteynerde KALIYOR — satir uzunlugu okunabilirligi
-  belirliyor ve 1440px'te tam genisliğe yayilan bir paragraf
-  okunmuyor. Tasan yalnizca fotograf kolaji.
-*/
-.hero-band {
-  /*
-    clip, scroll DEGIL: tasan fotograf sutunu yatay kaydirma cubugu
-    acmasin. overflow:hidden bir kaydirma baglami yaratir ve icerideki
-    position:sticky'yi bozar; clip yaratmiyor.
-
-    IKI EKSENDE: yalnizca x'te kirpmak, y'yi bazi tarayicilarda `auto`ya
-    ceviriyor; ayrica bandin alt kose kavisinin tasan fotografi da
-    kirpmasi gerekiyor.
-  */
-  overflow: clip;
 }
 .hero {
   position: relative;
@@ -485,29 +421,6 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
     padding-block: var(--space-8) calc(var(--section-y) * 1.1);
   }
 }
-.hero-grid {
-  position: relative; z-index: 2;
-  display: grid; gap: var(--space-8);
-  grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-}
-@media (min-width: 900px) {
-  .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: var(--space-10); }
-}
-@media (min-width: 1100px) {
-  /*
-    ICERIK KONTEYNERDE KALIYOR.
-
-    Bir ara fotograf kolajini ekranin kenarina kadar tasirmistim; iyi
-    gorunmedi: kolaj metinden kopuyor ve hero iki ayri parcaya
-    bolunuyordu. Tam genislikte olan tek sey ARKA PLAN — bant ve
-    uzerindeki el cizimi konturlar. Icerik, sayfanin geri kalaniyla ayni
-    hizada duruyor.
-  */
-  .hero-grid { grid-template-columns: minmax(0, 34rem) minmax(0, 1fr); gap: var(--space-10); }
-}
-.hero-copy { max-width: 34rem; }
-.hero-media { position: relative; }
 
 /*
   KONTUR SERITLERI — TAM GENISLIK, ICERIGIN DISINDA.
@@ -594,12 +507,6 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 .has-doodles > *:not(.section-doodles) { position: relative; z-index: 1; }
 
 .hero-art { width: 100%; height: auto; display: block; }
-
-/* Kahramanin altina binen arama karti */
-.hero-search {
-  position: relative; z-index: 3;
-  margin-top: calc(var(--space-16) * -1);
-}
 
 /* ---------- Fotograf yukleme ---------- */
 /* ---------- Fotograf yukleme ---------- */
@@ -693,7 +600,6 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   border: 1px solid var(--color-border-strong); background: var(--color-surface);
   border-radius: var(--radius-full); font-size: 0.875rem;
 }
-.chip-active { border-color: var(--color-primary); background: var(--color-primary-subtle); color: var(--color-primary-active); font-weight: 500; }
 
 .eyebrow {
   display: inline-flex; align-items: center; gap: var(--space-2);
@@ -703,12 +609,6 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   background: rgba(20,23,15,.30);
   font-size: 0.75rem; color: var(--color-panel-ink-muted);
 }
-
-.trust-strip-wrap {
-  display: flex; justify-content: center;
-  margin-top: var(--space-5);
-}
-@media (max-width: 720px) { .trust-strip-wrap > * { flex: 1 1 100%; } }
 
 /*
   CANLI VERI SERIDI — arama kartinin altinda.
@@ -836,75 +736,8 @@ input[type='date']:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 */
 :root { --strip-h: 38px; --header-h: 84px; }
 @media (max-width: 999px) { :root { --strip-h: 34px; --header-h: 68px; } }
-
-.site-header {
-  position: sticky; top: calc(var(--strip-h) * -1); z-index: 50;
-  /* Beyaz cubuk, krem degil: baslik artik RENKLI bantlarin uzerinde duruyor
-     ve krem zemin blush bandin yaninda "yanlis krem" gibi bir dikis
-     birakiyordu. Beyaz, bilincli bir cubuk gibi okunuyor. */
-  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
-}
-/*
-  CEKMECE ACIKKEN BULANIKLIK KAPANIYOR — GORSEL BIR TERCIH DEGIL, ZORUNLULUK.
-
-  `backdrop-filter` uygulanan bir oge, icindeki `position: fixed`
-  ogeler icin KAPSAYICI BLOK oluyor. Cekmece bu basligin icinde
-  oldugu icin hem perde (`inset: 0`) hem yuzey ekrana degil BASLIK
-  KUTUSUNA gore yerlesiyordu: perde yalnizca ust bandi karartiyor,
-  yuzey de belgenin kaydirma genisligine ekleniyor ve sayfa saga sola
-  oynuyordu (390px ekranda 733px genislik). Cekmece acikken arkadaki
-  sayfa zaten perdeyle kapali; bulanikligin kaybi gorunmuyor.
-*/
-.site-header:has(.nav-drawer[open]) { backdrop-filter: none; }
 /* Arkadaki sayfa cekmece acikken kaymasin */
 html:has(.nav-drawer[open]) { overflow: hidden; }
-.site-header-inner {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-5); min-height: var(--header-h);
-}
-
-/* --- Ust serit --- */
-.site-strip {
-  background: var(--color-panel); color: var(--color-panel-ink-muted);
-  font-size: 0.8125rem;
-}
-.site-strip-inner {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-4); min-height: var(--strip-h);
-}
-.site-strip-note { margin: 0; }
-.site-strip-end { display: flex; align-items: center; gap: var(--space-3); }
-
-/*
-  DAR EKRANDA CUMLE GIDER, DIL KALIR. 390px'de o cumle iki satira
-  boluniyor ve seridin isi bitiyor; dil secimi ise ana cubukta yer
-  bulamadigi icin burada kalmali.
-*/
-.site-strip-short { display: none; }
-@media (max-width: 767px) {
-  .site-strip-long { display: none; }
-  .site-strip-short { display: inline; }
-}
-/*
-  Cok dar ekranda (kucuk telefonlar) kisa cumle bile dil secimini
-  sikistiriyor; orada serit yalnizca dili tasiyor.
-*/
-@media (max-width: 400px) {
-  .site-strip-note { display: none; }
-  .site-strip-inner { justify-content: flex-end; }
-}
-
-.strip-lang { display: inline-flex; align-items: center; gap: var(--space-2); }
-.strip-lang-item { display: inline-flex; align-items: center; gap: var(--space-2); }
-.strip-lang a {
-  display: inline-flex; align-items: center; min-height: 24px;
-  padding-inline: 2px; color: var(--color-panel-ink-muted);
-}
-.strip-lang a:hover { color: var(--color-panel-ink); }
-.strip-lang-on { color: var(--color-panel-ink); font-weight: 600; }
-.strip-lang-sep { color: color-mix(in srgb, var(--color-panel-ink) 30%, transparent); }
 
 .social-links { display: inline-flex; align-items: center; gap: 2px; }
 .social-link {
@@ -915,62 +748,8 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
               background-color var(--duration-standard) var(--easing-standard);
 }
 .social-link:hover { color: var(--color-primary); background: var(--color-primary-subtle); }
-/* Koyu serit uzerinde ayni ikonlar */
-.social-links-strip .social-link { width: 26px; height: 26px; color: var(--color-panel-ink-muted); }
-.social-links-strip .social-link:hover {
-  color: var(--color-panel-ink);
-  background: color-mix(in srgb, var(--color-panel-ink) 12%, transparent);
-}
 
 .wordmark-lockup { display: inline-flex; align-items: center; gap: var(--space-2); }
-
-.site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
-
-/* --- Ana gezinme --- */
-/*
-  Menu markanin HEMEN yaninda. Onceden uc oge arasi bosluk esit
-  dagitiliyordu ve menu sayfanin ortasinda, hicbir seye bagli olmadan
-  duruyordu; marka ile menu arasindaki bag okunmuyordu. Sagda kalan
-  bosluk kasitli: eylem alanini nefes aldiriyor.
-*/
-/*
-  CUBUK YA TAM SIGAR YA DA CEKMECEYE GECER — ESIK 1180px.
-
-  Esik 1000px idi ve giris yapmis bir kullanicida cubuk o genislikte
-  sigmiyordu: Fransizca "Terminer votre candidature" dugmesiyle
-  birlikte sayfa yatay olarak kayiyordu (1000px ekranda 1117px
-  belge genisligi). Kap zaten 1180px'de duruyor, yani ekrani
-  buyutmek de kurtarmiyordu.
-
-  Yeni esik kabin kendi genisligi: cubuk ancak tam sigacagi yerde
-  aciliyor, altinda cekmece calisiyor — cekmece dar ekranda zaten
-  daha iyi bir yuzey.
-*/
-.site-nav { display: none; align-items: center; gap: var(--space-2); }
-@media (min-width: 1180px) {
-  .site-nav { display: flex; margin-inline-start: var(--space-8); margin-inline-end: auto; }
-}
-
-/*
-  KELIME ORTASINDAN BOLUNME YOK. Cubuk dar kalinca baglantilar
-  kendi iclerinde sariliyordu ve "How it works" iki satir oluyordu:
-  yer kazandirmayan, yalnizca basligi buyuten bir kirilma. Sigmiyorsa
-  cubugun tamami cekmeceye gecmeli (asagidaki 1180px esigi), yazi
-  ikiye boluNMEmeli.
-*/
-.nav-link, .site-header-actions > a, .site-header-actions > button,
-.header-account > a, .header-account > button { white-space: nowrap; }
-
-.nav-link {
-  display: inline-flex; align-items: center; gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: 0.9375rem; color: var(--color-ink-secondary);
-  transition: background-color var(--duration-standard) var(--easing-standard),
-              color var(--duration-standard) var(--easing-standard);
-}
-.nav-link:hover { color: var(--color-ink); background: var(--color-surface-sunken); }
-.nav-link-strong { color: var(--color-ink); font-weight: 500; }
 
 /*
   HIZMET MENUSU — <details>/<summary> uzerine kurulu, JavaScript YOK.
@@ -983,53 +762,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .nav-menu[open] > summary { color: var(--color-ink); background: var(--color-surface-sunken); }
 .nav-menu[open] > summary svg { transform: rotate(180deg); }
 .nav-menu > summary svg { transition: transform var(--duration-standard) var(--easing-standard); }
-
-.nav-panel {
-  position: absolute; top: calc(100% + var(--space-3)); left: 0;
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-1);
-  width: 34rem; padding: var(--space-3);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-}
-.nav-panel-item {
-  display: grid; grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-3); align-items: center;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-}
-.nav-panel-item:hover { background: var(--color-primary-subtle); }
-.nav-panel-icon {
-  display: grid; place-items: center; flex: none;
-  width: 36px; height: 36px; border-radius: var(--radius-sm);
-}
-.nav-panel-text { display: grid; gap: 2px; min-width: 0; }
-.nav-panel-title { font-weight: 600; font-size: 0.9375rem; }
-.nav-panel-sub { font-size: 0.8125rem; line-height: 1.15rem; color: var(--color-ink-muted); }
-
-/* --- Dil secimi --- */
-.locale-switch {
-  display: inline-flex; align-items: center;
-  padding: 3px; gap: 2px;
-  background: var(--color-surface-sunken);
-  border-radius: var(--radius-full);
-  font-size: 0.8125rem;
-}
-.locale-switch a {
-  display: inline-flex; align-items: center;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-ink-secondary);
-}
-.locale-switch-on {
-  background: var(--color-surface);
-  color: var(--color-ink) !important;
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-.locale-switch-footer { margin-top: var(--space-5); font-size: 0.875rem; }
 
 /* --- Mobil cekmece --- */
 .nav-drawer { position: relative; }
@@ -1196,23 +928,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   padding-inline: var(--space-3);
   border-radius: var(--radius-md);
 }
-/*
-  ...AMA YALNIZCA O LISTEDE GERCEKTEN IKON VARSA. Bosluk kosulsuzken
-  ikonu olmayan bir cekmecede butun satirlar 42px saga kayiyor ve
-  ustlerindeki baslik tek basina solda kaliyordu — ortada hizalanacak
-  bir ikon yokken birakilmis bir sutun.
-*/
-.nav-drawer-panel:has(.nav-drawer-icon) .nav-drawer-item {
-  padding-inline-start: calc(var(--space-3) + var(--drawer-icon) + var(--space-3));
-}
-/* Cekmecede kutucuk yok: dar bir listede dort renkli kare gurultu
-   yapiyordu. Ikon tek basina, soluk. */
-.nav-drawer-icon {
-  display: grid; place-items: center; flex: none;
-  width: var(--drawer-icon);
-  margin-inline-start: calc((var(--drawer-icon) + var(--space-3)) * -1);
-  color: var(--color-ink-muted);
-}
 .nav-drawer-item:hover { background: var(--color-surface-sunken); }
 
 .nav-drawer-item:disabled { opacity: .5; cursor: not-allowed; }
@@ -1221,22 +936,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   width: 100%; border: 0; background: none; cursor: pointer;
   font: inherit; color: inherit; text-align: left;
 }
-
-/* Dar ekranda CTA'yi gizle — cekmecede zaten var, baslik tasiyor */
-@media (max-width: 640px) { .header-cta { display: none; } }
-
-/*
-  HESAP ALANI DAR EKRANDA CEKMECEDE.
-
-  390px'de cubuk logo + EN/FR + isim + "Se deconnecter" + hamburger
-  tasiyordu; Fransizcada cikis dugmesi iki satira boluniyor ve baslik
-  ekrandan tasiyordu. Cekmece 1180px'de kayboluyor, hesap alani da tam
-  o noktada cubuga geri geliyor — arada hicbir genislikte iki kopya da
-  gorunmuyor, hicbirinde de kaybolmuyor.
-*/
-.header-account { display: none; }
-@media (min-width: 1180px) { .header-account { display: contents; } }
-@media (min-width: 1180px) { .nav-drawer .header-account { display: none; } }
 
 /*
   IKI KAPI — bakici davet sayfasinda kahramanin altinda.
@@ -1285,24 +984,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .waitlist-row .btn { flex: 0 0 auto; }
 @media (max-width: 460px) { .waitlist-row .btn { flex: 1 1 100%; } }
-
-/* --- Alt bilgi --- */
-.site-footer {
-  margin-top: var(--space-20);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface-sunken);
-  padding-block: var(--space-16) var(--space-10);
-  color: var(--color-ink-secondary);
-  font-size: 0.875rem;
-}
-.footer-grid {
-  display: grid; gap: var(--space-10);
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 640px) { .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1000px) {
-  .footer-grid { grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr)); gap: var(--space-8); }
-}
 /*
   ALT BILGI SUTUNU — DAR EKRANDA AKORDEON.
 
@@ -1342,15 +1023,8 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   — marka blogundan boylece ayriliyor.
 */
 @media (max-width: 639px) {
-  .footer-grid:has(.footer-col[data-collapsible]) { gap: 0; }
-  .footer-grid:has(.footer-col[data-collapsible]) > :first-child {
-    margin-bottom: var(--space-6);
-  }
   .footer-col[data-collapsible] { border-top: 1px solid var(--color-border); }
   .footer-col[data-collapsible][open] { padding-bottom: var(--space-5); }
-  /* Sonuncunun alt cizgisi yok: alt satirin (.footer-bottom) kendi ust
-     cizgisi zaten var, ikisi yan yana cift cizgi olarak okunuyordu. */
-  .footer-grid:has(.footer-col[data-collapsible]) { margin-bottom: calc(var(--space-12) * -1 + var(--space-6)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .footer-col .footer-chevron { transition: none; }
@@ -1361,18 +1035,7 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   margin-bottom: var(--space-1);
 }
 .footer-col a { color: var(--color-ink-secondary); }
-.footer-service { display: flex; align-items: center; gap: var(--space-2); }
-.footer-service-icon { display: grid; place-items: center; flex: none; color: var(--color-ink-muted); }
-.footer-service:hover .footer-service-icon { color: var(--color-primary); }
 .footer-col a:hover { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
-
-.footer-bottom {
-  display: grid; gap: var(--space-2);
-  margin-top: var(--space-12);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--color-border);
-  font-size: 0.8125rem; line-height: 1.2rem;
-}
 
 /* ---------- Bakici karti ---------- */
 .sitter-card { display: flex; flex-direction: column; }
@@ -1806,7 +1469,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   padding: var(--space-10) var(--space-8);
 }
 @media (min-width: 768px) { .banner { padding: var(--space-12) var(--space-10); } }
-.banner-body { position: relative; z-index: 1; max-width: 34rem; }
 .banner-doodles { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 /* Dar ekranda banner metni tum genisligi kapliyor; konturlar basligin
    uzerine biniyordu. */
@@ -2189,53 +1851,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .sitter-ask p { margin: 0; }
 
 /*
-  BASLIK: SOLDA KIMLIK, SAGDA PUAN DAGILIMI.
-
-  Sagdaki yari bombostu ve dagilim sayfanin epey asagisindaydi.
-  `justify-content: space-between` ile panel sag kenara yasliyor;
-  `flex-wrap` sayesinde dar ekranda kimligin altina geciyor.
-
-  Kimlik blogu `flex: 1 1 20rem` — panel sigmiyorsa once o buyuyor,
-  panel alt satira gecer. Panelin kendisi buzulmuyor (esneme yok),
-  cunku cubuklar kisaldiginda dagilim okunmaz oluyor.
-*/
-.sitter-head {
-  display: flex; gap: var(--space-5) var(--space-8);
-  align-items: center; flex-wrap: wrap; justify-content: space-between;
-}
-.sitter-head > :first-child { flex: 0 0 auto; }
-.sitter-head > :nth-child(2) { flex: 1 1 18rem; min-width: 0; }
-
-/*
-  Panel BEYAZ kutu: banttaki pembe gecisin uzerinde cubuk izleri
-  (surface-sunken) neredeyse gorunmuyordu. Alt taraftaki istatistik
-  seridiyle ayni dil — ikisi de bandin uzerinde duran beyaz kart.
-*/
-.sitter-rating-panel {
-  flex: 0 1 auto;
-  display: grid; gap: var(--space-3);
-  min-width: 15rem;
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sticker-sm);
-}
-.sitter-rating-panel .rating-breakdown { margin: 0; max-width: none; width: 16rem; }
-@media (max-width: 559px) {
-  /* Telefonda tam genislik: 16rem sabit kalirsa sagda bosluk oluyor */
-  .sitter-rating-panel { width: 100%; }
-  .sitter-rating-panel .rating-breakdown { width: auto; }
-}
-.sitter-avatar {
-  display: grid; place-items: center;
-  width: 92px; height: 92px; flex: 0 0 auto;
-  border-radius: var(--radius-full);
-  background: linear-gradient(150deg, var(--color-primary-subtle), var(--color-accent-subtle));
-  color: var(--color-primary-active);
-  font-family: var(--font-display); font-weight: 600; font-size: 1.75rem;
-}
-
-/*
   BES ISTATISTIK TEK SATIRDA.
 
   Sabit `repeat(4, 1fr)` idi ve besinci deger (yanit orani) alt satira
@@ -2264,21 +1879,9 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .sitter-stats li { display: grid; gap: var(--space-1); }
 .sitter-stats .text-numeral { font-size: 1.75rem; }
-
-.sitter-service {
-  display: flex; gap: var(--space-5); align-items: flex-start;
-  justify-content: space-between; flex-wrap: wrap;
-}
 .sitter-price { display: grid; justify-items: end; gap: var(--space-1); flex: 0 0 auto; }
 /* Fiyatin altindaki rezervasyon dugmesi biraz nefes alsin */
 .sitter-price .btn { margin-top: var(--space-2); }
-
-.sitter-facts { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.sitter-facts li {
-  display: flex; align-items: flex-start; gap: var(--space-3);
-  font-size: 0.9375rem; line-height: 1.4rem;
-}
-.sitter-facts li svg { color: var(--color-primary); flex: 0 0 auto; margin-top: 2px; }
 
 .sitter-review-reply {
   margin-top: var(--space-4);
@@ -2375,7 +1978,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .band-sage { background: var(--color-band-sage); }
 .band-surface { background: var(--color-surface); }
-.band-canvas { background: var(--color-canvas); }
 
 /* Bantlar arasi gecis: duz cizgi yerine yumusak kavis */
 .band-round-b { border-end-start-radius: 2.25rem; border-end-end-radius: 2.25rem; }
@@ -2396,8 +1998,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 :root { --section-y: clamp(3.5rem, 6vw, 5.75rem); }
 
 .section { padding-block: var(--section-y); }
-.section-lg { padding-block: calc(var(--section-y) * 1.3); }
-.section-tight { padding-block: calc(var(--section-y) * 0.65); }
 .section-head { display: grid; gap: var(--space-3); max-width: 44rem; margin-bottom: var(--space-10); }
 .section-head > h2 { margin: 0; }
 .section-head > p { margin: 0; }
@@ -2411,8 +2011,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   background: var(--color-surface-sunken);
 }
 .photo-frame > img { width: 100%; height: 100%; object-fit: cover; }
-.photo-fill { position: absolute; inset: 0; }
-.photo-fill > img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ---------- Kisi fotografi ---------- */
 .avatar {
@@ -2425,39 +2023,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   line-height: 1;
 }
 .avatar > img { width: 100%; height: 100%; object-fit: cover; }
-.avatar-stack { display: flex; align-items: center; }
-.avatar-stack > .avatar { margin-inline-start: -0.6rem; box-shadow: 0 0 0 2px var(--color-surface); }
-.avatar-stack > .avatar:first-child { margin-inline-start: 0; }
-
-/* ---------- Kahraman fotograf kolaji ---------- */
-.hero-photos {
-  display: grid;
-  grid-template-columns: 1.22fr 1fr;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-  aspect-ratio: 1 / 1.02;
-}
-.hero-photos > :first-child { grid-row: 1 / 3; }
-.hero-photos .photo-frame { height: 100%; }
-/* Kolajin uzerine binen canli veri karti */
-.hero-float {
-  position: absolute; z-index: 3;
-  inset-inline-start: calc(var(--space-4) * -1); bottom: var(--space-6);
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sticker-md);
-  max-width: 15rem;
-}
-@media (max-width: 899px) {
-  .hero-photos { aspect-ratio: 3 / 2; }
-  .hero-float { inset-inline-start: var(--space-3); bottom: calc(var(--space-3) * -1); }
-}
-/* Genis ekranda kolaj yatay uzaniyor: saga tastigi icin artik yeri var */
-@media (min-width: 1100px) {
-  .hero-photos { aspect-ratio: 1.24 / 1; gap: var(--space-4); }
-}
 
 /* ---------- KAHRAMAN ANIMASYONU ---------- */
 /*
@@ -2498,50 +2063,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   50%      { transform: translate3d(0, -10px, 0) rotate(-0.4deg) scale(1.008); }
 }
 
-.hero-in, .hero-in-solid {
-  animation-duration: var(--duration-enter);
-  animation-timing-function: var(--easing-standard);
-  animation-fill-mode: both;
-}
-.hero-in { animation-name: hero-rise; }
-.hero-in-solid { animation-name: hero-rise-solid; }
-
-/* Siralama: rozet, baslik, alt metin, maddeler, veri karti */
-.hero-in-1 { animation-delay: 0ms; }
-.hero-in-2 { animation-delay: 60ms; }
-.hero-in-3 { animation-delay: 140ms; }
-.hero-in-4 { animation-delay: 220ms; }
-.hero-in-5 { animation-delay: 320ms; }
-
-/*
-  Maddeler TEK TEK geliyor. Listenin tamamini birlikte getirmek, uc
-  satiri tek bir blok gibi gosteriyordu; sirayla gelince goz onlari
-  okuyor.
-*/
-.hero-points li {
-  animation: hero-rise var(--duration-enter) var(--easing-standard) both;
-}
-.hero-points li:nth-child(1) { animation-delay: 260ms; }
-.hero-points li:nth-child(2) { animation-delay: 320ms; }
-.hero-points li:nth-child(3) { animation-delay: 380ms; }
-
-/*
-  SUREN SALINIM — giris bittikten SONRA basliyor.
-
-  Uc cerceve ayni anda ayni yone gitseydi kolaj tek parca gibi
-  zipliyordu; farkli sure ve gecikmeyle her biri kendi ritminde.
-  Kapsayici degil CERCEVELER hareket ediyor: giris animasyonu
-  kapsayicinin transform'unu kullaniyor, ikisi ayni ogede cakisirdi.
-*/
-@media (min-width: 900px) {
-  .hero-photos .photo-frame > * {
-    animation: hero-drift 7s var(--easing-standard) infinite;
-    animation-delay: 700ms;
-  }
-  .hero-photos .photo-frame:nth-child(2) > * { animation-duration: 8.5s; animation-delay: 1100ms; }
-  .hero-photos .photo-frame:nth-child(3) > * { animation-duration: 9.5s; animation-delay: 900ms; }
-}
-
 /*
   IKI SERIT TERS YONDE suzuluyor.
 
@@ -2569,8 +2090,7 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   baslangic karesinde (opacity 0) DONAR. Ozellikler de sifirlaniyor.
 */
 @media (prefers-reduced-motion: reduce) {
-  .hero-in, .hero-in-solid, .hero-points li,
-  .hero-photos .photo-frame > *, .hero-doodles, .doodle-rail {
+   .hero-doodles, .doodle-rail {
     animation: none;
     opacity: 1;
     transform: none;
@@ -2674,72 +2194,9 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
    satira boluniyordu. */
 .stars { color: var(--color-warning); letter-spacing: .12em; font-size: 0.875rem; }
 
-/* ---------- Fotografli banner ----------
-   Metin FOTOGRAFIN UZERINDE DEGIL, fotografin uzerindeki duz karttadir.
-   Fotograf uzerine yazi, hangi fotograf gelirse gelsin kontrast garantisi
-   veremiyor; kart veriyor. */
-.banner-photo {
-  position: relative; overflow: hidden;
-  border-radius: var(--radius-xl);
-  display: grid; align-items: center;
-  min-height: 26rem;
-}
-.banner-photo > .photo-fill > img { filter: saturate(.95); }
-.banner-photo::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(33,22,33,.42) 0%, rgba(33,22,33,0) 70%);
-}
-.banner-card {
-  position: relative; z-index: 2;
-  margin: var(--space-6); padding: var(--space-8);
-  max-width: 29rem;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sticker-md);
-}
-@media (max-width: 640px) { .banner-card { margin: var(--space-3); padding: var(--space-6); } }
-
 /* ---------- Sayfa basligi (ic sayfalar) ---------- */
 /* IC SAYFA BASLIGI */
 .page-head { padding-block: var(--space-12) calc(var(--section-y) * 0.9); }
-/*
-  ALTINA ARAMA KARTI BINEN BASLIK.
-
-  Kart bandin icine ~64 piksel giriyor (.hero-search negatif margin).
-  Bandin alt boslugu bundan KUCUK oldugunda kart, fotografin alt
-  kenariyla kesisiyor ve kesisme kazara olmus gibi duruyor. Fotografi
-  kucultmek ise ise yaramiyor: bandin yuksekligini zaten fotograf
-  belirliyor, o kuculunce bant da kuculuyor ve kesisme aynen kaliyor.
-  Cozum bosluk: alt dolgu kartin girdigi mesafeden buyuk.
-*/
-.page-head-with-search { padding-bottom: calc(var(--space-16) + var(--space-6)); }
-.page-head-grid {
-  display: grid; gap: var(--space-8); align-items: center;
-  grid-template-columns: minmax(0, 1fr);
-}
-/*
-  Fotograf 3:2 — 4:3 iken alt kenari, bandin altina binen arama kartinin
-  ustune 16 piksel tasiyordu ve kesisme kazara olmus gibi duruyordu.
-  Daha basik oran fotografi kartin ustunde bitiriyor.
-*/
-.page-head-photo { aspect-ratio: 3 / 2; }
-
-/*
-  HIZMET ROZETI — acik zeminde.
-  .eyebrow koyu panel icin yapilmisti (koyu zemin, acik yazi); acik bandin
-  uzerinde okunmuyordu. Bu kendi tonlarini tasiyor.
-*/
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  border: 2px solid var(--color-border);
-  box-shadow: var(--shadow-sticker-sm);
-  font-size: 0.8125rem; font-weight: 600;
-}
-.hero-eyebrow svg { color: var(--color-primary); }
 
 /*
   SAYI BLOKLARI.
@@ -2761,18 +2218,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .stat-value { margin: 0; font-size: 1.75rem; line-height: 2rem; color: var(--color-ink); }
 @media (min-width: 900px) { .stat-value { font-size: 2rem; line-height: 2.25rem; } }
-/*
-  Dar ekranda fotograf sayfayi yiyor: metin, sayilar ve arama kutusu
-  zaten iki ekran. Fotograf burada sahne degil eslik — bant gibi
-  davransin diye yuksekligi kapaniyor.
-*/
-@media (max-width: 899px) {
-  .page-head-photo { aspect-ratio: auto; height: 190px; }
-  .page-head-with-search { padding-bottom: calc(var(--space-16) + var(--space-4)); }
-}
-@media (min-width: 900px) {
-  .page-head-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); }
-}
 
 /* Bakici kartinda fotograf — yoksa bas harfler (Avatar ile ayni kural) */
 .sitter-photo { overflow: hidden; }
@@ -2780,11 +2225,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 
 /* Bolum basligindaki rozet: grid icinde tum genisligi kapliyordu */
 .section-head > .badge { justify-self: start; }
-
-/* Kahraman maddeleri */
-.hero-points { display: grid; gap: var(--space-2); margin: var(--space-6) 0 0; padding: 0; list-style: none; }
-.hero-points li { display: flex; align-items: center; gap: var(--space-2); font-size: 0.875rem; color: var(--color-ink-secondary); }
-.hero-points svg { flex: none; }
 
 /* ---------- Bakici ev galerisi ---------- */
 .sitter-gallery { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2796,10 +2236,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   .sitter-gallery[data-count="3"] { grid-template-columns: 2fr 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
   .sitter-gallery[data-count="3"] > :first-child { grid-row: 1 / 3; aspect-ratio: auto; }
 }
-
-/* Istatistik seridi renkli bandin uzerindeyken beyaz kart olur:
-   cokuk krem zemin, blush bandin uzerinde kaybolyordu. */
-.sitter-stats-on-band { background: var(--color-surface); box-shadow: var(--shadow-sticker-sm); }
 
 /* ---------- Bakici davet sayfasi ---------- */
 .rate-compare {
@@ -2863,7 +2299,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   display: grid; gap: var(--space-4);
   grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
 }
-.info-item { display: grid; gap: var(--space-2); align-content: start; }
 /*
   Oran kartlari UC SUTUN: `info-grid`in 17rem alt siniri 700 piksellik
   bir sutunda ikiye dusuruyor ve ucuncu oran tek basina alta kaliyordu.
@@ -2934,7 +2369,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 .info-list li svg { flex: 0 0 auto; margin-top: 3px; }
 .info-list-no li svg { color: var(--color-ink-muted); }
-.info-list-yes li svg { color: var(--color-accent); }
 .info-panel .info-list li { color: var(--color-panel-ink); }
 .info-panel .info-list li svg { color: var(--color-panel-ink-muted); }
 
@@ -3079,71 +2513,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
 }
-.filters-body {
-  display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-4);
-}
-
-/*
-  TELEFONDA FILTRELER KATLANIYOR.
-
-  390px'de arama karti ve filtre karti ust uste duruyordu: tek bir
-  bakici gormeden iki ekran kaydirmak gerekiyordu.
-
-  Acma/kapama JS'siz. Onay kutusu GORUNMEZ ama odaklanabilir kaliyor
-  (clip-path ile; display:none olsaydi klavyeyle ulasilamazdi) ve
-  etiketi ona bagli. Kutunun `name`i yok, forma gonderilmiyor.
-*/
-.filters-toggle {
-  position: absolute; width: 1px; height: 1px;
-  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
-}
-.filters-summary { display: none; }
-
-@media (max-width: 899px) {
-  .filters-summary {
-    display: inline-flex; align-items: center; gap: var(--space-2);
-    min-height: var(--min-touch-target);
-    font-weight: 600; cursor: pointer;
-  }
-  /* Odak halkasi gizli kutuda degil, GORUNEN etikette */
-  .filters-toggle:focus-visible + .filters-summary {
-    outline: 2px solid var(--color-primary); outline-offset: 3px;
-    border-radius: var(--radius-sm);
-  }
-  .filters-body { display: none; margin-top: var(--space-4); }
-  .filters-toggle:checked ~ .filters-body { display: flex; }
-  /* Acikken oku cevir — durumu simge de soyluyor */
-  .filters-toggle:checked + .filters-summary svg { transform: rotate(180deg); }
-}
-
-/* Kac filtre acik — kapaliyken bile gorunuyor */
-.filters-count {
-  display: inline-grid; place-items: center;
-  min-width: 20px; height: 20px; padding: 0 5px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary); color: var(--color-primary-on);
-  font-size: 0.6875rem; font-weight: 700;
-}
-.filter-check {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  min-height: var(--min-touch-target);
-  font-size: 0.875rem; cursor: pointer;
-}
-.filter-check input { width: 18px; height: 18px; accent-color: var(--color-primary); }
-
-/* ---------- Hesap ekranlari ---------- */
-/*
-  Hesap ozetindeki "bekleyen isler" listesi. Sayi ONCE geliyor: kullanici
-  once kac tane oldugunu, sonra neyin oldugunu okuyor.
-*/
-.glance-list { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; }
-.glance-list li + li { border-top: 1px solid var(--color-border); }
-.glance-row {
-  display: grid; grid-template-columns: 2.5rem 1fr auto; align-items: center;
-  gap: var(--space-3); padding: var(--space-3) 0;
-  color: inherit; text-decoration: none;
-}
-.glance-row:hover { color: var(--color-primary-active); }
 
 /*
   HESAP SEKMELERI IKI GRUPTA.
@@ -3290,43 +2659,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .cal-swatch-booked { background: var(--color-accent-subtle); border-color: var(--color-accent); }
 .cal-swatch-past { background: transparent; opacity: .55; }
 
-/*
-  ROZET KILAVUZU — koruma sayfasinda.
-  Rozet solda, ne kapsadigi sagda; dar ekranda alt alta.
-*/
-.badge-guide { display: grid; gap: var(--space-5); margin: var(--space-5) 0; }
-.badge-guide > div { display: grid; gap: var(--space-2); }
-@media (min-width: 720px) {
-  .badge-guide > div { grid-template-columns: 14rem minmax(0, 1fr); gap: var(--space-5); align-items: start; }
-}
-.badge-guide dt { margin: 0; }
-.badge-guide dd { margin: 0; font-size: 0.9375rem; line-height: 1.5rem; color: var(--color-ink-secondary); }
-
-/*
-  SIRALAMA SATIRI — secenekler baglanti, secili olan dolu.
-  Filtre kartinin USTUNDE degil, sonuc listesinin hemen basinda:
-  siralama bir filtre degil, listeyi okuma bicimi.
-*/
-.sort-row {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
-  margin: 0 0 var(--space-6);
-}
-.sort-row .field-hint { margin-right: var(--space-1); }
-.sort-option {
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  font-size: 0.875rem;
-  min-height: var(--min-touch-target);
-  display: inline-flex; align-items: center;
-}
-.sort-option:hover { border-color: var(--color-border-strong); }
-.sort-option.is-active {
-  background: var(--color-ink); color: var(--color-canvas); border-color: var(--color-ink);
-  font-weight: 600;
-}
-
 /* ---------- Bakici panosu ---------- */
 /*
   Dort kart: durum, anlasilan tutarlar, profil gucu, siradaki adimlar.
@@ -3365,35 +2697,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .booking-timeline li { display: flex; gap: var(--space-3); align-items: baseline; font-size: 0.875rem; }
 .booking-timeline time { color: var(--color-ink-muted); font-variant-numeric: tabular-nums; flex: none; }
 
-/* ---------- Yonetici tablolari ----------
-   Tablo dar ekranda KIRILMIYOR, kendi kutusunda yatay kayiyor: satirlari
-   alt alta yigmak 7 sutunlu bir denetim kaydini okunmaz yapardi.
-   tabindex ile odaklanabilir kutu, klavyeyle de kaydirilabilsin diye
-   (WCAG 2.1.1 — fare olmadan erisilemeyen kaydirma alani hata sayilir). */
-.table-scroll {
-  overflow: auto;
-  /* 100 satir sayfayi 6000 piksel yapiyordu. Tablo kendi kutusunda
-     kayiyor; boylece baslik satiri da (sticky) gercekten yerinde kaliyor. */
-  max-height: 70vh;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-.data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.data-table th, .data-table td {
-  padding: var(--space-3) var(--space-4);
-  text-align: left; white-space: nowrap;
-  border-bottom: 1px solid var(--color-border);
-}
-.data-table thead th {
-  position: sticky; top: 0; z-index: 1;
-  background: var(--color-surface-sunken);
-  font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--color-ink-secondary); font-weight: 600;
-}
-.data-table tbody tr:last-child td { border-bottom: 0; }
-.data-table tbody tr:hover { background: var(--color-surface-sunken); }
-
 /* ---------- Mesajlasma ---------- */
 
 /*
@@ -3406,12 +2709,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .line-clamp-1 {
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* Sayfalama: onceki / konum / sonraki */
-.pager {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-4); margin-top: var(--space-8);
 }
 
 /* ---------- Sag alttaki sohbet ---------- */
@@ -4086,9 +3383,7 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .status-bar > span { display: block; height: 100%; background: var(--color-primary); border-radius: 999px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .glance-tile, .glance-label::after, .pet-card { transition: none; }
-  .glance-tile:hover { transform: none; }
-  .glance-tile:hover .glance-label::after { transform: none; }
+   .pet-card { transition: none; }
   .pet-card:hover { transform: none; }
 }
 
@@ -4119,12 +3414,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .pet-chip-name { font-weight: 600; font-size: 0.9375rem; }
 .pet-chip-meta { font-size: 0.8125rem; color: var(--color-ink-secondary); }
 .pet-chip-add { border-style: dashed; padding-inline: var(--space-3) var(--space-5); }
-
-.pet-grid {
-  display: grid; gap: var(--space-5);
-  /* 19rem: fotografli kart, uc kutucukla birlikte rahat dursun */
-  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
-}
 .pet-card {
   display: flex; flex-direction: column;
   border: 2px solid var(--color-border);
@@ -4201,38 +3490,12 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 /* Duzenleme formu acildiginda kendi satirina gecsin */
 .pet-card-actions > div[style*="100%"] { flex-basis: 100%; }
-
-/*
-  IZGARANIN SONUNDAKI EKLEME KUTUCUGU.
-
-  Iki hayvani olan kullanicida ucuncu sutun bos kaliyordu ve "buraya bir
-  sey gelecek mi" gibi duruyordu. Bosluğu bir ISLE doldurmak, bos
-  birakmaktan da bir kart daha genisletmekten de iyi.
-*/
-.pet-add {
-  display: grid; place-content: center; gap: var(--space-2);
-  min-height: 12rem; padding: var(--space-6);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  background: transparent; color: var(--color-ink-secondary);
-  text-align: center; text-decoration: none;
-  transition: border-color var(--duration-standard) var(--easing-standard),
-              background var(--duration-standard) var(--easing-standard);
-}
-.pet-add:hover { border-color: var(--color-primary); background: var(--color-surface); }
 .pet-add-plus {
   justify-self: center;
   display: grid; place-items: center;
   width: 2.5rem; height: 2.5rem; border-radius: 999px;
   background: var(--color-primary-subtle); color: var(--color-primary);
   font-size: 1.25rem; line-height: 1;
-}
-
-/* Hayvansiz durum — cizgili kutu degil, davet */
-.pet-empty {
-  padding: var(--space-8);
-  color: var(--color-ink-secondary);
-  text-align: center;
 }
 
 /*
@@ -4707,10 +3970,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .st-section-container { background: var(--color-surface-container); }
 .st-section-last { padding-block-start: 0; }
 
-/* Tasarimin kakao tonlu golgeleri — soguk gri golge sicak zeminde kirli duruyor */
-.st-sh-md { box-shadow: 0 4px 16px -2px rgba(83, 72, 62, 0.07); }
-.st-sh-xl { box-shadow: 0 20px 36px -6px rgba(83, 72, 62, 0.14); }
-
 /* ---------------- Kahraman ---------------- */
 .st-hero {
   /*
@@ -4915,7 +4174,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .st-ic-sage { color: var(--color-accent); flex: 0 0 auto; }
 .st-ic-coral { color: var(--color-primary); flex: 0 0 auto; }
 .st-ic-gold { color: var(--color-tertiary-container); flex: 0 0 auto; }
-.st-dash { color: var(--color-ink-muted); }
 
 /* Tasarimda dugme h-16 (64 piksel) ve yazi headline-sm (20/28, 600) */
 .st-search-btn {
@@ -5576,7 +4834,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 
 .sr-body { padding-block: 2rem 4rem; }
-.sr-h1 { margin: 0 0 1.5rem 0; font-family: var(--font-display); font-size: 2rem; line-height: 2.5rem; font-weight: 700; color: var(--color-ink); }
 .sr-h2 { margin: 0; font-size: 1.25rem; line-height: 1.75rem; font-weight: 800; color: var(--color-ink); }
 .sr-h3 { margin: 0 0 0.5rem 0; font-size: 1.125rem; line-height: 1.5rem; font-weight: 700; color: var(--color-ink); }
 
@@ -5695,7 +4952,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 
 .sr-list { display: flex; flex-direction: column; gap: 1rem; }
 .sr-empty { padding: 1.5rem; border-radius: 1rem; background: var(--color-surface); box-shadow: 0 4px 16px -2px rgba(83, 72, 62, 0.07); }
-.sr-pager { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .sr-pager-at { font-size: 0.8125rem; color: var(--color-ink-muted); }
 .sr-cities { margin-top: 3rem; display: flex; flex-direction: column; gap: 1rem; }
 
@@ -5935,12 +5191,6 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
   margin: 0; padding: 1rem 1.25rem; border-radius: 1rem;
   background: var(--color-surface); box-shadow: 0 4px 16px -2px rgba(83, 72, 62, 0.07);
 }
-.sp-breakdown {
-  display: grid; gap: 0.75rem; padding: 1rem 1.25rem; border-radius: 1rem;
-  background: var(--color-surface); box-shadow: 0 4px 16px -2px rgba(83, 72, 62, 0.07);
-}
-.sp-breakdown-h { margin: 0; font-size: 0.8125rem; font-weight: 700; color: var(--color-ink); }
-.sp-breakdown .rating-breakdown { margin: 0; max-width: none; width: auto; }
 
 /*
   SAYFANIN GERI KALANI. Bloklar tasarimdaki kart diline geciyor:
