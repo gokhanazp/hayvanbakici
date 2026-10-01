@@ -325,24 +325,25 @@ export default async function SearchPage({
 
         {place && (
           <div className="sr-grid">
-            {/* ---------------- SOL: filtreler + liste ---------------- */}
-            <div className="sr-main">
-              <Filters
-                locale={locale}
-                service={serviceSlug(service, locale)}
-                location={location}
-                start={start}
-                end={end}
-                radiusKm={radiusKm}
-                maxPrice={maxPrice}
-                petWeightKg={petWeightKg}
-                needsCats={needsCats}
-                requireFencedYard={requireFencedYard}
-                minBadge={minBadge}
-                unit={unit}
-                counts={serviceCounts}
-              />
+            {/* ---------------- SOL: ince filtre sutunu ---------------- */}
+            <Filters
+              locale={locale}
+              service={serviceSlug(service, locale)}
+              location={location}
+              start={start}
+              end={end}
+              radiusKm={radiusKm}
+              maxPrice={maxPrice}
+              petWeightKg={petWeightKg}
+              needsCats={needsCats}
+              requireFencedYard={requireFencedYard}
+              minBadge={minBadge}
+              unit={unit}
+              counts={serviceCounts}
+            />
 
+            {/* ---------------- ORTA: sonuclar ---------------- */}
+            <div className="sr-main">
               <div className="sr-head">
                 <div className="sr-head-left">
                   <h2 className="sr-h2">
@@ -747,10 +748,10 @@ function Filters({
         <fieldset className="sr-fset">
           <legend className="sr-leg">{t.sizeHeading}</legend>
           <div className="sr-size-grid">
-            <label className="sr-size">
+            {/* "Hepsi" kutucugunda aralik yok — bos satir yerine tek satir */}
+            <label className="sr-size sr-size-any">
               <input type="radio" name="weight" value="" defaultChecked={activeSize === null} />
               <span className="sr-size-name">{t.anySize}</span>
-              <span className="sr-size-range">—</span>
             </label>
             {PET_SIZE_STEPS.map((step) => (
               <label key={step.key} className="sr-size">
