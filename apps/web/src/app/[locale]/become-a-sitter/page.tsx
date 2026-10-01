@@ -95,31 +95,29 @@ export default async function BecomeSitterPage({
   return (
     <>
       {/* ---- Kahraman bandi ---- */}
-      <section className="band band-blush band-round-b">
-        <div className="container page-head">
-          <div className="page-head-grid">
-            <div>
-              <span className="badge" style={{
-                background: 'var(--color-surface)', color: 'var(--color-accent-hover)',
-              }}>
-                {s.eyebrow}
-              </span>
-              <h1 className="text-display" style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
-                {s.heroTitle}
-              </h1>
-              <p className="text-body-lg muted" style={{ maxWidth: '34rem', textWrap: 'pretty' }}>
-                {s.heroBody}
-              </p>
+      {/*
+        BAKICI DAVETI — tasarimdaki basvuru ekraninin ustu.
 
-              {/* Dugmeler oturuma gore konusuyor; sayfa statik kaliyor */}
-              <div style={{ marginTop: 'var(--space-7)' }}>
-                <SitterStartCta locale={locale} showSignIn />
-              </div>
-            </div>
+        Tasarimdaki baslik "Ayda 4.500 $ CAD'a kadar kazan" diyor ve
+        yaninda "haftalik ortalama 780 $" karti var. IKISI DE
+        UYDURMA olurdu: henuz tek bir odeme yapmadik, ortalama diye
+        gosterecek bir veri yok ve bir kazanc rakami vaat etmek
+        bakiciyi en kirilgan yerinden yakalar. Yerlerinde duran sey
+        gercek: ucreti bakici koyuyor ve kendi getirdigi musteriden
+        hicbir sey almiyoruz.
+      */}
+      <section className="sa-hero">
+        <div className="st-wrap sa-hero-grid">
+          <div className="sa-hero-copy">
+            <span className="sa-eyebrow">{s.eyebrow}</span>
+            <h1 className="sa-h1">{s.heroTitle}</h1>
+            <p className="sa-lead">{s.heroBody}</p>
+            {/* Dugmeler oturuma gore konusuyor; sayfa statik kaliyor */}
+            <div className="sa-cta"><SitterStartCta locale={locale} showSignIn /></div>
+          </div>
 
-            <div className="photo-frame" style={{ aspectRatio: '4 / 5' }}>
-              <Photo id="care-a" locale={locale} priority sizes="(min-width: 900px) 24rem, 100vw" />
-            </div>
+          <div className="sa-hero-art">
+            <Photo id="care-a" locale={locale} priority sizes="(min-width: 900px) 24rem, 100vw" />
           </div>
         </div>
       </section>

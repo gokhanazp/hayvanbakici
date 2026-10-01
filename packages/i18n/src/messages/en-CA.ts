@@ -875,6 +875,8 @@ export const enCA = {
     continueCta: 'Continue where you left off',
     saveAndContinue: 'Save and continue',
     back: 'Back',
+    /* Ilerleme cubugunun basligi — payda ZORUNLU adimlar */
+    progressPct: 'Application progress: {pct}% done',
     stepOf: 'Step {current} of {total}',
     optional: 'optional',
     savedNote: 'Saved. You can close this and come back any time.',

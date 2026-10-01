@@ -756,6 +756,8 @@ export const frCA = {
     continueCta: 'Reprendre où vous en étiez',
     saveAndContinue: 'Enregistrer et continuer',
     back: 'Retour',
+    /* Ilerleme cubugunun basligi — payda ZORUNLU adimlar */
+    progressPct: 'Progression : {pct} % terminé',
     stepOf: 'Étape {current} sur {total}',
     optional: 'facultatif',
     savedNote: 'Enregistré. Vous pouvez fermer et revenir quand vous voulez.',

@@ -30,11 +30,49 @@ export function Progress({
   const currentIndex = stepIndex(current);
   const total = ONBOARDING_STEPS.length;
 
+  /*
+    YUZDE — tasarimdaki "Application Progress: 75% Completed" satiri.
+
+    Payda ZORUNLU adimlar: ilerleme cubugu "yuzde kac kaldi" sorusunu
+    cevapliyor ve istege bagli adimlari saymak, gonderebilecek durumda
+    olan birine "hala %70'tesin" demek olurdu. Pay, TAMAMLANMIS zorunlu
+    adim sayisi — gezinilen adim degil, bitirilen is.
+  */
+  const requiredSteps = ONBOARDING_STEPS.filter(
+    (st) => (REQUIRED_STEPS as readonly string[]).includes(st),
+  );
+  const doneRequired = requiredSteps.filter((st) => completed[st]).length;
+  const pct = requiredSteps.length === 0
+    ? 0
+    : Math.round((doneRequired / requiredSteps.length) * 100);
+
   return (
     <nav aria-label={m.onboarding.title} className="wizard-progress">
-      <p className="text-body-sm dim tabular">
-        {interpolate(m.onboarding.stepOf, { current: currentIndex + 1, total })}
-      </p>
+      <div className="wizard-progress-head">
+        <p className="wizard-pct tabular">
+          {interpolate(m.onboarding.progressPct, { pct })}
+        </p>
+        <p className="text-body-sm dim tabular" style={{ margin: 0 }}>
+          {interpolate(m.onboarding.stepOf, { current: currentIndex + 1, total })}
+        </p>
+      </div>
+
+      {/*
+        Dolgu cubugu. Noktalar zaten nerede oldugunu soyluyor ama
+        "ne kadar kaldi" sorusunu bir cubuk tek bakista cevapliyor.
+        Ekran okuyucu icin role="progressbar": gorsel cubuk tek
+        basina bir sey anlatmaz.
+      */}
+      <div
+        className="wizard-bar"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={m.onboarding.title}
+      >
+        <span style={{ width: `${pct}%` }} />
+      </div>
 
       <ol className="wizard-track">
         {ONBOARDING_STEPS.map((step, i) => {

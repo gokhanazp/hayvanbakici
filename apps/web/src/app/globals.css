@@ -6204,3 +6204,58 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 }
 /* "+ Hayvan ekle" ikincil bir eylem, dugme gibi degil bag gibi dursun */
 .book-page .btn-ghost { justify-content: flex-start; padding-inline: 0; color: var(--color-accent); font-weight: 700; }
+
+/* ============================================================
+   BAKICI BASVURUSU — Stitch "Become a Sitter" ekrani
+   ============================================================ */
+.sa-hero {
+  background: linear-gradient(180deg, var(--color-surface-sunken) 0%, var(--color-canvas) 60%);
+  padding-block: 2.5rem 3rem;
+}
+.sa-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: center; }
+@media (min-width: 900px) { .sa-hero-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+.sa-hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+.sa-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.375rem 1rem; border-radius: var(--radius-full);
+  background: var(--color-surface-high); color: var(--color-primary);
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.sa-h1 {
+  margin: 0; max-width: 42rem; font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.12;
+  letter-spacing: -0.02em; font-weight: 800; color: var(--color-ink);
+}
+.sa-lead { margin: 0; max-width: 36rem; font-size: 1.0625rem; line-height: 1.625rem; color: var(--color-ink-secondary); }
+.sa-cta { margin-top: 0.5rem; }
+/*
+  Fotograf 4/5'ti: genis ekranda sutun ~560 piksel oldugu icin 700
+  piksel yuksekliga cikiyor, yanindaki metni dikeyde ortalayinca
+  kocaman bir bosluk birakiyordu. Referansta kare blok daha basik.
+*/
+.sa-hero-art {
+  aspect-ratio: 4 / 3; max-height: 22rem;
+  border-radius: 1.5rem; overflow: hidden; background: var(--color-surface-high);
+  box-shadow: 0 20px 36px -6px rgba(83, 72, 62, 0.16);
+}
+.sa-hero-art :is(img, picture, span) { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/*
+  ILERLEME — tasarimda kendi karti icinde, ustte yuzde, altinda
+  duraklar. Once ciplak bir satirdi ve formun uzerinde kayboluyordu.
+*/
+.wizard-progress {
+  padding: 1rem 1.25rem; border-radius: 1rem;
+  background: var(--color-surface); box-shadow: 0 4px 16px -2px rgba(83, 72, 62, 0.07);
+}
+.wizard-progress-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.wizard-pct { margin: 0; font-size: 0.875rem; font-weight: 700; color: var(--color-ink); }
+.wizard-bar {
+  height: 0.5rem; border-radius: var(--radius-full);
+  background: var(--color-surface-highest); overflow: hidden;
+}
+.wizard-bar > span {
+  display: block; height: 100%; border-radius: var(--radius-full);
+  background: var(--color-accent);
+  transition: width var(--duration-standard) var(--easing-standard);
+}
