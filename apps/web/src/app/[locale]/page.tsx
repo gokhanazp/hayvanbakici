@@ -68,8 +68,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <>
       {/* ===================== KAHRAMAN ===================== */}
       <section className="st-hero">
-        <div className="st-blob st-blob-a" aria-hidden="true"></div>
-        <div className="st-blob st-blob-b" aria-hidden="true"></div>
+        {/*
+          Lekeler KENDI kutusunda kirpiliyor, bolumun kendisinde degil.
+          Bolumde `overflow: hidden` varken takvim paneli hero'nun alt
+          kenarinda kesiliyordu — acilan panel asagi tasiyor ve kirpilan
+          sey o oluyordu. Kirpma lekelere ozel bir katmana alindi.
+        */}
+        <div className="st-blobs" aria-hidden="true">
+          <div className="st-blob st-blob-a"></div>
+          <div className="st-blob st-blob-b"></div>
+        </div>
 
         <div className="st-wrap st-hero-inner">
           <div className="st-hero-grid">

@@ -4712,10 +4712,19 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 
 /* ---------------- Kahraman ---------------- */
 .st-hero {
-  position: relative; overflow: hidden;
+  /*
+    `overflow: hidden` BURADA DEGIL: tarih secici hero'nun alt kenarindan
+    tasiyor ve bolum kirpinca panelin alt yarisi kayboluyordu. Kirpma
+    yalnizca lekelerin kendi katmaninda (.st-blobs).
+
+    z-index 2: panel sonraki bolumun UZERINDE kalmali, yoksa kaynak
+    siralamasi geregi "Ne yapiyoruz" bolumu panelin uzerine biniyor.
+  */
+  position: relative; z-index: 2;
   background: linear-gradient(180deg, var(--color-surface-sunken) 0%, var(--color-canvas) 55%);
   padding-block: 2.5rem 4rem;
 }
+.st-blobs { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .st-blob { position: absolute; border-radius: 50%; filter: blur(64px); pointer-events: none; }
 .st-blob-a {
   inset-block-start: -6rem; inset-inline-start: -5rem; width: 24rem; height: 24rem;
