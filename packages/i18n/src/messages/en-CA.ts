@@ -80,11 +80,13 @@ export const enCA = {
     servicesEyebrow: 'What we do',
     servicesHeading: 'Care shaped around your animal',
     servicesLead: 'Four services today. You pick the dates, the sitter sets the price, and the total you see is the total you pay.',
+    serviceSitterCount: '{count} sitters here',
     serviceFromLabel: 'From',
     serviceNoPrice: 'Prices set by each sitter',
 
     sittersEyebrow: 'Taking bookings now',
     sittersHeading: 'Sitters in {city}',
+    sittersByHood: 'Browse by neighbourhood',
     sittersAllCount: 'See all {count}',
     sitterViewProfile: 'View profile',
     sitterReplies: 'Usually replies within {hours} h',

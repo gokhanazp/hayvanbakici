@@ -138,7 +138,18 @@ export async function favouriteSitters(
       s1.accepts_cats,
       (SELECT count(*)::int FROM bookings b
         WHERE b.sitter_id = st.user_id AND b.attribution IN ('repeat','sitter_referral')
-      ) AS repeat_clients
+      ) AS repeat_clients,
+      /* Kart alintisi — bkz. landing.ts, ayni kurallar. */
+      (SELECT r.body FROM reviews r
+        WHERE r.subject_id = st.user_id
+          AND r.direction = 'owner_to_sitter'
+          AND r.published_at IS NOT NULL
+          AND r.hidden_at IS NULL
+          AND r.body IS NOT NULL
+          AND length(r.body) >= 40
+        ORDER BY r.published_at DESC
+        LIMIT 1
+      ) AS quote
     FROM sitters st
     JOIN profiles pr ON pr.user_id = st.user_id
     JOIN neighbourhoods n ON n.id = pr.neighbourhood_id
@@ -168,6 +179,7 @@ export async function favouriteSitters(
       rating: Math.round(Number(row.rating) * 10) / 10,
       reviewCount: Number(row.review_count),
       repeatClients: Number(row.repeat_clients),
+      quote: (row.quote as string | null) ?? null,
       responseMinutes: Number(row.response_minutes),
       badgeLevel: Number(row.badge_level) as 0 | 1 | 2 | 3 | 4,
       hasYard: Boolean(row.has_yard),

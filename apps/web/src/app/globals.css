@@ -6242,3 +6242,38 @@ html:has(.nav-drawer[open]) { overflow: hidden; }
 .tb .hd-chip a:hover { opacity: 1; color: var(--color-on-primary-fixed); }
 .tb .hd-chip .is-on { opacity: 1; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .tb .hd-chip-sep { color: color-mix(in srgb, var(--color-on-primary-fixed) 45%, transparent); }
+
+/*
+  KARTTAKI YORUM ALINTISI.
+
+  Iki satirda kirpiliyor: kartlar bir izgarada yan yana duruyor ve
+  uzun bir yorum tek kartin yuksekligini ikiye katliyordu. Kirpma
+  GORSEL (line-clamp) — metnin tamami DOM'da kaliyor, ekran okuyucu
+  cumlenin yarisini okumuyor.
+*/
+.sitter-quote {
+  margin: 0;
+  font-size: 0.8125rem; line-height: 1.25rem; font-style: italic;
+  color: var(--color-ink-secondary);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sitter-card-row .sitter-quote { -webkit-line-clamp: 2; }
+
+/*
+  Hizmet kartindaki olcu hapi. Referanstaki ozellik haplarinin yerini
+  tutuyor ama soyledigi sey gercek: o sehirde o hizmeti veren bakici
+  sayisi.
+*/
+.st-svc-tag {
+  /* Kart bir flex sutunu: `justify-self` burada ISE YARAMAZ, hap tam
+     genislige yayiliyordu. Satir ici cip olmasi icin align-self. */
+  align-self: flex-start;
+  padding: 0.25rem 0.625rem; border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+  font-size: 0.6875rem; font-weight: 700; color: var(--color-ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Baslik saginda iki dugme — referanstaki gibi. */
+.st-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.625rem; }

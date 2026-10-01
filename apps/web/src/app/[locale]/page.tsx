@@ -185,6 +185,28 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   </span>
                   <h3 className="st-svc-name">{m.service[sv]}</h3>
                   <p className="st-svc-body">{m.serviceDescription[sv]}</p>
+
+                  {/*
+                    KARTTA BIR OLCU HAPI.
+
+                    Referansta her hizmet kartinin altinda iki ozellik
+                    hapi var ("GPS Map", "Poop & Pee Log", "Cage-Free"
+                    gibi). Onlarin hicbiri bizde YOK: olmayan bir
+                    urun ozelligini hap haline getirmek, kartin en
+                    gorunur yerine bir yalan koymak olurdu.
+
+                    Yerine o sehirde o hizmeti FIILEN veren bakici
+                    sayisi yaziliyor. Ayni sorgudan geliyor, her saat
+                    tazeleniyor ve bos sehirde hic cizilmiyor.
+                  */}
+                  {d && d.sitterCount > 0 && (
+                    <span className="st-svc-tag">
+                      {interpolate(m.home.serviceSitterCount, {
+                        count: numberFmt(d.sitterCount, locale),
+                      })}
+                    </span>
+                  )}
+
                   <span className="st-svc-foot">
                     {from > 0 ? (
                       <>
@@ -217,9 +239,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </span>
                 <h2 className="st-h2">{interpolate(m.home.sittersHeading, { city: cityLabel })}</h2>
               </div>
-              <Link href={`/${s}/${slug}/${serviceSlug('boarding', locale)}/`} className="st-pill-link">
-                {interpolate(m.home.sittersAllCount, { count: sitterCount })}
-              </Link>
+              {/*
+                Referansta bu basligin saginda IKI dugme var:
+                "Filter by Neighborhood" ve "View All 340+ Sitters".
+                Ikincisi bizde zaten vardi; ilki de gercek bir yere
+                gidiyor -- arama sayfasi, mahalle filtresi acik.
+              */}
+              <div className="st-head-actions">
+                <Link
+                  href={`/${s}/search/?location=${encodeURIComponent(cityLabel)}`}
+                  className="st-ghost-btn"
+                >
+                  {m.home.sittersByHood}
+                </Link>
+                <Link href={`/${s}/${slug}/${serviceSlug('boarding', locale)}/`} className="st-pill-link">
+                  {interpolate(m.home.sittersAllCount, { count: sitterCount })}
+                </Link>
+              </div>
             </div>
 
             <div className="st-grid-3">
@@ -267,6 +303,21 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     {sit.yardFenced && <span className="st-trait">{m.searchPage.yard}</span>}
                     {sit.acceptsCats && <span className="st-trait">{m.searchPage.cats}</span>}
                   </div>
+
+                  {/*
+                    GERCEK BIR YORUMDAN ALINTI. Referansta her kartta
+                    bir yorum cumlesi var; bizde kart yalnizca
+                    sayilardan olusuyordu. Alinti uydurulmuyor:
+                    yayinlanmis, gizlenmemis, bakiciya yazilmis en
+                    yeni yorumun govdesi. Yoksa satir hic cizilmiyor.
+                  */}
+                  {sit.quote && (
+                    <p className="sitter-quote">
+                      <span aria-hidden="true">&ldquo;</span>
+                      {sit.quote}
+                      <span aria-hidden="true">&rdquo;</span>
+                    </p>
+                  )}
 
                   <div className="st-sitter-foot">
                     <span className="st-sitter-verified">

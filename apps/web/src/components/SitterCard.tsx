@@ -167,6 +167,29 @@ export function SitterCard({
         )}
 
         {/*
+          GERCEK BIR YORUMDAN ALINTI.
+
+          Referans tasarimda her bakici kartinda bir yorum cumlesi
+          var; bizde kart yalnizca sayilardan olusuyordu. Sayi guven
+          VERIR, cumle guven KURAR.
+
+          Alinti uydurulmuyor: yayinlanmis, gizlenmemis ve bakiciya
+          yazilmis en yeni yorumun govdesi (bkz. landing.ts sorgusu).
+          Yorum yoksa satir HIC cizilmiyor -- yer tutucu bir cumle
+          koymak, olmayan bir musteriyi konusturmak olurdu.
+
+          Kirpma CSS'te (iki satir) degil burada degil: metnin tamami
+          DOM'da kaliyor ki ekran okuyucu yarim cumle okumasin.
+        */}
+        {sitter.quote && (
+          <p className="sitter-quote">
+            <span aria-hidden="true">&ldquo;</span>
+            {sitter.quote}
+            <span aria-hidden="true">&rdquo;</span>
+          </p>
+        )}
+
+        {/*
           SATIR KARTTA ALT SATIR. Tasarimin arama kartinda altta bir
           eylem satiri var ("Message" + "View Profile"). Mesaj dugmesi
           KONULMADI: mesajlasma giris ve acik bir rezervasyon istegi

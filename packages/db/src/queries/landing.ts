@@ -30,6 +30,18 @@ export interface SitterSummary {
   homeType: string;
   photoInitials: string;
   avatarUrl: string | null;
+  /*
+    KARTTAKI ALINTI — GERCEK BIR YORUMDAN.
+
+    Referans tasarimda her bakici kartinda bir yorum alintisi var.
+    Bizde kart yalnizca sayilar gosteriyordu; sayi guven verir ama
+    bir cumle guven KURAR.
+
+    Yalnizca YAYINLANMIS, gizlenmemis ve bakiciya yazilmis
+    (direction = 'owner_to_sitter') yorumlar. Yorum yoksa null ve
+    kart o satiri hic cizmiyor — yer tutucu bir cumle uydurmuyoruz.
+  */
+  quote: string | null;
 }
 
 export interface LandingData {
@@ -146,7 +158,17 @@ export async function getLandingData(
       COALESCE(st.home_type::text, 'house') AS home_type,
       (SELECT count(*)::int FROM bookings b
         WHERE b.sitter_id = st.user_id AND b.attribution IN ('repeat','sitter_referral')
-      ) AS repeat_clients
+      ) AS repeat_clients,
+      (SELECT r.body FROM reviews r
+        WHERE r.subject_id = st.user_id
+          AND r.direction = 'owner_to_sitter'
+          AND r.published_at IS NOT NULL
+          AND r.hidden_at IS NULL
+          AND r.body IS NOT NULL
+          AND length(r.body) >= 40
+        ORDER BY r.published_at DESC
+        LIMIT 1
+      ) AS quote
     FROM sitter_services ss
     JOIN sitters  st ON st.user_id = ss.sitter_id
     JOIN profiles pr ON pr.user_id = ss.sitter_id
@@ -195,6 +217,7 @@ export async function getLandingData(
         homeType: String(row.home_type),
         photoInitials: `${first[0] ?? 'A'}${initial}`,
         avatarUrl: (row.avatar_url as string | null) ?? null,
+        quote: (row.quote as string | null) ?? null,
       };
     },
   );

@@ -64,11 +64,13 @@ export const frCA = {
     servicesEyebrow: 'Ce que nous faisons',
     servicesHeading: 'Des soins adaptés à votre animal',
     servicesLead: 'Quatre services aujourd’hui. Vous choisissez les dates, le gardien fixe son prix, et le total affiché est le total payé.',
+    serviceSitterCount: '{count} gardiens ici',
     serviceFromLabel: 'À partir de',
     serviceNoPrice: 'Prix fixés par chaque gardien',
 
     sittersEyebrow: 'Disponibles maintenant',
     sittersHeading: 'Gardiens à {city}',
+    sittersByHood: 'Parcourir par quartier',
     sittersAllCount: 'Voir les {count}',
     sitterViewProfile: 'Voir le profil',
     sitterReplies: 'Répond habituellement en {hours} h',
