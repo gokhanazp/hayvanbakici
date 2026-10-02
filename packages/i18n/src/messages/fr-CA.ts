@@ -143,6 +143,7 @@ export const frCA = {
   searchPage: {
     /* ---- Stitch arama ekrani ---- */
     summaryService: 'Service',
+    locationShort: 'Ville ou code postal',
     summaryLocation: 'Lieu',
     summaryDates: 'Dates',
     summaryPet: 'Votre animal',
@@ -1075,6 +1076,7 @@ export const frCA = {
     ratingRow: '{stars} étoiles : {count}',
     aboutHeading: 'À propos de {name}',
     servicesHeading: 'Ce que {name} propose',
+    galleryCount: '{count} photos',
     galleryHeading: 'Photos du domicile du gardien',
     homeHeading: 'Le logement',
     reviewsHeading: 'Évaluations',

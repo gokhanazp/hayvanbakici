@@ -31,7 +31,7 @@ export default async function BookPage({
    * Sayfa zaten force-dynamic (kisiye ozel), searchParams okumak
    * onbellek acisindan bir sey kaybettirmiyor.
    */
-  searchParams: Promise<{ service?: string }>;
+  searchParams: Promise<{ service?: string; start?: string; end?: string }>;
 }) {
   const { locale: seg, city, slug } = await params;
   const locale = localeFromSegment(seg);
@@ -73,7 +73,17 @@ export default async function BookPage({
     dusuluyor — 404 vermek asiri sert: adres elle yazilmis ya da bakici
     o hizmeti kapatmis olabilir.
   */
-  const { service: wanted } = await searchParams;
+  const { service: wanted, start: wantedStart, end: wantedEnd } = await searchParams;
+
+  /*
+    PROFILDEN GELEN TARIHLER. Profildeki kutuda tarih secip "rezervasyon
+    iste" diyen kisi ayni tarihleri bir daha yazmak zorunda kalmasin.
+    Bicim dogrulanıyor: adres cubugundan gelen her sey supheli ve
+    gecersiz bir tarih formu bos acmaktan daha kotu olurdu.
+  */
+  const isDate = (v: string | undefined): v is string =>
+    typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
+    && !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime());
   const requested = wanted ? serviceFromSlug(wanted, locale) : null;
   const initialService: ServiceType =
     (requested && services.some((s) => s.serviceType === requested) ? requested : null)
@@ -113,6 +123,8 @@ export default async function BookPage({
             sitterBadgeLevel={sitter.badgeLevel}
             sitterNeighbourhood={locale === 'fr-CA' ? sitter.neighbourhoodFr : sitter.neighbourhoodEn}
             locale={locale}
+            defaultStart={isDate(wantedStart) ? wantedStart : undefined}
+            defaultEnd={isDate(wantedEnd) ? wantedEnd : undefined}
             sitterId={sitter.userId}
             sitterFirstName={sitter.firstName}
             services={services}

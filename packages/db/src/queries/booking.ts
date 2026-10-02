@@ -593,18 +593,36 @@ export async function createPet(db: Database, pet: PetDraft): Promise<string> {
   });
 }
 
+/*
+  REZERVASYON EKRANINDAKI HAYVAN KARTI ICIN.
+
+  Once yalnizca ad, tur ve kilo cekiliyordu ve ekranda tek satir
+  yaziyordu. Irk, dogum tarihi, fotograf ve mizac notu ZATEN kayitli
+  (sahip bunlari hayvanini eklerken giriyor) ama hicbir ekranda
+  gorunmuyordu — bakici de talebi degerlendirirken goremiyordu.
+*/
 export async function listPets(db: Database, ownerId: string): Promise<
-  Array<{ id: string; name: string; species: string; weightKg: number | null }>
+  Array<{
+    id: string; name: string; species: string; weightKg: number | null;
+    breed: string | null; birthDate: string | null;
+    photoUrl: string | null; temperamentNotes: string | null;
+  }>
 > {
   return withDbErrors(async () => {
     const rows = await db.execute(sql`
-      SELECT id::text, name, species::text, weight_kg FROM pets
+      SELECT id::text, name, species::text, weight_kg, breed,
+             birth_date::text AS birth_date, photo_url, temperament_notes
+      FROM pets
       WHERE owner_id = ${ownerId} AND deleted_at IS NULL
       ORDER BY created_at ASC
     `);
     return (rows as unknown as Array<Record<string, unknown>>).map((p) => ({
       id: String(p.id), name: String(p.name), species: String(p.species),
       weightKg: p.weight_kg === null ? null : Number(p.weight_kg),
+      breed: (p.breed as string | null) ?? null,
+      birthDate: (p.birth_date as string | null) ?? null,
+      photoUrl: (p.photo_url as string | null) ?? null,
+      temperamentNotes: (p.temperament_notes as string | null) ?? null,
     }));
   });
 }

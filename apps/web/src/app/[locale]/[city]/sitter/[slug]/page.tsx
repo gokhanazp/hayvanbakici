@@ -15,6 +15,7 @@ import {
 } from '@/components/VerificationBadge';
 import { isDemo } from '@/lib/demo';
 import { Avatar } from '@/components/Avatar';
+import { DateRangeField } from '@/components/ui/DateRangeField';
 import { SitterGallery } from '@/components/SitterGallery';
 import { FavouriteScope, FavouriteHeart } from '@/components/FavouriteScope';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
@@ -957,6 +958,29 @@ export default async function SitterPage({
                   </select>
                   <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor"
                     strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+                </div>
+
+                {/*
+                  TARIHLER BURADA DA SORULUYOR.
+
+                  Referansta profildeki kutuda tarih alani var; bizde
+                  yoktu ve kullanici tarihleri ancak bir sonraki
+                  sayfada giriyordu. Oysa "bu bakici o tarihte musait
+                  mi" sorusu rezervasyona gecmeden once sorulan soru.
+
+                  Alanlar GET formunun parcasi: secilen tarihler
+                  rezervasyon sayfasina parametre olarak gidiyor ve
+                  form orada DOLU aciliyor — iki kez yazdirmiyoruz.
+                  JavaScript'siz de calisiyor (iki native date alani).
+                */}
+                <div className="sp-book-dates">
+                  <span className="sp-book-label">{m.booking.dates}</span>
+                  <DateRangeField
+                    locale={locale}
+                    startName="start"
+                    endName="end"
+                    label={m.booking.dates}
+                  />
                 </div>
 
                 {/*

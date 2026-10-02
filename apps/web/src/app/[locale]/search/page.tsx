@@ -9,7 +9,8 @@ import {
   SERVICES, servicesForPhase, PET_SIZE_STEPS, petSizeForKg,
   type ServiceType, type PetSizeKey,
 } from '@havre/core';
-import { SearchBar } from '@/components/SearchBar';
+import { PriceRange } from '@/components/search/PriceRange';
+import { DateRangeField } from '@/components/ui/DateRangeField';
 import { SEARCH_PAGE_SIZE } from '@havre/db';
 import { SitterCard } from '@/components/SitterCard';
 import { Sym } from '@/components/Sym';
@@ -48,9 +49,11 @@ const one = (v: string | string[] | undefined): string =>
 
 /** "15" -> 15000 m. Izinli degerler disi girdi varsayilana duser. */
 const RADIUS_KM = [5, 10, 15, 30, 50] as const;
+/** Varsayilan yaricap — ust cubuk bunu gizli alanla tasimasin diye. */
+const DEFAULT_RADIUS_KM = 15;
 const readRadius = (v: string): number => {
   const n = Number(v);
-  return (RADIUS_KM as readonly number[]).includes(n) ? n : 15;
+  return (RADIUS_KM as readonly number[]).includes(n) ? n : DEFAULT_RADIUS_KM;
 };
 
 /**
@@ -127,7 +130,12 @@ export default async function SearchPage({
       ...(start && end ? { startDate: start, endDate: end } : {}),
       ...(needsCats ? { needsCats: true } : {}),
       ...(requireFencedYard ? { requireFencedYard: true } : {}),
-      ...(maxPrice > 0 ? { maxPriceCents: maxPrice * 100 } : {}),
+      /*
+        Kaydiracin SONU "sinir yok" demek. Kullanici kolu sonuna kadar
+        ittiginde amaci 150 dolarlik bir tavan koymak degil, tavani
+        kaldirmak.
+      */
+      ...(maxPrice > 0 && maxPrice < PRICE_MAX ? { maxPriceCents: maxPrice * 100 } : {}),
       ...(petWeightKg > 0 ? { petWeightKg } : {}),
       ...(minBadge > 0 ? { minBadgeLevel: minBadge } : {}),
       sort,
@@ -202,7 +210,7 @@ export default async function SearchPage({
     if (start) q.set('start', start);
     if (end) q.set('end', end);
     if (radiusKm !== 15) q.set('radius', String(radiusKm));
-    if (maxPrice > 0) q.set('price', String(maxPrice));
+    if (maxPrice > 0 && maxPrice < PRICE_MAX) q.set('price', String(maxPrice));
     if (petWeightKg > 0) q.set('weight', String(petWeightKg));
     if (needsCats) q.set('cats', '1');
     if (requireFencedYard) q.set('yard', '1');
@@ -259,48 +267,112 @@ export default async function SearchPage({
 
   return (
     <>
-      {/* ================= UST OZET CUBUGU ================= */}
+      {/* ================= UST ARAMA CUBUGU ================= */}
+      {/*
+        UST CUBUK ARAMANIN KENDISI.
+
+        Once burada bir OZET vardi (okunur, tiklanmaz dort kutu) ve
+        sagdaki dugme ALTTA ikinci bir arama kutusu aciyordu — eski
+        tasarim dilindeki `SearchBar`. Yani ekranda ayni anda iki
+        arama alani duruyordu: ustteki calismiyor, alttaki calisiyordu.
+
+        Referansta boyle bir ikilik yok: ustteki dort kutunun KENDISI
+        alan ve sagdaki dugme gonderiyor. Simdi bizde de oyle.
+
+        Hala tek bir GET formu, JavaScript'siz calisiyor. Soldaki
+        filtre sutununun degerleri gizli alanlarla TASINIYOR: aramayi
+        degistiren kisi fiyat ya da yaricap filtresini sessizce
+        kaybetmesin.
+      */}
       <section className="sr-top">
         <div className="st-wrap">
-          <div className="sr-summary">
+          <form method="get" action={`/${seg}/search/`} className="sr-summary">
+            {/* Ince filtreler korunuyor — bkz. yukaridaki not. */}
+            {radiusKm !== DEFAULT_RADIUS_KM && <input type="hidden" name="radius" value={radiusKm} />}
+            {maxPrice > 0 && maxPrice < PRICE_MAX && <input type="hidden" name="price" value={maxPrice} />}
+            {requireFencedYard && <input type="hidden" name="yard" value="1" />}
+            {needsCats && <input type="hidden" name="cats" value="1" />}
+            {minBadge > 0 && <input type="hidden" name="badge" value={minBadge} />}
+            {sort !== 'best' && <input type="hidden" name="sort" value={sort} />}
+
             <div className="sr-summary-grid">
-              {summary.map((item) => (
-                <div key={item.key} className="sr-sum">
-                  <span className={`sr-sum-ic sr-sum-${item.tone}`} aria-hidden="true">
-                    <Sym name={item.sym} size={20} />
-                  </span>
-                  <span className="sr-sum-text">
-                    <span className="sr-sum-label">{item.label}</span>
-                    <span className="sr-sum-value">{item.value}</span>
-                  </span>
-                </div>
-              ))}
+              <label className="sr-sum">
+                <span className="sr-sum-ic sr-sum-sage" aria-hidden="true">
+                  <Sym name={SERVICE_SYM[service]} size={20} />
+                </span>
+                <span className="sr-sum-text">
+                  <span className="sr-sum-label">{t.summaryService}</span>
+                  <select name="service" defaultValue={serviceSlug(service, locale)} className="sr-sum-field">
+                    {LIVE_SERVICES.map((sv) => (
+                      <option key={sv} value={serviceSlug(sv, locale)}>{m.service[sv]}</option>
+                    ))}
+                  </select>
+                </span>
+              </label>
+
+              <label className="sr-sum">
+                <span className="sr-sum-ic sr-sum-coral" aria-hidden="true">
+                  <Sym name="location" size={20} />
+                </span>
+                <span className="sr-sum-text">
+                  <span className="sr-sum-label">{t.summaryLocation}</span>
+                  {/*
+                    Yer tutucu KISA hali: tam etiket ("Mahalle, sehir
+                    veya posta kodu") bu dar kutuya sigmiyor ve nokta
+                    nokta kesiliyordu.
+                  */}
+                  <input
+                    type="text"
+                    name="location"
+                    defaultValue={location}
+                    placeholder={t.locationShort}
+                    className="sr-sum-field"
+                  />
+                </span>
+              </label>
+
+              <div className="sr-sum">
+                <span className="sr-sum-ic sr-sum-gold" aria-hidden="true">
+                  <Sym name="calendar" size={20} />
+                </span>
+                <span className="sr-sum-text">
+                  <span className="sr-sum-label">{t.summaryDates}</span>
+                  <DateRangeField
+                    locale={locale}
+                    startName="start"
+                    endName="end"
+                    label={t.summaryDates}
+                    defaultStart={start}
+                    defaultEnd={end}
+                  />
+                </span>
+              </div>
+
+              <label className="sr-sum">
+                <span className="sr-sum-ic sr-sum-sage" aria-hidden="true">
+                  <Sym name="rabbit" size={20} />
+                </span>
+                <span className="sr-sum-text">
+                  <span className="sr-sum-label">{t.summaryPet}</span>
+                  <select name="weight" defaultValue={petWeightKg > 0 ? String(petWeightKg) : ''} className="sr-sum-field">
+                    <option value="">{t.summaryAnyPet}</option>
+                    {PET_SIZE_STEPS.map((step) => (
+                      <option key={step.key} value={String(Math.round((step.minKg + step.maxKg) / 2))}>
+                        {m.onboarding[`services.size.${step.key}` as keyof typeof m.onboarding] as string}
+                        {' · '}
+                        {sizeLabel(m, step.key, step)}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              </label>
             </div>
 
-            {/*
-              Tasarimda ozet kutulari tiklanabilir ve sagda "Update
-              Filters" dugmesi var; neyi actigi cizilmemis. Bizde aciklik
-              olmali: dugme arama kutusunu aciyor ve o kutu zaten var
-              (SearchBar). <details>, yani JavaScript'siz calisiyor.
-            */}
-            <details className="sr-edit">
-              <summary className="sr-edit-btn">
-                <Sym name="tune" size={18} />
-                {t.editSearch}
-              </summary>
-              <div className="sr-edit-body">
-                <SearchBar
-                  locale={locale}
-                  defaults={{
-                    service: serviceSlug(service, locale),
-                    location,
-                    start,
-                    end,
-                  }}
-                />
-              </div>
-            </details>
-          </div>
+            <button type="submit" className="sr-edit-btn">
+              <Sym name="search" size={18} />
+              {m.search.submit}
+            </button>
+          </form>
         </div>
       </section>
 
@@ -735,17 +807,16 @@ function Filters({
           </div>
         </fieldset>
 
-        <fieldset className="sr-fset">
-          <legend className="sr-leg">{interpolate(t.priceHeading, { unit })}</legend>
-          <div className="sr-pills">
-            {[0, 30, 45, 60, 80, 120].map((v) => (
-              <label key={v} className="sr-pill">
-                <input type="radio" name="price" value={String(v)} defaultChecked={maxPrice === v} />
-                <span>{v === 0 ? t.anyPrice : `≤ ${money(v * 100, locale)}`}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <PriceRange
+          locale={locale}
+          value={maxPrice}
+          min={PRICE_MIN}
+          max={PRICE_MAX}
+          step={5}
+          unit={unit}
+          label={interpolate(t.priceHeading, { unit })}
+          anyLabel={t.anyPrice}
+        />
 
         {/*
           BOYUT HAPLARI KILO GONDERIYOR. Arka uc kiloyu kademeye cevirip
@@ -830,6 +901,13 @@ function Filters({
     </form>
   );
 }
+
+/*
+  FIYAT KAYDIRACININ UCLARI. Alt uc gercekci bir taban (bu fiyatin
+  altinda ilan yok); ust uc "ve ustu" demek ve filtreyi kaldiriyor.
+*/
+const PRICE_MIN = 20;
+const PRICE_MAX = 150;
 
 /** V1 hizmetleri — filtre tepsisindeki hap grubu */
 const LIVE_SERVICES = servicesForPhase('v1');

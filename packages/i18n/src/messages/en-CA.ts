@@ -173,6 +173,7 @@ export const enCA = {
   searchPage: {
     /* ---- Stitch arama ekrani ---- */
     summaryService: 'Service',
+    locationShort: 'City or postal code',
     summaryLocation: 'Location',
     summaryDates: 'Dates',
     summaryPet: 'Your pet',
@@ -1213,6 +1214,7 @@ export const enCA = {
     ratingRow: '{stars} stars: {count}',
     aboutHeading: 'About {name}',
     servicesHeading: 'What {name} offers',
+    galleryCount: '{count} photos',
     galleryHeading: 'Photos of the sitter\u2019s home',
     homeHeading: 'The home',
     reviewsHeading: 'Reviews',

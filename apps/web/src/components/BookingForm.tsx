@@ -6,7 +6,7 @@ import {
   SERVICES, calculateQuote, holidayUnitsBetween,
   type CommissionConfig, type ProvinceCode, type ServiceType,
 } from '@havre/core';
-import { petLabel } from './PetLine';
+import { petDetail } from './PetLine';
 import { Avatar } from '@/components/Avatar';
 import { VerificationBadge, ShieldIcon } from '@/components/VerificationBadge';
 import { Select } from '@/components/ui/Select';
@@ -124,10 +124,17 @@ function QuoteTable({
 export function BookingForm({
   locale, sitterId, sitterFirstName, services, initialService, pets, province, action,
   commission, sitterAvatarUrl, sitterInitials, sitterLastInitial, sitterBadgeLevel,
-  sitterNeighbourhood,
+  sitterNeighbourhood, defaultStart, defaultEnd,
 }: {
   locale: Locale;
   sitterId: string;
+  /*
+    PROFILDEKI KUTUDA SECILEN TARIHLER. Kullanici orada tarih secip
+    geldiyse formu DOLU aciyoruz; ayni seyi iki kez yazdirmak, akisi
+    terk ettiren seylerden biri.
+  */
+  defaultStart?: string | undefined;
+  defaultEnd?: string | undefined;
   sitterFirstName: string;
   services: BookableService[];
   /**
@@ -138,7 +145,15 @@ export function BookingForm({
    * acmak demekti.
    */
   initialService?: ServiceType | undefined;
-  pets: Array<{ id: string; name: string; species: string; weightKg: number | null }>;
+  /*
+    Kart icin daha genis bir bicim: irk, dogum tarihi, fotograf ve
+    mizac notu zaten kayitli ama hicbir ekranda gorunmuyordu.
+  */
+  pets: Array<{
+    id: string; name: string; species: string; weightKg: number | null;
+    breed?: string | null; birthDate?: string | null;
+    photoUrl?: string | null; temperamentNotes?: string | null;
+  }>;
   province: string;
   /**
    * O AN GECERLI komisyon yapilandirmasi — sunucudan geliyor.
@@ -164,8 +179,8 @@ export function BookingForm({
   const [serviceType, setServiceType] = useState<ServiceType>(
     initialService ?? services[0]?.serviceType ?? 'boarding',
   );
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
+  const [start, setStart] = useState(defaultStart ?? '');
+  const [end, setEnd] = useState(defaultEnd ?? '');
   const [petIds, setPetIds] = useState<string[]>(pets[0] ? [pets[0].id] : []);
   const [addingPet, setAddingPet] = useState(pets.length === 0);
 
@@ -265,6 +280,8 @@ export function BookingForm({
         <span className="field-label-static">{m.booking.dates}</span>
         <DateRangeField
           locale={locale} startName="start" endName="end" label={m.booking.dates}
+          defaultStart={defaultStart}
+          defaultEnd={defaultEnd}
           onChange={(r) => { setStart(r.start ?? ''); setEnd(r.end ?? ''); }}
         />
       </div>
@@ -272,17 +289,47 @@ export function BookingForm({
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="text-h4 step-group-title">{m.booking.pets}</legend>
         <div className="stack">
-          {pets.map((p) => (
-            <label key={p.id} className="checkbox-row">
-              <input
-                type="checkbox" name="petId" value={p.id}
-                checked={petIds.includes(p.id)}
-                onChange={(e) => setPetIds((cur) =>
-                  e.target.checked ? [...cur, p.id] : cur.filter((x) => x !== p.id))}
-              />
-              <span>{petLabel(p, locale)}</span>
-            </label>
-          ))}
+          {/*
+            HAYVAN SATIRI KART OLDU.
+
+            Referansta secilen hayvan bir KART: fotograf, ad, irk, yas
+            ve mizac etiketleri. Bizde tek satirlik bir onay kutusu
+            vardi ("Max · Kopek · 12 kg") — oysa bu bilgilerin HEPSI
+            zaten kayitli (irk, dogum tarihi, fotograf, mizac notu) ve
+            hicbir ekranda gorunmuyordu.
+
+            Referanstaki asi kaydi, mikrocip numarasi ve "veteriner
+            kaydindan senkronize edildi" satiri ALINMADI: asi tarihi
+            disinda hicbiri bizde yok, olani da sahibin kendi girdigi
+            veri — "dogrulanmis veteriner kaydi" demek yanlis olurdu.
+          */}
+          {pets.map((p) => {
+            const on = petIds.includes(p.id);
+            return (
+              <label key={p.id} className={`bk-pet${on ? ' is-on' : ''}`}>
+                <input
+                  type="checkbox" name="petId" value={p.id}
+                  checked={on}
+                  onChange={(e) => setPetIds((cur) =>
+                    e.target.checked ? [...cur, p.id] : cur.filter((x) => x !== p.id))}
+                />
+                <Avatar src={p.photoUrl} initials={p.name.slice(0, 2).toUpperCase()} size={44} />
+                <span className="bk-pet-text">
+                  <span className="bk-pet-name">{p.name}</span>
+                  <span className="bk-pet-sub">{petDetail(p, locale)}</span>
+                  {p.temperamentNotes && (
+                    <span className="bk-pet-note">{p.temperamentNotes}</span>
+                  )}
+                </span>
+                <span className="bk-pet-tick" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                    strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m3 8.4 3.2 3.2L13 4.8" />
+                  </svg>
+                </span>
+              </label>
+            );
+          })}
 
           {!addingPet && (
             <button type="button" className="btn btn-ghost" onClick={() => setAddingPet(true)}>
