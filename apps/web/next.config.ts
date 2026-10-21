@@ -84,6 +84,28 @@ const config: NextConfig = {
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           // Law 25 / PIPEDA: gereksiz tarayici API erisimi kapali
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), payment=(self)' },
+          /*
+            DEMO YAYININDA UCUNCU KILIT.
+
+            Zaten iki tane var: robots.txt her seyi yasakliyor ve her
+            sayfa <meta robots="noindex"> gonderiyor. Bu baslik
+            ucuncusu ve digerlerinin ulasamadigi yere ulasiyor:
+
+            - meta etiketi YALNIZCA HTML'de calisir. Sitemap, JSON
+              cevaplari, PDF ya da gorsel indekslenebilir; baslik
+              HER cevaba biniyor.
+            - robots.txt taramayi engeller, INDEKSLEMEYI degil.
+              Baska bir siteden baglanti verilen bir adres,
+              taranmadan da aramada cikabilir ("bu sayfanin aciklamasi
+              yok" diye). noindex bunu kesin olarak keser.
+
+            DEMO_MODE kapandiginda baslik kendiliginde kalkiyor; elle
+            silinmesi gereken bir sey birakmiyoruz, cunku yayin gunu
+            unutulacak ilk sey budur.
+          */
+          ...(process.env.DEMO_MODE === '1'
+            ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }]
+            : []),
         ],
       },
     ];
